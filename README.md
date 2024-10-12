@@ -6,5 +6,5 @@
 
 <br />
 
-<b>Project Moderator:</b><br />
+<b>Project Advisor:</b><br />
 • Eli Engelberg
