@@ -1,0 +1,22 @@
+{
+  "name": "final-project-se",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "<b>Developers:</b><br />\r   • <a href=\"https://github.com/Sparkiee\">@Sparkieee</a> - Maxim Shteingard<br />\r   • <a href=\"https://github.com/Adam19255\">@Adam19255</a> - Adam Shay",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon backend/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "mongoose": "^8.7.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
