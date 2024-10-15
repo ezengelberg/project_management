@@ -21,6 +21,10 @@ app.use(bodyParser.json());
 
 app.use("/api/user", userRoute);
 
+app.get("/", (req, res) => {
+  res.send("Hello World! Nothing to see here yet!");
+});
+
 app.listen(server_port, () => {
   connectDB();
   console.log(`Server is running at http://localhost:${server_port}`);

@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post("/register", async (req, res) => {
   try {
-    
+
     const { name, email, id, password, confirmPassword, isStudent, isAdvisor, isCoordinator } = req.body;
     const userByEmail = await User.findOne({ email: email });
     if (userByEmail) {
@@ -28,7 +28,7 @@ router.post("/register", async (req, res) => {
       email,
       id,
       password: hashedPassword,
-      isStudent: true, // set default for now
+      // isStudent: true, // set default for now
       isAdvisor: false, // set default for now
       isCoordinator: false // set default for now
     });
@@ -52,7 +52,7 @@ router.post("/login", async (req, res) => {
       return res.status(401).send("User or password do not match");
     }
     if (await bcrypt.compare(password, user.password)) {
-      res.send("Login successful");
+      res.status(201).send("Login successful");
     } else {
       return res.status(401).send("User or password do not match");
     }
