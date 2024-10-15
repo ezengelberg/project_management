@@ -7,13 +7,18 @@ const router = express.Router();
 
 router.post("/register", async (req, res) => {
   try {
+    
     const { name, email, id, password, confirmPassword, isStudent, isAdvisor, isCoordinator } = req.body;
-    const user = await User.findOne({
-      email: email
-    });
-    if (user) {
-      return res.status(400).send("User already exists");
+    const userByEmail = await User.findOne({ email: email });
+    if (userByEmail) {
+      return res.status(400).send("Email already in use");
     }
+
+    const userById = await User.findOne({ id: id });
+    if (userById) {
+      return res.status(400).send("ID already in use");
+    }
+
     if (password !== confirmPassword) {
       return res.status(400).send("Passwords do not match");
     }
