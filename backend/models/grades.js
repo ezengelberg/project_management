@@ -9,9 +9,9 @@ const gradeSchema = new mongoose.Schema(
     comment: { type: String, required: false, default: "" }, // the comment the judge gave
     overridden: {
       type: {
-        by: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: null }, // the coordinator that overriden the grade
-        comment: { type: String, required: false, default: "" }, // the comment the coordinator
-        newGrade: { type: Number, required: false, default: null } // the new grade the coordinator
+        by: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // the coordinator that overriden the grade
+        comment: { type: String, required: true}, // the comment the coordinator
+        newGrade: { type: Number, required: true } // the new grade the coordinator
       },
       required: false
     } // if the grade was overriden by the coordinator
