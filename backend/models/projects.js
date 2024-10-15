@@ -8,9 +8,10 @@ const projectSchema = new mongoose.Schema({
   suitableFor: { type: String, required: true }, // solo / duo / both
   type: { type: String, required: true }, // research / development / hitech / other
   status: { type: String, required: true, default: "new" }, // New / Continues
-  isApproved : { type: Boolean, required: true, default: false }, // is it approved by the coordinator
+  isApproved: { type: Boolean, required: true, default: false }, // is it approved by the coordinator
   advisor: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }],
-  students: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, default: [] }]
+  students: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, default: [] }],
+  grades: [{ type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: [] }]
 });
 
 const projectModel = mongoose.model("Project", projectSchema);
