@@ -14,8 +14,7 @@ dotenv.config();
 const app = express();
 const server_port = process.env.SERVER_PORT || 3000;
 
-
-// 
+// Allow cross-origin requests
 app.use(cors());
 
 // Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
