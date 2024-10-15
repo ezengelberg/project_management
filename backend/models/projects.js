@@ -4,7 +4,7 @@ const projectSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   year: { type: Number, required: true }, // year the student is doing the project לאיזה שנתון שייך הפרוייקט
-  isAvilable: { type: Boolean, required: true, default: false }, // is it taken or not yet
+  isAvailable: { type: Boolean, required: true, default: false }, // is it taken or not yet
   suitableFor: { type: String, required: true }, // solo / duo / both
   type: { type: String, required: true }, // research / development / hitech / other
   status: { type: String, required: true, default: "new" }, // New / Continues
