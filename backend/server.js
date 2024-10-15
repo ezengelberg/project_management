@@ -5,7 +5,6 @@ import bodyParser from "body-parser";
 
 import { connectDB } from "./config/db.js";
 
-import User from "./models/users.js";
 import userRoute from "./routes/userRoute.js";
 
 // Load environment variables and allows to use .env file
