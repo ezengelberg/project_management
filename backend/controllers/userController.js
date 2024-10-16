@@ -1,5 +1,6 @@
 import User from "../models/users.js";
 import bcrypt from "bcrypt";
+import passport from "passport";
 
 export const registerUser = async (req, res) => {
   try {
@@ -35,21 +36,25 @@ export const registerUser = async (req, res) => {
   }
 };
 
-export const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({
-      email: email
+export const loginUser = (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) return next(err);
+    console.log("not here");
+    if (!user) return res.status(401).send(info.message); // Send error from strategy
+    console.log("not here2");
+
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+      return res.status(200).send("Login successful");
     });
-    if (!user) {
-      return res.status(401).send("User or password do not match");
+  })(req, res, next);
+};
+
+export const logoutUser = (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err); // Pass the error to the error-handling middleware
     }
-    if (await bcrypt.compare(password, user.password)) {
-      res.status(201).send("Login successful");
-    } else {
-      return res.status(401).send("User or password do not match");
-    }
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
+    res.status(200).send("Logged out successfully");
+  });
 };

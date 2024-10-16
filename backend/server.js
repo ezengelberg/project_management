@@ -3,6 +3,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 import bodyParser from "body-parser";
 
+import session from "express-session";
+import passport from "./config/passport.js";
+
 import { connectDB } from "./config/db.js";
 
 import userRoute from "./routes/userRoute.js";
@@ -12,6 +15,16 @@ dotenv.config();
 
 const app = express();
 const server_port = process.env.SERVER_PORT || 3000;
+
+
+app.use(session({
+  secret: process.env.SESSION_SECRET, // Set a strong secret in .env
+  resave: false,
+  saveUninitialized: false,
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Allow cross-origin requests
 app.use(cors());

@@ -10,7 +10,7 @@ const gradeSchema = new mongoose.Schema(
     overridden: {
       type: {
         by: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // the coordinator that overriden the grade
-        comment: { type: String, required: true}, // the comment the coordinator
+        comment: { type: String, required: true }, // the comment the coordinator
         newGrade: { type: Number, required: true } // the new grade the coordinator
       },
       required: false
