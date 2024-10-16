@@ -1,5 +1,5 @@
 import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as LocalStrategy } from "passport-local"; // Import Strategy as LocalStrategy for usernameField and passwordField
 import bcrypt from "bcrypt";
 import User from "../models/users.js";
 
@@ -24,7 +24,7 @@ passport.use(new LocalStrategy(
 
 // Serialize user to store in session
 passport.serializeUser((user, done) => {
-  done(null, user._id);
+  done(null, user._id); // Store user id in session
 });
 
 // Deserialize user from session
