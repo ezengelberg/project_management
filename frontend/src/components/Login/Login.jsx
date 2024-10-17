@@ -11,11 +11,14 @@ const Login = () => {
     console.log("Login form submitted");
 
     try {
-      const result = await axios.post("http://localhost:5000/api/user/login", {
-        email,
-        password,
-      });
-      console.log(result);
+      const result = await axios.post(
+        "http://localhost:5000/api/user/login",
+        {
+          email,
+          password
+        },
+        { withCredentials: true }
+      );
     } catch (error) {
       // Log the actual error message
       console.error("Error occurred:", error.response ? error.response.data : error.message);

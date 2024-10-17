@@ -16,18 +16,28 @@ dotenv.config();
 const app = express();
 const server_port = process.env.SERVER_PORT || 3000;
 
-
-app.use(session({
-  secret: process.env.SESSION_SECRET, // Set a strong secret in .env
-  resave: false,
-  saveUninitialized: false,
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET, // Set a strong secret in .env
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
+      secure: false // Set to true if using HTTPS
+    }
+  })
+);
 
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Allow cross-origin requests
-app.use(cors());
+const corsOptions = {
+  origin: "http://localhost:3000", // Allow only the front-end's origin
+  credentials: true // Allow cookies and credentials
+};
+
+app.use(cors(corsOptions));
 
 // Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
 app.use(bodyParser.json());
