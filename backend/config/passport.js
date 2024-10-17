@@ -3,24 +3,26 @@ import { Strategy as LocalStrategy } from "passport-local"; // Import Strategy a
 import bcrypt from "bcrypt";
 import User from "../models/users.js";
 
-passport.use(new LocalStrategy(
-  { usernameField: 'email' }, // Specify that we're using 'email' instead of 'username'
-  async (email, password, done) => {
-    try {
-      const user = await User.findOne({ email: email });
-      if (!user) {
-        return done(null, false, { message: 'Incorrect email.' });
+passport.use(
+  new LocalStrategy(
+    { usernameField: "email" }, // Specify that we're using 'email' instead of 'username'
+    async (email, password, done) => {
+      try {
+        const user = await User.findOne({ email: email });
+        if (!user) {
+          return done(null, false, { message: "Incorrect email or password." });
+        }
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+          return done(null, false, { message: "Incorrect email or password." });
+        }
+        return done(null, user);
+      } catch (err) {
+        return done(err);
       }
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return done(null, false, { message: 'Incorrect password.' });
-      }
-      return done(null, user);
-    } catch (err) {
-      return done(err);
     }
-  }
-));
+  )
+);
 
 // Serialize user to store in session
 passport.serializeUser((user, done) => {

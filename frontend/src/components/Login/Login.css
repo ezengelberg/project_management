@@ -1,0 +1,24 @@
+.login {
+  position: relative;
+  background-image: url(../../../assets/bg-01.jpg);
+  background-size: cover;
+  min-height: 100vh;
+}
+
+.login form {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: white;
+}
+
+.login-form-group {
+  display: flex;
+  flex-direction: column;
+  margin: 1rem;
+}
