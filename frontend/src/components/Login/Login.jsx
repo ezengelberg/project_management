@@ -18,9 +18,8 @@ const Login = () => {
           email,
           password,
         },
-        { withCredentials: true } // Send cookies along with the request
+        { withCredentials: true }
       );
-      console.log("Response:", result.data);
     } catch (error) {
       // Log the actual error message
       console.error("Error occurred:", error.response ? error.response.data : error.message);
