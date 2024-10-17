@@ -8,10 +8,15 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);
 
-// protected route example
-router.get("/profile", ensureAuthenticated, (req, res) => {
-  console.log("im here");
-  res.send("Profile page");
+router.get("/check-auth", (req, res) => {
+  console.log("Checking authentication");
+  if (req.isAuthenticated()) {
+    console.log("User is authenticated");
+    res.json({ isAuthenticated: true });
+  } else {
+    console.log("User is not authenticated");
+    res.json({ isAuthenticated: false });
+  }
 });
 
 export default router;

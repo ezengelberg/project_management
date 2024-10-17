@@ -3,9 +3,11 @@ export const ensureAuthenticated = (req, res, next) => {
     console.log("User is authenticated");
     return next();
   } else {
+    console.log("User is not authenticated");
     res.status(401).send("Unauthorized: Please log in");
   }
 };
+
 
 export const isCoordinator = (req, res, next) => {
   if (req.user.isCoordinator) {

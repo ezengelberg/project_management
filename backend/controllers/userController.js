@@ -47,6 +47,7 @@ export const loginUser = (req, res, next) => {
 
     req.login(user, (err) => {
       if (err) return next(err);
+      console.log("Login successful");
       return res.status(200).send("Login successful");
     });
   })(req, res, next);
