@@ -10,7 +10,6 @@ router.post("/logout", logoutUser);
 
 // protected route example
 router.get("/profile", ensureAuthenticated, (req, res) => {
-  console.log("im here");
   res.send("Profile page");
 });
 
