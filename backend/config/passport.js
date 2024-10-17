@@ -10,11 +10,11 @@ passport.use(
       try {
         const user = await User.findOne({ email: email });
         if (!user) {
-          return done(null, false, { message: "Incorrect email or password." });
+          return done(null, false, { message: "אימייל או סיסמה לא נכונים." });
         }
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-          return done(null, false, { message: "Incorrect email or password." });
+          return done(null, false, { message: "אימייל או סיסמה לא נכונים." });
         }
         return done(null, user);
       } catch (err) {
