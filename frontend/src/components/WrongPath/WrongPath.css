@@ -52,3 +52,26 @@
 .return-to-existance:hover {
   background-color: #50699190;
 }
+
+@media (max-width: 640px) {
+  .wrong-path {
+    /* background-color: red; */
+    text-align: center;
+  }
+
+  .wrong-path .not-found {
+    width: 80%;
+  }
+
+  .wrong-path h1 {
+    font-size: 5rem;
+  }
+
+  .wrong-path h2 {
+    font-size: 2.5rem;
+  }
+  .return-to-existance {
+    padding: 1.8rem 4rem;
+    font-size: 1.8rem;
+  }
+}
