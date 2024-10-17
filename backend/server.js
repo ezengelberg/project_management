@@ -17,6 +17,7 @@ const app = express();
 const server_port = process.env.SERVER_PORT || 3000;
 
 
+// session for authentication
 app.use(session({
   secret: process.env.SESSION_SECRET, // Set a strong secret in .env
   resave: false,
