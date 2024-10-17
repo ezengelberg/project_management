@@ -6,25 +6,22 @@ const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    // Check if the user is authenticated
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/user/check-auth", { withCredentials: true });
+        setIsAuthenticated(true);
+        console.log("DEV: Authenticated");
+      } catch (error) {
+        setIsAuthenticated(false); // Not authenticated, redirect to login
+        alert("You are not authenticated");
+      }
+    };
+
     checkAuth();
   }, []);
 
-  const checkAuth = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/api/user/check-auth");
-      console.log(response);
-      // break;
-      if (response.data.isAuthenticated) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  return isAuthenticated ? children : <Navigate to="/login" />; // Redirect to login if not authenticated
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
 export default ProtectedRoute;

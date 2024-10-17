@@ -29,11 +29,12 @@ const Login = () => {
         "http://localhost:5000/api/user/login",
         {
           email,
-          password,
+          password
         },
         { withCredentials: true }
       );
       console.log("Login result:", result.data);
+      // TODO: Redirect to dashboard
     } catch (error) {
       // Log the actual error message
       setErrorMessage(error.response.data);
