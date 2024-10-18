@@ -85,3 +85,23 @@
   bottom: 27%;
   font-size: 1.5rem !important;
 }
+
+.login form .MuiAlert-standardError .MuiAlert-icon {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .login form {
+    min-width: 35rem;
+    max-width: 35rem;
+    padding: 3rem;
+  }
+
+  .login-button {
+    padding: 1.8rem 6rem;
+  }
+
+  .login form .MuiAlert-standardError {
+    bottom: 22%;
+  }
+}

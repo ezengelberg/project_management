@@ -86,3 +86,14 @@ h1 {
   transform: translateY(-50%);
   font-size: 1.5rem !important;
 }
+
+.form-input-group .MuiAlert-standardError .MuiAlert-icon {
+  margin: 0;
+}
+
+
+@media (max-width: 640px) {
+  html {
+    font-size: 8px;
+  }
+}
