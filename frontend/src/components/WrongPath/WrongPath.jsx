@@ -1,5 +1,5 @@
 import React from "react";
-import "./WrongPath.scss";
+// import "./WrongPath.scss";
 
 const WrongPath = () => {
   return (
