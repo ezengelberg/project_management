@@ -33,7 +33,7 @@ const Login = () => {
         },
         { withCredentials: true }
       );
-      console.log("Login result:", result.data);
+      console.log("DEV: " + result.data);
       navigate("/home");
     } catch (error) {
       // Log the actual error message

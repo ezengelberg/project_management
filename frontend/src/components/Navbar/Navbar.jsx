@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import "./Navbar.css";
 import {
   DesktopOutlined,
@@ -17,6 +18,20 @@ import {
 import { Layout, Menu, theme } from "antd";
 
 const Navbar = () => {
+  const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchPrivileges = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/user/privileges", { withCredentials: true });
+        setPrivileges(response.data);
+      } catch (error) {
+        console.error("Error occurred:", error);
+      }
+    };
+    fetchPrivileges();
+  }, []);
+
   const { Header, Sider } = Layout;
   function getItem(label, key, icon, children) {
     return {
@@ -72,11 +87,19 @@ const Navbar = () => {
           minHeight: "100vh",
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-          <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={items} />
-          <hr />
-          <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={coordinatorItems} />
-          <hr />
-          <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={advisorItems} />
+          {privileges.isStudent && (
+            <>
+              <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={items} />
+              {(privileges.isAdvisor || privileges.isCoordinator) && <hr />}
+            </>
+          )}
+          {privileges.isCoordinator && (
+            <>
+              <Menu theme="dark" defaultSelectedKeys1={[""]} mode="inline" items={coordinatorItems} />
+              {privileges.isAdvisor && <hr />}
+            </>
+          )}
+          {privileges.isAdvisor && <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={advisorItems} />}
         </Sider>
         <Layout>
           <Header

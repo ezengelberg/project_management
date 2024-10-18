@@ -11,11 +11,11 @@ const ProtectedRoute = ({ children }) => {
     const checkAuth = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/user/check-auth", { withCredentials: true });
-        setIsAuthenticated(null);
+        setIsAuthenticated(true);
         console.log("DEV: Authenticated");
       } catch (error) {
-        setIsAuthenticated(null); // Not authenticated, redirect to login
-        alert("You are not authenticated");
+        setIsAuthenticated(false); // Not authenticated, redirect to login
+        console.log("DEV: NOT authenticated");
       }
     };
 
