@@ -20,7 +20,7 @@ import {
 import { Layout, Menu, theme } from "antd";
 
 const Dashboard = () => {
-  const [privileges, setPrivileges] = useState({ isStudent: true, isAdvisor: true, isCoordinator: true });
+  const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   useEffect(() => {
     // Fetch data from the API
     const fetchPrivileges = async () => {
@@ -31,7 +31,7 @@ const Dashboard = () => {
         console.error("Error occurred:", error);
       }
     };
-    // fetchPrivileges();
+    fetchPrivileges();
   }, []);
 
   const { Header, Sider } = Layout;
