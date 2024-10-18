@@ -18,6 +18,20 @@ export const getProjectsByYear = async (req, res) => {
   }
 };
 
+export const createProject = async (req, res) => {
+  try {
+    const projectId = req.body.id;
+    if (await Project.exists({ id: projectId })) {
+      return res.status(400).send({ message: "Project already exists" });
+    }
+    const project = new Project(req.body);
+    await project.save();
+    res.status(201).send(project);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const getProjectsNoAdvisor = async (req, res) => {
   try {
     const projects = await Project.find({ advisors: [] });
@@ -35,3 +49,15 @@ export const getProjectsNoStudent = async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 };
+
+export const updateProject = async (req, res) => {};
+
+export const deleteProject = async (req, res) => {};
+
+export const addStudentToProject = async (req, res) => {};
+
+export const removeStudentFromProject = async (req, res) => {};
+
+export const closeProject = async (req, res) => {};
+
+export const addAdvisorToProject = async (req, res) => {};
