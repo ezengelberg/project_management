@@ -16,6 +16,7 @@ import {
   LoginOutlined,
   SettingOutlined,
   FundProjectionScreenOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +24,8 @@ import { useNavigate } from "react-router-dom";
 const Dashboard = () => {
   const navigate = useNavigate();
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
+  const [currentKey, setCurrentKey] = useState("2");
+
   useEffect(() => {
     // Fetch data from the API
     const fetchPrivileges = async () => {
@@ -45,45 +48,46 @@ const Dashboard = () => {
       label,
     };
   }
+
   const items = [
-    getItem("פרופיל", "0", <UserOutlined />),
-    getItem("בית", "1", <HomeOutlined />),
-    privileges.isStudent && getItem("פרוייקטים", "2", <ProjectOutlined />),
+    getItem("פרופיל", "1", <UserOutlined />),
+    getItem("בית", "2", <HomeOutlined />),
+    privileges.isStudent && getItem("פרוייקטים", "3", <ProjectOutlined />),
     privileges.isStudent &&
       getItem("תבנית דוחות", "sub1", <FileSearchOutlined />, [
-        getItem("דוח אלפא", "3"),
-        getItem("דוח בטא", "4"),
-        getItem("דוח סופי", "5"),
+        getItem("דוח אלפא", "4"),
+        getItem("דוח בטא", "5"),
+        getItem("דוח סופי", "6"),
       ]),
     privileges.isStudent &&
       getItem("הפרוייקט שלי", "sub2", <ApartmentOutlined />, [
-        getItem("דף הפרוייקט", "6"),
-        getItem("הצגת קבצים", "7"),
-        getItem("הגשות", "8"),
-        getItem("הערות מנחה", "9"),
-        getItem("הערות שופט", "10"),
-        getItem("צפייה בציון", "11"),
+        getItem("דף הפרוייקט", "7"),
+        getItem("הצגת קבצים", "8"),
+        getItem("הגשות", "9"),
+        getItem("הערות מנחה", "10"),
+        getItem("הערות שופט", "11"),
+        getItem("צפייה בציון", "12"),
       ]),
-    privileges.isStudent && getItem("הגשות", "12", <FileOutlined />),
+    privileges.isStudent && getItem("הגשות", "13", <FileOutlined />),
     privileges.isAdvisor &&
       getItem("פרוייקטים שלי", "sub3", <FundProjectionScreenOutlined />, [
-        getItem("הזנת פרוייקט", "13"),
-        getItem("סטטוס פרוייקטים", "14"),
-        getItem("סטטוס הגשות", "15"),
+        getItem("הזנת פרוייקט", "14"),
+        getItem("סטטוס פרוייקטים", "15"),
+        getItem("סטטוס הגשות", "16"),
       ]),
     privileges.isCoordinator &&
       getItem("ניהול פרוייקטים", "sub4", <FundProjectionScreenOutlined />, [
-        getItem("הזנת פרוייקט", "16"),
-        getItem("הצגת פרוייקטים", "17"),
+        getItem("הזנת פרוייקט", "17"),
+        getItem("הצגת פרוייקטים", "18"),
       ]),
     privileges.isCoordinator &&
-      getItem("ניהול משתמשים", "sub5", <FundProjectionScreenOutlined />, [
-        getItem("הזנת סטודנטים", "18"),
-        getItem("הזנת משתמש צוות", "19"),
-        getItem("עדכון הרשאות", "20"),
-        getItem("הצגת משתמשים", "21"),
+      getItem("ניהול משתמשים", "sub5", <TeamOutlined />, [
+        getItem("הזנת סטודנטים", "19"),
+        getItem("הזנת משתמש צוות", "20"),
+        getItem("עדכון הרשאות", "21"),
+        getItem("הצגת משתמשים", "22"),
       ]),
-    privileges.isCoordinator && getItem("ניהול מערכת", "22", <SettingOutlined />),
+    privileges.isCoordinator && getItem("ניהול מערכת", "23", <SettingOutlined />),
   ];
 
   const [collapsed, setCollapsed] = useState(false);
@@ -101,6 +105,10 @@ const Dashboard = () => {
     }
   };
 
+  const handleMenuClick = ({ key }) => {
+    setCurrentKey(key);
+  };
+
   return (
     <div>
       <Layout
@@ -109,7 +117,7 @@ const Dashboard = () => {
           maxHeight: "100vh",
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-          <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={items} />
+          <Menu selectedKeys={[currentKey]} theme="dark" mode="inline" items={items} onClick={handleMenuClick} />
         </Sider>
         <Layout>
           <Header
@@ -133,7 +141,7 @@ const Dashboard = () => {
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
               }}>
-              כאן יהיה התוכן
+              <p>Current Menu Key: {currentKey}</p>
             </div>
           </Content>
         </Layout>
