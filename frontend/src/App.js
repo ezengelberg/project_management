@@ -6,6 +6,7 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import Login from "./components/Login/Login";
 import WrongPath from "./components/WrongPath/WrongPath";
+import Home from "./components/Home/Home";
 
 function App() {
   return (
@@ -17,13 +18,15 @@ function App() {
 
         {/* Protected Route */}
         <Route
-          path="/home"
+          path="/login"
           element={
             <ProtectedRoute>
               <Login />
             </ProtectedRoute>
           }
         />
+
+        <Route path="/home" element={<Home />} />
 
         {/* Redirect unknown routes */}
         <Route path="*" element={<WrongPath />} />
