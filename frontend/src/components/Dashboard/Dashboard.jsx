@@ -34,7 +34,7 @@ const Dashboard = () => {
     // fetchPrivileges();
   }, []);
 
-  const { Header, Sider } = Layout;
+  const { Header, Content, Sider } = Layout;
   function getItem(label, key, icon, children) {
     return {
       key,
@@ -61,7 +61,7 @@ const Dashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
 
   const {
-    token: { colorBgContainer },
+    token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
   return (
@@ -69,6 +69,7 @@ const Dashboard = () => {
       <Layout
         style={{
           minHeight: "100vh",
+          maxHeight: "100vh",
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
           <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={items} />
@@ -84,6 +85,20 @@ const Dashboard = () => {
             <h1>מערכת ניהול פרוייקטים</h1>
           </div>
           <LoginOutlined className="logout-icon" />
+          <Content
+            style={{
+              margin: "16px 16px 0 16px",
+            }}>
+            <div
+              style={{
+                padding: 24,
+                minHeight: 360,
+                background: colorBgContainer,
+                borderRadius: borderRadiusLG,
+              }}>
+              כאן יהיה התוכן
+            </div>
+          </Content>
         </Layout>
       </Layout>
     </div>
