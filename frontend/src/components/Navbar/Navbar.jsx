@@ -23,7 +23,7 @@ const Navbar = () => {
     const fetchPrivileges = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/user/privileges", { withCredentials: true });
-        console.log(response.data);
+        setPrivileges(response.data);
       } catch (error) {
         console.error("Error occurred:", error);
       }
@@ -82,11 +82,21 @@ const Navbar = () => {
           minHeight: "100vh"
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-          <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={items} />
-          <hr />
-          <Menu theme="dark" defaultSelectedKeys1={[""]} mode="inline" items={coordinatorItems} />
-          <hr />
-          <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={advisorItems} />
+          {privileges.isStudent && (
+            <>
+              <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={items} />
+              {(privileges.isAdvisor || privileges.isCoordinator) && <hr />}
+            </>
+          )}
+          {privileges.isCoordinator && (
+            <>
+              <Menu theme="dark" defaultSelectedKeys1={[""]} mode="inline" items={coordinatorItems} />
+              {privileges.isAdvisor && <hr />}
+            </>
+          )}
+          {privileges.isAdvisor && (
+            <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={advisorItems} />
+          )}
         </Sider>
       </Layout>
     </div>
