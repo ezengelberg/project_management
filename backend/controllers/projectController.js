@@ -61,3 +61,15 @@ export const removeStudentFromProject = async (req, res) => {};
 export const closeProject = async (req, res) => {};
 
 export const addAdvisorToProject = async (req, res) => {};
+
+export const getProjectsStatus = async (req, res) => {
+  try {
+    const projects = await Project.find();
+    const numOfOpenProjects = projects.filter((project) => project.isAvailable).length;
+    const numOfTakenProjects = projects.filter((project) => !project.isAvailable).length;
+    const numOfFinishedProjects = projects.filter((project) => project.isFinished).length;
+    res.status(200).send({ numOfOpenProjects, numOfTakenProjects, numOfFinishedProjects });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};

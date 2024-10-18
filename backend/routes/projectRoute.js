@@ -11,6 +11,7 @@ import {
   removeStudentFromProject,
   closeProject,
   addAdvisorToProject,
+  getProjectsStatus,
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator, isAdvisor } from "../middleware/auth.js";
 
@@ -27,5 +28,6 @@ router.put("/:id/add-student", ensureAuthenticated, isAdvisorOrCoordinator, addS
 router.put("/:id/remove-student", ensureAuthenticated, isAdvisorOrCoordinator, removeStudentFromProject);
 router.put("/:id/close", ensureAuthenticated, isCoordinator, closeProject);
 router.put("/:id/add-advisor", ensureAuthenticated, isCoordinator, addAdvisorToProject);
+router.get("/status", ensureAuthenticated, getProjectsStatus);
 
 export default router;
