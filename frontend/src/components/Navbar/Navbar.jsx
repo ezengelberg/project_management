@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import "./Navbar.css";
 import {
   DesktopOutlined,
@@ -11,18 +12,32 @@ import {
   UsergroupAddOutlined,
   ApartmentOutlined,
   SelectOutlined,
-  UnorderedListOutlined,
+  UnorderedListOutlined
 } from "@ant-design/icons";
 import { Layout, Menu } from "antd";
 
 const Navbar = () => {
+  useEffect(() => {
+    // Fetch data from the API
+    const fetchPrivileges = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/user/privileges");
+        const data = await response.json();
+        console.log(data);
+      } catch (error) {
+        console.error("Error occurred:", error);
+      }
+    };
+    fetchPrivileges();
+  }, []);
+
   const { Sider } = Layout;
   function getItem(label, key, icon, children) {
     return {
       key,
       icon,
       children,
-      label,
+      label
     };
   }
   const items = [
@@ -32,7 +47,7 @@ const Navbar = () => {
     getItem("תבנית דוחות", "sub1", <FileSearchOutlined />, [
       getItem("דוח אלפא", "3"),
       getItem("דוח בטא", "4"),
-      getItem("דוח סופי", "5"),
+      getItem("דוח סופי", "5")
     ]),
     getItem("הפרוייקט שלי", "6", <ApartmentOutlined />, [
       getItem("דף הפרוייקט", "7"),
@@ -40,9 +55,9 @@ const Navbar = () => {
       getItem("הגשות", "9"),
       getItem("הערות מנחה", "10"),
       getItem("הערות שופט", "11"),
-      getItem("צפייה בציון", "12"),
+      getItem("צפייה בציון", "12")
     ]),
-    getItem("Files", "6", <FileOutlined />),
+    getItem("Files", "6", <FileOutlined />)
   ];
 
   const coordinatorItems = [
@@ -50,10 +65,10 @@ const Navbar = () => {
     getItem("מנחים", "sub2", <PieChartOutlined />, [
       getItem("מנחה חדש", "7"),
       getItem("הצגת מנחים", "8"),
-      getItem("עדכון הרשאות", "9"),
+      getItem("עדכון הרשאות", "9")
     ]),
     getItem("בחירת שופטים", "10", <SelectOutlined />),
-    getItem("הצגת משתמשים", "11", <UnorderedListOutlined />),
+    getItem("הצגת משתמשים", "11", <UnorderedListOutlined />)
   ];
 
   const advisorItems = [getItem("הזנת פרוייקט", "6", <DesktopOutlined />)];
@@ -64,12 +79,12 @@ const Navbar = () => {
     <div>
       <Layout
         style={{
-          minHeight: "100vh",
+          minHeight: "100vh"
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
           <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={items} />
           <hr />
-          <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={coordinatorItems} />
+          <Menu theme="dark" defaultSelectedKeys1={[""]} mode="inline" items={coordinatorItems} />
           <hr />
           <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={advisorItems} />
         </Sider>

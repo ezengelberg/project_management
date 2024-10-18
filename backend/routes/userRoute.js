@@ -12,4 +12,11 @@ router.get("/check-auth", ensureAuthenticated, (req, res) => {
   res.status(200).json({ authenticated: true });
 });
 
+router.get("/privileges", ensureAuthenticated, (req, res) => {
+  console.log("im requesting");
+  const user = req.user;
+  res.status(200).json({ isStudent: user.isStudent, isAdvisor: user.isAdvisor, isCoordinator: user.isCoordinator });
+  // res.status(200).json({ user: req.user });
+});
+
 export default router;

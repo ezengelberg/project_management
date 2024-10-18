@@ -1,4 +1,6 @@
 export const ensureAuthenticated = (req, res, next) => {
+  console.log("Checking authentication");
+  console.log(req);
   if (req.isAuthenticated()) {
     return next();
   } else {
