@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./Login.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import Alert from "@mui/material/Alert";
+import { Alert } from "antd";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -73,11 +73,7 @@ const Login = () => {
               </g>
             </svg>
           </div>
-          {errors.email && (
-            <Alert severity="error" sx={{ mt: 1 }}>
-              שדה חובה
-            </Alert>
-          )}
+          {errors.email && <Alert message="שדה חובה" type="error" showIcon />}
         </div>
         <div className="form-input-group login-input-group">
           <label htmlFor="password">סיסמה</label>
@@ -111,17 +107,13 @@ const Login = () => {
               </g>
             </svg>
           </div>
-          {errors.password && (
-            <Alert severity="error" sx={{ mt: 1 }}>
-              שדה חובה
-            </Alert>
-          )}
+          {errors.password && <Alert message="שדה חובה" type="error" showIcon />}
         </div>
         <a className="forgot-password" onClick={() => navigate("/")}>
           שכחת סיסמה?
         </a>
         <button className="button-large login-button">התחבר</button>
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+        {errorMessage && <Alert className="server-error" message={errorMessage} type="error" showIcon />}
       </form>
     </div>
   );
