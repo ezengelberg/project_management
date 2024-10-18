@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./Navbar.css";
+import "./Sidebar.css";
 import {
   DesktopOutlined,
   FileOutlined,
@@ -17,7 +17,7 @@ import {
 } from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
 
-const Navbar = () => {
+const Sidebar = () => {
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   useEffect(() => {
     // Fetch data from the API
@@ -103,4 +103,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Sidebar;

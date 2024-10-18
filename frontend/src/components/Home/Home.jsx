@@ -1,11 +1,11 @@
 import React from "react";
 import "./Home.css";
-import Navbar from "../Navbar/Navbar";
+import Sidebar from "../Sidebar/Sidebar";
 
 const Home = () => {
   return (
     <div className="home">
-      <Navbar />
+      <Sidebar />
       <div className="home-container">
         <h1>ברוכים הבאים למערכת ניהול פרוייקטים</h1>
         <p>במערכת זו תוכלו לנהל את הפרוייקטים שלכם בצורה יעילה ונוחה.</p>
