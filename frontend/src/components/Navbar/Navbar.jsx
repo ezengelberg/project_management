@@ -58,21 +58,18 @@ const Navbar = () => {
       getItem("הערות שופט", "11"),
       getItem("צפייה בציון", "12"),
     ]),
-    getItem("Files", "6", <FileOutlined />),
+    getItem("Files", "13", <FileOutlined />),
+    privileges.isCoordinator && getItem("הזנת סטודנטים", "14", <UsergroupAddOutlined />),
+    privileges.isCoordinator &&
+      getItem("מנחים", "sub2", <PieChartOutlined />, [
+        getItem("מנחה חדש", "15"),
+        getItem("הצגת מנחים", "16"),
+        getItem("עדכון הרשאות", "17"),
+      ]),
+    privileges.isCoordinator && getItem("בחירת שופטים", "18", <SelectOutlined />),
+    privileges.isCoordinator && getItem("הצגת משתמשים", "19", <UnorderedListOutlined />),
+    privileges.isAdvisor && getItem("הזנת פרוייקט", "20", <DesktopOutlined />),
   ];
-
-  const coordinatorItems = [
-    getItem("הזנת סטודנטים", "6", <UsergroupAddOutlined />),
-    getItem("מנחים", "sub2", <PieChartOutlined />, [
-      getItem("מנחה חדש", "7"),
-      getItem("הצגת מנחים", "8"),
-      getItem("עדכון הרשאות", "9"),
-    ]),
-    getItem("בחירת שופטים", "10", <SelectOutlined />),
-    getItem("הצגת משתמשים", "11", <UnorderedListOutlined />),
-  ];
-
-  const advisorItems = [getItem("הזנת פרוייקט", "6", <DesktopOutlined />)];
 
   const [collapsed, setCollapsed] = useState(false);
 
@@ -87,19 +84,7 @@ const Navbar = () => {
           minHeight: "100vh",
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-          {privileges.isStudent && (
-            <>
-              <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={items} />
-              {(privileges.isAdvisor || privileges.isCoordinator) && <hr />}
-            </>
-          )}
-          {privileges.isCoordinator && (
-            <>
-              <Menu theme="dark" defaultSelectedKeys1={[""]} mode="inline" items={coordinatorItems} />
-              {privileges.isAdvisor && <hr />}
-            </>
-          )}
-          {privileges.isAdvisor && <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={advisorItems} />}
+          <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={items} />
         </Sider>
         <Layout>
           <Header
