@@ -60,3 +60,35 @@ export const logoutUser = (req, res) => {
     res.status(200).send("Logged out successfully");
   });
 };
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    users.forEach((user) => {
+      delete user.password;
+    });
+    res.status(200).send(users);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const getUsersNoProjects = async (req, res) => {
+  try {
+    const users = await User.find();
+    const usersNoProjects = [];
+
+    for (const user of users) {
+      const projects = await Project.find({ students: user._id });
+      if (projects.length === 0) {
+        delete user.password;
+        usersNoProjects.push(user);
+      }
+    }
+
+    res.status(200).send(usersNoProjects);
+    res.status(200).send(users);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
