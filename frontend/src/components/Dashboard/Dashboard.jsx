@@ -53,41 +53,36 @@ const Dashboard = () => {
     getItem("פרופיל", "1", <UserOutlined />),
     getItem("בית", "2", <HomeOutlined />),
     privileges.isStudent && getItem("פרוייקטים", "3", <ProjectOutlined />),
+    privileges.isStudent && getItem("תבנית דוחות", "3", <FileSearchOutlined />),
     privileges.isStudent &&
-      getItem("תבנית דוחות", "sub1", <FileSearchOutlined />, [
-        getItem("דוח אלפא", "4"),
-        getItem("דוח בטא", "5"),
-        getItem("דוח סופי", "6"),
+      getItem("הפרוייקט שלי", "sub1", <ApartmentOutlined />, [
+        getItem("דף הפרוייקט", "4"),
+        getItem("הצגת קבצים", "5"),
+        getItem("הגשות", "6"),
+        getItem("הערות מנחה", "7"),
+        getItem("הערות שופט", "8"),
+        getItem("צפייה בציון", "9"),
       ]),
-    privileges.isStudent &&
-      getItem("הפרוייקט שלי", "sub2", <ApartmentOutlined />, [
-        getItem("דף הפרוייקט", "7"),
-        getItem("הצגת קבצים", "8"),
-        getItem("הגשות", "9"),
-        getItem("הערות מנחה", "10"),
-        getItem("הערות שופט", "11"),
-        getItem("צפייה בציון", "12"),
-      ]),
-    privileges.isStudent && getItem("הגשות", "13", <FileOutlined />),
+    privileges.isStudent && getItem("הגשות", "10", <FileOutlined />),
     privileges.isAdvisor &&
-      getItem("פרוייקטים שלי", "sub3", <FundProjectionScreenOutlined />, [
+      getItem("פרוייקטים שלי", "sub2", <FundProjectionScreenOutlined />, [
+        getItem("הזנת פרוייקט", "11"),
+        getItem("סטטוס פרוייקטים", "12"),
+        getItem("סטטוס הגשות", "13"),
+      ]),
+    privileges.isCoordinator &&
+      getItem("ניהול פרוייקטים", "sub3", <FundProjectionScreenOutlined />, [
         getItem("הזנת פרוייקט", "14"),
-        getItem("סטטוס פרוייקטים", "15"),
-        getItem("סטטוס הגשות", "16"),
+        getItem("הצגת פרוייקטים", "15"),
       ]),
     privileges.isCoordinator &&
-      getItem("ניהול פרוייקטים", "sub4", <FundProjectionScreenOutlined />, [
-        getItem("הזנת פרוייקט", "17"),
-        getItem("הצגת פרוייקטים", "18"),
+      getItem("ניהול משתמשים", "sub4", <TeamOutlined />, [
+        getItem("הזנת סטודנטים", "16"),
+        getItem("הזנת משתמש צוות", "17"),
+        getItem("עדכון הרשאות", "18"),
+        getItem("הצגת משתמשים", "19"),
       ]),
-    privileges.isCoordinator &&
-      getItem("ניהול משתמשים", "sub5", <TeamOutlined />, [
-        getItem("הזנת סטודנטים", "19"),
-        getItem("הזנת משתמש צוות", "20"),
-        getItem("עדכון הרשאות", "21"),
-        getItem("הצגת משתמשים", "22"),
-      ]),
-    privileges.isCoordinator && getItem("ניהול מערכת", "23", <SettingOutlined />),
+    privileges.isCoordinator && getItem("ניהול מערכת", "20", <SettingOutlined />),
   ];
 
   const [collapsed, setCollapsed] = useState(false);
