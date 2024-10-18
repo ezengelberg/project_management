@@ -89,3 +89,8 @@ export const getUsersNoProjects = async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 };
+
+export const getPrivileges = async (req, res) => {
+  const user = req.user;
+  res.status(200).json({ isStudent: user.isStudent, isAdvisor: user.isAdvisor, isCoordinator: user.isCoordinator });
+};
