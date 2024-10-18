@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./Sidebar.css";
+import "./Dashboard.css";
 import {
   DesktopOutlined,
   FileOutlined,
@@ -15,11 +15,11 @@ import {
   UnorderedListOutlined,
   LoginOutlined,
   SettingOutlined,
-  FundProjectionScreenOutlined
+  FundProjectionScreenOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
 
-const Sidebar = () => {
+const Dashboard = () => {
   const [privileges, setPrivileges] = useState({ isStudent: true, isAdvisor: true, isCoordinator: true });
   useEffect(() => {
     // Fetch data from the API
@@ -40,7 +40,7 @@ const Sidebar = () => {
       key,
       icon,
       children,
-      label
+      label,
     };
   }
   const items = [
@@ -51,7 +51,7 @@ const Sidebar = () => {
       getItem("תבנית דוחות", "sub1", <FileSearchOutlined />, [
         getItem("דוח אלפא", "3"),
         getItem("דוח בטא", "4"),
-        getItem("דוח סופי", "5")
+        getItem("דוח סופי", "5"),
       ]),
     privileges.isCoordinator && getItem("בחירת שופטים", "18", <SelectOutlined />),
     privileges.isCoordinator && getItem("הצגת משתמשים", "19", <UnorderedListOutlined />),
@@ -61,14 +61,14 @@ const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
 
   const {
-    token: { colorBgContainer }
+    token: { colorBgContainer },
   } = theme.useToken();
 
   return (
     <div>
       <Layout
         style={{
-          minHeight: "100vh"
+          minHeight: "100vh",
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
           <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={items} />
@@ -77,7 +77,7 @@ const Sidebar = () => {
           <Header
             style={{
               padding: 0,
-              background: colorBgContainer
+              background: colorBgContainer,
             }}
           />
           <div className="site-upper-header">
@@ -90,4 +90,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default Dashboard;

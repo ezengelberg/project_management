@@ -6,7 +6,7 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import Login from "./components/Login/Login";
 import WrongPath from "./components/WrongPath/WrongPath";
-import Home from "./components/Home/Home";
+import Dashboard from "./components/Dashboard/Dashboard";
 
 function App() {
   return (
@@ -21,7 +21,7 @@ function App() {
           path="/home"
           element={
             <ProtectedRoute>
-              <Home />
+              <Dashboard />
             </ProtectedRoute>
           }
         />
