@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children }) => {
         console.log("DEV: Authenticated");
       } catch (error) {
         setIsAuthenticated(false); // Not authenticated, redirect to login
-        alert("You are not authenticated");
+        console.log("DEV: NOT authenticated");
       }
     };
 
