@@ -18,15 +18,13 @@ function App() {
 
         {/* Protected Route */}
         <Route
-          path="/login"
+          path="/home"
           element={
             <ProtectedRoute>
-              <Login />
+              <Home />
             </ProtectedRoute>
           }
         />
-
-        <Route path="/home" element={<Home />} />
 
         {/* Redirect unknown routes */}
         <Route path="*" element={<WrongPath />} />

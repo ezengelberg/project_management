@@ -1,0 +1,23 @@
+.site-upper-header {
+  position: absolute;
+  max-width: 80%;
+  margin-right: 2rem;
+}
+
+.logout-icon {
+  position: absolute;
+  top: 1.5%;
+  left: 2%;
+  cursor: pointer;
+}
+
+.logout-icon svg {
+  width: 3rem;
+  height: 3rem;
+  fill: #ff4d4f;
+  transition: 0.2s all linear;
+}
+
+.logout-icon svg:hover {
+  fill: #ff7875;
+}

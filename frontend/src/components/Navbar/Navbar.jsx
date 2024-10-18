@@ -12,11 +12,12 @@ import {
   ApartmentOutlined,
   SelectOutlined,
   UnorderedListOutlined,
+  LoginOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu } from "antd";
+import { Layout, Menu, theme } from "antd";
 
 const Navbar = () => {
-  const { Sider } = Layout;
+  const { Header, Sider } = Layout;
   function getItem(label, key, icon, children) {
     return {
       key,
@@ -60,6 +61,10 @@ const Navbar = () => {
 
   const [collapsed, setCollapsed] = useState(false);
 
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
+
   return (
     <div>
       <Layout
@@ -73,6 +78,18 @@ const Navbar = () => {
           <hr />
           <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={advisorItems} />
         </Sider>
+        <Layout>
+          <Header
+            style={{
+              padding: 0,
+              background: colorBgContainer,
+            }}
+          />
+          <div className="site-upper-header">
+            <h1>מערכת ניהול פרוייקטים</h1>
+          </div>
+          <LoginOutlined className="logout-icon" />
+        </Layout>
       </Layout>
     </div>
   );

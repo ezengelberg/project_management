@@ -1,4 +1,10 @@
 .home {
-  display: flex;
-  gap: 1rem;
+  position: relative;
+}
+
+.home-container {
+  position: absolute;
+  top: 7%;
+  right: 10%;
+  max-width: 88%;
 }
