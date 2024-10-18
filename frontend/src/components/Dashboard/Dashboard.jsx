@@ -18,8 +18,10 @@ import {
   FundProjectionScreenOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   useEffect(() => {
     // Fetch data from the API
@@ -90,6 +92,15 @@ const Dashboard = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
+  const handleLogOut = async () => {
+    try {
+      await axios.post("http://localhost:5000/api/user/logout", { withCredentials: true });
+      navigate("/login");
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
+  };
+
   return (
     <div>
       <Layout
@@ -110,7 +121,7 @@ const Dashboard = () => {
           <div className="site-upper-header">
             <h1>מערכת ניהול פרוייקטים</h1>
           </div>
-          <LoginOutlined className="logout-icon" />
+          <LoginOutlined className="logout-icon" onClick={handleLogOut} />
           <Content
             style={{
               margin: "16px 16px 0 16px",
