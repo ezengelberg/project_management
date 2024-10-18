@@ -17,13 +17,13 @@ import {
 import { Layout, Menu } from "antd";
 
 const Navbar = () => {
+  const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   useEffect(() => {
     // Fetch data from the API
     const fetchPrivileges = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/user/privileges");
-        const data = await response.json();
-        console.log(data);
+        const response = await axios.get("http://localhost:5000/api/user/privileges", { withCredentials: true });
+        console.log(response.data);
       } catch (error) {
         console.error("Error occurred:", error);
       }
