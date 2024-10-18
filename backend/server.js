@@ -7,6 +7,7 @@ import session from "express-session";
 import passport from "./config/passport.js";
 
 import { connectDB } from "./config/db.js";
+import MongoStore from 'connect-mongo';
 
 import userRoute from "./routes/userRoute.js";
 
@@ -20,7 +21,8 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET, // Set a strong secret in .env
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
+    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI, collectionName: "sessions" }),
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
       secure: false // Set to true if using HTTPS

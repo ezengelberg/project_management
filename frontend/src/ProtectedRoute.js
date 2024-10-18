@@ -1,10 +1,27 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import axios from "axios";
 
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = !!localStorage.getItem("user"); // Check if user is stored (can also use a state or context)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  return isAuthenticated ? children : <Navigate to="/login" />; // Redirect to login if not authenticated
+  useEffect(() => {
+    // Check if the user is authenticated
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/user/check-auth", { withCredentials: true });
+        setIsAuthenticated(true);
+        console.log("DEV: Authenticated");
+      } catch (error) {
+        setIsAuthenticated(false); // Not authenticated, redirect to login
+        alert("You are not authenticated");
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
 export default ProtectedRoute;

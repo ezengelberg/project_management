@@ -1,9 +1,8 @@
 export const ensureAuthenticated = (req, res, next) => {
   if (req.isAuthenticated()) {
-    console.log("User is authenticated");
     return next();
   } else {
-    res.status(401).send("Unauthorized: Please log in");
+    res.status(401).send("Unauthorized");
   }
 };
 
