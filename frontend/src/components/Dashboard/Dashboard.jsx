@@ -21,7 +21,7 @@ import {
 import { Layout, Menu, theme } from "antd";
 import { useNavigate } from "react-router-dom";
 
-import HomePage from "../HomePage/HomePage";
+import HomePage from "../HomePage/Homepage";
 
 const Dashboard = () => {
   const navigate = useNavigate();
