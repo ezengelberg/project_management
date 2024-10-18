@@ -37,16 +37,13 @@ export const registerUser = async (req, res) => {
 };
 
 export const loginUser = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return res.status(200).send("Already logged in");
-  }
-
   passport.authenticate("local", (err, user, info) => {
     if (err) return next(err);
     if (!user) return res.status(401).send(info.message); // Send error from strategy
 
     req.login(user, (err) => {
       if (err) return next(err);
+      console.log("Login successful");
       return res.status(200).send("Login successful");
     });
   })(req, res, next);

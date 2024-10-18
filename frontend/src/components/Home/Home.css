@@ -1,0 +1,10 @@
+.home {
+  position: relative;
+}
+
+.home-container {
+  position: absolute;
+  top: 7%;
+  right: 10%;
+  max-width: 88%;
+}
