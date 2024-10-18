@@ -79,14 +79,11 @@ h1 {
   height: 3rem;
 }
 
-.form-input-group .MuiAlert-standardError {
+.form-input-group .ant-alert-error {
   position: absolute;
   top: 50%;
   left: 0;
   transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
   font-size: 1.5rem !important;
 }
 
