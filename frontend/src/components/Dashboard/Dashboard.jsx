@@ -20,7 +20,7 @@ import {
 import { Layout, Menu, theme } from "antd";
 
 const Dashboard = () => {
-  const [privileges, setPrivileges] = useState({ isStudent: true, isAdvisor: true, isCoordinator: true });
+  const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   useEffect(() => {
     // Fetch data from the API
     const fetchPrivileges = async () => {
@@ -31,7 +31,7 @@ const Dashboard = () => {
         console.error("Error occurred:", error);
       }
     };
-    // fetchPrivileges();
+    fetchPrivileges();
   }, []);
 
   const { Header, Content, Sider } = Layout;
@@ -53,9 +53,35 @@ const Dashboard = () => {
         getItem("דוח בטא", "4"),
         getItem("דוח סופי", "5"),
       ]),
-    privileges.isCoordinator && getItem("בחירת שופטים", "18", <SelectOutlined />),
-    privileges.isCoordinator && getItem("הצגת משתמשים", "19", <UnorderedListOutlined />),
-    privileges.isAdvisor && getItem("הזנת פרוייקט", "20", <DesktopOutlined />),
+    privileges.isStudent &&
+      getItem("הפרוייקט שלי", "6", <ApartmentOutlined />, [
+        getItem("דף הפרוייקט", "7"),
+        getItem("הצגת קבצים", "8"),
+        getItem("הגשות", "9"),
+        getItem("הערות מנחה", "10"),
+        getItem("הערות שופט", "11"),
+        getItem("צפייה בציון", "12")
+      ]),
+    privileges.isStudent && getItem("הגשות", "13", <FileOutlined />),
+    privileges.isAdvisor &&
+      getItem("פרוייקטים שלי", "20", <FundProjectionScreenOutlined />, [
+        getItem("הזנת פרוייקט", "21"),
+        getItem("סטטוס פרוייקטים", "22"),
+        getItem("סטטוס הגשות", "23")
+      ]),
+    privileges.isCoordinator &&
+      getItem("ניהול פרוייקטים", "24", <FundProjectionScreenOutlined />, [
+        getItem("הזנת פרוייקט", "25"),
+        getItem("הצגת פרוייקטים", "26")
+      ]),
+    privileges.isCoordinator &&
+      getItem("ניהול משתמשים", "27", <FundProjectionScreenOutlined />, [
+        getItem("הזנת סטודנטים", "28"),
+        getItem("הזנת משתמש צוות", "29"),
+        getItem("עדכון הרשאות", "30"),
+        getItem("הצגת משתמשים", "31")
+      ]),
+      privileges.isCoordinator && getItem("ניהול מערכת", "99", <SettingOutlined />),
   ];
 
   const [collapsed, setCollapsed] = useState(false);
