@@ -14,11 +14,12 @@ import {
   SelectOutlined,
   UnorderedListOutlined,
   LoginOutlined,
+  FundProjectionScreenOutlined
 } from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
 
 const Sidebar = () => {
-  const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
+  const [privileges, setPrivileges] = useState({ isStudent: true, isAdvisor: true, isCoordinator: true });
   useEffect(() => {
     // Fetch data from the API
     const fetchPrivileges = async () => {
@@ -29,7 +30,7 @@ const Sidebar = () => {
         console.error("Error occurred:", error);
       }
     };
-    fetchPrivileges();
+    // fetchPrivileges();
   }, []);
 
   const { Header, Sider } = Layout;
@@ -38,50 +39,67 @@ const Sidebar = () => {
       key,
       icon,
       children,
-      label,
+      label
     };
   }
   const items = [
     getItem("פרופיל", "0", <UserOutlined />),
-    getItem("בית", "1", <HomeOutlined />),
-    getItem("פרוייקטים", "2", <ProjectOutlined />),
-    getItem("תבנית דוחות", "sub1", <FileSearchOutlined />, [
-      getItem("דוח אלפא", "3"),
-      getItem("דוח בטא", "4"),
-      getItem("דוח סופי", "5"),
-    ]),
-    getItem("הפרוייקט שלי", "6", <ApartmentOutlined />, [
-      getItem("דף הפרוייקט", "7"),
-      getItem("הצגת קבצים", "8"),
-      getItem("הגשות", "9"),
-      getItem("הערות מנחה", "10"),
-      getItem("הערות שופט", "11"),
-      getItem("צפייה בציון", "12"),
-    ]),
-    getItem("Files", "13", <FileOutlined />),
-    privileges.isCoordinator && getItem("הזנת סטודנטים", "14", <UsergroupAddOutlined />),
-    privileges.isCoordinator &&
-      getItem("מנחים", "sub2", <PieChartOutlined />, [
-        getItem("מנחה חדש", "15"),
-        getItem("הצגת מנחים", "16"),
-        getItem("עדכון הרשאות", "17"),
+    privileges.isStudent && getItem("בית", "1", <HomeOutlined />),
+    privileges.isStudent && getItem("פרוייקטים", "2", <ProjectOutlined />),
+    privileges.isStudent &&
+      getItem("תבנית דוחות", "sub1", <FileSearchOutlined />, [
+        getItem("דוח אלפא", "3"),
+        getItem("דוח בטא", "4"),
+        getItem("דוח סופי", "5")
       ]),
-    privileges.isCoordinator && getItem("בחירת שופטים", "18", <SelectOutlined />),
-    privileges.isCoordinator && getItem("הצגת משתמשים", "19", <UnorderedListOutlined />),
-    privileges.isAdvisor && getItem("הזנת פרוייקט", "20", <DesktopOutlined />),
+    privileges.isStudent &&
+      getItem("הפרוייקט שלי", "6", <ApartmentOutlined />, [
+        getItem("דף הפרוייקט", "7"),
+        getItem("הצגת קבצים", "8"),
+        getItem("הגשות", "9"),
+        getItem("הערות מנחה", "10"),
+        getItem("הערות שופט", "11"),
+        getItem("צפייה בציון", "12")
+      ]),
+    privileges.isStudent && getItem("הגשות", "13", <FileOutlined />),
+    // privileges.isCoordinator && getItem("הזנת סטודנטים", "14", <UsergroupAddOutlined />),
+    // privileges.isCoordinator &&
+    //   getItem("ניהול משתמשים", "sub2", <PieChartOutlined />, [
+    //     getItem("מנחה חדש", "15"),
+    //     getItem("הצגת מנחים", "16"),
+    //     getItem("עדכון הרשאות", "17")
+    //   ]),
+    // privileges.isCoordinator && getItem("בחירת שופטים", "18", <SelectOutlined />),
+    // privileges.isCoordinator && getItem("הצגת משתמשים", "19", <UnorderedListOutlined />),
+    privileges.isAdvisor &&
+      getItem("פרוייקטים שלי", "20", <FundProjectionScreenOutlined />, [
+        getItem("הזנת פרוייקט", "21"),
+        getItem("סטטוס פרוייקטים", "22"),
+        getItem("סטטוס הגשות", "23")
+      ]),
+      privileges.isCoordinator && getItem("ניהול פרוייקטים", "24", <FundProjectionScreenOutlined />, [
+        getItem("הזנת פרוייקט", "25"),
+        getItem("הצגת פרוייקטים", "26"),
+      ]),
+      privileges.isCoordinator && getItem("ניהול משתמשים", "27", <FundProjectionScreenOutlined />, [
+        getItem("הזנת סטודנטים", "28"),
+        getItem("הזנת משתמש צוות", "29"),
+        getItem("עדכון הרשאות", "30"),
+        getItem("הצגת משתמשים", "31"),
+      ])
   ];
 
   const [collapsed, setCollapsed] = useState(false);
 
   const {
-    token: { colorBgContainer },
+    token: { colorBgContainer }
   } = theme.useToken();
 
   return (
     <div>
       <Layout
         style={{
-          minHeight: "100vh",
+          minHeight: "100vh"
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
           <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline" items={items} />
@@ -90,7 +108,7 @@ const Sidebar = () => {
           <Header
             style={{
               padding: 0,
-              background: colorBgContainer,
+              background: colorBgContainer
             }}
           />
           <div className="site-upper-header">
