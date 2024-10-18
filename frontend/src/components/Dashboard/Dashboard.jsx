@@ -96,10 +96,11 @@ const Dashboard = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const handleLogOut = async () => {
+  const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:5000/api/user/logout", { withCredentials: true });
-      navigate("/login");
+      const response = await axios.post("http://localhost:5000/api/user/logout", { withCredentials: true });
+      console.log(response.data);
+      navigate("/login", {replace: true});
     } catch (error) {
       console.error("Error occurred:", error);
     }
@@ -129,7 +130,7 @@ const Dashboard = () => {
           <div className="site-upper-header">
             <h1>מערכת ניהול פרוייקטים</h1>
           </div>
-          <LoginOutlined className="logout-icon" onClick={handleLogOut} />
+          <LoginOutlined className="logout-icon" onClick={handleLogout} />
           <Content
             style={{
               margin: "16px 16px 0 16px",

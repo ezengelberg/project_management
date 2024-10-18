@@ -1,6 +1,7 @@
 import User from "../models/users.js";
 import bcrypt from "bcrypt";
 import passport from "passport";
+import MongoStore from "connect-mongo";
 
 export const registerUser = async (req, res) => {
   try {
@@ -49,12 +50,25 @@ export const loginUser = (req, res, next) => {
   })(req, res, next);
 };
 
-export const logoutUser = (req, res) => {
+export const logoutUser = (req, res, next) => {
+  const sessionId = req.session.id;
+  console.log("Current session ID:", sessionId);
+
   req.logout((err) => {
     if (err) {
-      return next(err); // Pass the error to the error-handling middleware
+      return next(err);
     }
-    res.status(200).send("Logged out successfully");
+
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Session destruction error:", err);
+        return res.status(500).json({ message: "Error destroying session" });
+      }
+
+      console.log("Session destroyed successfully");
+      res.clearCookie("connect.sid");
+      res.status(200).json({ message: "Logged out successfully" });
+    });
   });
 };
 
