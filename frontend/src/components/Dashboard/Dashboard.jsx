@@ -17,8 +17,9 @@ import {
   SettingOutlined,
   FundProjectionScreenOutlined,
   TeamOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu, theme } from "antd";
+import { Layout, Menu, theme, Avatar, Badge } from "antd";
 import { useNavigate } from "react-router-dom";
 
 import HomePage from "../HomePage/HomePage";
@@ -26,7 +27,7 @@ import HomePage from "../HomePage/HomePage";
 const Dashboard = () => {
   const navigate = useNavigate();
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
-  const [currentKey, setCurrentKey] = useState("2");
+  const [currentKey, setCurrentKey] = useState("home");
 
   useEffect(() => {
     // Fetch data from the API
@@ -52,39 +53,37 @@ const Dashboard = () => {
   }
 
   const items = [
-    getItem("פרופיל", "1", <UserOutlined />),
-    getItem("בית", "2", <HomeOutlined />),
-    privileges.isStudent && getItem("פרוייקטים", "3", <ProjectOutlined />),
-    privileges.isStudent && getItem("תבנית דוחות", "3", <FileSearchOutlined />),
+    getItem("בית", "home", <HomeOutlined />),
+    privileges.isStudent && getItem("פרוייקטים", "projects", <ProjectOutlined />),
+    privileges.isStudent && getItem("תבנית דוחות", "templates", <FileSearchOutlined />),
     privileges.isStudent &&
       getItem("הפרוייקט שלי", "sub1", <ApartmentOutlined />, [
-        getItem("דף הפרוייקט", "4"),
-        getItem("הצגת קבצים", "5"),
-        getItem("הגשות", "6"),
-        getItem("הערות מנחה", "7"),
-        getItem("הערות שופט", "8"),
-        getItem("צפייה בציון", "9"),
+        getItem("דף הפרוייקט", "project-page"),
+        getItem("הצגת קבצים", "show-files"),
+        getItem("הגשות", "submissions"),
+        getItem("הערות מנחה", "advisor-comments"),
+        getItem("הערות שופט", "judge-comments"),
+        getItem("צפייה בציון", "grade"),
       ]),
-    privileges.isStudent && getItem("הגשות", "10", <FileOutlined />),
     privileges.isAdvisor &&
       getItem("פרוייקטים שלי", "sub2", <FundProjectionScreenOutlined />, [
-        getItem("הזנת פרוייקט", "11"),
-        getItem("סטטוס פרוייקטים", "12"),
-        getItem("סטטוס הגשות", "13"),
+        getItem("הזנת פרוייקט", "create-project-advisor"),
+        getItem("סטטוס פרוייקטים", "projects-status"),
+        getItem("סטטוס הגשות", "submissions-status"),
       ]),
     privileges.isCoordinator &&
       getItem("ניהול פרוייקטים", "sub3", <FundProjectionScreenOutlined />, [
-        getItem("הזנת פרוייקט", "14"),
-        getItem("הצגת פרוייקטים", "15"),
+        getItem("הזנת פרוייקט", "create-project-coordinator"),
+        getItem("הצגת פרוייקטים", "show-all-projects"),
       ]),
     privileges.isCoordinator &&
       getItem("ניהול משתמשים", "sub4", <TeamOutlined />, [
-        getItem("הזנת סטודנטים", "16"),
-        getItem("הזנת משתמש צוות", "17"),
-        getItem("עדכון הרשאות", "18"),
-        getItem("הצגת משתמשים", "19"),
+        getItem("הזנת סטודנטים", "create-student"),
+        getItem("הזנת משתמש צוות", "create-team-member"),
+        getItem("עדכון הרשאות", "update-privileges"),
+        getItem("הצגת משתמשים", "show-all-users"),
       ]),
-    privileges.isCoordinator && getItem("ניהול מערכת", "20", <SettingOutlined />),
+    privileges.isCoordinator && getItem("ניהול מערכת", "settings", <SettingOutlined />),
   ];
 
   const [collapsed, setCollapsed] = useState(false);
@@ -114,6 +113,7 @@ const Dashboard = () => {
           maxHeight: "100vh",
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
+          <div className="placeholder" />
           <Menu selectedKeys={[currentKey]} theme="dark" mode="inline" items={items} onClick={handleMenuClick} />
         </Sider>
         <Layout>
@@ -123,13 +123,27 @@ const Dashboard = () => {
               background: colorBgContainer,
             }}
           />
-          <div className="site-upper-header">
+
+          <div className="site-upper-header-right">
             <h1>מערכת ניהול פרוייקטים</h1>
           </div>
-          <LoginOutlined className="logout-icon" onClick={handleLogOut} />
+          <div className="site-upper-header-left">
+            <Avatar
+              className="avatar-icon"
+              size="large"
+              icon={<UserOutlined />}
+              onClick={() => setCurrentKey("profile")}
+            />
+            <Badge count={100}>
+              <MessageOutlined className="notification-icon" />
+            </Badge>
+            <LoginOutlined className="logout-icon" onClick={handleLogOut} />
+          </div>
           <Content
             style={{
               margin: "16px 16px 0 16px",
+              overflowY: "auto",
+              maxHeight: "92%",
             }}>
             <div
               style={{
@@ -138,7 +152,8 @@ const Dashboard = () => {
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
               }}>
-              {currentKey === "2" && <HomePage />}
+              {currentKey === "home" && <HomePage />}
+              {currentKey === "profile" && <h1>Profile</h1>}
             </div>
           </Content>
         </Layout>
