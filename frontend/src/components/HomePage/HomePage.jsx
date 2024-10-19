@@ -27,9 +27,17 @@ const Homepage = () => {
   const formatter = (value) => <CountUp end={value} separator="," />;
   return (
     <div className="home-page">
-      <Statistic title="פרוייקטים פתוחים" value={numOfOpenProjects} formatter={formatter} />
-      <Statistic title="פרוייקטים לקוחים" value={numOfTakenProjects} formatter={formatter} />
-      <Statistic title="פרוייקטים שהושלמו" value={numOfFinishedProjects} formatter={formatter} />
+      <div className="home-page-statistics">
+        <Statistic title="פרוייקטים פתוחים" value={numOfOpenProjects} formatter={formatter} />
+        <Statistic title="פרוייקטים לקוחים" value={numOfTakenProjects} formatter={formatter} />
+        <Statistic title="פרוייקטים שהושלמו" value={numOfFinishedProjects} formatter={formatter} />
+      </div>
+      <div className="home-page-updates">
+        <h2>עדכונים</h2>
+      </div>
+      <div className="home-page-upcoming-events">
+        <h2>אירועים קרובים</h2>
+      </div>
     </div>
   );
 };
