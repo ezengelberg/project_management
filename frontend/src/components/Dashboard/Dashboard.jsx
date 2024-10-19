@@ -21,7 +21,7 @@ import {
 } from "@ant-design/icons";
 import { Layout, Menu, theme, Avatar, Badge } from "antd";
 import { useNavigate } from "react-router-dom";
-
+import collegeLogo from "../../assets/CollegeLogo.png";
 import HomePage from "../HomePage/HomePage";
 import Templates from "../Templates/Templates";
 
@@ -109,7 +109,7 @@ const Dashboard = () => {
     try {
       const response = await axios.post("http://localhost:5000/api/user/logout", { withCredentials: true });
       console.log(response.data);
-      navigate("/login", {replace: true});
+      navigate("/login", { replace: true });
     } catch (error) {
       console.error("Error occurred:", error);
     }
@@ -145,6 +145,7 @@ const Dashboard = () => {
           />
 
           <div className="site-upper-header-right">
+            <img src={collegeLogo} alt="collage logo" className="collage-logo" />
             <h1>מערכת ניהול פרוייקטים</h1>
           </div>
           <div className="site-upper-header-left">

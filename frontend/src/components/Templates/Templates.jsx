@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Templates.scss";
 import axios from "axios";
 import { InboxOutlined } from "@ant-design/icons";
@@ -7,7 +7,21 @@ import { Button, message, Upload } from "antd";
 const Templates = () => {
   const [fileList, setFileList] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const { Dragger } = Upload;
+
+  useEffect(() => {
+    const fetchPrivileges = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/user/privileges", { withCredentials: true });
+        setPrivileges(response.data);
+      } catch (error) {
+        console.error("Error occurred:", error);
+      }
+    };
+
+    fetchPrivileges();
+  }, []);
 
   const handleUpload = async () => {
     const formData = new FormData();
@@ -61,24 +75,26 @@ const Templates = () => {
 
   return (
     <div>
-      <div className="upload-container">
-        <Dragger {...props}>
-          <p className="ant-upload-drag-icon">
-            <InboxOutlined />
-          </p>
-          <p className="ant-upload-text">לחצו או גררו כדי להעלות קבצים</p>
-          <p className="ant-upload-hint">ניתן להעלות עד 10 קבצים בו זמנית</p>
-        </Dragger>
+      {privileges.isCoordinator && (
+        <div className="upload-container">
+          <Dragger {...props}>
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p className="ant-upload-text">לחצו או גררו כדי להעלות קבצים</p>
+            <p className="ant-upload-hint">ניתן להעלות עד 10 קבצים בו זמנית</p>
+          </Dragger>
 
-        <Button
-          type="primary"
-          onClick={handleUpload}
-          disabled={fileList.length === 0}
-          loading={uploading}
-          style={{ marginTop: 16 }}>
-          {uploading ? "Uploading" : "Start Upload"}
-        </Button>
-      </div>
+          <Button
+            type="primary"
+            onClick={handleUpload}
+            disabled={fileList.length === 0}
+            loading={uploading}
+            style={{ marginTop: 16 }}>
+            {uploading ? "מעלה" : "התחל העלאה"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

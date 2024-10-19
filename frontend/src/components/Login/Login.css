@@ -6,6 +6,10 @@
   min-height: 100vh;
 }
 
+.collage-logo {
+  width: 30rem;
+}
+
 .login form {
   position: absolute;
   top: 50%;
