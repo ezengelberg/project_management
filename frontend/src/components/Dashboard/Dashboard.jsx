@@ -125,9 +125,13 @@ const Dashboard = () => {
           maxHeight: "100vh",
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-          <div className="user-welcome">
-            <h3>ברוך הבא, {userName}</h3>
-          </div>
+          {!collapsed ? (
+            <div className="user-welcome">
+              <h3>ברוך הבא, {userName}</h3>
+            </div>
+          ) : (
+            <div className="placeholder" />
+          )}
           <Menu selectedKeys={[currentKey]} theme="dark" mode="inline" items={items} onClick={handleMenuClick} />
         </Sider>
         <Layout>

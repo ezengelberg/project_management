@@ -3,6 +3,10 @@
   text-align: center;
 }
 
+.placeholder {
+  height: 6rem;
+}
+
 .site-upper-header-right {
   position: absolute;
   display: flex;
