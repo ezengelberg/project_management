@@ -1,8 +1,17 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./Projects.scss";
 import { UserOutlined } from "@ant-design/icons";
 
 const Projects = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const grabProjects = async () => {
+        // TODO: Fetch projects from the server
+    };
+    grabProjects();
+  }, []);
+
   return (
     <div className="list-projects">
       <h2>רשימת פרוייקטים</h2>
