@@ -23,6 +23,7 @@ import { Layout, Menu, theme, Avatar, Badge } from "antd";
 import { useNavigate } from "react-router-dom";
 
 import HomePage from "../HomePage/HomePage";
+import Templates from "../Templates/Templates";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ const Dashboard = () => {
   const items = [
     getItem("בית", "home", <HomeOutlined />),
     privileges.isStudent && getItem("פרוייקטים", "projects", <ProjectOutlined />),
-    privileges.isStudent && getItem("תבנית דוחות", "templates", <FileSearchOutlined />),
+    getItem("תבנית דוחות", "templates", <FileSearchOutlined />),
     privileges.isStudent &&
       getItem("הפרוייקט שלי", "sub1", <ApartmentOutlined />, [
         getItem("דף הפרוייקט", "project-page"),
@@ -170,8 +171,9 @@ const Dashboard = () => {
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
               }}>
-              {currentKey === "home" && <HomePage />}
               {currentKey === "profile" && <h1>Profile</h1>}
+              {currentKey === "home" && <HomePage />}
+              {currentKey === "templates" && <Templates />}
             </div>
           </Content>
         </Layout>

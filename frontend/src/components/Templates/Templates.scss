@@ -1,0 +1,17 @@
+.upload-container {
+  width: 50%;
+  margin: 0 auto;
+}
+
+.toolbar-wrapper {
+  direction: ltr;
+  font-size: 2rem;
+}
+
+.images-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 5rem;
+  gap: 2rem;
+}
