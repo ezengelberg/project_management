@@ -51,7 +51,7 @@
 
 .login-input-group:focus-within .input-icon path,
 .login-input-group:focus-within .input-icon circle {
-  stroke: #a64bf4;
+  stroke: rgba(0, 107, 255, 0.5);
 }
 
 .login-input-group input {
@@ -71,7 +71,7 @@
 }
 
 .forgot-password:hover {
-  color: #a64bf4;
+  color: rgba(0, 107, 255, 0.5);
 }
 
 .login-button {
