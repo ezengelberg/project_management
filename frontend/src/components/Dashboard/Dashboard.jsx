@@ -157,7 +157,7 @@ const Dashboard = () => {
             <Badge count={100}>
               <MessageOutlined className="notification-icon" />
             </Badge>
-            <LoginOutlined className="logout-icon" onClick={handleLogOut} />
+            <LoginOutlined className="logout-icon" onClick={handleLogout} />
           </div>
           <Content
             style={{

@@ -5,7 +5,7 @@ import {
   registerUser,
   getUsersNoProjects,
   getPrivileges,
-  getUserName,
+  getUserName
 } from "../controllers/userController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 

@@ -27,7 +27,7 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
       // isStudent: true, // set default for now
       isAdvisor: false, // set default for now
-      isCoordinator: false, // set default for now
+      isCoordinator: false // set default for now
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
@@ -45,29 +45,35 @@ export const loginUser = (req, res, next) => {
     req.login(user, (err) => {
       if (err) return next(err);
       console.log("Login successful");
-      return res.status(200).send("Login successful");
+      res.status(200).send("Login successful");
     });
   })(req, res, next);
 };
 
 export const logoutUser = (req, res, next) => {
+  if (!req.session) {
+    return res.status(400).json({ message: "No active session found" });
+  }
+
   const sessionId = req.session.id;
   console.log("Current session ID:", sessionId);
 
+  // Logout the user (removes the user from the session)
   req.logout((err) => {
     if (err) {
-      return next(err);
+      console.error("Logout error:", err);
+      return res.status(500).json({ message: "Error logging out" });
     }
 
+    // console.log
+    // Destroy the session in the store
     req.session.destroy((err) => {
       if (err) {
         console.error("Session destruction error:", err);
         return res.status(500).json({ message: "Error destroying session" });
       }
 
-      console.log("Session destroyed successfully");
-      res.clearCookie("connect.sid");
-      res.status(200).json({ message: "Logged out successfully" });
+      res.status(200).clearCookie("connect.sid", { path: "/" }).json({ status: "Success" });
     });
   });
 };
