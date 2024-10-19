@@ -7,9 +7,10 @@ import session from "express-session";
 import passport from "./config/passport.js";
 
 import { connectDB } from "./config/db.js";
-import MongoStore from 'connect-mongo';
+import MongoStore from "connect-mongo";
 
 import userRoute from "./routes/userRoute.js";
+import projectRoute from "./routes/projectRoute.js";
 
 // Load environment variables and allows to use .env file
 dotenv.config();
@@ -25,8 +26,8 @@ app.use(
     store: MongoStore.create({ mongoUrl: process.env.MONGO_URI, collectionName: "sessions" }),
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
-      secure: false // Set to true if using HTTPS
-    }
+      secure: false, // Set to true if using HTTPS
+    },
   })
 );
 
@@ -36,7 +37,7 @@ app.use(passport.session());
 // Allow cross-origin requests
 const corsOptions = {
   origin: "http://localhost:3000", // Allow only the front-end's origin
-  credentials: true // Allow cookies and credentials
+  credentials: true, // Allow cookies and credentials
 };
 
 app.use(cors(corsOptions));
@@ -45,6 +46,7 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 app.use("/api/user", userRoute);
+app.use("/api/project", projectRoute);
 
 app.get("/", (req, res) => {
   res.send("Hello World! Nothing to see here yet!");

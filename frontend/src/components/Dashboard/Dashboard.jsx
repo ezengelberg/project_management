@@ -21,6 +21,8 @@ import {
 import { Layout, Menu, theme } from "antd";
 import { useNavigate } from "react-router-dom";
 
+import HomePage from "../HomePage/HomePage";
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
@@ -136,7 +138,7 @@ const Dashboard = () => {
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
               }}>
-              <p>Current Menu Key: {currentKey}</p>
+              {currentKey === "2" && <HomePage />}
             </div>
           </Content>
         </Layout>
