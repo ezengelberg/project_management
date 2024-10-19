@@ -27,6 +27,7 @@ import HomePage from "../HomePage/HomePage";
 const Dashboard = () => {
   const navigate = useNavigate();
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
+  const [userName, setUserName] = useState("");
   const [currentKey, setCurrentKey] = useState("home");
 
   useEffect(() => {
@@ -39,7 +40,18 @@ const Dashboard = () => {
         console.error("Error occurred:", error);
       }
     };
+
+    const fetchUserName = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/user/user-name", { withCredentials: true });
+        setUserName(response.data.name);
+      } catch (error) {
+        console.error("Error occurred:", error);
+      }
+    };
+
     fetchPrivileges();
+    fetchUserName();
   }, []);
 
   const { Header, Content, Sider } = Layout;
@@ -113,7 +125,9 @@ const Dashboard = () => {
           maxHeight: "100vh",
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-          <div className="placeholder" />
+          <div className="user-welcome">
+            <h3>ברוך הבא, {userName}</h3>
+          </div>
           <Menu selectedKeys={[currentKey]} theme="dark" mode="inline" items={items} onClick={handleMenuClick} />
         </Sider>
         <Layout>

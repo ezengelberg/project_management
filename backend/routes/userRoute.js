@@ -1,5 +1,12 @@
 import express from "express";
-import { loginUser, logoutUser, registerUser, getUsersNoProjects, getPrivileges } from "../controllers/userController.js";
+import {
+  loginUser,
+  logoutUser,
+  registerUser,
+  getUsersNoProjects,
+  getPrivileges,
+  getUserName,
+} from "../controllers/userController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -13,5 +20,6 @@ router.get("/check-auth", ensureAuthenticated, (req, res) => {
 });
 
 router.get("/privileges", ensureAuthenticated, getPrivileges);
+router.get("/user-name", ensureAuthenticated, getUserName);
 
 export default router;
