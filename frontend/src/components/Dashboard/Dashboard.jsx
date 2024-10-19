@@ -24,6 +24,7 @@ import { useNavigate } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
 import HomePage from "../HomePage/HomePage";
 import Templates from "../Templates/Templates";
+import Projects from "../Projects/Projects";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -176,6 +177,7 @@ const Dashboard = () => {
               {currentKey === "profile" && <h1>Profile</h1>}
               {currentKey === "home" && <HomePage />}
               {currentKey === "templates" && <Templates />}
+              {currentKey === "projects" && <Projects />}
             </div>
           </Content>
         </Layout>
