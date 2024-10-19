@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./Homepage.scss";
+import "./HomePage.scss";
 import axios from "axios";
 import { Statistic } from "antd";
 import CountUp from "react-countup";
