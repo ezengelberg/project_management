@@ -31,7 +31,7 @@ const Templates = () => {
     setUploading(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/upload", formData, {
+      const response = await axios.post("http://localhost:5000/api/file-templates", formData, {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });

@@ -8,11 +8,10 @@ import passport from "./config/passport.js";
 
 import { connectDB } from "./config/db.js";
 import MongoStore from "connect-mongo";
-import multer from "multer";
 
 import userRoute from "./routes/userRoute.js";
 import projectRoute from "./routes/projectRoute.js";
-import FileTemplates from "./models/fileTemplates.js";
+import templateFilesRoute from "./routes/templateFilesRoute.js";
 
 // Load environment variables and allows to use .env file
 dotenv.config();
@@ -49,49 +48,12 @@ app.use(bodyParser.json());
 
 app.use("/api/user", userRoute);
 app.use("/api/project", projectRoute);
+app.use("/api/file-templates", templateFilesRoute);
+app.use("/templateFiles", express.static("templateFiles"));
 
 app.get("/", (req, res) => {
   res.send("Hello World! Nothing to see here yet!");
 });
-
-// ----------------- File Upload -----------------
-
-app.use("/files", express.static("files"));
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "./files");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = new Date().toISOString().split("T")[0];
-    cb(null, uniqueSuffix + "-" + file.originalname);
-  },
-});
-
-const upload = multer({ storage: storage });
-
-app.post("/api/upload", upload.array("files", 10), async (req, res) => {
-  if (!req.files || req.files.length === 0) {
-    return res.status(400).json({ message: "No files uploaded" });
-  }
-
-  try {
-    const savedFiles = [];
-    for (const file of req.files) {
-      const newFileTemplate = new FileTemplates({ filename: file.filename });
-      await newFileTemplate.save();
-      savedFiles.push(newFileTemplate);
-    }
-    res.status(201).json({
-      message: "Files uploaded and saved successfully",
-      fileTemplates: savedFiles,
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// ----------------- File Upload -----------------
 
 app.listen(server_port, () => {
   connectDB();
