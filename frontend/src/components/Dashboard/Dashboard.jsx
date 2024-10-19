@@ -17,14 +17,19 @@ import {
   SettingOutlined,
   FundProjectionScreenOutlined,
   TeamOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu, theme } from "antd";
+import { Layout, Menu, theme, Avatar, Badge } from "antd";
 import { useNavigate } from "react-router-dom";
+
+import HomePage from "../HomePage/HomePage";
+import Templates from "../Templates/Templates";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
-  const [currentKey, setCurrentKey] = useState("2");
+  const [userName, setUserName] = useState("");
+  const [currentKey, setCurrentKey] = useState("home");
 
   useEffect(() => {
     // Fetch data from the API
@@ -36,7 +41,18 @@ const Dashboard = () => {
         console.error("Error occurred:", error);
       }
     };
+
+    const fetchUserName = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/user/user-name", { withCredentials: true });
+        setUserName(response.data.name);
+      } catch (error) {
+        console.error("Error occurred:", error);
+      }
+    };
+
     fetchPrivileges();
+    fetchUserName();
   }, []);
 
   const { Header, Content, Sider } = Layout;
@@ -50,44 +66,37 @@ const Dashboard = () => {
   }
 
   const items = [
-    getItem("פרופיל", "1", <UserOutlined />),
-    getItem("בית", "2", <HomeOutlined />),
-    privileges.isStudent && getItem("פרוייקטים", "3", <ProjectOutlined />),
+    getItem("בית", "home", <HomeOutlined />),
+    privileges.isStudent && getItem("פרוייקטים", "projects", <ProjectOutlined />),
+    getItem("תבנית דוחות", "templates", <FileSearchOutlined />),
     privileges.isStudent &&
-      getItem("תבנית דוחות", "sub1", <FileSearchOutlined />, [
-        getItem("דוח אלפא", "4"),
-        getItem("דוח בטא", "5"),
-        getItem("דוח סופי", "6"),
+      getItem("הפרוייקט שלי", "sub1", <ApartmentOutlined />, [
+        getItem("דף הפרוייקט", "project-page"),
+        getItem("הצגת קבצים", "show-files"),
+        getItem("הגשות", "submissions"),
+        getItem("הערות מנחה", "advisor-comments"),
+        getItem("הערות שופט", "judge-comments"),
+        getItem("צפייה בציון", "grade"),
       ]),
-    privileges.isStudent &&
-      getItem("הפרוייקט שלי", "sub2", <ApartmentOutlined />, [
-        getItem("דף הפרוייקט", "7"),
-        getItem("הצגת קבצים", "8"),
-        getItem("הגשות", "9"),
-        getItem("הערות מנחה", "10"),
-        getItem("הערות שופט", "11"),
-        getItem("צפייה בציון", "12"),
-      ]),
-    privileges.isStudent && getItem("הגשות", "13", <FileOutlined />),
     privileges.isAdvisor &&
-      getItem("פרוייקטים שלי", "sub3", <FundProjectionScreenOutlined />, [
-        getItem("הזנת פרוייקט", "14"),
-        getItem("סטטוס פרוייקטים", "15"),
-        getItem("סטטוס הגשות", "16"),
+      getItem("פרוייקטים שלי", "sub2", <FundProjectionScreenOutlined />, [
+        getItem("הזנת פרוייקט", "create-project-advisor"),
+        getItem("סטטוס פרוייקטים", "projects-status"),
+        getItem("סטטוס הגשות", "submissions-status"),
       ]),
     privileges.isCoordinator &&
-      getItem("ניהול פרוייקטים", "sub4", <FundProjectionScreenOutlined />, [
-        getItem("הזנת פרוייקט", "17"),
-        getItem("הצגת פרוייקטים", "18"),
+      getItem("ניהול פרוייקטים", "sub3", <FundProjectionScreenOutlined />, [
+        getItem("הזנת פרוייקט", "create-project-coordinator"),
+        getItem("הצגת פרוייקטים", "show-all-projects"),
       ]),
     privileges.isCoordinator &&
-      getItem("ניהול משתמשים", "sub5", <TeamOutlined />, [
-        getItem("הזנת סטודנטים", "19"),
-        getItem("הזנת משתמש צוות", "20"),
-        getItem("עדכון הרשאות", "21"),
-        getItem("הצגת משתמשים", "22"),
+      getItem("ניהול משתמשים", "sub4", <TeamOutlined />, [
+        getItem("הזנת סטודנטים", "create-student"),
+        getItem("הזנת משתמש צוות", "create-team-member"),
+        getItem("עדכון הרשאות", "update-privileges"),
+        getItem("הצגת משתמשים", "show-all-users"),
       ]),
-    privileges.isCoordinator && getItem("ניהול מערכת", "23", <SettingOutlined />),
+    privileges.isCoordinator && getItem("ניהול מערכת", "settings", <SettingOutlined />),
   ];
 
   const [collapsed, setCollapsed] = useState(false);
@@ -118,6 +127,13 @@ const Dashboard = () => {
           maxHeight: "100vh",
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
+          {!collapsed ? (
+            <div className="user-welcome">
+              <h3>ברוך הבא, {userName}</h3>
+            </div>
+          ) : (
+            <div className="placeholder" />
+          )}
           <Menu selectedKeys={[currentKey]} theme="dark" mode="inline" items={items} onClick={handleMenuClick} />
         </Sider>
         <Layout>
@@ -127,22 +143,38 @@ const Dashboard = () => {
               background: colorBgContainer,
             }}
           />
-          <div className="site-upper-header">
+
+          <div className="site-upper-header-right">
             <h1>מערכת ניהול פרוייקטים</h1>
           </div>
-          <LoginOutlined className="logout-icon" onClick={handleLogout} />
+          <div className="site-upper-header-left">
+            <Avatar
+              className="avatar-icon"
+              size="large"
+              icon={<UserOutlined />}
+              onClick={() => setCurrentKey("profile")}
+            />
+            <Badge count={100}>
+              <MessageOutlined className="notification-icon" />
+            </Badge>
+            <LoginOutlined className="logout-icon" onClick={handleLogOut} />
+          </div>
           <Content
             style={{
               margin: "16px 16px 0 16px",
+              overflowY: "auto",
+              maxHeight: "92%",
             }}>
             <div
               style={{
                 padding: 24,
-                minHeight: 360,
+                minHeight: "100%",
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
               }}>
-              <p>Current Menu Key: {currentKey}</p>
+              {currentKey === "profile" && <h1>Profile</h1>}
+              {currentKey === "home" && <HomePage />}
+              {currentKey === "templates" && <Templates />}
             </div>
           </Content>
         </Layout>

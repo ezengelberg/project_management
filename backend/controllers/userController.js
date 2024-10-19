@@ -27,7 +27,7 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
       // isStudent: true, // set default for now
       isAdvisor: false, // set default for now
-      isCoordinator: false // set default for now
+      isCoordinator: false, // set default for now
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
@@ -107,4 +107,9 @@ export const getUsersNoProjects = async (req, res) => {
 export const getPrivileges = async (req, res) => {
   const user = req.user;
   res.status(200).json({ isStudent: user.isStudent, isAdvisor: user.isAdvisor, isCoordinator: user.isCoordinator });
+};
+
+export const getUserName = async (req, res) => {
+  const user = req.user;
+  res.status(200).json({ name: user.name });
 };
