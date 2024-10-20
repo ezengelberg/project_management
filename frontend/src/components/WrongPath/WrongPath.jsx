@@ -3,7 +3,6 @@ import "./WrongPath.scss";
 import { useNavigate } from "react-router-dom";
 
 const WrongPath = () => {
-
   const navigate = useNavigate();
   return (
     <div className="wrong-path">
@@ -11,7 +10,9 @@ const WrongPath = () => {
         <h1>אופס...</h1>
         <h2>העמוד שניסית להגיע אליו כבר איננו פה</h2>
         <img src={require("../../assets/404v2.jpg")} alt="404 Not Found" />
-        <button className="return-to-existance" onClick={() => navigate("/home")} >חזור למקום קיים</button>
+        <button className="return-to-existance" onClick={() => navigate("/dashboard")}>
+          חזור למקום קיים
+        </button>
       </div>
     </div>
   );

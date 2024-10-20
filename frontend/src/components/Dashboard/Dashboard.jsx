@@ -19,7 +19,7 @@ import {
   TeamOutlined,
   MessageOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu, theme, Avatar, Badge } from "antd";
+import { Layout, Menu, theme, Avatar, Badge, Tooltip } from "antd";
 import { useNavigate } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
 import HomePage from "../HomePage/HomePage";
@@ -150,16 +150,22 @@ const Dashboard = () => {
             <h1>מערכת ניהול פרוייקטים</h1>
           </div>
           <div className="site-upper-header-left">
-            <Avatar
-              className="avatar-icon"
-              size="large"
-              icon={<UserOutlined />}
-              onClick={() => setCurrentKey("profile")}
-            />
+            <Tooltip title="פרופיל">
+              <Avatar
+                className="avatar-icon"
+                size="large"
+                icon={<UserOutlined />}
+                onClick={() => setCurrentKey("profile")}
+              />
+            </Tooltip>
             <Badge count={100}>
-              <MessageOutlined className="notification-icon" />
+              <Tooltip title="התראות">
+                <MessageOutlined className="notification-icon" />
+              </Tooltip>
             </Badge>
-            <LoginOutlined className="logout-icon" onClick={handleLogout} />
+            <Tooltip title="התנתק">
+              <LoginOutlined className="logout-icon" onClick={handleLogout} />
+            </Tooltip>
           </div>
           <Content
             style={{

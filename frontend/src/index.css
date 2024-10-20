@@ -29,6 +29,14 @@ h2 {
   color: #333333;
 }
 
+hr {
+  background-color: #e4e4ed;
+  height: 1px;
+  width: 100%;
+  margin: 2rem 0;
+  border: none;
+}
+
 .button-large {
   font-size: 2.2rem;
   font-weight: 600;
@@ -96,7 +104,6 @@ h2 {
 .form-input-group .MuiAlert-standardError .MuiAlert-icon {
   margin: 0;
 }
-
 
 @media (max-width: 640px) {
   html {

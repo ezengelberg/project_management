@@ -7,6 +7,8 @@ import { Button, message, Upload } from "antd";
 const Templates = () => {
   const [fileList, setFileList] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const { Dragger } = Upload;
 
@@ -28,6 +30,8 @@ const Templates = () => {
     fileList.forEach((file) => {
       formData.append("files", file);
     });
+    formData.append("title", title);
+    formData.append("description", description);
     setUploading(true);
 
     try {
@@ -42,6 +46,7 @@ const Templates = () => {
       message.error("upload failed.");
     } finally {
       setUploading(false);
+      clearForm();
     }
   };
 
@@ -73,6 +78,12 @@ const Templates = () => {
     fileList,
   };
 
+  const clearForm = () => {
+    setFileList([]);
+    setTitle("");
+    setDescription("");
+  };
+
   return (
     <div>
       {privileges.isCoordinator && (
@@ -82,9 +93,30 @@ const Templates = () => {
               <InboxOutlined />
             </p>
             <p className="ant-upload-text">לחצו או גררו כדי להעלות קבצים</p>
-            <p className="ant-upload-hint">ניתן להעלות עד 10 קבצים בו זמנית</p>
+            <p className="ant-upload-hint">
+              ניתן להעלות עד 10 קבצים בו זמנית (הזנת כותרת/תיאור ישוייכו לכל הקבצים אם הועלאו ביחד)
+            </p>
           </Dragger>
-
+          <hr />
+          <div className="form-input-group template-input-group">
+            <label htmlFor="title">כותרת</label>
+            <input
+              type="text"
+              id="title"
+              placeholder="כותרת לקובץ (אם לא הוכנס שם הקובץ יהיה גם הכותרת)"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+          <div className="form-input-group template-input-group">
+            <label htmlFor="description">תיאור</label>
+            <textarea
+              id="description"
+              placeholder="תיאור לקובץ"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
           <Button
             type="primary"
             onClick={handleUpload}

@@ -30,12 +30,12 @@ const Login = () => {
         "http://localhost:5000/api/user/login",
         {
           email,
-          password
+          password,
         },
         { withCredentials: true }
       );
       console.log("DEV: " + result.data);
-      navigate("/home");
+      navigate("/dashboard");
     } catch (error) {
       // Log the actual error message
       setErrorMessage(error.response.data);
