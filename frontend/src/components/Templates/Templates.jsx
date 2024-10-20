@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./Templates.scss";
 import axios from "axios";
 import { InboxOutlined } from "@ant-design/icons";
-import { Button, message, Upload } from "antd";
+import { Button, message, Upload, Collapse } from "antd";
 
 const Templates = () => {
   const [fileList, setFileList] = useState([]);
@@ -125,6 +125,18 @@ const Templates = () => {
             style={{ marginTop: 16 }}>
             {uploading ? "מעלה" : "התחל העלאה"}
           </Button>
+          <div className="template-content">
+            <Collapse
+              size="large"
+              items={[
+                {
+                  key: "1",
+                  label: "כותרת הקובץ",
+                  children: <p>something</p>,
+                },
+              ]}
+            />
+          </div>
         </div>
       )}
     </div>
