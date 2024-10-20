@@ -1,7 +1,8 @@
 import User from "../models/users.js";
+import Project from "../models/projects.js";
 import bcrypt from "bcrypt";
 import passport from "passport";
-import MongoStore from "connect-mongo";
+import mongoose from "mongoose";
 
 export const registerUser = async (req, res) => {
   try {
@@ -118,4 +119,47 @@ export const getPrivileges = async (req, res) => {
 export const getUserName = async (req, res) => {
   const user = req.user;
   res.status(200).json({ name: user.name });
+};
+
+export const toggleFavoriteProject = async (req, res) => {
+  const user = req.user;
+  const { projectId } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    return res.status(500).send("Invalid project ID");
+  }
+  const project = await Project.findById(projectId);
+  if (!project) {
+    return res.status(404).send("Project not found");
+  }
+
+  // Ensure the user has a favorites array
+  if (!user.favorites) {
+    user.favorites = [];
+  }
+
+  const userFavorites = user.favorites;
+  const projectIndex = userFavorites.findIndex((fav) => fav._id.toString() === project._id.toString());
+  if (projectIndex === -1) {
+    // Push the whole project object if not present
+    userFavorites.push(project);
+    res.status(200).send("Project added to favorites");
+  } else {
+    // Remove the project object if already in favorites
+    userFavorites.splice(projectIndex, 1);
+    res.status(200).send("Project removed from favorites");
+  }
+
+  // Save the updated user document
+  await user.save();
+};
+
+export const ensureFavoriteProject = async (req, res) => {
+  const user = req.user;
+  const { projectId } = req.params;
+  if (user.favorites.find((fav) => fav.toString() === projectId)) {
+    res.status(200).send({favorite: true});
+  } else {
+    res.status(200).send({favorite: false});
+  }
 };

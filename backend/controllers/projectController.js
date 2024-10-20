@@ -9,6 +9,15 @@ export const getProjects = async (req, res) => {
   }
 };
 
+export const getAvailableProjects = async (req, res) => {
+  try {
+    const projects = await Project.find({ isTerminated: false, isFinished: false, isApproved: true, students: [] });
+    res.status(200).send(projects);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const getProjectsByYear = async (req, res) => {
   try {
     const projects = await Project.find({ year: req.params.year });
@@ -20,13 +29,24 @@ export const getProjectsByYear = async (req, res) => {
 
 export const createProject = async (req, res) => {
   try {
-    const projectId = req.body.id;
-    if (await Project.exists({ id: projectId })) {
-      return res.status(400).send({ message: "Project already exists" });
+    console.log("createProject");
+    const { title, description, year, suitableFor, type } = req.body;
+
+    if (!title || !description || !year || !suitableFor || !type) {
+      return res.status(400).send({ message: "Missing required fields" });
     }
-    const project = new Project(req.body);
-    await project.save();
-    res.status(201).send(project);
+
+    if (type !== "research" && type !== "development" && type !== "hitech" && type !== "other") {
+      return res.status(400).send({ message: "Invalid project type" });
+    }
+    const project = await Project.findOne({ title, year });
+    if (project) {
+      return res.status(400).send({ message: "This Project already exists in that year" });
+    }
+
+    const newProject = new Project({ title, description, year, suitableFor, type });
+    await newProject.save();
+    res.status(201).send("Projected Created Successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

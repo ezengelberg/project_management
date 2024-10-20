@@ -1,40 +1,74 @@
-.list-projects {
+.projects {
   width: 100%;
   padding-left: 24px;
 
-  .project-box {
-    margin-top: 3rem;
+  .list-projects {
     display: flex;
-    justify-content: flex-start;
-    min-height: 25rem;
-    padding: 3rem;
-    border-radius: 3rem;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    gap: 1rem;
-    width: (100%/3);
-    & > svg {
-      width: 10%;
-      stroke: red;
-      /* fill: red; */
-    }
-    .project-info {
-      width: 90%;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-top: 2rem;
+    .project-box {
       display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-
-      .project-title {
-        margin-bottom: 0.5rem;
-      }
-
-      .project-actions {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+      justify-content: center;
+      min-height: 25rem;
+      padding: 3rem;
+      border-radius: 3rem;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      gap: 1rem;
+      width: calc(100% / 3 - 2rem);
+      .project-info {
         width: 100%;
-        margin-top: auto;
-        .project-advisors-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+
+        .project-header {
+          display: flex;
+          align-items: center;
+          gap: 2rem;
+          margin-bottom: 0.5rem;
+          .project-title {
+            width: fit-content;
+          }
+
+          .project-suitable {
+            padding: 0.4rem 1.4rem;
+            background-color: rgba(255, 201, 22, 0.8);
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 6px rgba(255, 201, 22, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1); /* Added softer shadows for a lifted badge effect */
+            color: #000; /* Optional: white text for better readability */
+            font-weight: bold; /* Optional: bold text to emphasize the badge look */
+            display: inline-block; /* Makes sure the badge fits tightly around content */
+          }
+
+          .favorite-star {
+            margin-right: auto;
+            margin-bottom: auto;
+            // & > svg {
+            //   fill: red;
+            //   stroke: blue;
+            // }
+          }
+
+          .star-marked {
+            & > svg {
+              fill: red;
+            }
+          }
+        }
+
+        .project-description {
+          width: 90%;
+        }
+
+        .project-actions {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          margin-top: auto;
+          .project-advisors-list {
             display: flex;
             gap: 0.4rem;
             .project-advisor {
@@ -50,27 +84,28 @@
               cursor: pointer;
               transition: background-color 0.2s linear;
             }
-        }
-        .more-info {
-          width: fit-content;
-          transition: transform 0.2s linear;
-          &:hover {
-            cursor: pointer;
-            transform: scale(1.05);
+          }
+          .more-info {
+            width: fit-content;
+            transition: transform 0.2s linear;
+            &:hover {
+              cursor: pointer;
+              transform: scale(1.05);
+            }
           }
         }
       }
-    }
 
-    p,
-    h3 {
-      margin: 0;
-      display: inline;
-    }
+      p,
+      h3 {
+        margin: 0;
+        display: inline;
+      }
 
-    h3 {
-      font-size: 1.8rem;
-      font-weight: 700;
+      h3 {
+        font-size: 1.8rem;
+        font-weight: 700;
+      }
     }
   }
 }
