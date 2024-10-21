@@ -1,5 +1,5 @@
 import React from "react";
-import { UserOutlined, StarFilled } from "@ant-design/icons";
+import { UserOutlined, StarFilled, ProjectOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 
 const ProjectBox = ({ markFavorite, ...props }) => {

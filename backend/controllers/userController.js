@@ -28,7 +28,7 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
       // isStudent: true, // set default for now
       isAdvisor: false, // set default for now
-      isCoordinator: false // set default for now
+      isCoordinator: false, // set default for now
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
@@ -91,6 +91,18 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
+export const getAdvisorUsers = async (req, res) => {
+  try {
+    const users = await User.find({ isAdvisor: true });
+    users.forEach((user) => {
+      delete user.password;
+    });
+    res.status(200).send(users);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const getUsersNoProjects = async (req, res) => {
   try {
     const users = await User.find();
@@ -119,6 +131,11 @@ export const getPrivileges = async (req, res) => {
 export const getUserName = async (req, res) => {
   const user = req.user;
   res.status(200).json({ name: user.name });
+};
+
+export const getUser = async (req, res) => {
+  const user = req.user;
+  res.status(200).json(user);
 };
 
 export const toggleFavoriteProject = async (req, res) => {
@@ -158,8 +175,8 @@ export const ensureFavoriteProject = async (req, res) => {
   const user = req.user;
   const { projectId } = req.params;
   if (user.favorites.find((fav) => fav.toString() === projectId)) {
-    res.status(200).send({favorite: true});
+    res.status(200).send({ favorite: true });
   } else {
-    res.status(200).send({favorite: false});
+    res.status(200).send({ favorite: false });
   }
 };

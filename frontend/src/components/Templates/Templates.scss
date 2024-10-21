@@ -1,6 +1,20 @@
 .upload-container {
   width: 50%;
   margin: 0 auto;
+
+  .template-content {
+    margin-top: 3rem;
+
+    .ant-collapse-expand-icon svg {
+      rotate: 180deg;
+    }
+
+    .ant-collapse-item-active {
+      .ant-collapse-expand-icon svg {
+        transform: rotate(-90deg) !important;
+      }
+    }
+  }
 }
 
 .toolbar-wrapper {

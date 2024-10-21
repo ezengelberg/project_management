@@ -19,6 +19,7 @@ import collegeLogo from "../../assets/CollegeLogo.png";
 import HomePage from "../HomePage/HomePage";
 import Templates from "../Templates/Templates";
 import Projects from "../Projects/Projects";
+import CreateProject from "../CreateProject/CreateProject";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -73,17 +74,14 @@ const Dashboard = () => {
         getItem("הערות שופט", "judge-comments"),
         getItem("צפייה בציון", "grade"),
       ]),
-    privileges.isAdvisor &&
-      getItem("פרוייקטים שלי", "sub2", <FundProjectionScreenOutlined />, [
-        getItem("הזנת פרוייקט", "create-project-advisor"),
-        getItem("סטטוס פרוייקטים", "projects-status"),
-        getItem("סטטוס הגשות", "submissions-status"),
-      ]),
-    privileges.isCoordinator &&
-      getItem("ניהול פרוייקטים", "sub3", <FundProjectionScreenOutlined />, [
-        getItem("הזנת פרוייקט", "create-project-coordinator"),
-        getItem("הצגת פרוייקטים", "show-all-projects"),
-      ]),
+    privileges.isAdvisor ||
+      (privileges.isCoordinator &&
+        getItem("פרוייקטים שלי", "sub2", <FundProjectionScreenOutlined />, [
+          getItem("הזנת פרוייקט", "create-project"),
+          getItem("סטטוס פרוייקטים", "projects-status"),
+          getItem("סטטוס הגשות", "submissions-status"),
+        ])),
+    privileges.isCoordinator && getItem("ניהול פרוייקטים", "project-managment", <FundProjectionScreenOutlined />),
     privileges.isCoordinator &&
       getItem("ניהול משתמשים", "sub4", <TeamOutlined />, [
         getItem("הזנת סטודנטים", "create-student"),
@@ -179,6 +177,7 @@ const Dashboard = () => {
               {currentKey === "home" && <HomePage />}
               {currentKey === "templates" && <Templates />}
               {currentKey === "projects" && <Projects />}
+              {currentKey === "create-project" && <CreateProject />}
             </div>
           </Content>
         </Layout>
