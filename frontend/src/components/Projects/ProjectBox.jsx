@@ -84,7 +84,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
               ))}
             </div>
             <div className="more-info">
-              <Tooltip title="לפירוט נוסף על הפרוייקט">[ למידע נוסף ורישום ]</Tooltip>
+              <Tooltip title="לפירוט מלא + הרשמה">[ למידע נוסף ורישום ]</Tooltip>
             </div>
           </div>
         </div>

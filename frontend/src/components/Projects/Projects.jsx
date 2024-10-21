@@ -113,7 +113,7 @@ const Projects = () => {
         )}
       </div>
 
-      <DownloadFile />
+      {/* <DownloadFile /> */}
     </div>
   );
 };

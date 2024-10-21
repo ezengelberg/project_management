@@ -1,6 +1,6 @@
 import React from "react";
 import "./DownloadFile.scss";
-import { DownloadOutlined } from "@ant-design/icons";
+import { DownloadOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import axios from "axios";
 
@@ -9,7 +9,7 @@ const DownloadFile = ({ file }) => {
     try {
       const response = await axios.get(`http://localhost:5000/api/file-templates/download/${file._id}`, {
         responseType: "blob",
-        withCredentials: true,
+        withCredentials: true
       });
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -50,9 +50,14 @@ const DownloadFile = ({ file }) => {
       <div className="download-file-description">
         <p>{file.description}</p>
       </div>
-      <Tooltip title="לחץ להורדה">
-        <DownloadOutlined className="download-action" onClick={handleDownload} />
-      </Tooltip>
+      <div className="file-actions">
+        <Tooltip title="לחץ למחיקה">
+          <DeleteOutlined className="delete-action" />
+        </Tooltip>
+        <Tooltip title="לחץ להורדה">
+          <DownloadOutlined className="download-action" onClick={handleDownload} />
+        </Tooltip>
+      </div>
     </div>
   );
 };
