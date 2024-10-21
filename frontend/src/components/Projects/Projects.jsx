@@ -54,22 +54,23 @@ const Projects = () => {
     });
   }, [projects]);
 
-  const toggleFavorite = async (projectId) => {
+  const toggleFavorite = async (project) => {
+    if (project.isTaken) return; // Do not allow marking a taken project as favorite
     try {
       await axios.post(
         "http://localhost:5000/api/user/toggle-favorite",
         {
-          projectId: projectId
+          projectId: project._id
         },
         { withCredentials: true }
       );
 
       // Update project state
-      const updatedProjects = projects.map((project) => {
-        if (project._id === projectId) {
-          return { ...project, isFavorite: !project.isFavorite }; // Toggle the isFavorite status
+      const updatedProjects = projects.map((proj) => {
+        if (proj._id === project._id) {
+          return { ...proj, isFavorite: !proj.isFavorite }; // Toggle the isFavorite status
         }
-        return project; // Return the project unchanged
+        return proj; // Return the project unchanged
       });
 
       setProjects(sortProjects(updatedProjects)); // Update state with sorted projects
@@ -103,7 +104,7 @@ const Projects = () => {
               key={project._id} // Assuming each project has a unique _id field
               {...project}
               markFavorite={() => {
-                toggleFavorite(project._id);
+                toggleFavorite(project);
               }}
             />
           ))
