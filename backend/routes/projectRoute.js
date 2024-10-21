@@ -21,9 +21,9 @@ const router = express.Router();
 router.get("/", getProjects);
 router.post("/create-project", ensureAuthenticated, isAdvisorOrCoordinator, createProject);
 router.get("/available-projects", ensureAuthenticated, getAvailableProjects);
+router.get("/no-student", getProjectsNoStudent);
 
 router.get("/no-advisor", getProjectsNoAdvisor);
-router.get("/no-student", getProjectsNoStudent);
 router.get("/year/:year", getProjectsByYear);
 router.put("/:id", ensureAuthenticated, isAdvisorOrCoordinator, updateProject);
 router.delete("/:id", ensureAuthenticated, isAdvisorOrCoordinator, deleteProject);

@@ -17,7 +17,6 @@ const Projects = () => {
           withCredentials: true
         });
 
-        // Attach isFavorite to each project
         const projectsWithFavorites = await Promise.all(
           response.data.map(async (project) => {
             const responsePerProject = await axios.get(
@@ -84,13 +83,13 @@ const Projects = () => {
       // If a project is taken, it should go last
       if (a.isTaken && !b.isTaken) return 1;
       if (!a.isTaken && b.isTaken) return -1;
-  
+
       // If neither or both are taken, sort by favorite
       if (a.isFavorite && !b.isFavorite) return -1;
       if (!a.isFavorite && b.isFavorite) return 1;
       return 0;
     });
-  
+
     return projectList;
   };
 

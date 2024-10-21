@@ -19,7 +19,7 @@ const CreateProject = () => {
         const response = await axios.get("http://localhost:5000/api/user/privileges", { withCredentials: true });
         setPrivileges(response.data);
       } catch (error) {
-        console.error("Error occurred:", error);
+        console.error("Error occurred:", error.response.data.message);
       }
     };
 
@@ -27,8 +27,9 @@ const CreateProject = () => {
       try {
         const response = await axios.get("http://localhost:5000/api/user/advisor-users", { withCredentials: true });
         setAdvisorUsers(response.data);
+        console.log(response.data);
       } catch (error) {
-        console.error("Error occurred:", error);
+        console.error("Error occurred:", error.response.data.message);
       }
     };
 
@@ -37,7 +38,7 @@ const CreateProject = () => {
         const response = await axios.get("http://localhost:5000/api/user/get-user", { withCredentials: true });
         setCurrentUser(response.data);
       } catch (error) {
-        console.error("Error occurred:", error);
+        console.error("Error occurred:", error.response.data.message);
       }
     };
 
@@ -47,7 +48,7 @@ const CreateProject = () => {
         const response = await axios.get("http://localhost:5000/api/user/users-no-projects", { withCredentials: true });
         setStudentsNoProject(response.data.usersNoProjects);
       } catch (error) {
-        console.error("Error occurred:", error);
+        console.error("Error occurred:", error.response.data.message);
       }
     };
 
@@ -56,6 +57,20 @@ const CreateProject = () => {
     getCurrentUser();
     getUsersNoProjects();
   }, []);
+
+  const onFinish = async (values) => {
+    console.log("before:", values);
+    values.advisors = values.advisors.map((advisorId) => advisorUsers.find((user) => user._id === advisorId));
+    values.students = values.students.map((studentId) => studentsNoProject.find((student) => student.id === studentId));
+    try {
+      const response = await axios.post("http://localhost:5000/api/project/create-project", values, {
+        withCredentials: true
+      });
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error occurred:", error.response.data.message);
+    }
+  };
 
   return (
     <div className="create-project">
@@ -69,7 +84,8 @@ const CreateProject = () => {
           remember: true,
           year: currentYear
         }}
-        autoComplete="off">
+        autoComplete="off"
+        onFinish={onFinish}>
         <Form.Item
           className="create-project-form-item"
           label="כותרת"
@@ -114,7 +130,7 @@ const CreateProject = () => {
 
         <Form.Item
           className="create-project-form-item"
-          name="select-project-group-size"
+          name="suitableFor"
           label="מתאים ל"
           hasFeedback
           rules={[
@@ -124,15 +140,15 @@ const CreateProject = () => {
             }
           ]}>
           <Select placeholder="בחר יחיד/זוג/שניהם">
-            <Option value="solo">יחיד</Option>
-            <Option value="duo">זוג</Option>
-            <Option value="both">שניהם</Option>
+            <Option value="יחיד">יחיד</Option>
+            <Option value="זוג">זוג</Option>
+            <Option value="יחיד \ זוג">יחיד \ זוג</Option>
           </Select>
         </Form.Item>
 
         <Form.Item
           className="create-project-form-item"
-          name="select-project-type"
+          name="type"
           label="סוג הפרוייקט"
           hasFeedback
           rules={[
@@ -188,7 +204,7 @@ const CreateProject = () => {
             ]}>
             <Select mode="multiple" placeholder="בחר מנחים">
               {advisorUsers.map((user) => (
-                <Option key={user.id} value={user.id}>
+                <Option key={user._id} value={user._id}>
                   {user.name}
                 </Option>
               ))}
