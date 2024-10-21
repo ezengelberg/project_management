@@ -14,12 +14,40 @@
 
     .create-project-form-item {
       width: 60%;
+
+      label {
+        font-size: 1.7rem;
+      }
+
+      input {
+        font-size: 1.7rem;
+        padding: 0.5rem 0;
+      }
+
+      textarea {
+        font-size: 1.7rem;
+        padding: 0.5rem 1rem;
+      }
+
+      .ant-select-selector {
+        font-size: 1.7rem;
+        padding: 0.5rem 1rem;
+
+        .ant-select-selection-placeholder {
+          padding: 0.5rem 1rem;
+        }
+      }
     }
 
     .form-buttons {
       display: flex;
       justify-content: flex-end;
       gap: 1rem;
+
+      button {
+        font-size: 1.7rem;
+        padding: 2rem 2.5rem;
+      }
     }
   }
 }

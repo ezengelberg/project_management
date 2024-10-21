@@ -5,20 +5,21 @@ import axios from "axios";
 
 const ProjectBox = ({ markFavorite, ...props }) => {
   const [advisors, setAdvisors] = useState([]);
+
   useEffect(() => {
     const getAdvisorName = async () => {
       if (props.advisors) {
         try {
-          if(props.advisors.length === 0) return;
+          if (props.advisors.length === 0) return;
           console.log(props.advisors);
-          const advisors = []
+          const advisors = [];
           for (const advisor of props.advisors) {
             const response = await axios.get(`http://localhost:5000/api/user/get-user-name/${advisor}`, {
-              withCredentials: true
+              withCredentials: true,
             });
             advisors.push(response.data.name);
           }
-          console.log(advisors)
+          console.log(advisors);
           setAdvisors(advisors);
         } catch (error) {
           console.error("Error occurred:", error);
@@ -27,6 +28,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
     };
     getAdvisorName();
   }, []);
+
   return (
     <div className={`project-overlay ${props.isTaken ? "project-overlay-taken" : ""}`}>
       <div className={`project-box ${props.isTaken ? "project-box-taken" : ""}`}>

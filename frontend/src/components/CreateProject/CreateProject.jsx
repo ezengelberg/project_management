@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./CreateProject.scss";
 import axios from "axios";
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
-import { Switch, Flex, Button, Form, Input, InputNumber, Select } from "antd";
+import { Switch, Button, Form, Input, InputNumber, Select } from "antd";
 
 const CreateProject = () => {
   const { Option } = Select;
@@ -11,6 +11,7 @@ const CreateProject = () => {
   const [advisorUsers, setAdvisorUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState({});
   const [studentsNoProject, setStudentsNoProject] = useState([]);
+  const [form] = Form.useForm();
 
   useEffect(() => {
     // Fetch data from the API
@@ -27,7 +28,6 @@ const CreateProject = () => {
       try {
         const response = await axios.get("http://localhost:5000/api/user/advisor-users", { withCredentials: true });
         setAdvisorUsers(response.data);
-        console.log(response.data);
       } catch (error) {
         console.error("Error occurred:", error.response.data.message);
       }
@@ -44,7 +44,6 @@ const CreateProject = () => {
 
     const getUsersNoProjects = async () => {
       try {
-        console.log("DEV: test");
         const response = await axios.get("http://localhost:5000/api/user/users-no-projects", { withCredentials: true });
         setStudentsNoProject(response.data.usersNoProjects);
       } catch (error) {
@@ -59,17 +58,19 @@ const CreateProject = () => {
   }, []);
 
   const onFinish = async (values) => {
-    console.log("before:", values);
     values.advisors = values.advisors.map((advisorId) => advisorUsers.find((user) => user._id === advisorId));
     values.students = values.students.map((studentId) => studentsNoProject.find((student) => student.id === studentId));
     try {
       const response = await axios.post("http://localhost:5000/api/project/create-project", values, {
-        withCredentials: true
+        withCredentials: true,
       });
-      console.log(response.data);
     } catch (error) {
       console.error("Error occurred:", error.response.data.message);
     }
+  };
+
+  const onReset = () => {
+    form.resetFields();
   };
 
   return (
@@ -77,12 +78,13 @@ const CreateProject = () => {
       <h1>יצירת פרוייקט חדש</h1>
       <Form
         className="create-project-form"
+        form={form}
         labelCol={{
-          span: 3
+          span: 3,
         }}
         initialValues={{
           remember: true,
-          year: currentYear
+          year: currentYear,
         }}
         autoComplete="off"
         onFinish={onFinish}>
@@ -94,8 +96,8 @@ const CreateProject = () => {
           rules={[
             {
               required: true,
-              message: "חובה להזין כותרת"
-            }
+              message: "חובה להזין כותרת",
+            },
           ]}>
           <Input />
         </Form.Item>
@@ -108,8 +110,8 @@ const CreateProject = () => {
           rules={[
             {
               required: true,
-              message: "חובה להזין תיאור לפרוייקט"
-            }
+              message: "חובה להזין תיאור לפרוייקט",
+            },
           ]}>
           <Input.TextArea rows={4} />
         </Form.Item>
@@ -122,8 +124,8 @@ const CreateProject = () => {
           rules={[
             {
               required: true,
-              message: "חובה להזין שנה"
-            }
+              message: "חובה להזין שנה",
+            },
           ]}>
           <InputNumber />
         </Form.Item>
@@ -136,8 +138,8 @@ const CreateProject = () => {
           rules={[
             {
               required: true,
-              message: "חובה לבחור התאמה"
-            }
+              message: "חובה לבחור התאמה",
+            },
           ]}>
           <Select placeholder="בחר יחיד/זוג/שניהם">
             <Option value="יחיד">יחיד</Option>
@@ -154,8 +156,8 @@ const CreateProject = () => {
           rules={[
             {
               required: true,
-              message: "חובה לבחור סוג"
-            }
+              message: "חובה לבחור סוג",
+            },
           ]}>
           <Select placeholder="בחר סוג">
             <Option value="research">מחקר</Option>
@@ -171,8 +173,8 @@ const CreateProject = () => {
           name="continues"
           rules={[
             {
-              required: false
-            }
+              required: false,
+            },
           ]}>
           <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
         </Form.Item>
@@ -184,8 +186,8 @@ const CreateProject = () => {
             name="isApproved"
             rules={[
               {
-                required: false
-              }
+                required: false,
+              },
             ]}>
             <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
           </Form.Item>
@@ -199,8 +201,8 @@ const CreateProject = () => {
             hasFeedback
             rules={[
               {
-                required: false
-              }
+                required: false,
+              },
             ]}>
             <Select mode="multiple" placeholder="בחר מנחים">
               {advisorUsers.map((user) => (
@@ -218,8 +220,8 @@ const CreateProject = () => {
             hasFeedback
             rules={[
               {
-                required: false
-              }
+                required: false,
+              },
             ]}>
             <Input disabled value={currentUser.name} />
           </Form.Item>
@@ -232,8 +234,8 @@ const CreateProject = () => {
           hasFeedback
           rules={[
             {
-              required: false
-            }
+              required: false,
+            },
           ]}>
           <Select mode="multiple" placeholder="בחר סטודנטים">
             {studentsNoProject.map((student) => (
@@ -249,7 +251,9 @@ const CreateProject = () => {
             <Button type="primary" htmlType="submit">
               צור פרוייקט
             </Button>
-            <Button danger>אפס טופס</Button>
+            <Button danger onClick={onReset}>
+              אפס טופס
+            </Button>
           </div>
         </Form.Item>
       </Form>

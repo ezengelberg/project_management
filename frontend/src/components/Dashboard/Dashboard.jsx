@@ -41,7 +41,7 @@ const Dashboard = () => {
 
     const fetchUserName = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/user/user-name", { withCredentials: true });
+        const response = await axios.get("http://localhost:5000/api/user/get-user", { withCredentials: true });
         setUserName(response.data.name);
       } catch (error) {
         console.error("Error occurred:", error);
@@ -75,13 +75,13 @@ const Dashboard = () => {
         getItem("הערות שופט", "judge-comments"),
         getItem("צפייה בציון", "grade"),
       ]),
-    
-      ((privileges.isAdvisor || privileges.isCoordinator) &&
-        getItem("פרוייקטים שלי", "sub2", <FundProjectionScreenOutlined />, [
-          getItem("הזנת פרוייקט", "create-project"),
-          getItem("סטטוס פרוייקטים", "projects-status"),
-          getItem("סטטוס הגשות", "submissions-status"),
-        ])),
+
+    (privileges.isAdvisor || privileges.isCoordinator) &&
+      getItem("פרוייקטים שלי", "sub2", <FundProjectionScreenOutlined />, [
+        getItem("הזנת פרוייקט", "create-project"),
+        getItem("סטטוס פרוייקטים", "projects-status"),
+        getItem("סטטוס הגשות", "submissions-status"),
+      ]),
     privileges.isCoordinator && getItem("ניהול פרוייקטים", "project-managment", <FundProjectionScreenOutlined />),
     privileges.isCoordinator &&
       getItem("ניהול משתמשים", "sub4", <TeamOutlined />, [

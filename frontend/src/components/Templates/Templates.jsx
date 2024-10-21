@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Templates.scss";
 import axios from "axios";
+import DownloadFile from "../DownloadFile/DownloadFile";
 import { InboxOutlined } from "@ant-design/icons";
 import { Button, message, Upload, Collapse } from "antd";
 
@@ -10,6 +11,7 @@ const Templates = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
+  const [templateFiles, setTemplateFiles] = useState([]);
   const { Dragger } = Upload;
 
   useEffect(() => {
@@ -22,7 +24,17 @@ const Templates = () => {
       }
     };
 
+    const fetchTemplateFiles = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/file-templates", { withCredentials: true });
+        setTemplateFiles(response.data);
+      } catch (error) {
+        console.error("Error fetching template files:", error);
+      }
+    };
+
     fetchPrivileges();
+    fetchTemplateFiles();
   }, []);
 
   const handleUpload = async () => {
@@ -41,6 +53,9 @@ const Templates = () => {
       });
       setFileList([]);
       message.success("upload successfully.");
+      // Refresh the template files list after successful upload
+      const updatedFiles = await axios.get("http://localhost:5000/api/file-templates", { withCredentials: true });
+      setTemplateFiles(updatedFiles.data);
     } catch (error) {
       console.error("Error occurred:", error);
       message.error("upload failed.");
@@ -136,6 +151,9 @@ const Templates = () => {
                 },
               ]}
             />
+            {templateFiles.map((file) => (
+              <DownloadFile key={file._id} file={file} />
+            ))}
           </div>
         </div>
       )}

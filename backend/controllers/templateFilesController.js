@@ -1,5 +1,7 @@
 import templateFiles from "../models/templateFiles.js";
 import User from "../models/users.js";
+import fs from "fs";
+import path from "path";
 
 export const getTemplateFiles = async (req, res) => {
   try {
@@ -53,6 +55,25 @@ export const deleteTemplateFiles = async (req, res) => {
       return res.status(404).send({ message: "File template not found" });
     }
     res.status(200).send({ message: "File template deleted successfully" });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const downloadTemplateFile = async (req, res) => {
+  try {
+    const file = await templateFiles.findById(req.params.id);
+    if (!file) {
+      return res.status(404).send({ message: "File not found" });
+    }
+
+    const filePath = path.join(process.cwd(), "templateFiles", file.filename);
+
+    if (fs.existsSync(filePath)) {
+      res.download(filePath, file.filename);
+    } else {
+      res.status(404).send({ message: "File not found on server" });
+    }
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
