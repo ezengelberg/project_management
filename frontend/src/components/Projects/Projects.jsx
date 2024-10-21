@@ -3,6 +3,8 @@ import axios from "axios";
 import "./Projects.scss";
 import { Tooltip } from "antd";
 import ProjectBox from "./ProjectBox";
+import { Watermark } from "antd";
+import DownloadFile from "../DownloadFile/DownloadFile";
 
 const Projects = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -31,6 +33,7 @@ const Projects = () => {
           })
         );
 
+        console.log(projectsWithFavorites);
         setProjects(sortProjects(projectsWithFavorites)); // Set sorted projects
       } catch (error) {
         console.error("Error occurred:", error);
@@ -38,6 +41,19 @@ const Projects = () => {
     };
     grabProjects();
   }, []);
+
+  useEffect(() => {
+    projects.forEach((project) => {
+      const projectElement = document.querySelector(`#project-${project._id}`);
+      if (projectElement) {
+        if (project.isTaken) {
+          projectElement.classList.add("taken");
+        } else {
+          projectElement.classList.remove("taken");
+        }
+      }
+    });
+  }, [projects]);
 
   const toggleFavorite = async (projectId) => {
     try {
@@ -65,10 +81,16 @@ const Projects = () => {
 
   const sortProjects = (projectList) => {
     projectList.sort((a, b) => {
+      // If a project is taken, it should go last
+      if (a.isTaken && !b.isTaken) return 1;
+      if (!a.isTaken && b.isTaken) return -1;
+  
+      // If neither or both are taken, sort by favorite
       if (a.isFavorite && !b.isFavorite) return -1;
       if (!a.isFavorite && b.isFavorite) return 1;
       return 0;
     });
+  
     return projectList;
   };
 
@@ -90,6 +112,8 @@ const Projects = () => {
           <p>אין פרוייקטים זמינים כרגע</p>
         )}
       </div>
+
+      <DownloadFile />
     </div>
   );
 };

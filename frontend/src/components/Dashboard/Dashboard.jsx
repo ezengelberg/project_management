@@ -2,17 +2,11 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Dashboard.css";
 import {
-  DesktopOutlined,
-  FileOutlined,
-  PieChartOutlined,
   UserOutlined,
   HomeOutlined,
   ProjectOutlined,
   FileSearchOutlined,
-  UsergroupAddOutlined,
   ApartmentOutlined,
-  SelectOutlined,
-  UnorderedListOutlined,
   LoginOutlined,
   SettingOutlined,
   FundProjectionScreenOutlined,
@@ -30,7 +24,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const [userName, setUserName] = useState("");
-  const [currentKey, setCurrentKey] = useState("home");
+  const [currentKey, setCurrentKey] = useState(localStorage.getItem("currentKey") || "home");
 
   useEffect(() => {
     // Fetch data from the API
@@ -118,6 +112,7 @@ const Dashboard = () => {
 
   const handleMenuClick = ({ key }) => {
     setCurrentKey(key);
+    localStorage.setItem("currentKey", key);
   };
 
   return (
