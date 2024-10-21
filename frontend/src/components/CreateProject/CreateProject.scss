@@ -1,0 +1,25 @@
+.create-project {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  h1 {
+    margin-bottom: 3rem;
+  }
+  .create-project-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    width: 100%;
+
+    .create-project-form-item {
+      width: 60%;
+    }
+
+    .form-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+    }
+  }
+}
