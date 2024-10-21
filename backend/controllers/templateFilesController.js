@@ -25,13 +25,24 @@ export const createTemplateFiles = async (req, res) => {
 
     const savedFiles = [];
     for (const file of req.files) {
+      let decodedFilename;
+      if (req.headers["x-filename-encoding"] === "url") {
+        decodedFilename = decodeURIComponent(file.originalname);
+      } else {
+        decodedFilename = file.originalname;
+      }
+
       const fileTemplate = new templateFiles({
-        title: req.body.title ? req.body.title : file.originalname,
-        filename: file.filename,
+        title: req.body.title ? req.body.title : decodedFilename,
+        filename: decodedFilename,
         description: req.body.description,
         user: req.user._id,
       });
       await fileTemplate.save();
+
+      // Rename the file on the server to use the decoded filename
+      fs.renameSync(file.path, path.join(path.dirname(file.path), decodedFilename));
+
       savedFiles.push(fileTemplate);
     }
 
@@ -70,7 +81,8 @@ export const downloadTemplateFile = async (req, res) => {
     const filePath = path.join(process.cwd(), "templateFiles", file.filename);
 
     if (fs.existsSync(filePath)) {
-      res.download(filePath, file.filename);
+      res.setHeader("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(file.filename)}`);
+      res.sendFile(filePath);
     } else {
       res.status(404).send({ message: "File not found on server" });
     }

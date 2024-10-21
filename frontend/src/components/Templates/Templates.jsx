@@ -40,7 +40,9 @@ const Templates = () => {
   const handleUpload = async () => {
     const formData = new FormData();
     fileList.forEach((file) => {
-      formData.append("files", file);
+      // Encode the filename to handle non-English characters
+      const encodedFilename = encodeURIComponent(file.name);
+      formData.append("files", file, encodedFilename);
     });
     formData.append("title", title);
     formData.append("description", description);
@@ -48,17 +50,20 @@ const Templates = () => {
 
     try {
       const response = await axios.post("http://localhost:5000/api/file-templates", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { "Content-Type": "multipart/form-data", "X-Filename-Encoding": "url" },
         withCredentials: true,
       });
       setFileList([]);
-      message.success("upload successfully.");
+      message.success("הקובץ הועלה בהצלחה");
       // Refresh the template files list after successful upload
       const updatedFiles = await axios.get("http://localhost:5000/api/file-templates", { withCredentials: true });
       setTemplateFiles(updatedFiles.data);
     } catch (error) {
       console.error("Error occurred:", error);
-      message.error("upload failed.");
+      if (error.response.status === 500) {
+        message.error("קובץ עם שם זה כבר קיים");
+      }
+      message.error("העלאת הקובץ נכשלה");
     } finally {
       setUploading(false);
       clearForm();
