@@ -28,7 +28,7 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
       // isStudent: true, // set default for now
       isAdvisor: false, // set default for now
-      isCoordinator: false, // set default for now
+      isCoordinator: false // set default for now
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
@@ -107,17 +107,14 @@ export const getUsersNoProjects = async (req, res) => {
   try {
     const users = await User.find();
     const usersNoProjects = [];
-
     for (const user of users) {
-      const projects = await Project.find({ students: user._id });
+      const projects = await Project.find({ students: { $in: [user._id] } });
       if (projects.length === 0) {
         delete user.password;
         usersNoProjects.push(user);
       }
     }
-
-    res.status(200).send(usersNoProjects);
-    res.status(200).send(users);
+    res.status(200).send({ usersNoProjects });
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

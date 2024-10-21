@@ -33,6 +33,7 @@ const Dashboard = () => {
       try {
         const response = await axios.get("http://localhost:5000/api/user/privileges", { withCredentials: true });
         setPrivileges(response.data);
+        console.log(response.data);
       } catch (error) {
         console.error("Error occurred:", error);
       }
@@ -74,8 +75,8 @@ const Dashboard = () => {
         getItem("הערות שופט", "judge-comments"),
         getItem("צפייה בציון", "grade"),
       ]),
-    privileges.isAdvisor ||
-      (privileges.isCoordinator &&
+    
+      ((privileges.isAdvisor || privileges.isCoordinator) &&
         getItem("פרוייקטים שלי", "sub2", <FundProjectionScreenOutlined />, [
           getItem("הזנת פרוייקט", "create-project"),
           getItem("סטטוס פרוייקטים", "projects-status"),

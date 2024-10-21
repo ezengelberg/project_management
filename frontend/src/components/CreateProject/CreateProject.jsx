@@ -43,8 +43,9 @@ const CreateProject = () => {
 
     const getUsersNoProjects = async () => {
       try {
+        console.log("DEV: test");
         const response = await axios.get("http://localhost:5000/api/user/users-no-projects", { withCredentials: true });
-        setStudentsNoProject(response.data);
+        setStudentsNoProject(response.data.usersNoProjects);
       } catch (error) {
         console.error("Error occurred:", error);
       }
@@ -62,11 +63,11 @@ const CreateProject = () => {
       <Form
         className="create-project-form"
         labelCol={{
-          span: 3,
+          span: 3
         }}
         initialValues={{
           remember: true,
-          year: currentYear,
+          year: currentYear
         }}
         autoComplete="off">
         <Form.Item
@@ -77,8 +78,8 @@ const CreateProject = () => {
           rules={[
             {
               required: true,
-              message: "חובה להזין כותרת",
-            },
+              message: "חובה להזין כותרת"
+            }
           ]}>
           <Input />
         </Form.Item>
@@ -91,8 +92,8 @@ const CreateProject = () => {
           rules={[
             {
               required: true,
-              message: "חובה להזין תיאור לפרוייקט",
-            },
+              message: "חובה להזין תיאור לפרוייקט"
+            }
           ]}>
           <Input.TextArea rows={4} />
         </Form.Item>
@@ -105,22 +106,22 @@ const CreateProject = () => {
           rules={[
             {
               required: true,
-              message: "חובה להזין שנה",
-            },
+              message: "חובה להזין שנה"
+            }
           ]}>
           <InputNumber />
         </Form.Item>
 
         <Form.Item
           className="create-project-form-item"
-          name="select"
+          name="select-project-group-size"
           label="מתאים ל"
           hasFeedback
           rules={[
             {
               required: true,
-              message: "חובה לבחור התאמה",
-            },
+              message: "חובה לבחור התאמה"
+            }
           ]}>
           <Select placeholder="בחר יחיד/זוג/שניהם">
             <Option value="solo">יחיד</Option>
@@ -131,14 +132,14 @@ const CreateProject = () => {
 
         <Form.Item
           className="create-project-form-item"
-          name="select"
+          name="select-project-type"
           label="סוג הפרוייקט"
           hasFeedback
           rules={[
             {
               required: true,
-              message: "חובה לבחור סוג",
-            },
+              message: "חובה לבחור סוג"
+            }
           ]}>
           <Select placeholder="בחר סוג">
             <Option value="research">מחקר</Option>
@@ -154,8 +155,8 @@ const CreateProject = () => {
           name="continues"
           rules={[
             {
-              required: false,
-            },
+              required: false
+            }
           ]}>
           <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
         </Form.Item>
@@ -167,8 +168,8 @@ const CreateProject = () => {
             name="isApproved"
             rules={[
               {
-                required: false,
-              },
+                required: false
+              }
             ]}>
             <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
           </Form.Item>
@@ -182,8 +183,8 @@ const CreateProject = () => {
             hasFeedback
             rules={[
               {
-                required: false,
-              },
+                required: false
+              }
             ]}>
             <Select mode="multiple" placeholder="בחר מנחים">
               {advisorUsers.map((user) => (
@@ -201,8 +202,8 @@ const CreateProject = () => {
             hasFeedback
             rules={[
               {
-                required: false,
-              },
+                required: false
+              }
             ]}>
             <Input disabled value={currentUser.name} />
           </Form.Item>
@@ -215,8 +216,8 @@ const CreateProject = () => {
           hasFeedback
           rules={[
             {
-              required: false,
-            },
+              required: false
+            }
           ]}>
           <Select mode="multiple" placeholder="בחר סטודנטים">
             {studentsNoProject.map((student) => (
