@@ -1,0 +1,42 @@
+.download-container {
+  display: flex;
+  flex-direction: column;
+  padding: 3rem;
+  border-radius: 3rem;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  
+  width: calc(100% / 6 - 4rem);
+  min-height: 15rem;
+
+  .download-file-header {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    .download-header-title {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+
+      .download-file-icon {
+        width: fit-content;
+      }
+      .file-name {
+        margin: 0;
+        width: 80%;
+      }
+    }
+  }
+
+  hr {
+    width: calc(100% + 4rem);
+    margin: 1.5rem -2rem 0.5rem 0;
+  }
+
+  .download-action {
+    margin-right: auto;
+    margin-top: auto;
+  }
+}
