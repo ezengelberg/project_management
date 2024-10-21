@@ -32,11 +32,16 @@
 
   hr {
     width: calc(100% + 4rem);
-    margin: 1.5rem -2rem 0.5rem 0;
+    margin: 1.5rem -2rem 1rem 0;
   }
 
   .download-action {
     margin-right: auto;
-    margin-top: auto;
+    margin-top: 2rem;
+    transition: transform 0.2s linear;
+    &:hover {
+      cursor: pointer;
+      transform: scale(1.3);
+    }
   }
 }
