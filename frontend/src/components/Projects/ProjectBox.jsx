@@ -31,6 +31,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
 
   return (
     <div className={`project-overlay ${props.isTaken ? "project-overlay-taken" : ""}`}>
+      <div className="taken-tag">נלקח</div>
       <div className={`project-box ${props.isTaken ? "project-box-taken" : ""}`}>
         <svg fill="#000000" width="32px" height="32px" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
           <path d="M280 752h80c4.4 0 8-3.6 8-8V280c0-4.4-3.6-8-8-8h-80c-4.4 0-8 3.6-8 8v464c0 4.4 3.6 8 8 8zm192-280h80c4.4 0 8-3.6 8-8V280c0-4.4-3.6-8-8-8h-80c-4.4 0-8 3.6-8 8v184c0 4.4 3.6 8 8 8zm192 72h80c4.4 0 8-3.6 8-8V280c0-4.4-3.6-8-8-8h-80c-4.4 0-8 3.6-8 8v256c0 4.4 3.6 8 8 8zm216-432H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zm-40 728H184V184h656v656z" />
@@ -38,8 +39,6 @@ const ProjectBox = ({ markFavorite, ...props }) => {
         <div className="project-info">
           <div className="project-header">
             <h3 className="project-title">{props.title}</h3>
-            <div className="project-badge project-suitable">{props.suitableFor}</div>
-            <div className="project-badge project-type">{props.type}</div>
             {props.isFavorite ? (
               <Tooltip title="הסר ממועדפים">
                 <StarFilled className="favorite-star star-marked" onClick={() => markFavorite()} />
@@ -55,7 +54,21 @@ const ProjectBox = ({ markFavorite, ...props }) => {
               </Tooltip>
             )}
           </div>
-          <p className="project-description">{props.description}</p>
+
+          <div className="project-badges">
+            <Tooltip title="מתאים ל">
+              <div className="project-badge project-suitable">{props.suitableFor}</div>
+            </Tooltip>
+            <Tooltip title="סוג פרוייקט">
+              <div className="project-badge project-type">{props.type}</div>
+            </Tooltip>
+          </div>
+          {/* <p className="project-description">{{props.description}.length < 175 : {props.description} ? ""}</p> */}
+          {props.description.length < 300 ? (
+            <p className="project-description">{props.description}</p>
+          ) : (
+            <p className="project-description">{props.description.slice(0, 300)}...</p>
+          )}
 
           <div className="project-actions">
             <div className="project-advisors-list">
