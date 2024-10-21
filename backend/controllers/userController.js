@@ -126,8 +126,28 @@ export const getPrivileges = async (req, res) => {
 };
 
 export const getUserName = async (req, res) => {
-  const user = req.user;
-  res.status(200).json({ name: user.name });
+  const userId = req.params.id;
+
+  if (!userId) {
+    return res.status(400).send("No user ID provided");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).send("Invalid user ID");
+  }
+
+  try {
+    const target = await User.findById(userId);
+
+    if (!target) {
+      return res.status(404).send("User not found");
+    }
+    console.log(target.name);
+    res.status(200).json({ name: target.name });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("An error occurred while retrieving the user");
+  }
 };
 
 export const getUser = async (req, res) => {

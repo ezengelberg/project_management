@@ -1,8 +1,32 @@
-import React from "react";
-import { UserOutlined, StarFilled, ProjectOutlined } from "@ant-design/icons";
+import React, { useEffect, useState } from "react";
+import { UserOutlined, StarFilled } from "@ant-design/icons";
 import { Tooltip } from "antd";
+import axios from "axios";
 
 const ProjectBox = ({ markFavorite, ...props }) => {
+  const [advisors, setAdvisors] = useState([]);
+  useEffect(() => {
+    const getAdvisorName = async () => {
+      if (props.advisors) {
+        try {
+          if(props.advisors.length === 0) return;
+          console.log(props.advisors);
+          const advisors = []
+          for (const advisor of props.advisors) {
+            const response = await axios.get(`http://localhost:5000/api/user/get-user-name/${advisor}`, {
+              withCredentials: true
+            });
+            advisors.push(response.data.name);
+          }
+          console.log(advisors)
+          setAdvisors(advisors);
+        } catch (error) {
+          console.error("Error occurred:", error);
+        }
+      }
+    };
+    getAdvisorName();
+  }, []);
   return (
     <div className={`project-overlay ${props.isTaken ? "project-overlay-taken" : ""}`}>
       <div className={`project-box ${props.isTaken ? "project-box-taken" : ""}`}>
@@ -12,7 +36,8 @@ const ProjectBox = ({ markFavorite, ...props }) => {
         <div className="project-info">
           <div className="project-header">
             <h3 className="project-title">{props.title}</h3>
-            <div className="project-suitable">{props.suitableFor}</div>
+            <div className="project-badge project-suitable">{props.suitableFor}</div>
+            <div className="project-badge project-type">{props.type}</div>
             {props.isFavorite ? (
               <Tooltip title="הסר ממועדפים">
                 <StarFilled className="favorite-star star-marked" onClick={() => markFavorite()} />
@@ -32,10 +57,16 @@ const ProjectBox = ({ markFavorite, ...props }) => {
 
           <div className="project-actions">
             <div className="project-advisors-list">
-              <div className="project-advisor">
+              {/* <div className="project-advisor">
                 <UserOutlined />
                 <div className="advisor-name">ד"ר אלי אנגלברג</div>
-              </div>
+              </div> */}
+              {advisors.map((advisor, index) => (
+                <div key={index} className="project-advisor">
+                  <UserOutlined />
+                  <div className="advisor-name">{advisor}</div>
+                </div>
+              ))}
             </div>
             <div className="more-info">
               <Tooltip title="לפירוט נוסף על הפרוייקט">[ למידע נוסף ורישום ]</Tooltip>
