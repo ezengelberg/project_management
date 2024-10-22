@@ -6,6 +6,7 @@ const projectSchema = new mongoose.Schema({
   year: { type: Number, required: true }, // year the student is doing the project לאיזה שנתון שייך הפרוייקט
   suitableFor: { type: String, required: true }, // solo / duo / both
   type: { type: String, required: true }, // research / development / hitech / other
+  isAvailable: { type: Boolean, required: true, default: true }, // is it available for students
   continues: { type: Boolean, required: false, default: false }, // is it a continues project
   isApproved: { type: Boolean, required: false, default: false }, // is it approved by the coordinator
   isFinished: { type: Boolean, required: false, default: false }, // is it finished
@@ -13,7 +14,7 @@ const projectSchema = new mongoose.Schema({
   isTaken: { type: Boolean, required: false, default: false }, // is it taken by a student
   advisors: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }], // the advisor(s) of the project
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }], // the student(s) of the project
-  grades: [{ type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: [] }] // the grades of the project
+  grades: [{ type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: [] }], // the grades of the project
 });
 
 // Create a compound index to ensure title + year combination is unique
