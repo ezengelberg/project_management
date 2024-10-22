@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { LoadingOutlined } from "@ant-design/icons";
 
 const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -40,7 +41,7 @@ const ProtectedRoute = ({ children }) => {
             top: "50%",
             left: "50%",
             fontSize: "50px",
-            transform: "translate(-50%, -50%)"
+            transform: "translate(-50%, -50%)",
           }}>
           <LoadingOutlined />
         </div>
@@ -49,7 +50,7 @@ const ProtectedRoute = ({ children }) => {
   }
 
   // After loading, either render children or redirect
-  return isAuthenticated ? children : <Navigate to="/" replace />;
+  return isAuthenticated ? children : <Navigate to="/login" state={{ from: location }} replace />;
 };
 
 export default ProtectedRoute;

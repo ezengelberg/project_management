@@ -14,7 +14,7 @@ import {
   MessageOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme, Avatar, Badge, Tooltip } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
 import HomePage from "../HomePage/HomePage";
 import Templates from "../Templates/Templates";
@@ -23,9 +23,16 @@ import CreateProject from "../CreateProject/CreateProject";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const [userName, setUserName] = useState("");
-  const [currentKey, setCurrentKey] = useState(localStorage.getItem("currentKey") || "home");
+  const [collapsed, setCollapsed] = useState(false);
+  // const [currentKey, setCurrentKey] = useState(localStorage.getItem("currentKey") || "home");
+
+  const getCurrentKeyFromPath = () => {
+    const path = location.pathname.split("/").pop();
+    return path === "dashboard" ? "home" : path;
+  };
 
   useEffect(() => {
     // Fetch data from the API
@@ -93,8 +100,6 @@ const Dashboard = () => {
     privileges.isCoordinator && getItem("ניהול מערכת", "settings", <SettingOutlined />),
   ];
 
-  const [collapsed, setCollapsed] = useState(false);
-
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -110,8 +115,7 @@ const Dashboard = () => {
   };
 
   const handleMenuClick = ({ key }) => {
-    setCurrentKey(key);
-    localStorage.setItem("currentKey", key);
+    navigate(`/dashboard/${key}`);
   };
 
   return (
@@ -129,7 +133,13 @@ const Dashboard = () => {
           ) : (
             <div className="placeholder" />
           )}
-          <Menu selectedKeys={[currentKey]} theme="dark" mode="inline" items={items} onClick={handleMenuClick} />
+          <Menu
+            selectedKeys={[getCurrentKeyFromPath()]}
+            theme="dark"
+            mode="inline"
+            items={items}
+            onClick={handleMenuClick}
+          />
         </Sider>
         <Layout>
           <Header
@@ -149,7 +159,7 @@ const Dashboard = () => {
                 className="avatar-icon"
                 size="large"
                 icon={<UserOutlined />}
-                onClick={() => setCurrentKey("profile")}
+                onClick={() => navigate("/dashboard/profile")}
               />
             </Tooltip>
             <Badge count={100}>
@@ -174,11 +184,14 @@ const Dashboard = () => {
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
               }}>
-              {currentKey === "profile" && <h1>Profile</h1>}
-              {currentKey === "home" && <HomePage />}
-              {currentKey === "templates" && <Templates />}
-              {currentKey === "projects" && <Projects />}
-              {currentKey === "create-project" && <CreateProject />}
+              <Routes>
+                <Route path="/" element={<Navigate to="home" replace />} />
+                <Route path="home" element={<HomePage />} />
+                <Route path="profile" element={<h1>Profile</h1>} />
+                <Route path="templates" element={<Templates />} />
+                <Route path="projects" element={<Projects />} />
+                <Route path="create-project" element={<CreateProject />} />
+              </Routes>
             </div>
           </Content>
         </Layout>
