@@ -69,7 +69,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
     } else {
       const advisorsList = [];
@@ -85,7 +85,7 @@ export const createProject = async (req, res) => {
       const studentsList = [];
       if (students.length > 0) {
         for (const stud of students) {
-          const studentUser = await User.findOne({ id: stud, isStudent: true });
+          const studentUser = await User.findOne({ id: stud.id, isStudent: true });
           if (!studentUser) {
             return res.status(505).send({ message: `Student ${stud.name} not found` });
           }
@@ -101,7 +101,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
     }
     await newProject.save();

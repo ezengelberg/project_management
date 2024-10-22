@@ -6,7 +6,7 @@ import {
   BookOutlined,
   UserOutlined,
   CloseCircleOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import DataTable from "react-data-table-component";
@@ -20,7 +20,7 @@ const ProjectPage = () => {
   const [page, setPage] = useState({
     Information: true,
     Grades: false,
-    Other: false
+    Other: false,
   });
   const [advisors, setAdvisors] = useState([]);
 
@@ -32,7 +32,7 @@ const ProjectPage = () => {
           const advisors = [];
           for (const advisor of projectData.advisors) {
             const response = await axios.get(`http://localhost:5000/api/user/get-user-info/${advisor}`, {
-              withCredentials: true
+              withCredentials: true,
             });
             advisors.push(response.data);
             console.log(response.data);
@@ -58,7 +58,7 @@ const ProjectPage = () => {
     const fetchProjectData = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/project/get-project/${projectID}`, {
-          withCredentials: true
+          withCredentials: true,
         });
         setProjectData(response.data);
       } catch (error) {
@@ -73,43 +73,43 @@ const ProjectPage = () => {
     navigator.clipboard.writeText(emails);
   };
 
-  // const columns = [
-  //   {
-  //     name: "שם הסטודנט",
-  //     selector: (row) => row.name,
-  //     sortable: true
-  //   },
-  //   {
-  //     name: "תאריך הצטרפות",
-  //     selector: (row) => row.date,
-  //     sortable: true
-  //   },
-  //   {
-  //     name: "פעולות",
-  //     cell: row => (
-  //       <div className="students-list-actions">
-  //         <CheckCircleOutlined />
-  //         <CloseCircleOutlined />
-  //       </div>
-  //     ),
-  //     ignoreRowClick: true,  // Prevent row click event when clicking these buttons
-  //     allowOverflow: true,    // Allow content to overflow the cell if necessary
-  //     button: true,
-  //   }
-  // ];
+  const columns = [
+    {
+      name: "שם הסטודנט",
+      selector: (row) => row.name,
+      sortable: true,
+    },
+    {
+      name: "תאריך הצטרפות",
+      selector: (row) => row.date,
+      sortable: true,
+    },
+    {
+      name: "פעולות",
+      cell: (row) => (
+        <div className="students-list-actions">
+          <CheckCircleOutlined />
+          <CloseCircleOutlined />
+        </div>
+      ),
+      ignoreRowClick: true, // Prevent row click event when clicking these buttons
+      allowOverflow: true, // Allow content to overflow the cell if necessary
+      button: true,
+    },
+  ];
 
-  // // Sample data
-  // const data = [
-  //   {
-  //     id: 1,
-  //     name: "Tiger Nixon",
-  //   },
-  //   {
-  //     id: 2,
-  //     name: "Garrett Winters",
-  //   }
-  //   // Add more rows as needed
-  // ];
+  // Sample data
+  const data = [
+    {
+      id: 1,
+      name: "Tiger Nixon",
+    },
+    {
+      id: 2,
+      name: "Garrett Winters",
+    },
+    // Add more rows as needed
+  ];
   const Signup = async () => {
     console.log("Signup");
     setConfirmSignup(true);
@@ -202,10 +202,10 @@ const ProjectPage = () => {
           <div className="project-signup-button" onClick={() => Signup()}>
             הרשמה לפרוייקט
           </div>
-          {/* <div className="project-profile-info-item">
+          <div className="project-profile-info-item">
             <div className="project-profile-info-title">רשימת המתנה:</div>
             <DataTable columns={columns} data={data} highlightOnHover />
-          </div> */}
+          </div>
         </div>
       )}
     </div>
