@@ -31,15 +31,10 @@ export const getProjectsByYear = async (req, res) => {
 
 export const createProject = async (req, res) => {
   try {
-    console.log("createProject");
     const { title, description, year, suitableFor, type, continues, isApproved, advisors, students } = req.body;
 
     if (!title || !description || !year || !suitableFor || !type) {
       return res.status(400).send({ message: "Missing required fields" });
-    }
-
-    if (type !== "research" && type !== "development" && type !== "hitech" && type !== "other") {
-      return res.status(400).send({ message: "Invalid project type" });
     }
     const project = await Project.findOne({ title, year });
     if (project) {
@@ -49,13 +44,8 @@ export const createProject = async (req, res) => {
     let newProject;
     if (req.user.isAdvisor && !req.user.isCoordinator) {
       newProject = new Project({
-        title,
-        description,
-        year,
-        suitableFor,
-        type,
+        ...req.body,
         advisors: [req.user._id],
-        students: [],
         continues,
         isApproved,
         isFinished: false,
@@ -65,30 +55,27 @@ export const createProject = async (req, res) => {
       });
     } else {
       const advisorsList = [];
-      for (const adv of advisors) {
-        const advisorUser = await User.findOne({ _id: adv._id, isAdvisor: true });
-        if (!advisorUser) {
-          return res.status(505).send({ message: `Advisor ${adv.name} not found` });
+      if (advisors.length > 0) {
+        for (const adv of advisors) {
+          const advisorUser = await User.findOne({ _id: adv, isAdvisor: true });
+          if (!advisorUser) {
+            return res.status(505).send({ message: `Advisor ${adv.name} not found` });
+          }
+          advisorsList.push(advisorUser);
         }
-        advisorsList.push(advisorUser);
       }
       const studentsList = [];
       if (students.length > 0) {
         for (const stud of students) {
-          const studentUser = await User.findOne({ _id: stud._id, isStudent: true });
+          const studentUser = await User.findOne({ id: stud, isStudent: true });
           if (!studentUser) {
             return res.status(505).send({ message: `Student ${stud.name} not found` });
           }
           studentsList.push(studentUser);
         }
       }
-      console.log(studentsList);
       newProject = new Project({
-        title,
-        description,
-        year,
-        suitableFor,
-        type,
+        ...req.body,
         advisors: advisorsList,
         students: studentsList,
         continues,

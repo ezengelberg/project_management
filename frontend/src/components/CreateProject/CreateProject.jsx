@@ -69,8 +69,9 @@ const CreateProject = () => {
     const finalValues = {
       ...values,
       type: values.type === "other" ? values.customType : values.type,
-      advisors: values.advisors?.map((advisorId) => advisorUsers.find((user) => user._id === advisorId)),
-      students: values.students?.map((studentId) => studentsNoProject.find((student) => student.id === studentId)),
+      advisors: values.advisors?.map((advisorId) => advisorUsers.find((user) => user._id === advisorId)) || [],
+      students:
+        values.students?.map((studentId) => studentsNoProject.find((student) => student.id === studentId)) || [],
     };
 
     delete finalValues.customType;
@@ -84,7 +85,11 @@ const CreateProject = () => {
       setIsOtherType(false);
     } catch (error) {
       console.error("Error occurred:", error.response?.data?.message);
-      message.error("שגיאה ביצירת הפרוייקט");
+      if (error.response?.data?.message === "This Project already exists in that year") {
+        message.error("פרוייקט עם אותו שם כבר קיים בשנה זו");
+      } else {
+        message.error("שגיאה ביצירת הפרוייקט");
+      }
     }
   };
 
@@ -259,7 +264,7 @@ const CreateProject = () => {
                 required: false,
               },
             ]}>
-            <Input disabled value={currentUser.name} />
+            <Input disabled value={currentUser.name} placeholder={currentUser.name} />
           </Form.Item>
         )}
 
