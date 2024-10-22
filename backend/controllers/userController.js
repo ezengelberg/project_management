@@ -142,7 +142,6 @@ export const getUserName = async (req, res) => {
     if (!target) {
       return res.status(404).send("User not found");
     }
-    console.log(target.name);
     res.status(200).json({ name: target.name });
   } catch (error) {
     console.error(error);
@@ -153,6 +152,21 @@ export const getUserName = async (req, res) => {
 export const getUser = async (req, res) => {
   const user = req.user;
   res.status(200).json(user);
+};
+
+export const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    const userObj = user.toObject();
+    delete userObj.password;
+    delete userObj.id;
+    res.status(200).send(userObj);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
 };
 
 export const toggleFavoriteProject = async (req, res) => {

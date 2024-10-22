@@ -10,6 +10,7 @@ import {
   ensureFavoriteProject,
   getAdvisorUsers,
   getUsersNoProjects,
+  getUserProfile,
 } from "../controllers/userController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -20,6 +21,7 @@ router.post("/login", loginUser);
 router.post("/logout", logoutUser);
 router.post("/toggle-favorite", ensureAuthenticated, toggleFavoriteProject);
 router.get("/ensure-favorite/:projectId", ensureAuthenticated, ensureFavoriteProject);
+router.get("/get-user-info/:id", ensureAuthenticated, getUserProfile);
 
 router.get("/advisor-users", ensureAuthenticated, isCoordinator, getAdvisorUsers);
 router.get("/check-auth", ensureAuthenticated, (req, res) => {

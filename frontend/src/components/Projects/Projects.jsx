@@ -31,8 +31,6 @@ const Projects = () => {
             };
           })
         );
-
-        console.log(projectsWithFavorites);
         setProjects(sortProjects(projectsWithFavorites)); // Set sorted projects
       } catch (error) {
         console.error("Error occurred:", error);
