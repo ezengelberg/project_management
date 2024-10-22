@@ -186,9 +186,8 @@ const ProjectPage = () => {
             <div className="project-profile-info-title">אימייל המרצה ליצירת קשר:</div>
             <div className="project-profile-info-text project-profile-info-email">
               {advisors.map((advisor, index) => (
-                <Tooltip title="לחץ להעתקה">
+                <Tooltip key={index} title="לחץ להעתקה">
                   <div
-                    key={index}
                     className="advisor-email"
                     onClick={() => {
                       copyToClipboard();
