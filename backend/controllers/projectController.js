@@ -61,7 +61,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
     } else {
       const advisorsList = [];
@@ -96,7 +96,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
     }
     await newProject.save();
@@ -139,7 +139,7 @@ export const addAdvisorToProject = async (req, res) => {};
 export const getProjectsStatus = async (req, res) => {
   try {
     const projects = await Project.find();
-    const numOfOpenProjects = projects.filter((project) => project.isAvailable).length;
+    const numOfOpenProjects = projects.filter((project) => project.isTaken).length;
     const numOfTakenProjects = projects.filter((project) => !project.isAvailable).length;
     const numOfFinishedProjects = projects.filter((project) => project.isFinished).length;
     res.status(200).send({ numOfOpenProjects, numOfTakenProjects, numOfFinishedProjects });
