@@ -3,7 +3,7 @@ import "./Templates.scss";
 import axios from "axios";
 import DownloadFile from "../DownloadFile/DownloadFile";
 import { InboxOutlined } from "@ant-design/icons";
-import { Button, message, Upload, Collapse } from "antd";
+import { Button, message, Upload, Input } from "antd";
 
 const Templates = () => {
   const [fileList, setFileList] = useState([]);
@@ -13,6 +13,7 @@ const Templates = () => {
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const [templateFiles, setTemplateFiles] = useState([]);
   const { Dragger } = Upload;
+  const { TextArea } = Input;
 
   useEffect(() => {
     const fetchPrivileges = async () => {
@@ -120,7 +121,7 @@ const Templates = () => {
           <hr />
           <div className="form-input-group template-input-group">
             <label htmlFor="title">כותרת</label>
-            <input
+            <Input
               type="text"
               id="title"
               placeholder="כותרת לקובץ (אם לא הוכנס שם הקובץ יהיה גם הכותרת)"
@@ -130,7 +131,8 @@ const Templates = () => {
           </div>
           <div className="form-input-group template-input-group">
             <label htmlFor="description">תיאור</label>
-            <textarea
+            <TextArea
+              rows={4}
               id="description"
               placeholder="תיאור לקובץ"
               value={description}
@@ -145,23 +147,13 @@ const Templates = () => {
             style={{ marginTop: 16 }}>
             {uploading ? "מעלה" : "התחל העלאה"}
           </Button>
-          <div className="template-content">
-            <Collapse
-              size="large"
-              items={[
-                {
-                  key: "1",
-                  label: "כותרת הקובץ",
-                  children: <p>something</p>,
-                },
-              ]}
-            />
-            {templateFiles.map((file) => (
-              <DownloadFile key={file._id} file={file} />
-            ))}
-          </div>
         </div>
       )}
+      <div className="template-content">
+        {templateFiles.map((file) => (
+          <DownloadFile key={file._id} file={file} />
+        ))}
+      </div>
     </div>
   );
 };

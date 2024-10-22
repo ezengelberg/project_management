@@ -1,7 +1,7 @@
 import React from "react";
 import "./DownloadFile.scss";
 import { DownloadOutlined, DeleteOutlined, FileOutlined } from "@ant-design/icons";
-import { Tooltip } from "antd";
+import { Tooltip, Collapse } from "antd";
 import axios from "axios";
 
 const DownloadFile = ({ file }) => {
@@ -28,13 +28,28 @@ const DownloadFile = ({ file }) => {
     <div className="download-container">
       <div className="download-file-header">
         <div className="download-header-title">
-          <FileOutlined />
-          <h3 className="file-name">{file.title}</h3>
+          <FileOutlined className="file-icon" />
+          <Tooltip title={file.title}>
+            <h3 className="file-name">{file.title}</h3>
+          </Tooltip>
         </div>
-        <hr></hr>
+        <hr />
       </div>
       <div className="download-file-description">
-        <p>{file.description}</p>
+        {file.description.length === 0 ? (
+          <p>אין פרטים נוספים</p>
+        ) : (
+          <Collapse
+            size="large"
+            items={[
+              {
+                key: "1",
+                label: "פרטים נוספים",
+                children: <p>{file.description}</p>,
+              },
+            ]}
+          />
+        )}
       </div>
       <div className="file-actions">
         <Tooltip title="לחץ למחיקה">

@@ -1,20 +1,6 @@
 .upload-container {
   width: 50%;
   margin: 0 auto;
-
-  .template-content {
-    margin-top: 3rem;
-
-    .ant-collapse-expand-icon svg {
-      rotate: 180deg;
-    }
-
-    .ant-collapse-item-active {
-      .ant-collapse-expand-icon svg {
-        transform: rotate(-90deg) !important;
-      }
-    }
-  }
 }
 
 .toolbar-wrapper {
@@ -36,28 +22,31 @@
   input {
     font-size: 2rem;
     padding: 1rem 1.5rem;
-    border: 1px solid #e4e4ed;
-    outline: none;
-    border-radius: 1rem;
-    transition: 0.2s all ease-in-out;
-  }
-  input:focus-within {
-    border: 1px solid #001529;
   }
 
   textarea {
     font-size: 2rem;
     font-family: inherit;
     padding: 1rem 1.5rem;
-    border: 1px solid #e4e4ed;
-    outline: none;
-    min-height: 10rem;
-    max-height: 30rem;
     resize: vertical;
-    border-radius: 1rem;
-    transition: 0.2s all ease-in-out;
   }
-  textarea:focus {
-    border: 1px solid #001529;
+}
+
+.template-content {
+  width: 80%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  margin: 3rem auto;
+
+  .ant-collapse-expand-icon svg {
+    rotate: 180deg;
+  }
+
+  .ant-collapse-item-active {
+    .ant-collapse-expand-icon svg {
+      transform: rotate(-90deg) !important;
+    }
   }
 }

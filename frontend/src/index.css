@@ -29,6 +29,11 @@ h2 {
   color: #333333;
 }
 
+h3 {
+  font-size: 1.7rem;
+  margin: 0;
+}
+
 hr {
   background-color: #e4e4ed;
   height: 1px;
