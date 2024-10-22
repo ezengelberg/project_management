@@ -21,6 +21,7 @@ import Templates from "../Templates/Templates";
 import Projects from "../Projects/Projects";
 import ProjectPage from "../ProjectPage/ProjectPage";
 import CreateProject from "../CreateProject/CreateProject";
+import ShowAllUsers from "../ShowAllUsers/ShowAllUsers";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -191,6 +192,7 @@ const Dashboard = () => {
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/create-project" element={<CreateProject />} />
                 <Route path="/project/:projectID" element={<ProjectPage />} />
+                <Route path="/show-all-users" element={<ShowAllUsers />} />
               </Routes>
             </div>
           </Content>

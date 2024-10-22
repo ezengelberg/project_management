@@ -12,7 +12,6 @@ const ProtectedRoute = ({ children }) => {
     const checkAuth = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/user/check-auth", { withCredentials: true });
-        console.log(response);
         if (response.data.authenticated) {
           setIsAuthenticated(true);
           console.log("DEV: Authenticated");

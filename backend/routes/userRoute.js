@@ -11,6 +11,7 @@ import {
   getAdvisorUsers,
   getUsersNoProjects,
   getUserProfile,
+  getAllUsers,
 } from "../controllers/userController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -31,5 +32,6 @@ router.get("/privileges", ensureAuthenticated, getPrivileges);
 router.get("/get-user-name/:id", ensureAuthenticated, getUserName);
 router.get("/get-user", ensureAuthenticated, getUser);
 router.get("/users-no-projects", ensureAuthenticated, getUsersNoProjects);
+router.get("/all-users", ensureAuthenticated, isCoordinator, getAllUsers);
 
 export default router;

@@ -28,7 +28,7 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
       // isStudent: true, // set default for now
       isAdvisor: false, // set default for now
-      isCoordinator: false // set default for now
+      isCoordinator: false, // set default for now
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
