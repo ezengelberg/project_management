@@ -11,14 +11,15 @@ import {
   SettingOutlined,
   FundProjectionScreenOutlined,
   TeamOutlined,
-  MessageOutlined,
+  MessageOutlined
 } from "@ant-design/icons";
 import { Layout, Menu, theme, Avatar, Badge, Tooltip } from "antd";
-import { useNavigate, useLocation, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { useNavigate, useLocation, Routes, Route, Navigate } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
 import HomePage from "../HomePage/HomePage";
 import Templates from "../Templates/Templates";
 import Projects from "../Projects/Projects";
+import ProjectPage from "../ProjectPage/ProjectPage";
 import CreateProject from "../CreateProject/CreateProject";
 
 const Dashboard = () => {
@@ -27,7 +28,6 @@ const Dashboard = () => {
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const [userName, setUserName] = useState("");
   const [collapsed, setCollapsed] = useState(false);
-  // const [currentKey, setCurrentKey] = useState(localStorage.getItem("currentKey") || "home");
 
   const getCurrentKeyFromPath = () => {
     const path = location.pathname.split("/").pop();
@@ -65,7 +65,7 @@ const Dashboard = () => {
       key,
       icon,
       children,
-      label,
+      label
     };
   }
 
@@ -80,14 +80,14 @@ const Dashboard = () => {
         getItem("הגשות", "submissions"),
         getItem("הערות מנחה", "advisor-comments"),
         getItem("הערות שופט", "judge-comments"),
-        getItem("צפייה בציון", "grade"),
+        getItem("צפייה בציון", "grade")
       ]),
 
     (privileges.isAdvisor || privileges.isCoordinator) &&
       getItem("פרוייקטים שלי", "sub2", <FundProjectionScreenOutlined />, [
         getItem("הזנת פרוייקט", "create-project"),
         getItem("סטטוס פרוייקטים", "projects-status"),
-        getItem("סטטוס הגשות", "submissions-status"),
+        getItem("סטטוס הגשות", "submissions-status")
       ]),
     privileges.isCoordinator && getItem("ניהול פרוייקטים", "project-managment", <FundProjectionScreenOutlined />),
     privileges.isCoordinator &&
@@ -95,13 +95,13 @@ const Dashboard = () => {
         getItem("הזנת סטודנטים", "create-student"),
         getItem("הזנת משתמש צוות", "create-team-member"),
         getItem("עדכון הרשאות", "update-privileges"),
-        getItem("הצגת משתמשים", "show-all-users"),
+        getItem("הצגת משתמשים", "show-all-users")
       ]),
-    privileges.isCoordinator && getItem("ניהול מערכת", "settings", <SettingOutlined />),
+    privileges.isCoordinator && getItem("ניהול מערכת", "settings", <SettingOutlined />)
   ];
 
   const {
-    token: { colorBgContainer, borderRadiusLG },
+    token: { colorBgContainer, borderRadiusLG }
   } = theme.useToken();
 
   const handleLogout = async () => {
@@ -123,7 +123,7 @@ const Dashboard = () => {
       <Layout
         style={{
           minHeight: "100vh",
-          maxHeight: "100vh",
+          maxHeight: "100vh"
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
           {!collapsed ? (
@@ -145,7 +145,7 @@ const Dashboard = () => {
           <Header
             style={{
               padding: 0,
-              background: colorBgContainer,
+              background: colorBgContainer
             }}
           />
 
@@ -175,22 +175,23 @@ const Dashboard = () => {
             style={{
               margin: "16px 16px 0 16px",
               overflowY: "auto",
-              maxHeight: "92%",
+              maxHeight: "92%"
             }}>
             <div
               style={{
                 padding: 24,
                 minHeight: "100%",
                 background: colorBgContainer,
-                borderRadius: borderRadiusLG,
+                borderRadius: borderRadiusLG
               }}>
               <Routes>
                 <Route path="/" element={<Navigate to="home" replace />} />
-                <Route path="home" element={<HomePage />} />
-                <Route path="profile" element={<h1>Profile</h1>} />
-                <Route path="templates" element={<Templates />} />
-                <Route path="projects" element={<Projects />} />
-                <Route path="create-project" element={<CreateProject />} />
+                <Route path="/home" element={<HomePage />} />
+                <Route path="/profile" element={<h1>Profile</h1>} />
+                <Route path="/templates" element={<Templates />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/create-project" element={<CreateProject />} />
+                <Route path="/project/:projectID" element={<ProjectPage />} />
               </Routes>
             </div>
           </Content>

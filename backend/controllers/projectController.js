@@ -29,6 +29,24 @@ export const getProjectsByYear = async (req, res) => {
   }
 };
 
+export const getProject = async (req, res) => {
+  try {
+    console.log("getProject");
+    console.log(req.params.id);
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    const projectObj = project.toObject(); // Convert to plain JavaScript object
+    delete projectObj.grades;
+    delete projectObj.students;
+    console.log(projectObj);
+    res.status(200).send(projectObj);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const createProject = async (req, res) => {
   try {
     console.log("createProject");
@@ -61,7 +79,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: [],
+        grades: []
       });
     } else {
       const advisorsList = [];
@@ -82,7 +100,6 @@ export const createProject = async (req, res) => {
           studentsList.push(studentUser);
         }
       }
-      console.log(studentsList);
       newProject = new Project({
         title,
         description,
@@ -96,7 +113,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: [],
+        grades: []
       });
     }
     await newProject.save();

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { UserOutlined, StarFilled } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import axios from "axios";
 
 const ProjectBox = ({ markFavorite, ...props }) => {
+  const navigate = useNavigate();
   const [advisors, setAdvisors] = useState([]);
 
   useEffect(() => {
@@ -11,15 +13,13 @@ const ProjectBox = ({ markFavorite, ...props }) => {
       if (props.advisors) {
         try {
           if (props.advisors.length === 0) return;
-          console.log(props.advisors);
           const advisors = [];
           for (const advisor of props.advisors) {
             const response = await axios.get(`http://localhost:5000/api/user/get-user-name/${advisor}`, {
-              withCredentials: true,
+              withCredentials: true
             });
             advisors.push(response.data.name);
           }
-          console.log(advisors);
           setAdvisors(advisors);
         } catch (error) {
           console.error("Error occurred:", error);
@@ -72,10 +72,6 @@ const ProjectBox = ({ markFavorite, ...props }) => {
 
           <div className="project-actions">
             <div className="project-advisors-list">
-              {/* <div className="project-advisor">
-                <UserOutlined />
-                <div className="advisor-name">ד"ר אלי אנגלברג</div>
-              </div> */}
               {advisors.map((advisor, index) => (
                 <div key={index} className="project-advisor">
                   <UserOutlined />
@@ -83,7 +79,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
                 </div>
               ))}
             </div>
-            <div className="more-info">
+            <div className="more-info" onClick={() => navigate(`/dashboard/project/${props._id}`)}>
               <Tooltip title="לפירוט מלא + הרשמה">[ למידע נוסף ורישום ]</Tooltip>
             </div>
           </div>
