@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./CreateProject.scss";
 import axios from "axios";
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
-import { Switch, Button, Form, Input, InputNumber, Select } from "antd";
+import { Switch, Button, Form, Input, InputNumber, Select, message } from "antd";
 
 const CreateProject = () => {
   const { Option } = Select;
@@ -11,6 +11,7 @@ const CreateProject = () => {
   const [advisorUsers, setAdvisorUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState({});
   const [studentsNoProject, setStudentsNoProject] = useState([]);
+  const [isOtherType, setIsOtherType] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -57,20 +58,44 @@ const CreateProject = () => {
     getUsersNoProjects();
   }, []);
 
+  const handleTypeChange = (value) => {
+    setIsOtherType(value === "other");
+    if (value !== "other") {
+      form.setFieldValue("customType", undefined);
+    }
+  };
+
   const onFinish = async (values) => {
-    values.advisors = values.advisors.map((advisorId) => advisorUsers.find((user) => user._id === advisorId));
-    values.students = values.students.map((studentId) => studentsNoProject.find((student) => student.id === studentId));
+    const finalValues = {
+      ...values,
+      type: values.type === "other" ? values.customType : values.type,
+      advisors: values.advisors?.map((advisorId) => advisorUsers.find((user) => user._id === advisorId)) || [],
+      students:
+        values.students?.map((studentId) => studentsNoProject.find((student) => student.id === studentId)) || [],
+    };
+
+    delete finalValues.customType;
+
     try {
-      const response = await axios.post("http://localhost:5000/api/project/create-project", values, {
+      const response = await axios.post("http://localhost:5000/api/project/create-project", finalValues, {
         withCredentials: true,
       });
+      message.success("הפרוייקט נוצר בהצלחה");
+      form.resetFields();
+      setIsOtherType(false);
     } catch (error) {
-      console.error("Error occurred:", error.response.data.message);
+      console.error("Error occurred:", error.response?.data?.message);
+      if (error.response?.data?.message === "This Project already exists in that year") {
+        message.error("פרוייקט עם אותו שם כבר קיים בשנה זו");
+      } else {
+        message.error("שגיאה ביצירת הפרוייקט");
+      }
     }
   };
 
   const onReset = () => {
     form.resetFields();
+    setIsOtherType(false);
   };
 
   return (
@@ -159,13 +184,29 @@ const CreateProject = () => {
               message: "חובה לבחור סוג",
             },
           ]}>
-          <Select placeholder="בחר סוג">
+          <Select placeholder="בחר סוג" onChange={handleTypeChange}>
             <Option value="research">מחקר</Option>
             <Option value="development">פיתוח</Option>
             <Option value="hitech">הייטק</Option>
             <Option value="other">אחר</Option>
           </Select>
         </Form.Item>
+
+        {isOtherType && (
+          <Form.Item
+            className="create-project-form-item"
+            label="סוג מותאם"
+            name="customType"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין סוג",
+              },
+            ]}>
+            <Input placeholder="הזן סוג פרוייקט מותאם" />
+          </Form.Item>
+        )}
 
         <Form.Item
           className="create-project-form-item"
@@ -223,7 +264,7 @@ const CreateProject = () => {
                 required: false,
               },
             ]}>
-            <Input disabled value={currentUser.name} />
+            <Input disabled value={currentUser.name} placeholder={currentUser.name} />
           </Form.Item>
         )}
 
