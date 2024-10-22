@@ -7,7 +7,12 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   min-width: 39rem;
   max-width: 39rem;
-  min-height: 15rem;
+  height: 20rem;
+  overflow: hidden;
+
+  &:has(.ant-collapse-item-active) {
+    height: auto;
+  }
 
   .download-file-header {
     display: flex;
