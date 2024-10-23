@@ -18,6 +18,7 @@
 
 .site-upper-header-right .collage-logo {
   width: 20rem;
+  cursor: pointer;
 }
 
 .site-upper-header-left {

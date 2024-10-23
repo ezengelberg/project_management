@@ -150,7 +150,12 @@ const Dashboard = () => {
           />
 
           <div className="site-upper-header-right">
-            <img src={collegeLogo} alt="collage logo" className="collage-logo" />
+            <img
+              src={collegeLogo}
+              alt="collage logo"
+              className="collage-logo"
+              onClick={() => navigate("/dashboard/home")}
+            />
             <h1>מערכת ניהול פרוייקטים</h1>
           </div>
           <div className="site-upper-header-left">
