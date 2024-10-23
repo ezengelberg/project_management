@@ -55,7 +55,9 @@
     }
   }
   .ql-font,
-  .ql-align {
+  .ql-align,
+  .ql-list,
+  .ql-code-block {
     display: none !important;
   }
 }
