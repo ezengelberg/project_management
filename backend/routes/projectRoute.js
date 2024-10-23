@@ -11,10 +11,11 @@ import {
   removeStudentFromProject,
   closeProject,
   addAdvisorToProject,
-  getProjectsStatus
+  getProjectsStatus,
+  checkIfUserIsCandidate
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../middleware/auth.js";
-import { getAvailableProjects, getProject } from "../controllers/projectController.js";
+import { getAvailableProjects, getProject, addCandidateToProject } from "../controllers/projectController.js";
 
 const router = express.Router();
 
@@ -23,6 +24,8 @@ router.post("/create-project", ensureAuthenticated, isAdvisorOrCoordinator, crea
 router.get("/available-projects", ensureAuthenticated, getAvailableProjects);
 router.get("/no-student", getProjectsNoStudent);
 router.get("/get-project/:id", getProject);
+router.post("/add-candidate", ensureAuthenticated, addCandidateToProject);
+router.get("/check-if-candidate/:id", ensureAuthenticated, checkIfUserIsCandidate);
 
 router.get("/no-advisor", getProjectsNoAdvisor);
 router.get("/year/:year", getProjectsByYear);

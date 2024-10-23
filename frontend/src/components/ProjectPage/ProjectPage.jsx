@@ -1,15 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import {
-  InfoCircleOutlined,
-  BookOutlined,
-  UserOutlined,
-  CloseCircleOutlined,
-  CheckCircleOutlined,
-} from "@ant-design/icons";
+import { InfoCircleOutlined, BookOutlined, UserOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
-import DataTable from "react-data-table-component";
 import "./ProjectPage.scss";
 import { processContent } from "../../utils/htmlProcessor";
 
@@ -20,11 +13,23 @@ const ProjectPage = () => {
   const [page, setPage] = useState({
     Information: true,
     Grades: false,
-    Other: false,
+    Other: false
   });
   const [advisors, setAdvisors] = useState([]);
+  const [isCandidate, setIsCandidate] = useState(false);
 
   useEffect(() => {
+    const checkIfUserCandidate = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/project/check-if-candidate/${projectID}`, {
+          withCredentials: true
+        });
+        setIsCandidate(response.data.isCandidate);
+        console.log(response.data);
+      } catch (error) {
+        console.error("Error occurred:", error);
+      }
+    };
     const getAdvisorInfo = async () => {
       if (projectData.advisors) {
         try {
@@ -32,7 +37,7 @@ const ProjectPage = () => {
           const advisors = [];
           for (const advisor of projectData.advisors) {
             const response = await axios.get(`http://localhost:5000/api/user/get-user-info/${advisor}`, {
-              withCredentials: true,
+              withCredentials: true
             });
             advisors.push(response.data);
             console.log(response.data);
@@ -43,6 +48,7 @@ const ProjectPage = () => {
         }
       }
     };
+    checkIfUserCandidate();
     getAdvisorInfo();
   }, [projectData]);
 
@@ -58,9 +64,10 @@ const ProjectPage = () => {
     const fetchProjectData = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/project/get-project/${projectID}`, {
-          withCredentials: true,
+          withCredentials: true
         });
         setProjectData(response.data);
+        console.log(response.data);
       } catch (error) {
         console.error("Error occurred:", error);
       }
@@ -73,46 +80,27 @@ const ProjectPage = () => {
     navigator.clipboard.writeText(emails);
   };
 
-  const columns = [
-    {
-      name: "שם הסטודנט",
-      selector: (row) => row.name,
-      sortable: true,
-    },
-    {
-      name: "תאריך הצטרפות",
-      selector: (row) => row.date,
-      sortable: true,
-    },
-    {
-      name: "פעולות",
-      cell: (row) => (
-        <div className="students-list-actions">
-          <CheckCircleOutlined />
-          <CloseCircleOutlined />
-        </div>
-      ),
-      ignoreRowClick: true, // Prevent row click event when clicking these buttons
-      allowOverflow: true, // Allow content to overflow the cell if necessary
-      button: true,
-    },
-  ];
+  const Unsignup = async () => {
+    try {
+      setIsCandidate(false);
+    } catch (error) {
+      console.log("Error occurred:", error.response.data.message);
+    }
+  };
 
-  // Sample data
-  const data = [
-    {
-      id: 1,
-      name: "Tiger Nixon",
-    },
-    {
-      id: 2,
-      name: "Garrett Winters",
-    },
-    // Add more rows as needed
-  ];
   const Signup = async () => {
-    console.log("Signup");
     setConfirmSignup(true);
+    try {
+      await axios.post(
+        `http://localhost:5000/api/project/add-candidate`,
+        { projectID: projectID },
+        { withCredentials: true }
+      );
+      console.log("Signup successful");
+      setIsCandidate(true);
+    } catch (error) {
+      console.log("Error occurred:", error.response.data.message);
+    }
   };
 
   return (
@@ -200,13 +188,15 @@ const ProjectPage = () => {
               ))}
             </div>
           </div>
-          <div className="project-signup-button" onClick={() => Signup()}>
-            הרשמה לפרוייקט
-          </div>
-          <div className="project-profile-info-item">
-            <div className="project-profile-info-title">רשימת המתנה:</div>
-            <DataTable columns={columns} data={data} highlightOnHover />
-          </div>
+          {isCandidate ? (
+            <div className="project-unsignup-button" onClick={() => Unsignup()}>
+              הסר הרשמה לפרוייקט
+            </div>
+          ) : (
+            <div className="project-signup-button" onClick={() => Signup()}>
+              הרשמה לפרוייקט
+            </div>
+          )}
         </div>
       )}
     </div>
