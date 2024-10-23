@@ -13,7 +13,13 @@ const projectSchema = new mongoose.Schema({
   isTaken: { type: Boolean, required: false, default: false }, // is it taken by a student
   advisors: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }], // the advisor(s) of the project
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }], // the student(s) of the project
-  grades: [{ type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: [] }], // the grades of the project
+  candidates: [
+    {
+      student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Reference to the User model
+      joinDate: { type: Date, default: Date.now() } // Store the date the student joined
+    }
+  ],
+  grades: [{ type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: [] }] // the grades of the project
 });
 
 // Create a compound index to ensure title + year combination is unique
