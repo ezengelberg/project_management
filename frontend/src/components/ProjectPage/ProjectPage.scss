@@ -164,6 +164,7 @@
       }
     }
     .project-profile-info-item {
+      width: 100%;
       margin-bottom: 3rem;
       .students-list-actions {
         display: flex;
@@ -178,9 +179,13 @@
           }
         }
       }
-    }
-    .project-profile-info-title {
-      font-weight: 500;
+      .project-profile-info-title {
+        font-weight: 500;
+      }
+
+      .project-profile-info-text {
+        word-break: break-all;
+      }
     }
 
     .project-badges {

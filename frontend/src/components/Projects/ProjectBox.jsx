@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { UserOutlined, StarFilled } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import axios from "axios";
+import { processContent } from "../../utils/htmlProcessor";
 
 const ProjectBox = ({ markFavorite, ...props }) => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
           const advisors = [];
           for (const advisor of props.advisors) {
             const response = await axios.get(`http://localhost:5000/api/user/get-user-name/${advisor}`, {
-              withCredentials: true
+              withCredentials: true,
             });
             advisors.push(response.data.name);
           }
@@ -63,12 +64,10 @@ const ProjectBox = ({ markFavorite, ...props }) => {
               <div className="project-badge project-type">{props.type}</div>
             </Tooltip>
           </div>
-          {/* <p className="project-description">{{props.description}.length < 175 : {props.description} ? ""}</p> */}
-          {props.description.length < 300 ? (
-            <p className="project-description">{props.description}</p>
-          ) : (
-            <p className="project-description">{props.description.slice(0, 300)}...</p>
-          )}
+          <div
+            className="project-description"
+            dangerouslySetInnerHTML={{ __html: processContent(props.description, 300) }}
+          />
 
           <div className="project-actions">
             <div className="project-advisors-list">

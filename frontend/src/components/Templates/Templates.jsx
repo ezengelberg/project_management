@@ -4,6 +4,7 @@ import axios from "axios";
 import DownloadFile from "../DownloadFile/DownloadFile";
 import { InboxOutlined } from "@ant-design/icons";
 import { Button, message, Upload, Input } from "antd";
+import { Editor } from "primereact/editor";
 
 const Templates = () => {
   const [fileList, setFileList] = useState([]);
@@ -13,7 +14,6 @@ const Templates = () => {
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const [templateFiles, setTemplateFiles] = useState([]);
   const { Dragger } = Upload;
-  const { TextArea } = Input;
 
   useEffect(() => {
     const fetchPrivileges = async () => {
@@ -105,6 +105,10 @@ const Templates = () => {
     setDescription("");
   };
 
+  const handleEditorChange = (e) => {
+    setDescription(e.htmlValue || "");
+  };
+
   return (
     <div>
       {privileges.isCoordinator && (
@@ -130,13 +134,11 @@ const Templates = () => {
             />
           </div>
           <div className="form-input-group template-input-group">
-            <label htmlFor="description">תיאור</label>
-            <TextArea
-              rows={4}
-              id="description"
+            <Editor
               placeholder="תיאור לקובץ"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onTextChange={handleEditorChange}
+              style={{ height: "320px" }}
             />
           </div>
           <Button

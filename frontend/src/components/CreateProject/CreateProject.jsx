@@ -3,6 +3,8 @@ import "./CreateProject.scss";
 import axios from "axios";
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import { Switch, Button, Form, Input, InputNumber, Select, message } from "antd";
+import { Editor } from "primereact/editor";
+import DOMPurify from "dompurify";
 
 const CreateProject = () => {
   const { Option } = Select;
@@ -65,9 +67,74 @@ const CreateProject = () => {
     }
   };
 
+  const handleEditorChange = (e) => {
+    const sanitizedHtml = DOMPurify.sanitize(e.htmlValue || "");
+    form.setFieldsValue({ description: sanitizedHtml });
+  };
+
+  const processEditorContent = (content) => {
+    if (!content) return content;
+
+    const div = document.createElement("div");
+    div.innerHTML = content;
+
+    // Fix URLs in the content before saving
+    const urlRegex = /(?<=^|\s)((?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9-]+(?:\.[a-zA-Z]{2,})+(?:\/[^\s]*)?)/g;
+
+    const processTextNode = (node) => {
+      const text = node.textContent;
+      if (urlRegex.test(text)) {
+        const span = document.createElement("span");
+        let lastIndex = 0;
+
+        text.replace(urlRegex, (match, url, offset) => {
+          // Add text before the URL
+          if (offset > lastIndex) {
+            span.appendChild(document.createTextNode(text.slice(lastIndex, offset)));
+          }
+
+          // Create the link if it's not already a link
+          const href = url.startsWith("http") ? url : `https://${url}`;
+          const link = document.createElement("a");
+          link.href = href;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = url;
+          span.appendChild(link);
+
+          lastIndex = offset + match.length;
+        });
+
+        // Add remaining text
+        if (lastIndex < text.length) {
+          span.appendChild(document.createTextNode(text.slice(lastIndex)));
+        }
+
+        return span;
+      }
+      return node;
+    };
+
+    const walkTreeAndProcess = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const processedNode = processTextNode(node);
+        if (processedNode !== node) {
+          node.parentNode.replaceChild(processedNode, node);
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName !== "A") {
+        Array.from(node.childNodes).forEach(walkTreeAndProcess);
+      }
+    };
+
+    walkTreeAndProcess(div);
+    return div.innerHTML;
+  };
+
   const onFinish = async (values) => {
+    const processedDescription = processEditorContent(values.description);
     const finalValues = {
       ...values,
+      description: processedDescription,
       type: values.type === "other" ? values.customType : values.type,
       advisors: values.advisors?.map((advisorId) => advisorUsers.find((user) => user._id === advisorId)) || [],
       students:
@@ -138,7 +205,7 @@ const CreateProject = () => {
               message: "חובה להזין תיאור לפרוייקט",
             },
           ]}>
-          <Input.TextArea rows={4} />
+          <Editor style={{ height: "320px" }} onTextChange={handleEditorChange} />
         </Form.Item>
 
         <Form.Item

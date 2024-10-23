@@ -10,8 +10,8 @@ import {
 } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import DataTable from "react-data-table-component";
-
 import "./ProjectPage.scss";
+import { processContent } from "../../utils/htmlProcessor";
 
 const ProjectPage = () => {
   const { projectID } = useParams();
@@ -171,7 +171,9 @@ const ProjectPage = () => {
         <div className="project-profile-info project-profile-content">
           <div className="project-profile-info-item">
             <div className="project-profile-info-title">תיאור הפרוייקט</div>
-            <div className="project-profile-info-text">{projectData.description}</div>
+            <div
+              className="project-profile-info-text"
+              dangerouslySetInnerHTML={{ __html: processContent(projectData.description) }}></div>
           </div>
           <div className="project-profile-info-item project-badges">
             <div className="project-profile-info-title">התאמות:</div>

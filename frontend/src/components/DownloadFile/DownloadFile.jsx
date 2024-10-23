@@ -3,6 +3,7 @@ import "./DownloadFile.scss";
 import { DownloadOutlined, DeleteOutlined, FileOutlined } from "@ant-design/icons";
 import { Tooltip, Collapse } from "antd";
 import axios from "axios";
+import { processContent } from "../../utils/htmlProcessor";
 
 const DownloadFile = ({ file }) => {
   const handleDownload = async () => {
@@ -36,7 +37,7 @@ const DownloadFile = ({ file }) => {
         <hr />
       </div>
       <div className="download-file-description">
-        {file.description.length === 0 ? (
+        {!file.description || file.description.length === 0 ? (
           <p>אין פרטים נוספים</p>
         ) : (
           <Collapse
@@ -45,7 +46,12 @@ const DownloadFile = ({ file }) => {
               {
                 key: "1",
                 label: "פרטים נוספים",
-                children: <p>{file.description}</p>,
+                children: (
+                  <div
+                    className="rich-text-content"
+                    dangerouslySetInnerHTML={{ __html: processContent(file.description) }}
+                  />
+                ),
               },
             ]}
           />
