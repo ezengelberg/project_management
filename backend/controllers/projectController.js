@@ -66,7 +66,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
     } else {
       const advisorsList = [];
@@ -98,10 +98,17 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
     }
-    await newProject.save();
+
+    const savedProject = await newProject.save();
+
+    // Update selectedProject for all assigned students
+    if (savedProject.students?.length > 0) {
+      await User.updateMany({ _id: { $in: savedProject.students } }, { $set: { selectedProject: savedProject } });
+    }
+
     res.status(201).send("Projected Created Successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });

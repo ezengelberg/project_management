@@ -1,18 +1,42 @@
 import React, { useState, useEffect } from "react";
 import "./ShowAllUsers.scss";
 import axios from "axios";
-import { Space, Table, Tag, Spin } from "antd";
+import { Space, Table, Tag, Spin, Avatar } from "antd";
+import { useNavigate } from "react-router-dom";
 
 const ShowAllUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("http://localhost:5000/api/user/all-users", { withCredentials: true });
-        setUsers(response.data);
+        // Fetch all users
+        const usersResponse = await axios.get("http://localhost:5000/api/user/all-users", { withCredentials: true });
+        const userData = usersResponse.data;
+
+        // Create a set of unique project IDs
+        const projectIds = new Set(userData.filter((user) => user.selectedProject).map((user) => user.selectedProject));
+
+        // Fetch project details for all selected projects
+        const projectDetails = {};
+        for (const projectId of projectIds) {
+          try {
+            const projectResponse = await axios.get(`http://localhost:5000/api/project/get-project/${projectId}`, {
+              withCredentials: true,
+            });
+            projectDetails[projectId] = projectResponse.data;
+          } catch (error) {
+            console.error(`Error fetching project ${projectId}:`, error);
+            projectDetails[projectId] = { title: "Error loading project" };
+          }
+        }
+
+        setProjects(projectDetails);
+        setUsers(userData);
       } catch (error) {
         console.error("Error occurred:", error.response?.data?.message || error.message);
       } finally {
@@ -20,7 +44,7 @@ const ShowAllUsers = () => {
       }
     };
 
-    fetchUsers();
+    fetchData();
   }, []);
 
   const columns = [
@@ -28,12 +52,21 @@ const ShowAllUsers = () => {
       title: "שם",
       dataIndex: "name",
       key: "name",
-      render: (text) => <a>{text}</a>,
+      render: (text, record) => (
+        <a className="column-name" onClick={() => navigate(`/dashboard/profile/${record.userId}`)}>
+          <Avatar size="medium">
+            {text[0].toUpperCase()}
+            {text.split(" ")[1] ? text.split(" ")[1][0].toUpperCase() : ""}
+          </Avatar>
+          {text}
+        </a>
+      ),
       showSorterTooltip: {
         target: "full-header",
       },
       sorter: (a, b) => a.name.localeCompare(b.name),
       sortDirections: ["descend", "ascend"],
+      width: "20%",
     },
     {
       title: "ת.ז.",
@@ -61,10 +94,24 @@ const ShowAllUsers = () => {
       title: "פרוייקט נבחר",
       dataIndex: "selectedProject",
       key: "selectedProject",
+      render: (text, record) => {
+        if (!record.projectId) {
+          return "לא נבחר פרוייקט";
+        }
+        const project = projects[record.projectId];
+        if (!project) {
+          return "טוען...";
+        }
+        return <a onClick={() => navigate(`/dashboard/project/${record.projectId}`)}>{project.title}</a>;
+      },
       showSorterTooltip: {
         target: "full-header",
       },
-      sorter: (a, b) => a.selectedProject.localeCompare(b.selectedProject),
+      sorter: (a, b) => {
+        const projectA = projects[a.projectId]?.title || "לא נבחר פרוייקט";
+        const projectB = projects[b.projectId]?.title || "לא נבחר פרוייקט";
+        return projectA.localeCompare(projectB);
+      },
       sortDirections: ["descend", "ascend"],
       filters: [
         { text: "נבחר פרוייקט", value: "נבחר פרוייקט" },
@@ -141,7 +188,7 @@ const ShowAllUsers = () => {
     name: user.name,
     userId: user.id,
     registerDate: new Date(user.registerDate).toLocaleDateString("he-IL"),
-    selectedProject: user.selectedProject ? user.selectedProject.title : "לא נבחר פרוייקט",
+    projectId: user.selectedProject || null,
     email: user.email,
     isStudent: user.isStudent,
     isAdvisor: user.isAdvisor,

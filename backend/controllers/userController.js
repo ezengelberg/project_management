@@ -151,6 +151,7 @@ export const getUserName = async (req, res) => {
 
 export const getUser = async (req, res) => {
   const user = req.user;
+  delete user.password;
   res.status(200).json(user);
 };
 

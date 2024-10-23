@@ -27,7 +27,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
-  const [userName, setUserName] = useState("");
+  const [user, setUser] = useState({});
   const [collapsed, setCollapsed] = useState(false);
 
   const getCurrentKeyFromPath = () => {
@@ -46,17 +46,17 @@ const Dashboard = () => {
       }
     };
 
-    const fetchUserName = async () => {
+    const fetchUser = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/user/get-user", { withCredentials: true });
-        setUserName(response.data.name);
+        setUser(response.data);
       } catch (error) {
         console.error("Error occurred:", error);
       }
     };
 
     fetchPrivileges();
-    fetchUserName();
+    fetchUser();
   }, []);
 
   const { Header, Content, Sider } = Layout;
@@ -128,7 +128,7 @@ const Dashboard = () => {
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
           {!collapsed ? (
             <div className="user-welcome">
-              <h3>ברוך הבא, {userName}</h3>
+              <h3>ברוך הבא, {user.name}</h3>
             </div>
           ) : (
             <div className="placeholder" />
@@ -160,12 +160,10 @@ const Dashboard = () => {
           </div>
           <div className="site-upper-header-left">
             <Tooltip title="פרופיל">
-              <Avatar
-                className="avatar-icon"
-                size="large"
-                icon={<UserOutlined />}
-                onClick={() => navigate("/dashboard/profile")}
-              />
+              <Avatar className="avatar-icon" size="large" onClick={() => navigate(`/dashboard/profile/${user.id}`)}>
+                {user.name && user.name[0]}
+                {user.name && user.name.split(" ")[1] ? user.name.split(" ")[1][0] : ""}
+              </Avatar>
             </Tooltip>
             <Badge count={100}>
               <Tooltip title="התראות">
@@ -192,7 +190,7 @@ const Dashboard = () => {
               <Routes>
                 <Route path="/" element={<Navigate to="home" replace />} />
                 <Route path="/home" element={<HomePage />} />
-                <Route path="/profile" element={<h1>Profile</h1>} />
+                <Route path="/profile/:userId" element={<h1>Profile</h1>} />
                 <Route path="/templates" element={<Templates />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/create-project" element={<CreateProject />} />
