@@ -126,6 +126,13 @@ const ProjectPage = () => {
       setIsCandidate(true);
     } catch (error) {
       console.log("Error occurred:", error.response.data.message);
+      setTimeout(() => {
+        message.open({
+          type: "error",
+          content: error.response.data.message,
+          duration: 2
+        });
+      }, 1000);
     }
   };
 

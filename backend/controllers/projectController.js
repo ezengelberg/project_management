@@ -52,7 +52,6 @@ export const getSelfProjects = async (req, res) => {
     if (!user) {
       return res.status(200).send({ projects: [] });
     }
-    console.log("User found, looking for projects");
     const projects = await Project.find({ advisors: { $in: [user] } });
     res.status(200).send({ projects });
   } catch (err) {
