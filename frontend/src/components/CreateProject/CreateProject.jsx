@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import "./CreateProject.scss";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
-import { Switch, Button, Form, Input, InputNumber, Select, message } from "antd";
+import { Switch, Button, Form, Input, InputNumber, Select, message, FloatButton } from "antd";
 import { Editor } from "primereact/editor";
 import DOMPurify from "dompurify";
 
@@ -15,7 +16,10 @@ const CreateProject = () => {
   const [studentsNoProject, setStudentsNoProject] = useState([]);
   const [isOtherType, setIsOtherType] = useState(false);
   const [studentInitiative, setStudentInitiative] = useState(false);
+  const [projectCreated, setProjectCreated] = useState(false);
+  const [projectCreatedId, setProjectCreatedId] = useState("");
   const [form] = Form.useForm();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch data from the API
@@ -150,6 +154,8 @@ const CreateProject = () => {
         withCredentials: true,
       });
       message.success("הפרוייקט נוצר בהצלחה");
+      setProjectCreated(true);
+      setProjectCreatedId(response.data.project._id);
       form.resetFields();
       setIsOtherType(false);
     } catch (error) {
@@ -166,6 +172,7 @@ const CreateProject = () => {
     form.resetFields();
     setIsOtherType(false);
     setStudentInitiative(false);
+    setProjectCreated(false);
   };
 
   return (
@@ -385,6 +392,40 @@ const CreateProject = () => {
           </div>
         </Form.Item>
       </Form>
+      {projectCreated && (
+        <div className="project-created">
+          <FloatButton
+            type="primary"
+            shape="square"
+            onClick={() => navigate(`/dashboard/project/${projectCreatedId}`)}
+            description={
+              <div className="float-button-text">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(0)matrix(-1, 0, 0, 1, 0, 0)"
+                  stroke="#ffffff">
+                  <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                  <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M4 17V15.8C4 14.1198 4 13.2798 4.32698 12.638C4.6146 12.0735 5.07354 11.6146 5.63803 11.327C6.27976 11 7.11984 11 8.8 11H20M20 11L16 7M20 11L16 15"
+                      stroke="#ffffff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"></path>
+                  </g>
+                </svg>
+                עבור לדף הפרוייקט
+              </div>
+            }
+            style={{
+              insetInlineEnd: 150,
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -109,7 +109,10 @@ export const createProject = async (req, res) => {
       await User.updateMany({ _id: { $in: savedProject.students } }, { $set: { selectedProject: savedProject } });
     }
 
-    res.status(201).send("Projected Created Successfully");
+    res.status(201).json({
+      message: "Project created successfully",
+      project: savedProject,
+    });
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

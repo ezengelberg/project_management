@@ -86,3 +86,23 @@
     }
   }
 }
+
+.project-created {
+  button {
+    width: 10%;
+    border-radius: 2rem !important;
+    .ant-float-btn-body {
+      border-radius: 2rem !important;
+    }
+  }
+  .float-button-text {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    svg {
+      width: 2rem;
+      height: 2rem;
+    }
+  }
+}
