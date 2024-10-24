@@ -7,6 +7,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import Login from "./components/Login/Login";
 import WrongPath from "./components/WrongPath/WrongPath";
 import Dashboard from "./components/Dashboard/Dashboard";
+import ManageProjects from "./components/ManageProjects/ManageProjects";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Routes>
         {/* Public Route */}
         <Route path="/" element={<Login />} />
+        <Route path="/dev" element={<ManageProjects />} />
         <Route path="/login" element={<Login />} />
 
         {/* Protected Route */}

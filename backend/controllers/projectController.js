@@ -44,6 +44,22 @@ export const getProject = async (req, res) => {
   }
 };
 
+export const getSelfProjects = async (req, res) => {
+  try {
+    console.log(req.params.id);
+    const userid = req.user._id;
+    const user = await User.findById(userid);
+    if (!user) {
+      return res.status(200).send({ projects: [] });
+    }
+    console.log("User found, looking for projects");
+    const projects = await Project.find({ advisors: { $in: [user] } });
+    res.status(200).send({ projects });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const createProject = async (req, res) => {
   try {
     const { title, description, year, suitableFor, type, continues, isApproved, advisors, students } = req.body;
@@ -66,7 +82,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: [],
+        grades: []
       });
     } else {
       const advisorsList = [];
@@ -98,7 +114,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: [],
+        grades: []
       });
     }
 
@@ -152,8 +168,28 @@ export const addCandidateToProject = async (req, res) => {
     }
     project.candidates.push({ student: user });
     await project.save();
-    console.log("Candidate added successfully");
+    console.log(`Candidate ${req.user.name} added successfully`);
     res.status(201).send("Candidate added successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const removeCandidateFromProject = async (req, res) => {
+  const userid = req.user._id;
+  try {
+    const user = await User.findById(userid);
+    const project = await Project.findById(req.body.projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    if (!project.candidates.find((candidate) => candidate.student.toString() === userid.toString())) {
+      return res.status(400).send({ message: "You are not a candidate for this project" });
+    }
+    project.candidates = project.candidates.filter((candidate) => candidate.student.toString() !== userid.toString());
+    await project.save();
+    console.log(`Candidate ${req.user.name} removed successfully`);
+    res.status(200).send("Candidate removed successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
