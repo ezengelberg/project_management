@@ -59,6 +59,20 @@ export const createTemplateFiles = async (req, res) => {
   }
 };
 
+export const updateTemplateFiles = async (req, res) => {
+  try {
+    const file = await templateFiles.findById(req.params.id);
+    if (!file) {
+      return res.status(404).send({ message: "File template not found" });
+    }
+
+    const updatedFile = await templateFiles.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).send(updatedFile);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const deleteTemplateFiles = async (req, res) => {
   try {
     const file = await templateFiles.findById(req.params.id);

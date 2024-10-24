@@ -1,13 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./DownloadFile.scss";
 import { DownloadOutlined, DeleteOutlined, FileOutlined, EditOutlined, EllipsisOutlined } from "@ant-design/icons";
 import { Tooltip, Modal, Card, message } from "antd";
 import axios from "axios";
 import { processContent } from "../../utils/htmlProcessor";
 
-const DownloadFile = ({ file, onDelete }) => {
+const DownloadFile = ({ file, onEdit, onDelete }) => {
   const [isDescriptionModalVisible, setIsDescriptionModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [user, setUser] = useState({});
+  const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/user/get-user", { withCredentials: true });
+        setUser(response.data);
+        setPrivileges({
+          isStudent: response.data.isStudent,
+          isAdvisor: response.data.isAdvisor,
+          isCoordinator: response.data.isCoordinator,
+        });
+      } catch (error) {
+        console.error("Error occurred:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   const handleDownload = async () => {
     try {
@@ -28,11 +49,21 @@ const DownloadFile = ({ file, onDelete }) => {
     }
   };
 
+  const handleEdit = () => {
+    try {
+      setIsEditing(true);
+      onEdit(file._id);
+    } catch (error) {
+      console.error("Error editing file:", error);
+      message.error("שגיאה בעריכת הקובץ");
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
-      await axios.delete(`http://localhost:5000/api/file-templates/${file._id}`, { withCredentials: true });
-      message.success("קובץ נמחק בהצלחה");
       onDelete(file._id);
     } catch (error) {
       console.error("Error deleting file:", error);
@@ -65,12 +96,16 @@ const DownloadFile = ({ file, onDelete }) => {
       <Card
         className="file-card"
         actions={[
-          <Tooltip title="מחיקה">
-            <DeleteOutlined key="delete" className="action-icon" onClick={handleDelete} spin={isDeleting} />
-          </Tooltip>,
-          <Tooltip title="עריכה">
-            <EditOutlined key="edit" className="action-icon" />
-          </Tooltip>,
+          (privileges.isCoordinator || user._id === file.user) && (
+            <Tooltip title="מחיקה">
+              <DeleteOutlined key="delete" className="action-icon" onClick={handleDelete} spin={isDeleting} />
+            </Tooltip>
+          ),
+          (privileges.isCoordinator || user._id === file.user) && (
+            <Tooltip title="עריכה">
+              <EditOutlined key="edit" className="action-icon" onClick={handleEdit} spin={isEditing} />
+            </Tooltip>
+          ),
           <Tooltip title="הורדה">
             <DownloadOutlined key="download" className="action-icon" onClick={handleDownload} />
           </Tooltip>,

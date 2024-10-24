@@ -3,7 +3,7 @@ import "./Templates.scss";
 import axios from "axios";
 import DownloadFile from "../DownloadFile/DownloadFile";
 import { InboxOutlined } from "@ant-design/icons";
-import { Button, message, Upload, Input } from "antd";
+import { Button, message, Upload, Input, Modal } from "antd";
 import { Editor } from "primereact/editor";
 
 const Templates = () => {
@@ -13,6 +13,10 @@ const Templates = () => {
   const [description, setDescription] = useState("");
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const [templateFiles, setTemplateFiles] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [currentFile, setCurrentFile] = useState({});
   const { Dragger } = Upload;
 
   useEffect(() => {
@@ -99,8 +103,47 @@ const Templates = () => {
     fileList,
   };
 
+  const setEditing = (fileId) => {
+    try {
+      const file = templateFiles.find((file) => file._id === fileId);
+      setCurrentFile(file);
+      setEditTitle(file.title);
+      setEditDescription(file.description);
+    } catch (error) {
+      console.error("Error setting editing file:", error);
+    }
+    setIsEditing(true);
+  };
+
+  const handleEdit = async (fileId) => {
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/file-templates/update/${fileId}`,
+        {
+          title: editTitle,
+          description: editDescription,
+        },
+        { withCredentials: true }
+      );
+      message.success("קובץ עודכן בהצלחה");
+    } catch (error) {
+      console.error("Error updating file:", error);
+    } finally {
+      setIsEditing(false);
+      const updatedFiles = await axios.get("http://localhost:5000/api/file-templates", { withCredentials: true });
+      setTemplateFiles(updatedFiles.data);
+    }
+  };
+
   const handleDelete = async (fileId) => {
-    setTemplateFiles((prevFiles) => prevFiles.filter((file) => file._id !== fileId));
+    try {
+      await axios.delete(`http://localhost:5000/api/file-templates/delete/${fileId}`, { withCredentials: true });
+      message.success("קובץ נמחק בהצלחה");
+    } catch (error) {
+      console.error("Error deleting file:", error);
+    } finally {
+      setTemplateFiles((prevFiles) => prevFiles.filter((file) => file._id !== fileId));
+    }
   };
 
   const clearForm = () => {
@@ -111,6 +154,10 @@ const Templates = () => {
 
   const handleEditorChange = (e) => {
     setDescription(e.htmlValue || "");
+  };
+
+  const handleEditEditorChange = (e) => {
+    setEditDescription(e.htmlValue || "");
   };
 
   return (
@@ -157,9 +204,37 @@ const Templates = () => {
       )}
       <div className="template-content">
         {templateFiles.map((file) => (
-          <DownloadFile key={file._id} file={file} onDelete={handleDelete} />
+          <DownloadFile key={file._id} file={file} onDelete={handleDelete} onEdit={() => setEditing(file._id)} />
         ))}
       </div>
+      <Modal
+        className="edit-modal"
+        title="תיאור הקובץ"
+        open={isEditing}
+        onOk={() => handleEdit(currentFile._id)}
+        onCancel={() => setIsEditing(false)}
+        okText="שמירה"
+        cancelText="ביטול">
+        <div className="form-input-group template-input-group">
+          <label htmlFor="title">כותרת</label>
+          <Input
+            type="text"
+            id="title"
+            placeholder="כותרת לקובץ"
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+          />
+        </div>
+        <div className="form-input-group template-input-group">
+          <label htmlFor="description">תיאור</label>
+          <Editor
+            placeholder="תיאור לקובץ"
+            value={editDescription}
+            onTextChange={handleEditEditorChange}
+            style={{ height: "320px" }}
+          />
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import multer from "multer";
 import {
   createTemplateFiles,
   getTemplateFiles,
+  updateTemplateFiles,
   deleteTemplateFiles,
   downloadTemplateFile,
 } from "../controllers/templateFilesController.js";
@@ -23,7 +24,8 @@ const upload = multer({ storage: storage });
 
 router.get("/", ensureAuthenticated, getTemplateFiles);
 router.post("/", ensureAuthenticated, upload.array("files", 10), createTemplateFiles);
-router.delete("/:id", ensureAuthenticated, deleteTemplateFiles);
+router.put("/update/:id", ensureAuthenticated, updateTemplateFiles);
+router.delete("/delete/:id", ensureAuthenticated, deleteTemplateFiles);
 router.get("/download/:id", ensureAuthenticated, downloadTemplateFile);
 
 export default router;
