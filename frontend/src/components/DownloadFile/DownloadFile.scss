@@ -1,4 +1,5 @@
 .file-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -56,6 +57,12 @@
         }
       }
     }
+  }
+  .upload-date {
+    position: absolute;
+    bottom: 22%;
+    left: 2%;
+    color: rgba(0, 0, 0, 0.45);
   }
 }
 

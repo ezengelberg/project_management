@@ -90,6 +90,7 @@ const DownloadFile = ({ file, onDelete }) => {
           }
           description={renderDescription()}
         />
+        <div className="upload-date">{new Date(file.uploadDate).toLocaleDateString("he-IL")}</div>
       </Card>
       <Modal
         className="description-modal"
