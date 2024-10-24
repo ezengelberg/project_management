@@ -5,6 +5,7 @@ import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import { Switch, Button, Form, Input, InputNumber, Select, message } from "antd";
 import { Editor } from "primereact/editor";
 import DOMPurify from "dompurify";
+import { set } from "mongoose";
 
 const CreateProject = () => {
   const { Option } = Select;
@@ -165,6 +166,7 @@ const CreateProject = () => {
   const onReset = () => {
     form.resetFields();
     setIsOtherType(false);
+    setStudentInitiative(false);
   };
 
   return (
