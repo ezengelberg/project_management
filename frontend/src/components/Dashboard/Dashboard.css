@@ -1,6 +1,7 @@
 .user-welcome {
   color: white;
   text-align: center;
+  word-break: break-word;
 }
 
 .placeholder {

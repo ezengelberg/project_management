@@ -31,7 +31,7 @@ const ShowAllUsers = () => {
             projectDetails[projectId] = projectResponse.data;
           } catch (error) {
             console.error(`Error fetching project ${projectId}:`, error);
-            projectDetails[projectId] = { title: "Error loading project" };
+            projectDetails[projectId] = { title: "שגיאה בטעינת הפרוייקט/פרוייקט נמחק" };
           }
         }
 
@@ -200,13 +200,10 @@ const ShowAllUsers = () => {
       <div className="active-users">
         <h2>משתמשים רשומים</h2>
         {loading && <Spin />}
-        <Table columns={columns} dataSource={dataSource} />
+        <Table columns={columns} dataSource={dataSource} style={{ minHeight: "770px" }} />
       </div>
-      <div className="watiting-users">
-        <h2>מחכים להרשמה</h2>
-      </div>
-      <div className="banned-users">
-        <h2>משתמשים חסומים</h2>
+      <div className="deleted-users">
+        <h2>משתמשים מחוקים</h2>
       </div>
     </div>
   );
