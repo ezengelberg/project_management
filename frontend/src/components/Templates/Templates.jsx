@@ -99,6 +99,10 @@ const Templates = () => {
     fileList,
   };
 
+  const handleDelete = async (fileId) => {
+    setTemplateFiles((prevFiles) => prevFiles.filter((file) => file._id !== fileId));
+  };
+
   const clearForm = () => {
     setFileList([]);
     setTitle("");
@@ -153,7 +157,7 @@ const Templates = () => {
       )}
       <div className="template-content">
         {templateFiles.map((file) => (
-          <DownloadFile key={file._id} file={file} />
+          <DownloadFile key={file._id} file={file} onDelete={handleDelete} />
         ))}
       </div>
     </div>

@@ -61,12 +61,24 @@ export const createTemplateFiles = async (req, res) => {
 
 export const deleteTemplateFiles = async (req, res) => {
   try {
+    const file = await templateFiles.findById(req.params.id);
+    if (!file) {
+      return res.status(404).send({ message: "File template not found" });
+    }
+
     const result = await templateFiles.deleteOne({ _id: req.params.id });
     if (result.deletedCount === 0) {
       return res.status(404).send({ message: "File template not found" });
     }
+
+    const filePath = path.join(process.cwd(), "templateFiles", file.filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
     res.status(200).send({ message: "File template deleted successfully" });
   } catch (err) {
+    console.error("Error deleting file:", err);
     res.status(500).send({ message: err.message });
   }
 };

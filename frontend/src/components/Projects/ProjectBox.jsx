@@ -65,7 +65,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
             </Tooltip>
           </div>
           <div
-            className="project-description"
+            className="project-description rich-text-content"
             dangerouslySetInnerHTML={{ __html: processContent(props.description, 300) }}
           />
 

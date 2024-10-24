@@ -13,7 +13,7 @@ const ProjectPage = () => {
   const [page, setPage] = useState({
     Information: true,
     Grades: false,
-    Other: false
+    Other: false,
   });
   const [advisors, setAdvisors] = useState([]);
   const [isCandidate, setIsCandidate] = useState(false);
@@ -22,7 +22,7 @@ const ProjectPage = () => {
     const checkIfUserCandidate = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/project/check-if-candidate/${projectID}`, {
-          withCredentials: true
+          withCredentials: true,
         });
         setIsCandidate(response.data.isCandidate);
         console.log(response.data);
@@ -37,7 +37,7 @@ const ProjectPage = () => {
           const advisors = [];
           for (const advisor of projectData.advisors) {
             const response = await axios.get(`http://localhost:5000/api/user/get-user-info/${advisor}`, {
-              withCredentials: true
+              withCredentials: true,
             });
             advisors.push(response.data);
             console.log(response.data);
@@ -64,7 +64,7 @@ const ProjectPage = () => {
     const fetchProjectData = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/project/get-project/${projectID}`, {
-          withCredentials: true
+          withCredentials: true,
         });
         setProjectData(response.data);
         console.log(response.data);
@@ -160,7 +160,7 @@ const ProjectPage = () => {
           <div className="project-profile-info-item">
             <div className="project-profile-info-title">תיאור הפרוייקט</div>
             <div
-              className="project-profile-info-text"
+              className="project-profile-info-text rich-text-content"
               dangerouslySetInnerHTML={{ __html: processContent(projectData.description) }}></div>
           </div>
           <div className="project-profile-info-item project-badges">
