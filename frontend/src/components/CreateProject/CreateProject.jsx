@@ -14,6 +14,7 @@ const CreateProject = () => {
   const [currentUser, setCurrentUser] = useState({});
   const [studentsNoProject, setStudentsNoProject] = useState([]);
   const [isOtherType, setIsOtherType] = useState(false);
+  const [studentInitiative, setStudentInitiative] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -62,6 +63,7 @@ const CreateProject = () => {
 
   const handleTypeChange = (value) => {
     setIsOtherType(value === "other");
+    setStudentInitiative(value === "student-initiaive");
     if (value !== "other") {
       form.setFieldValue("customType", undefined);
     }
@@ -255,9 +257,26 @@ const CreateProject = () => {
             <Option value="research">מחקר</Option>
             <Option value="development">פיתוח</Option>
             <Option value="hitech">הייטק</Option>
+            <Option value="student-initiaive">יוזמת סטודנט</Option>
             <Option value="other">אחר</Option>
           </Select>
         </Form.Item>
+
+        {studentInitiative && (
+          <Form.Item
+            className="create-project-form-item"
+            label="מייל גורם חיצוני"
+            name="externalEmail"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין מייל גורם חיצוני",
+              },
+            ]}>
+            <Input type="email" placeholder="הזן מייל גורם חיצוני" />
+          </Form.Item>
+        )}
 
         {isOtherType && (
           <Form.Item
