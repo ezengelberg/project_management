@@ -21,6 +21,8 @@ const ShowAllUsers = () => {
   const [submitting, setSubmitting] = useState(false);
   const [isSuspending, setIsSuspending] = useState(false);
   const [suspensionDetails, setSuspensionDetails] = useState({});
+  const [openSuspensionReason, setOpenSuspensionReason] = useState(false);
+  const [suspensionReason, setSuspensionReason] = useState("");
   const [ConfirmDelete, setConfirmDelete] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
@@ -460,6 +462,20 @@ const ShowAllUsers = () => {
       title: "סיבת השעיה",
       dataIndex: "suspensionReason",
       key: "suspensionReason",
+      render: (text) => (
+        <div>
+          <Tooltip title={text}>
+            <span
+              className="suspension-reason"
+              onClick={() => {
+                setOpenSuspensionReason(true);
+                setSuspensionReason(text);
+              }}>
+              {text.length > 20 ? `${text.slice(0, 20)}...` : text}
+            </span>
+          </Tooltip>
+        </div>
+      ),
       showSorterTooltip: {
         target: "full-header",
       },
@@ -678,6 +694,15 @@ const ShowAllUsers = () => {
             <Input.TextArea rows={6} placeholder="נא לפרט את סיבת ההשעיה..." />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="סיבת השעיה"
+        open={openSuspensionReason}
+        onCancel={() => setOpenSuspensionReason(false)}
+        okButtonProps={{ style: { display: "none" } }}
+        cancelText="סגור">
+        <p>{suspensionReason}</p>
       </Modal>
 
       <Modal

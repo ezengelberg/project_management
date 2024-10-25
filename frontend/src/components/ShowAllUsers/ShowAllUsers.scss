@@ -24,3 +24,12 @@
 .suspend-title {
   margin-bottom: 2rem;
 }
+
+.suspension-reason {
+  cursor: pointer;
+  transition: 0.2s ease-in-out all;
+
+  &:hover {
+    color: #1677ff;
+  }
+}
