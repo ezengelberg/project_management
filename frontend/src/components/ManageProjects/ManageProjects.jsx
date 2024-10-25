@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Badge, Table, Tooltip, Switch } from "antd";
+import { Badge, Table, Tooltip, Switch, message } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined, UserDeleteOutlined } from "@ant-design/icons";
 import axios from "axios";
 import "./ManageProjects.scss";
@@ -73,13 +73,29 @@ const ManageProjects = () => {
   }, []);
 
   const closeRegistration = (record) => async () => {
-    console.log(record);
     console.log("SWITCH!");
+    // TODO: update in database
+    setProjects((prevProjects) =>
+      prevProjects.map((project) => {
+        if (project.key === record.key) {
+          return {
+            ...project,
+            isTaken: !project.isTaken
+          };
+        }
+        return project;
+      })
+    );
   };
 
   const approveStudent = (record) => async () => {
     console.log("APPROVE!", record.candidateInfo);
     console.log(record);
+    message.open({
+      type: "success",
+      content: "הסטודנט אושר לפרוייקט",
+      duration: 2
+    });
   };
 
   const declineStudent = (record) => async () => {
@@ -96,11 +112,17 @@ const ManageProjects = () => {
           withCredentials: true
         }
       );
+      message.open({
+        type: "info",
+        content: "הסטודנט נדחה מהפרוייקט",
+        duration: 2
+      });
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
           if (project.key === record.projectID) {
             return {
               ...project,
+              registered: project.registered - 1, // Decrement the number of registered students
               candidatesData: project.candidatesData.filter((candidate) => candidate.key !== record.candidateInfo._id) // Remove the declined candidate
             };
           }
