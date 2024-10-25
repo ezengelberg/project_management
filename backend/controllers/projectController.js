@@ -174,7 +174,7 @@ export const addCandidateToProject = async (req, res) => {
 };
 
 export const removeCandidateFromProject = async (req, res) => {
-  const userid = req.user._id;
+  const userid = req.body.userID;
   try {
     const user = await User.findById(userid);
     const project = await Project.findById(req.body.projectID);

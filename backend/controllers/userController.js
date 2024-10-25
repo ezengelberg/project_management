@@ -151,8 +151,10 @@ export const getUserName = async (req, res) => {
 
 export const getUser = async (req, res) => {
   const user = req.user;
-  delete user.password;
-  res.status(200).json(user);
+  
+  const userObj = user.toObject();
+  delete userObj.password;
+  res.status(200).json(userObj);
 };
 
 export const getUserProfile = async (req, res) => {

@@ -86,9 +86,14 @@ const ProjectPage = () => {
         type: "loading",
         content: "מבצע הסרת הרשמה מהפרוייקט..."
       });
+      const response = await axios.get(`http://localhost:5000/api/user/get-user`, {
+        withCredentials: true
+      });
+      const userID = response.data._id;
+      console.log(userID);
       await axios.post(
         `http://localhost:5000/api/project/remove-candidate`,
-        { projectID: projectID },
+        { projectID: projectID, userID: userID },
         { withCredentials: true }
       );
       console.log("Unsignup successful");

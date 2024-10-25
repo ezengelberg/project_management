@@ -41,7 +41,8 @@ const ManageProjects = () => {
               name: studentResponse.data.name,
               date: new Date().toLocaleString("he-IL"),
               status: true,
-              candidateInfo: studentResponse.data
+              candidateInfo: studentResponse.data,
+              projectID: project._id
             });
           });
 
@@ -57,7 +58,8 @@ const ManageProjects = () => {
               name: studentResponse.data.name,
               date: candidate.joinDate,
               status: false,
-              candidateInfo: studentResponse.data
+              candidateInfo: studentResponse.data,
+              projectID: project.projectInfo._id
             });
           });
         });
@@ -77,10 +79,37 @@ const ManageProjects = () => {
 
   const approveStudent = (record) => async () => {
     console.log("APPROVE!", record.candidateInfo);
+    console.log(record);
   };
 
   const declineStudent = (record) => async () => {
     console.log("DECLINE!", record.candidateInfo);
+    console.log(record.projectID);
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/api/project/remove-candidate`,
+        {
+          projectID: record.projectID,
+          userID: record.candidateInfo._id
+        },
+        {
+          withCredentials: true
+        }
+      );
+      setProjects((prevProjects) =>
+        prevProjects.map((project) => {
+          if (project.key === record.projectID) {
+            return {
+              ...project,
+              candidatesData: project.candidatesData.filter((candidate) => candidate.key !== record.candidateInfo._id) // Remove the declined candidate
+            };
+          }
+          return project;
+        })
+      );
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
   };
 
   const removeStudent = (record) => async () => {
