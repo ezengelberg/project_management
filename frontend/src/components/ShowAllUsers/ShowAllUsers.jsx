@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./ShowAllUsers.scss";
 import axios from "axios";
-import { Space, Table, Tag, Spin, Avatar, Modal, Form, Input, Select, Checkbox, message, Tooltip } from "antd";
+import { Space, Table, Tag, Spin, Avatar, Modal, Form, Input, Select, message, Tooltip, Switch } from "antd";
 import { EditOutlined, UserDeleteOutlined, UserAddOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
@@ -622,12 +622,10 @@ const ShowAllUsers = () => {
         okText="שמור שינויים"
         cancelText="בטל"
         width={400}>
-        <Checkbox
-          checked={componentDisabled}
-          onChange={(e) => setComponentDisabled(e.target.checked)}
-          style={{ margin: "10px 0" }}>
-          פתיחת עריכה לפרטים אישיים
-        </Checkbox>
+        <div className="edit-switch">
+          <Switch onChange={() => setComponentDisabled((prev) => !prev)} style={{ margin: "10px 0" }} />
+          <p>עריכת פרטים אישיים</p>
+        </div>
         <Form form={form} layout="vertical" initialValues={editUserDetails} onFieldsChange={handleFieldChange}>
           <Form.Item
             label="שם"
