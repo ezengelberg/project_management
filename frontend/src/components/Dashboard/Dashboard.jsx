@@ -2,12 +2,11 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Dashboard.css";
 import {
-  UserOutlined,
   HomeOutlined,
   ProjectOutlined,
   FileSearchOutlined,
   ApartmentOutlined,
-  LoginOutlined,
+  LogoutOutlined,
   SettingOutlined,
   FundProjectionScreenOutlined,
   TeamOutlined,
@@ -171,7 +170,7 @@ const Dashboard = () => {
               </Tooltip>
             </Badge>
             <Tooltip title="התנתק">
-              <LoginOutlined className="logout-icon" onClick={handleLogout} />
+              <LogoutOutlined className="logout-icon" onClick={handleLogout} />
             </Tooltip>
           </div>
           <Content

@@ -12,8 +12,11 @@ const userSchema = new mongoose.Schema({
   registerDate: { type: Date, required: true, default: Date.now },
   selectedProject: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: false, default: null },
   suspended: { type: Boolean, default: false },
-  suspendedDate: { type: Date, default: null },
+  suspendedAt: { type: Date, default: null },
+  suspendedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   suspendedReason: { type: String, default: null },
+  suspensionRecords: { type: Array, required: true, default: [] },
+  updatedAt: { type: Date, default: Date.now },
 });
 
 const userModel = mongoose.model("User", userSchema);

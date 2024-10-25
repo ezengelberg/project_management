@@ -55,8 +55,7 @@
 }
 
 .logout-icon svg {
-  width: 3rem;
-  height: 3rem;
+  font-size: 3.5rem;
   fill: #ff4d4f;
   transition: 0.2s all linear;
 }

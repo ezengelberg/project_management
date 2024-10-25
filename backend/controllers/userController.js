@@ -198,7 +198,6 @@ export const toggleFavoriteProject = async (req, res) => {
     userFavorites.splice(projectIndex, 1);
     res.status(200).send("Project removed from favorites");
   }
-
   // Save the updated user document
   await user.save();
 };
@@ -229,10 +228,66 @@ export const editUserCoordinator = async (req, res) => {
     if (isStudent !== undefined) user.isStudent = isStudent;
     if (isAdvisor !== undefined) user.isAdvisor = isAdvisor;
     if (isCoordinator !== undefined) user.isCoordinator = isCoordinator;
+    user.updatedAt = new Date();
 
     await user.save();
     res.status(200).send("User updated successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
+  }
+};
+
+export const suspendUser = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    user.suspended = true;
+    user.suspendedAt = new Date();
+    user.suspendedBy = req.user._id;
+    user.suspendedReason = req.body.reason;
+    user.updatedAt = new Date();
+    user.suspensionRecords.push({
+      suspendedBy: req.user._id,
+      suspendedAt: new Date(),
+      reason: req.body.reason,
+    });
+
+    await user.save();
+    res.status(200).send("User suspended successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const unsuspendUser = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    user.suspended = false;
+    user.suspendedAt = null;
+    user.suspendedBy = null;
+    user.suspendedReason = null;
+    user.updatedAt = new Date();
+
+    await user.save();
+    res.status(200).send("User unsuspended successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const deleteSuspendedUser = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const user = await User.findByIdAndDelete(userId).orFail();
+    res.status(200).send("User deleted successfully");
+  } catch (err) {
+    res.status(404).send("User not found");
   }
 };

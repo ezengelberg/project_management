@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./ShowAllUsers.scss";
 import axios from "axios";
-import { Space, Table, Tag, Spin, Avatar, Modal, Form, Input, Select, Checkbox, message } from "antd";
+import { Space, Table, Tag, Spin, Avatar, Modal, Form, Input, Select, Checkbox, message, Tooltip } from "antd";
+import { EditOutlined, UserDeleteOutlined, UserAddOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 const ShowAllUsers = () => {
@@ -14,9 +15,14 @@ const ShowAllUsers = () => {
   const navigate = useNavigate();
   const { Option } = Select;
   const [form] = Form.useForm();
+  const [suspensionForm] = Form.useForm();
   const [componentDisabled, setComponentDisabled] = useState(true);
   const [touched, setTouched] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [isSuspending, setIsSuspending] = useState(false);
+  const [suspensionDetails, setSuspensionDetails] = useState({});
+  const [ConfirmDelete, setConfirmDelete] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -198,9 +204,23 @@ const ShowAllUsers = () => {
                 isCoordinator: record.isCoordinator,
               });
             }}>
-            ערוך
+            <Tooltip title="עריכה">
+              <EditOutlined className="column-icons" />
+            </Tooltip>
           </a>
-          <a onClick={() => handleSuspend(record.key)}>להשעות</a>
+          <a
+            onClick={() => {
+              setIsSuspending(true);
+              setSuspensionDetails({
+                key: record.key,
+                name: record.name,
+                id: record.userId,
+              });
+            }}>
+            <Tooltip title="להשעות משתמש">
+              <UserDeleteOutlined className="column-icons" />
+            </Tooltip>
+          </a>
         </Space>
       ),
       width: "5%",
@@ -211,10 +231,8 @@ const ShowAllUsers = () => {
     try {
       setSubmitting(true);
 
-      // Wait for form validation
       const values = await form.validateFields();
 
-      // Additional ID validation check
       if (values.id.length !== 9) {
         throw new Error("תעודת זהות חייבת להכיל 9 ספרות");
       }
@@ -268,8 +286,46 @@ const ShowAllUsers = () => {
     }
   };
 
-  const handleSuspend = (userId) => {
-    console.log("Suspended user:", userId);
+  const handleSuspend = async () => {
+    try {
+      const values = await suspensionForm.validateFields();
+
+      const response = await axios.put(
+        `http://localhost:5000/api/user/suspend-user/${suspensionDetails.key}`,
+        {
+          reason: values.reason,
+        },
+        { withCredentials: true }
+      );
+
+      if (response.status === 200) {
+        const suspendedUser = users.find((user) => user._id === suspensionDetails.key);
+        const updatedUsers = users.filter((user) => user._id !== suspensionDetails.key);
+
+        const newSuspendedUser = {
+          ...suspendedUser,
+          suspendedReason: values.reason,
+          suspendedAt: new Date(),
+        };
+
+        setUsers(updatedUsers);
+        setSuspendedUsers([...suspendedUsers, newSuspendedUser]);
+
+        suspensionForm.resetFields();
+        setIsSuspending(false);
+        setSuspensionDetails({});
+
+        message.success("המשתמש הושעה בהצלחה");
+      }
+    } catch (error) {
+      if (error.response) {
+        message.error(error.response.data || "שגיאה בהשעיית המשתמש");
+      } else if (error.message) {
+        message.error(error.message);
+      } else {
+        message.error("שגיאה בהשעיית המשתמש");
+      }
+    }
   };
 
   const dataSource = users.map((user) => ({
@@ -303,7 +359,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.name.localeCompare(b.name),
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: "15%",
     },
     {
       title: "ת.ז.",
@@ -314,7 +370,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.userId - b.userId,
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: "8%",
     },
     {
       title: "תאריך הרשמה",
@@ -409,7 +465,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.suspensionReason.localeCompare(b.suspensionReason),
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: "15%",
     },
     {
       title: "תאריך השעיה",
@@ -427,11 +483,23 @@ const ShowAllUsers = () => {
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          <a onClick={() => handleUnsuspend(record.key)}>בטל השעיה</a>
-          <a onClick={() => handleDelete(record.key)}>מחק מהמערכת</a>
+          <a onClick={() => handleUnsuspend(record.key)}>
+            <Tooltip title="ביטול השעיה">
+              <UserAddOutlined className="column-icons" />
+            </Tooltip>
+          </a>
+          <a
+            onClick={() => {
+              setConfirmDelete(true);
+              setUserToDelete(record.key);
+            }}>
+            <Tooltip title="מחק מהמערכת">
+              <DeleteOutlined className="column-icons" />
+            </Tooltip>
+          </a>
         </Space>
       ),
-      width: "10%",
+      width: "5%",
     },
   ];
 
@@ -445,16 +513,51 @@ const ShowAllUsers = () => {
     isStudent: user.isStudent,
     isAdvisor: user.isAdvisor,
     isCoordinator: user.isCoordinator,
-    suspensionReason: user.suspensionReason,
-    suspensionDate: new Date(user.suspensionDate).toLocaleDateString("he-IL"),
+    suspensionReason: user.suspendedReason,
+    suspensionDate: new Date(user.suspendedAt).toLocaleDateString("he-IL"),
   }));
 
-  const handleUnsuspend = (userId) => {
-    console.log("Unsuspend user:", userId);
+  const handleUnsuspend = async (userId) => {
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/user/unsuspend-user/${userId}`,
+        {},
+        { withCredentials: true }
+      );
+      if (response.status === 200) {
+        const unsuspendedUser = suspendedUsers.find((user) => user._id === userId);
+        const { suspendedReason, suspendedAt, suspended, ...activeUser } = unsuspendedUser;
+
+        setUsers([...users, activeUser]);
+        setSuspendedUsers(suspendedUsers.filter((user) => user._id !== userId));
+        message.success("השעיה בוטלה בהצלחה");
+      }
+    } catch (error) {
+      let errorMessage = "שגיאה בביטול השעיה";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      message.error(errorMessage);
+    }
   };
 
   const handleDelete = (userId) => {
-    console.log("Delete user:", userId);
+    try {
+      axios.delete(`http://localhost:5000/api/user/delete-suspended-user/${userId}`, { withCredentials: true });
+      setConfirmDelete(false);
+      setSuspendedUsers(suspendedUsers.filter((user) => user._id !== userId));
+      message.success("המשתמש נמחק בהצלחה");
+    } catch (error) {
+      let errorMessage = "שגיאה במחיקת המשתמש";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      message.error(errorMessage);
+    }
   };
 
   const handleFieldChange = (changedFields) => {
@@ -475,6 +578,12 @@ const ShowAllUsers = () => {
     form.resetFields();
     setEditUserDetails({});
     setTouched({});
+  };
+
+  const handleCancelSuspend = () => {
+    setIsSuspending(false);
+    suspensionForm.resetFields();
+    setSuspensionDetails({});
   };
 
   return (
@@ -553,6 +662,33 @@ const ShowAllUsers = () => {
             </Select>
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title={<h2 className="suspend-title">השעית משתמש: {suspensionDetails.name}</h2>}
+        open={isSuspending}
+        onOk={() => handleSuspend()}
+        onCancel={() => handleCancelSuspend()}
+        okText="השעה"
+        okButtonProps={{ danger: true }}
+        cancelText="בטל"
+        width={700}>
+        <Form form={suspensionForm} layout="vertical" name="suspention_form">
+          <Form.Item label="סיבת השעיה" name="reason" rules={[{ required: true, message: "חובה להזין סיבת השעיה" }]}>
+            <Input.TextArea rows={6} placeholder="נא לפרט את סיבת ההשעיה..." />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="מחיקת משתמש"
+        open={ConfirmDelete}
+        onOk={() => handleDelete(userToDelete)}
+        onCancel={() => setConfirmDelete(false)}
+        okText="מחק משתמש"
+        okButtonProps={{ danger: true }}
+        cancelText="בטל">
+        <p>האם אתה בטוח שברצונך למחוק את המשתמש?</p>
       </Modal>
     </div>
   );

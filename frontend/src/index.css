@@ -105,10 +105,52 @@ hr {
   font-size: 1.5rem !important;
 }
 
+/* ------------------- Rich Text ------------------- */
+
 .rich-text-content img {
   max-width: 100%;
   height: auto;
 }
+
+.ql-toolbar {
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+}
+.ql-container {
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+.ql-snow .ql-picker:not(.ql-color-picker):not(.ql-icon-picker) svg {
+  right: unset !important;
+}
+.ql-editor {
+  font-size: 2rem;
+  font-family: inherit;
+  text-align: right !important;
+}
+
+.ql-editor ol,
+.ql-editor ul {
+  padding: 0 1.5rem 0 0;
+}
+
+.ql-editor ol li,
+.ql-editor ul li {
+  padding: 0 3.5rem 0 0;
+}
+
+.ql-editor ol li .ql-ui::before,
+.ql-editor ul li .ql-ui::before {
+  margin-right: -1.2em !important;
+}
+
+.ql-font,
+.ql-align,
+.ql-code-block {
+  display: none !important;
+}
+
+/* ------------------- Rich Text ------------------- */
 
 .ant-modal {
   right: 3.5%;
