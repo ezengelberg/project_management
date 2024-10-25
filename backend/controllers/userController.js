@@ -212,3 +212,27 @@ export const ensureFavoriteProject = async (req, res) => {
     res.status(200).send({ favorite: false });
   }
 };
+
+export const editUserCoordinator = async (req, res) => {
+  const { userId } = req.params;
+  const { name, email, id, isStudent, isAdvisor, isCoordinator } = req.body;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+    if (name !== undefined) user.name = name;
+    if (email !== undefined) user.email = email;
+    if (id !== undefined) user.id = id;
+    if (isStudent !== undefined) user.isStudent = isStudent;
+    if (isAdvisor !== undefined) user.isAdvisor = isAdvisor;
+    if (isCoordinator !== undefined) user.isCoordinator = isCoordinator;
+
+    await user.save();
+    res.status(200).send("User updated successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};

@@ -11,6 +11,9 @@ const userSchema = new mongoose.Schema({
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Project", required: false, default: [] }],
   registerDate: { type: Date, required: true, default: Date.now },
   selectedProject: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: false, default: null },
+  suspended: { type: Boolean, default: false },
+  suspendedDate: { type: Date, default: null },
+  suspendedReason: { type: String, default: null },
 });
 
 const userModel = mongoose.model("User", userSchema);

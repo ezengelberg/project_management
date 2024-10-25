@@ -86,7 +86,7 @@
 
 .server-error.ant-alert-error {
   position: absolute;
-  bottom: 27%;
+  top: 23%;
   font-size: 1.5rem !important;
 }
 
