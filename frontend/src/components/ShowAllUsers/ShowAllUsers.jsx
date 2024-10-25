@@ -471,7 +471,7 @@ const ShowAllUsers = () => {
                 setOpenSuspensionReason(true);
                 setSuspensionReason(text);
               }}>
-              {text.length > 20 ? `${text.slice(0, 20)}...` : text}
+              {text.length > 25 ? `${text.slice(0, 25)}...` : text}
             </span>
           </Tooltip>
         </div>
