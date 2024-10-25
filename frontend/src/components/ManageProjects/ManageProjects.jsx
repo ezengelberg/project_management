@@ -159,13 +159,11 @@ const ManageProjects = () => {
       title: "פעולות",
       key: "action",
       render: (record) => (
-        <span>
-          <Switch
-            checkedChildren="הרשמה פתוחה"
-            unCheckedChildren="הרשמה סגורה"
-            checked={!record.isTaken}
-            onChange={closeRegistration(record)}
-          />
+        <span className="project-registration-switch">
+          <Tooltip title={record.isTaken ? "פתח להרשמה" : "סגור להרשמה"}>
+            <Switch checked={!record.isTaken} onChange={closeRegistration(record)} />
+          </Tooltip>
+          {record.isTaken ? "פרוייקט סגור להרשמה" : "פרוייקט פתוח להרשמה"}
         </span>
       )
     }
