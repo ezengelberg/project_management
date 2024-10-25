@@ -36,12 +36,12 @@ const ManageProjects = () => {
             const studentResponse = await axios.get(`http://localhost:5000/api/user/get-user-info/${student}`, {
               withCredentials: true
             });
-            console.log(studentResponse.data);
             project.candidatesData.push({
               key: student,
               name: studentResponse.data.name,
               date: new Date().toLocaleString("he-IL"),
-              status: true
+              status: true,
+              candidateInfo: studentResponse.data
             });
           });
 
@@ -52,12 +52,12 @@ const ManageProjects = () => {
                 withCredentials: true
               }
             );
-            console.log(studentResponse.data);
             project.candidatesData.push({
               key: candidate.student,
               name: studentResponse.data.name,
               date: candidate.joinDate,
-              status: false
+              status: false,
+              candidateInfo: studentResponse.data
             });
           });
         });
@@ -73,6 +73,18 @@ const ManageProjects = () => {
   const closeRegistration = (record) => async () => {
     console.log(record);
     console.log("SWITCH!");
+  };
+
+  const approveStudent = (record) => async () => {
+    console.log("APPROVE!", record.candidateInfo);
+  };
+
+  const declineStudent = (record) => async () => {
+    console.log("DECLINE!", record.candidateInfo);
+  };
+
+  const removeStudent = (record) => async () => {
+    console.log(record);
   };
 
   const columns = [
@@ -132,20 +144,20 @@ const ManageProjects = () => {
         title: "פעולה",
         key: "action",
         width: 250,
-        render: (_, record) =>
+        render: (record) =>
           record.status ? (
             <div className="approve-decline-student">
               <Tooltip title="הסר סטודנט מפרוייקט">
-                <UserDeleteOutlined />
+                <UserDeleteOutlined onClick={removeStudent(record)} />
               </Tooltip>
             </div>
           ) : (
             <div className="approve-decline-student">
               <Tooltip title="אשר רישום לסטודנט זה">
-                <CheckCircleOutlined />
+                <CheckCircleOutlined onClick={approveStudent(record)} />
               </Tooltip>
               <Tooltip title="דחה רישום לסטודנט זה">
-                <CloseCircleOutlined />
+                <CloseCircleOutlined onClick={declineStudent(record)} />
               </Tooltip>
             </div>
           )
