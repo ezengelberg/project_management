@@ -33,7 +33,6 @@ export const isAdvisor = (req, res, next) => {
 
 export const isAdvisorOrCoordinator = (req, res, next) => {
   if (req.user.isAdvisor || req.user.isCoordinator) {
-    console.log("User is an advisor or coordinator");
     return next();
   } else {
     res.status(403).send("Forbidden: User is not an advisor or coordinator");

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Badge, Table, Tooltip } from "antd";
-import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
+import { Badge, Table, Tooltip, Switch } from "antd";
+import { CheckCircleOutlined, CloseCircleOutlined, UserDeleteOutlined } from "@ant-design/icons";
 import axios from "axios";
 import "./ManageProjects.scss";
 
@@ -23,13 +23,29 @@ const ManageProjects = () => {
           ) : (
             <Badge status="error" text="לא מאושר" />
           ),
-          candidates: project.candidates // candidates should be an array of student objects
+          isTaken: project.isTaken,
+          candidates: project.candidates, // candidates should be an array of student objects
+          students: project.students, // Assuming `project.students` contains the array of student objects
+          registered: project.students.length + project.candidates.length,
+          projectInfo: project
         }));
 
         projectData.forEach(async (project) => {
           project.candidatesData = [];
+          project.students.forEach(async (student) => {
+            const studentResponse = await axios.get(`http://localhost:5000/api/user/get-user-info/${student}`, {
+              withCredentials: true
+            });
+            console.log(studentResponse.data);
+            project.candidatesData.push({
+              key: student,
+              name: studentResponse.data.name,
+              date: new Date().toLocaleString("he-IL"),
+              status: true
+            });
+          });
+
           project.candidates.forEach(async (candidate) => {
-            console.log(candidate.student);
             const studentResponse = await axios.get(
               `http://localhost:5000/api/user/get-user-info/${candidate.student}`,
               {
@@ -54,6 +70,11 @@ const ManageProjects = () => {
     fetchData();
   }, []);
 
+  const closeRegistration = (record) => async () => {
+    console.log(record);
+    console.log("SWITCH!");
+  };
+
   const columns = [
     {
       title: "שם הפרוייקט",
@@ -67,16 +88,21 @@ const ManageProjects = () => {
     },
     {
       title: "מספר רשומים",
-      dataIndex: "candidates",
-      key: "candidates",
-      render: (candidates) => candidates.length // Display the number of candidates
+      dataIndex: "registered",
+      key: "registered",
+      render: (registered) => registered // Display the number of candidates
     },
     {
       title: "פעולות",
       key: "action",
-      render: (text, record) => (
+      render: (record) => (
         <span>
-          {record.isTaken ? <a>פתח הרשמה</a> : <a>סגור הרשמה</a>}
+          <Switch
+            checkedChildren="הרשמה פתוחה"
+            unCheckedChildren="הרשמה סגורה"
+            checked={!record.isTaken}
+            onChange={closeRegistration(record)}
+          />
         </span>
       )
     }
@@ -106,16 +132,23 @@ const ManageProjects = () => {
         title: "פעולה",
         key: "action",
         width: 250,
-        render: () => (
-          <div className="approve-decline-student">
-            <Tooltip title="אשר רישום לסטודנט זה">
-              <CheckCircleOutlined />
-            </Tooltip>
-            <Tooltip title="דחה רישום לסטודנט זה">
-              <CloseCircleOutlined />
-            </Tooltip>
-          </div>
-        )
+        render: (_, record) =>
+          record.status ? (
+            <div className="approve-decline-student">
+              <Tooltip title="הסר סטודנט מפרוייקט">
+                <UserDeleteOutlined />
+              </Tooltip>
+            </div>
+          ) : (
+            <div className="approve-decline-student">
+              <Tooltip title="אשר רישום לסטודנט זה">
+                <CheckCircleOutlined />
+              </Tooltip>
+              <Tooltip title="דחה רישום לסטודנט זה">
+                <CloseCircleOutlined />
+              </Tooltip>
+            </div>
+          )
       }
     ];
     return <Table columns={expandColumns} dataSource={record.candidatesData} pagination={false} />;
