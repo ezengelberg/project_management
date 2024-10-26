@@ -146,7 +146,8 @@ hr {
 
 .ql-font,
 .ql-align,
-.ql-code-block {
+.ql-code-block,
+.ql-list[value="bullet"] {
   display: none !important;
 }
 
