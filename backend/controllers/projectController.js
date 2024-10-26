@@ -44,6 +44,21 @@ export const getProject = async (req, res) => {
   }
 };
 
+export const getSelfProjects = async (req, res) => {
+  try {
+    console.log(req.params.id);
+    const userid = req.user._id;
+    const user = await User.findById(userid);
+    if (!user) {
+      return res.status(200).send({ projects: [] });
+    }
+    const projects = await Project.find({ advisors: { $in: [user] } });
+    res.status(200).send({ projects });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const createProject = async (req, res) => {
   try {
     const { title, description, year, suitableFor, type, continues, isApproved, advisors, students } = req.body;
@@ -66,7 +81,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: [],
+        grades: []
       });
     } else {
       const advisorsList = [];
@@ -98,7 +113,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: [],
+        grades: []
       });
     }
 
@@ -140,18 +155,110 @@ export const addCandidateToProject = async (req, res) => {
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
-    console.log("here??");
     console.log(project);
     if (project.isTaken) {
-      return res.status(400).send({ message: "Project is already taken" });
+      return res.status(400).send({ error: "Project is already taken", message: "הפרוייקט כבר נלקח" });
     }
     if (project.candidates.find((candidate) => candidate.student.toString() === userid.toString())) {
       return res.status(400).send({ message: "You are already a candidate for this project" });
     }
     project.candidates.push({ student: user });
     await project.save();
-    console.log("Candidate added successfully");
+    console.log(`Candidate ${req.user.name} added successfully`);
     res.status(201).send("Candidate added successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const removeCandidateFromProject = async (req, res) => {
+  const userid = req.body.userID;
+  try {
+    const user = await User.findById(userid);
+    const project = await Project.findById(req.body.projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    if (!project.candidates.find((candidate) => candidate.student.toString() === userid.toString())) {
+      return res.status(400).send({ message: "You are not a candidate for this project" });
+    }
+    project.candidates = project.candidates.filter((candidate) => candidate.student.toString() !== userid.toString());
+    await project.save();
+    console.log(`Candidate ${req.user.name} removed successfully`);
+    res.status(200).send("Candidate removed successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const approveCandidate = async (req, res) => {
+  console.log("trying to approve");
+  try {
+    const project = await Project.findById(req.body.projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    console.log("found project");
+    const user = await User.findById(req.body.userID);
+    const candidate = project.candidates.find((candidate) => candidate.student.toString() === user._id.toString());
+    if (candidate) {
+      console.log("found candidate");
+      if (!project.students) {
+        project.students = [];
+      }
+      if (project.students.find((candidate) => candidate.student.toString() === user._id.toString())) {
+        return res.status(400).send({ message: "Candidate is already approved" });
+      }
+      const { _id, ...candidateWithoutId } = candidate.toObject();
+      project.students.push(candidateWithoutId);
+      project.candidates = project.candidates.filter(
+        (candidate) => candidate.student.toString() !== user._id.toString()
+      );
+    }
+    await project.save();
+    console.log(`Candidate ${user.name} approved successfully`);
+    res.status(200).send(`Candidate ${candidate.student} approved successfully`);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const removeStudentFromProject = async (req, res) => {
+  try {
+    console.log("moving student back to candidates.......");
+    const userid = req.body.userID;
+    const user = await User.findById(userid);
+    const project = await Project.findById(req.body.projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    console.log("found project");
+    if (!project.students.find((student) => student.student.toString() === userid.toString())) {
+      return res.status(400).send({ message: "User is not a student in this project" });
+    }
+    console.log("found student");
+    const student = project.students.find((student) => student.student.toString() === userid.toString());
+    project.students = project.students.filter((student) => student.student.toString() !== userid.toString());
+    project.candidates.push(student);
+    await project.save();
+    console.log(`Student ${user.name} moved back to candidates successfully`);
+    res.status(200).send("Student moved back to candidates successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const switchProjectRegistration = async (req, res) => {
+  try {
+    const project = await Project.findById(req.body.projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    project.isTaken = !project.isTaken;
+    await project.save();
+    console.log(`Project registration switched successfully`);
+    res.status(200).send("Project registration switched successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -176,10 +283,6 @@ export const checkIfUserIsCandidate = async (req, res) => {
 export const updateProject = async (req, res) => {};
 
 export const deleteProject = async (req, res) => {};
-
-export const addStudentToProject = async (req, res) => {};
-
-export const removeStudentFromProject = async (req, res) => {};
 
 export const closeProject = async (req, res) => {};
 

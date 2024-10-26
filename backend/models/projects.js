@@ -13,7 +13,12 @@ const projectSchema = new mongoose.Schema({
   isTerminated: { type: Boolean, required: false, default: false }, // is it terminated
   isTaken: { type: Boolean, required: false, default: false }, // is it taken by a student
   advisors: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }], // the advisor(s) of the project
-  students: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }], // the student(s) of the project
+  students: [
+    {
+      student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Reference to the User model
+      joinDate: { type: Date, default: Date.now() } // Store the date the student joined
+    }
+  ], // the student(s) of the project
   candidates: [
     {
       student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Reference to the User model

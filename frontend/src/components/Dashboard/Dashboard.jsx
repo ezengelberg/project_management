@@ -21,6 +21,7 @@ import Projects from "../Projects/Projects";
 import ProjectPage from "../ProjectPage/ProjectPage";
 import CreateProject from "../CreateProject/CreateProject";
 import ShowAllUsers from "../ShowAllUsers/ShowAllUsers";
+import ManageProjects from "../ManageProjects/ManageProjects";
 import CreateUser from "../CreateUser/CreateUser";
 
 const Dashboard = () => {
@@ -282,6 +283,7 @@ const Dashboard = () => {
                 <Route path="/create-project" element={<CreateProject />} />
                 <Route path="/project/:projectID" element={<ProjectPage />} />
                 <Route path="/show-all-users" element={<ShowAllUsers />} />
+                <Route path="/projects-status" element={<ManageProjects />} />
                 <Route path="/create-user" element={<CreateUser />} />
               </Routes>
             </div>

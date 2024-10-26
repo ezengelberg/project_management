@@ -2,18 +2,17 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { InfoCircleOutlined, BookOutlined, UserOutlined } from "@ant-design/icons";
-import { Tooltip } from "antd";
+import { Tooltip, message } from "antd";
 import "./ProjectPage.scss";
 import { processContent } from "../../utils/htmlProcessor";
 
 const ProjectPage = () => {
   const { projectID } = useParams();
   const [projectData, setProjectData] = useState({});
-  const [confirmSignup, setConfirmSignup] = useState(false);
   const [page, setPage] = useState({
     Information: true,
     Grades: false,
-    Other: false,
+    Other: false
   });
   const [advisors, setAdvisors] = useState([]);
   const [isCandidate, setIsCandidate] = useState(false);
@@ -22,7 +21,7 @@ const ProjectPage = () => {
     const checkIfUserCandidate = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/project/check-if-candidate/${projectID}`, {
-          withCredentials: true,
+          withCredentials: true
         });
         setIsCandidate(response.data.isCandidate);
         console.log(response.data);
@@ -37,7 +36,7 @@ const ProjectPage = () => {
           const advisors = [];
           for (const advisor of projectData.advisors) {
             const response = await axios.get(`http://localhost:5000/api/user/get-user-info/${advisor}`, {
-              withCredentials: true,
+              withCredentials: true
             });
             advisors.push(response.data);
             console.log(response.data);
@@ -64,7 +63,7 @@ const ProjectPage = () => {
     const fetchProjectData = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/project/get-project/${projectID}`, {
-          withCredentials: true,
+          withCredentials: true
         });
         setProjectData(response.data);
         console.log(response.data);
@@ -83,29 +82,68 @@ const ProjectPage = () => {
   const Unsignup = async () => {
     try {
       setIsCandidate(false);
+      message.open({
+        type: "loading",
+        content: "מבצע הסרת הרשמה מהפרוייקט..."
+      });
+      const response = await axios.get(`http://localhost:5000/api/user/get-user`, {
+        withCredentials: true
+      });
+      const userID = response.data._id;
+      console.log(userID);
+      await axios.post(
+        `http://localhost:5000/api/project/remove-candidate`,
+        { projectID: projectID, userID: userID },
+        { withCredentials: true }
+      );
+      console.log("Unsignup successful");
+      setTimeout(() => {
+        message.open({
+          type: "success",
+          content: "הוסר הרשמה מהפרוייקט",
+          duration: 2
+        });
+      }, 1000);
     } catch (error) {
       console.log("Error occurred:", error.response.data.message);
     }
   };
 
   const Signup = async () => {
-    setConfirmSignup(true);
     try {
+      message.open({
+        type: "loading",
+        content: "מבצע הרשמה לפרוייקט..."
+      });
       await axios.post(
         `http://localhost:5000/api/project/add-candidate`,
         { projectID: projectID },
         { withCredentials: true }
       );
       console.log("Signup successful");
+      setTimeout(() => {
+        message.open({
+          type: "success",
+          content: "נרשם בהצלחה",
+          duration: 2
+        });
+      }, 1000);
       setIsCandidate(true);
     } catch (error) {
       console.log("Error occurred:", error.response.data.message);
+      setTimeout(() => {
+        message.open({
+          type: "error",
+          content: error.response.data.message,
+          duration: 2
+        });
+      }, 1000);
     }
   };
 
   return (
     <div className="project-container">
-      {confirmSignup && (
+      {/* {confirmSignup && (
         <div className="popup-overlay">
           <div className="confirm-registration">
             <h2>הרשמתך התקבלה</h2>
@@ -122,7 +160,7 @@ const ProjectPage = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
       <div className="project-profile-header">
         <h2 className="project-title">{projectData.title}</h2>
       </div>
