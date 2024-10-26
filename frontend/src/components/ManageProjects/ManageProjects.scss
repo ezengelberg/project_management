@@ -19,9 +19,15 @@
   }
 }
 
-.project-registration-switch {
+.project-management-actions {
   display: flex;
   gap: 1rem;
   align-items: center;
-  justify-content: center;
+
+  svg {
+    cursor: pointer;
+    width: 2rem;
+    height: 2rem;
+    fill: #1677ff;
+  }
 }

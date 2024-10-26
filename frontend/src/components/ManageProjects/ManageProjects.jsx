@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Badge, Table, Tooltip, Switch, message } from "antd";
-import { CheckCircleOutlined, CloseCircleOutlined, UserDeleteOutlined } from "@ant-design/icons";
+import { Badge, Table, Tooltip, Switch, message, Divider } from "antd";
+import { CheckCircleOutlined, CloseCircleOutlined, UserDeleteOutlined, EditOutlined } from "@ant-design/icons";
 import axios from "axios";
 import "./ManageProjects.scss";
 
@@ -253,7 +253,11 @@ const ManageProjects = () => {
       title: "פעולות",
       key: "action",
       render: (record) => (
-        <span className="project-registration-switch">
+        <span className="project-management-actions">
+          <Tooltip title="עריכת פרוייקט">
+            <EditOutlined />
+          </Tooltip>
+          <Divider type="vertical" />
           <Tooltip title={record.isTaken ? "פתח להרשמה" : "סגור להרשמה"}>
             <Switch checked={!record.isTaken} onChange={closeRegistration(record)} />
           </Tooltip>
