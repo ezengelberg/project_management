@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
   isCoordinator: { type: Boolean, required: true, default: false },
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Project", required: false, default: [] }],
   registerDate: { type: Date, required: true, default: Date.now },
-  selectedProject: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: false, default: null },
   suspended: { type: Boolean, default: false },
   suspendedAt: { type: Date, default: null },
   suspendedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },

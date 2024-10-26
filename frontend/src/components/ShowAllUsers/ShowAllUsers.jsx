@@ -7,9 +7,9 @@ import { useNavigate } from "react-router-dom";
 
 const ShowAllUsers = () => {
   const [users, setUsers] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [suspendedUsers, setSuspendedUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [projects, setProjects] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [editUserDetails, setEditUserDetails] = useState({});
   const navigate = useNavigate();
@@ -36,25 +36,27 @@ const ShowAllUsers = () => {
 
         const suspendedUsersData = userData.filter((user) => user.suspended);
         const activeUsers = userData.filter((user) => !user.suspended);
-        // Create a set of unique project IDs
-        const projectIds = new Set(userData.filter((user) => user.selectedProject).map((user) => user.selectedProject));
 
-        // Fetch project details for all selected projects
-        const projectDetails = {};
-        for (const projectId of projectIds) {
-          try {
-            const projectResponse = await axios.get(`http://localhost:5000/api/project/get-project/${projectId}`, {
-              withCredentials: true,
-            });
-            projectDetails[projectId] = projectResponse.data;
-          } catch (error) {
-            console.error(`Error fetching project ${projectId}:`, error);
-            projectDetails[projectId] = { title: "שגיאה בטעינת הפרוייקט/פרוייקט נמחק" };
-          }
-        }
+        // Fetch all projects
+        const projectsResponse = await axios.get("http://localhost:5000/api/project", { withCredentials: true });
+        const projectsData = projectsResponse.data;
 
-        setProjects(projectDetails);
-        setUsers(activeUsers);
+        // Create a map of student ID to project
+        const studentProjectMap = new Map();
+        projectsData.forEach((project) => {
+          project.students.forEach((studentId) => {
+            studentProjectMap.set(studentId.toString(), project);
+          });
+        });
+
+        setProjects(projectsData);
+        // Add project information to users
+        const usersWithProjects = activeUsers.map((user) => ({
+          ...user,
+          projectInfo: studentProjectMap.get(user._id.toString()),
+        }));
+
+        setUsers(usersWithProjects);
         setSuspendedUsers(suspendedUsersData);
       } catch (error) {
         console.error("Error occurred:", error.response?.data?.message || error.message);
@@ -72,6 +74,19 @@ const ShowAllUsers = () => {
       setTouched({});
     }
   }, [editUserDetails]);
+
+  const dataSource = users.map((user) => ({
+    key: user._id,
+    name: user.name,
+    userId: user.id,
+    registerDate: new Date(user.registerDate).toLocaleDateString("he-IL"),
+    projectId: user.projectInfo?._id || null,
+    projectTitle: user.projectInfo?.title || "לא נבחר פרוייקט",
+    email: user.email,
+    isStudent: user.isStudent,
+    isAdvisor: user.isAdvisor,
+    isCoordinator: user.isCoordinator,
+  }));
 
   const columns = [
     {
@@ -125,20 +140,12 @@ const ShowAllUsers = () => {
         if (!record.projectId) {
           return "לא נבחר פרוייקט";
         }
-        const project = projects[record.projectId];
-        if (!project) {
-          return "טוען...";
-        }
-        return <a onClick={() => navigate(`/dashboard/project/${record.projectId}`)}>{project.title}</a>;
+        return <a onClick={() => navigate(`/dashboard/project/${record.projectId}`)}>{record.projectTitle}</a>;
       },
       showSorterTooltip: {
         target: "full-header",
       },
-      sorter: (a, b) => {
-        const projectA = projects[a.projectId]?.title || "לא נבחר פרוייקט";
-        const projectB = projects[b.projectId]?.title || "לא נבחר פרוייקט";
-        return projectA.localeCompare(projectB);
-      },
+      sorter: (a, b) => a.projectTitle.localeCompare(b.projectTitle),
       sortDirections: ["descend", "ascend"],
       filters: [
         { text: "נבחר פרוייקט", value: "נבחר פרוייקט" },
@@ -146,9 +153,9 @@ const ShowAllUsers = () => {
       ],
       onFilter: (value, record) => {
         if (value === "נבחר פרוייקט") {
-          return record.selectedProject !== "לא נבחר פרוייקט";
+          return record.projectId !== null;
         }
-        return record.selectedProject === "לא נבחר פרוייקט";
+        return record.projectId === null;
       },
     },
     {
@@ -331,18 +338,6 @@ const ShowAllUsers = () => {
     }
   };
 
-  const dataSource = users.map((user) => ({
-    key: user._id,
-    name: user.name,
-    userId: user.id,
-    registerDate: new Date(user.registerDate).toLocaleDateString("he-IL"),
-    projectId: user.selectedProject || null,
-    email: user.email,
-    isStudent: user.isStudent,
-    isAdvisor: user.isAdvisor,
-    isCoordinator: user.isCoordinator,
-  }));
-
   const suspendedColumns = [
     {
       title: "שם",
@@ -395,20 +390,12 @@ const ShowAllUsers = () => {
         if (!record.projectId) {
           return "לא נבחר פרוייקט";
         }
-        const project = projects[record.projectId];
-        if (!project) {
-          return "טוען...";
-        }
-        return <a onClick={() => navigate(`/dashboard/project/${record.projectId}`)}>{project.title}</a>;
+        return <a onClick={() => navigate(`/dashboard/project/${record.projectId}`)}>{record.projectTitle}</a>;
       },
       showSorterTooltip: {
         target: "full-header",
       },
-      sorter: (a, b) => {
-        const projectA = projects[a.projectId]?.title || "לא נבחר פרוייקט";
-        const projectB = projects[b.projectId]?.title || "לא נבחר פרוייקט";
-        return projectA.localeCompare(projectB);
-      },
+      sorter: (a, b) => a.projectTitle.localeCompare(b.projectTitle),
       sortDirections: ["descend", "ascend"],
       filters: [
         { text: "נבחר פרוייקט", value: "נבחר פרוייקט" },
@@ -416,9 +403,9 @@ const ShowAllUsers = () => {
       ],
       onFilter: (value, record) => {
         if (value === "נבחר פרוייקט") {
-          return record.selectedProject !== "לא נבחר פרוייקט";
+          return record.projectId !== null;
         }
-        return record.selectedProject === "לא נבחר פרוייקט";
+        return record.projectId === null;
       },
       width: "20%",
     },
@@ -526,7 +513,8 @@ const ShowAllUsers = () => {
     name: user.name,
     userId: user.id,
     registerDate: new Date(user.registerDate).toLocaleDateString("he-IL"),
-    projectId: user.selectedProject || null,
+    projectId: user.projectInfo?._id || null,
+    projectTitle: user.projectInfo?.title || "לא נבחר פרוייקט",
     email: user.email,
     isStudent: user.isStudent,
     isAdvisor: user.isAdvisor,

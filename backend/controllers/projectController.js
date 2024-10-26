@@ -104,11 +104,6 @@ export const createProject = async (req, res) => {
 
     const savedProject = await newProject.save();
 
-    // Update selectedProject for all assigned students
-    if (savedProject.students?.length > 0) {
-      await User.updateMany({ _id: { $in: savedProject.students } }, { $set: { selectedProject: savedProject } });
-    }
-
     res.status(201).json({
       message: "Project created successfully",
       project: savedProject,
