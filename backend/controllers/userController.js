@@ -42,6 +42,7 @@ export const loginUser = (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) return next(err);
     if (!user) return res.status(401).send(info.message); // Send error from strategy
+    if (user.suspended) return res.status(403).send("User is suspended");
 
     req.login(user, (err) => {
       if (err) return next(err);

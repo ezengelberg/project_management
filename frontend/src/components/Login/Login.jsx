@@ -34,11 +34,13 @@ const Login = () => {
         },
         { withCredentials: true }
       );
-      console.log("DEV: " + result.data);
       navigate("/dashboard");
     } catch (error) {
-      // Log the actual error message
-      setErrorMessage(error.response.data);
+      if (error.response.status === 403) {
+        setErrorMessage("משתמש מושהה, פנה למנהל הפרוייקטים");
+      } else {
+        setErrorMessage(error.response.data);
+      }
       console.error("Error occurred:", error.response ? error.response.data : error.message);
     }
   };
