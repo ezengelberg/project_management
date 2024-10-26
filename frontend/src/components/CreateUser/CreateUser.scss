@@ -1,0 +1,18 @@
+.create-user {
+  h1 {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  .create-user-form {
+    width: 20%;
+    margin: 0 auto;
+
+    .create-user-buttons {
+      .ant-form-item-control-input-content {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+      }
+    }
+  }
+}

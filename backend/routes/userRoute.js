@@ -21,7 +21,7 @@ import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/register", registerUser);
+router.post("/register", ensureAuthenticated, isCoordinator, registerUser);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);
 router.post("/toggle-favorite", ensureAuthenticated, toggleFavoriteProject);

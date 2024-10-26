@@ -181,6 +181,7 @@ const CreateProject = () => {
       <Form
         className="create-project-form"
         form={form}
+        name="createProject"
         labelCol={{
           span: 3,
         }}
@@ -188,7 +189,6 @@ const CreateProject = () => {
           remember: true,
           year: currentYear,
         }}
-        autoComplete="off"
         onFinish={onFinish}>
         <Form.Item
           className="create-project-form-item"

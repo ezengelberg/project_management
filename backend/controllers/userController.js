@@ -22,13 +22,10 @@ export const registerUser = async (req, res) => {
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
-      name,
-      email,
-      id,
+      ...req.body,
       password: hashedPassword,
-      // isStudent: true, // set default for now
-      isAdvisor: false, // set default for now
-      isCoordinator: false, // set default for now
+      registerDate: new Date(),
+      suspensionRecords: [],
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);

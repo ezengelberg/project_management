@@ -21,6 +21,7 @@ import Projects from "../Projects/Projects";
 import ProjectPage from "../ProjectPage/ProjectPage";
 import CreateProject from "../CreateProject/CreateProject";
 import ShowAllUsers from "../ShowAllUsers/ShowAllUsers";
+import CreateUser from "../CreateUser/CreateUser";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -91,8 +92,7 @@ const Dashboard = () => {
     privileges.isCoordinator && getItem("ניהול פרוייקטים", "project-managment", <FundProjectionScreenOutlined />),
     privileges.isCoordinator &&
       getItem("ניהול משתמשים", "sub4", <TeamOutlined />, [
-        getItem("הזנת סטודנטים", "create-student"),
-        getItem("הזנת משתמש צוות", "create-team-member"),
+        getItem("יצירת משתמש חדש", "create-user"),
         getItem("עדכון הרשאות", "update-privileges"),
         getItem("הצגת משתמשים", "show-all-users"),
       ]),
@@ -195,6 +195,7 @@ const Dashboard = () => {
                 <Route path="/create-project" element={<CreateProject />} />
                 <Route path="/project/:projectID" element={<ProjectPage />} />
                 <Route path="/show-all-users" element={<ShowAllUsers />} />
+                <Route path="/create-user" element={<CreateUser />} />
               </Routes>
             </div>
           </Content>
