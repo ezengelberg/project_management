@@ -32,12 +32,12 @@ const ManageProjects = () => {
 
         projectData.forEach(async (project) => {
           project.candidatesData = [];
-          project.students.forEach(async (student) => {
-            const studentResponse = await axios.get(`http://localhost:5000/api/user/get-user-info/${student}`, {
+          project.students.forEach(async (stud) => {
+            const studentResponse = await axios.get(`http://localhost:5000/api/user/get-user-info/${stud.student}`, {
               withCredentials: true
             });
             project.candidatesData.push({
-              key: student,
+              key: stud,
               name: studentResponse.data.name,
               date: new Date().toLocaleString("he-IL"),
               status: true,
@@ -91,11 +91,46 @@ const ManageProjects = () => {
   const approveStudent = (record) => async () => {
     console.log("APPROVE!", record.candidateInfo);
     console.log(record);
-    message.open({
-      type: "success",
-      content: "הסטודנט אושר לפרוייקט",
-      duration: 2
-    });
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/api/project/approve-candidate`,
+        {
+          projectID: record.projectID,
+          userID: record.candidateInfo._id
+        },
+        {
+          withCredentials: true
+        }
+      );
+
+      message.open({
+        type: "success",
+        content: "הסטודנט אושר לפרוייקט",
+        duration: 2
+      });
+      setProjects((prevProjects) =>
+        prevProjects.map((project) => {
+          if (project.key === record.projectID) {
+            return {
+              ...project,
+              registered: project.registered + 1, // Increment the number of registered students
+              candidatesData: project.candidatesData.map((candidate) => {
+                if (candidate.key === record.candidateInfo._id) {
+                  return {
+                    ...candidate,
+                    status: true
+                  };
+                }
+                return candidate;
+              })
+            };
+          }
+          return project;
+        })
+      );
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
   };
 
   const declineStudent = (record) => async () => {
