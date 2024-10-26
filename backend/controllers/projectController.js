@@ -208,17 +208,59 @@ export const approveCandidate = async (req, res) => {
       if (!project.students) {
         project.students = [];
       }
-      project.students.push(candidate.student);
-      console.log("added student");
+      if (project.students.find((candidate) => candidate.student.toString() === user._id.toString())) {
+        return res.status(400).send({ message: "Candidate is already approved" });
+      }
+      const { _id, ...candidateWithoutId } = candidate.toObject();
+      project.students.push(candidateWithoutId);
       project.candidates = project.candidates.filter(
         (candidate) => candidate.student.toString() !== user._id.toString()
       );
-      console.log("removed candidate");
     }
-    console.log("saving project");
     await project.save();
     console.log(`Candidate ${user.name} approved successfully`);
-    res.status(200).send("Candidate approved successfully");
+    res.status(200).send(`Candidate ${candidate.student} approved successfully`);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const removeStudentFromProject = async (req, res) => {
+  try {
+    console.log("moving student back to candidates.......");
+    const userid = req.body.userID;
+    const user = await User.findById(userid);
+    const project = await Project.findById(req.body.projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    console.log("found project");
+    if (!project.students.find((student) => student.student.toString() === userid.toString())) {
+      return res.status(400).send({ message: "User is not a student in this project" });
+    }
+    console.log("found student");
+    const student = project.students.find((student) => student.student.toString() === userid.toString());
+    project.students = project.students.filter((student) => student.student.toString() !== userid.toString());
+    project.candidates.push(student);
+    await project.save();
+    console.log(`Student ${user.name} moved back to candidates successfully`);
+    res.status(200).send("Student moved back to candidates successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const switchProjectRegistration = async (req, res) => {
+  try {
+    const project = await Project.findById(req.body.projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    project.isTaken = !project.isTaken;
+    await project.save();
+    console.log(`Project registration switched successfully`);
+    res.status(200).send("Project registration switched successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

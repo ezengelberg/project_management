@@ -39,10 +39,10 @@ const ManageProjects = () => {
             project.candidatesData.push({
               key: stud,
               name: studentResponse.data.name,
-              date: new Date().toLocaleString("he-IL"),
+              date: stud.joinDate,
               status: true,
               candidateInfo: studentResponse.data,
-              projectID: project._id
+              projectID: project.projectInfo._id
             });
           });
 
@@ -73,7 +73,33 @@ const ManageProjects = () => {
   }, []);
 
   const closeRegistration = (record) => async () => {
-    console.log("SWITCH!");
+    try {
+      console.log(record);
+      const response = await axios.post(
+        `http://localhost:5000/api/project/switch-registration`,
+        {
+          projectID: record.key
+        },
+        {
+          withCredentials: true
+        }
+      );
+      if (record.isTaken) {
+        message.open({
+          type: "info",
+          content: "הפרוייקט נפתח להרשמה",
+          duration: 2
+        });
+      } else {
+        message.open({
+          type: "info",
+          content: "הפרוייקט נסגר להרשמה",
+          duration: 2
+        });
+      }
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
     // TODO: update in database
     setProjects((prevProjects) =>
       prevProjects.map((project) => {
@@ -89,8 +115,6 @@ const ManageProjects = () => {
   };
 
   const approveStudent = (record) => async () => {
-    console.log("APPROVE!", record.candidateInfo);
-    console.log(record);
     try {
       const response = await axios.post(
         `http://localhost:5000/api/project/approve-candidate`,
@@ -113,7 +137,6 @@ const ManageProjects = () => {
           if (project.key === record.projectID) {
             return {
               ...project,
-              registered: project.registered + 1, // Increment the number of registered students
               candidatesData: project.candidatesData.map((candidate) => {
                 if (candidate.key === record.candidateInfo._id) {
                   return {
@@ -134,8 +157,6 @@ const ManageProjects = () => {
   };
 
   const declineStudent = (record) => async () => {
-    console.log("DECLINE!", record.candidateInfo);
-    console.log(record.projectID);
     try {
       const response = await axios.post(
         `http://localhost:5000/api/project/remove-candidate`,
@@ -170,7 +191,45 @@ const ManageProjects = () => {
   };
 
   const removeStudent = (record) => async () => {
-    console.log(record);
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/api/project/remove-student`,
+        {
+          projectID: record.projectID,
+          userID: record.candidateInfo._id
+        },
+        {
+          withCredentials: true
+        }
+      );
+
+      message.open({
+        type: "info",
+        content: "הסטודנט הוסר מהפרוייקט",
+        duration: 2
+      });
+      setProjects((prevProjects) =>
+        prevProjects.map((project) => {
+          if (project.key === record.projectID) {
+            return {
+              ...project,
+              candidatesData: project.candidatesData.map((candidate) => {
+                if (candidate.key === record.candidateInfo._id) {
+                  return {
+                    ...candidate,
+                    status: false
+                  };
+                }
+                return candidate;
+              })
+            };
+          }
+          return project;
+        })
+      );
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
   };
 
   const columns = [
