@@ -12,7 +12,7 @@ import {
   TeamOutlined,
   MessageOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu, theme, Avatar, Badge, Tooltip } from "antd";
+import { Layout, Menu, theme, Avatar, Badge, Tooltip, Spin, Form, Input, Button, message } from "antd";
 import { useNavigate, useLocation, Routes, Route, Navigate } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
 import HomePage from "../HomePage/HomePage";
@@ -29,6 +29,8 @@ const Dashboard = () => {
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const [user, setUser] = useState({});
   const [collapsed, setCollapsed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [form] = Form.useForm();
 
   const getCurrentKeyFromPath = () => {
     const path = location.pathname.split("/").pop();
@@ -36,28 +38,48 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    // Fetch data from the API
-    const fetchPrivileges = async () => {
-      try {
-        const response = await axios.get("http://localhost:5000/api/user/privileges", { withCredentials: true });
-        setPrivileges(response.data);
-      } catch (error) {
-        console.error("Error occurred:", error);
-      }
-    };
-
-    const fetchUser = async () => {
+    const checkUserStatus = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/user/get-user", { withCredentials: true });
         setUser(response.data);
+
+        if (response.data.firstLogin) {
+          // Redirect to password change if it's first login
+          navigate("/dashboard/change-password", { replace: true });
+        } else {
+          const privResponse = await axios.get("http://localhost:5000/api/user/privileges", { withCredentials: true });
+          setPrivileges(privResponse.data);
+        }
       } catch (error) {
         console.error("Error occurred:", error);
+        navigate("/login", { replace: true });
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchPrivileges();
-    fetchUser();
-  }, []);
+    checkUserStatus();
+  }, [navigate]);
+
+  const handleChangePassword = async (values) => {
+    try {
+      const response = await axios.put(
+        "http://localhost:5000/api/user/change-password",
+        { oldPassword: user.id, newPassword: values.password },
+        { withCredentials: true }
+      );
+      message.success("הסיסמה שונתה בהצלחה");
+      setUser({ ...user, firstLogin: false });
+      navigate("/dashboard/home", { replace: true });
+    } catch (error) {
+      if (error.response.status === 400) {
+        message.error("הסיסמה החדשה לא יכולה להיות זהה לסיסמה קודמת");
+      } else {
+        console.error("Error occurred:", error);
+        message.error("שגיאה בעת שינוי הסיסמה");
+      }
+    }
+  };
 
   const { Header, Content, Sider } = Layout;
   function getItem(label, key, icon, children) {
@@ -114,8 +136,73 @@ const Dashboard = () => {
   };
 
   const handleMenuClick = ({ key }) => {
+    if (user.firstLogin) {
+      message.warning("נא לשנות סיסמה ראשונית לפני המשך שימוש במערכת");
+      return;
+    }
     navigate(`/dashboard/${key}`);
   };
+
+  if (loading) {
+    return <Spin size="large" className="dashboard-spin" />;
+  }
+
+  if (user.firstLogin) {
+    return (
+      <div className="change-first-password-container">
+        <h2>שינוי סיסמה ראשונית</h2>
+        <Form form={form} name="change-password" layout="vertical" size="large" onFinish={handleChangePassword}>
+          <Form.Item
+            label="סיסמה חדשה"
+            name="password"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין סיסמה חדשה",
+              },
+              {
+                min: 8,
+                message: "הסיסמה חייבת להכיל לפחות 8 תווים",
+              },
+              {
+                pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+                message: "הסיסמה חייבת להכיל אות גדולה, אות קטנה, מספר ותו מיוחד",
+              },
+            ]}>
+            <Input.Password />
+          </Form.Item>
+
+          <Form.Item
+            label="אימות סיסמה"
+            name="confirmPassword"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה לאמת את הסיסמה",
+              },
+              ({ getFieldValue }) => ({
+                validator(rule, value) {
+                  if (!value || getFieldValue("password") === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject("הסיסמאות אינן תואמות");
+                },
+              }),
+            ]}>
+            <Input.Password style={{ textAlign: "right" }} />
+          </Form.Item>
+
+          <Form.Item style={{ marginBottom: "0", textAlign: "left" }}>
+            <Button type="primary" htmlType="submit">
+              שנה סיסמה
+            </Button>
+          </Form.Item>
+        </Form>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -201,6 +288,57 @@ const Dashboard = () => {
           </Content>
         </Layout>
       </Layout>
+
+      {/* <Modal title="שינוי סיסמה" open={changePassword} closable={false} maskClosable={false} footer={null}>
+        <p>עליך לשנות סיסמה ראשונית</p>
+        <Form name="change-password" layout="vertical" size="large" onFinish={handleChangePassword}>
+          <Form.Item
+            label="סיסמה חדשה"
+            name="password"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין סיסמה חדשה",
+              },
+              {
+                min: 8,
+                message: "הסיסמה חייבת להכיל לפחות 8 תווים",
+              },
+              {
+                pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+                message: "הסיסמה חייבת להכיל אות גדולה, אות קטנה, מספר ותו מיוחד",
+              },
+            ]}>
+            <Input.Password />
+          </Form.Item>
+          <Form.Item
+            label="אימות סיסמה"
+            name="confirmPassword"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה לאמת את הסיסמה",
+              },
+              ({ getFieldValue }) => ({
+                validator(rule, value) {
+                  if (!value || getFieldValue("password") === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject("הסיסמאות אינן תואמות");
+                },
+              }),
+            ]}>
+            <Input.Password style={{ textAlign: "right" }} />
+          </Form.Item>
+          <Form.Item style={{ marginBottom: "0", textAlign: "left" }}>
+            <Button type="primary" htmlType="submit">
+              שנה סיסמה
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal> */}
     </div>
   );
 };

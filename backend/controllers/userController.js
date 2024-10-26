@@ -20,6 +20,7 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
       ...req.body,
+      firstLogin: true,
       password: hashedPassword,
       registerDate: new Date(),
       suspensionRecords: [],
@@ -35,7 +36,7 @@ export const registerUser = async (req, res) => {
 export const loginUser = (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) return next(err);
-    if (!user) return res.status(401).send(info.message); // Send error from strategy
+    if (!user) return res.status(401).send(info.message);
     if (user.suspended) return res.status(403).send("User is suspended");
 
     req.login(user, (err) => {
@@ -148,6 +149,28 @@ export const getUser = async (req, res) => {
   const user = req.user;
   delete user.password;
   res.status(200).json(user);
+};
+
+export const changePassword = async (req, res) => {
+  const user = req.user;
+  const { oldPassword, newPassword } = req.body;
+  try {
+    const match = await bcrypt.compare(oldPassword, user.password);
+    if (!match) {
+      return res.status(401).send("Incorrect password");
+    }
+    if (oldPassword === newPassword) {
+      return res.status(400).send("New password must be different from the old password");
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.firstLogin = false;
+    user.updatedAt = new Date();
+    await user.save();
+    res.status(200).send("Password changed successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
 };
 
 export const getUserProfile = async (req, res) => {

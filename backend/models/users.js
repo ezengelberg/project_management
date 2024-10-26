@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   id: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  firstLogin: { type: Boolean, required: true, default: true },
   isStudent: { type: Boolean, required: true, default: true },
   isAdvisor: { type: Boolean, required: true, default: false },
   isCoordinator: { type: Boolean, required: true, default: false },
