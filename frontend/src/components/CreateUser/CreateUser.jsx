@@ -12,8 +12,7 @@ const CreateUser = () => {
         name: values.name,
         email: values.email,
         id: values.userId,
-        password: values.initialPassword,
-        confirmPassword: values.confirmPassword,
+        password: values.userId,
         isStudent: values.role.includes("student"),
         isAdvisor: values.role.includes("advisor"),
         isCoordinator: values.role.includes("coordinator"),
@@ -53,6 +52,19 @@ const CreateUser = () => {
           <Input />
         </Form.Item>
         <Form.Item
+          label="ת.ז."
+          name="userId"
+          hasFeedback
+          rules={[
+            {
+              required: true,
+              message: "חובה להזין ת.ז.",
+            },
+            { pattern: /^\d{9}$/, message: "תעודת זהות חייבת להכיל 9 ספרות" },
+          ]}>
+          <Input />
+        </Form.Item>
+        <Form.Item
           label="אימייל"
           name="email"
           hasFeedback
@@ -82,57 +94,6 @@ const CreateUser = () => {
             <Select.Option value="advisor">מנחה</Select.Option>
             <Select.Option value="coordinator">מנהל</Select.Option>
           </Select>
-        </Form.Item>
-        <Form.Item
-          label="ת.ז."
-          name="userId"
-          hasFeedback
-          rules={[
-            {
-              required: true,
-              message: "חובה להזין ת.ז.",
-            },
-            { pattern: /^\d{9}$/, message: "תעודת זהות חייבת להכיל 9 ספרות" },
-          ]}>
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="סיסמה ראשונית"
-          name="initialPassword"
-          rules={[
-            {
-              required: true,
-              message: "חובה להזין סיסמה",
-            },
-            {
-              min: 14,
-              message: "הסיסמה חייבת להכיל לפחות 14 תווים - ת.ז.@1234",
-            },
-          ]}>
-          <Input.Password />
-        </Form.Item>
-        <Form.Item
-          label="וודא סיסמה"
-          name="confirmPassword"
-          rules={[
-            {
-              required: true,
-              message: "חובה לאשר סיסמה",
-            },
-            {
-              min: 14,
-              message: "הסיסמה חייבת להכיל לפחות 14 תווים - ת.ז.@1234",
-            },
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                if (!value || getFieldValue("initialPassword") === value) {
-                  return Promise.resolve();
-                }
-                return Promise.reject(new Error("הסיסמאות אינן תואמות"));
-              },
-            }),
-          ]}>
-          <Input.Password />
         </Form.Item>
         <Form.Item className="create-user-buttons">
           <Button type="primary" htmlType="submit">
