@@ -88,7 +88,7 @@ const Templates = () => {
     beforeUpload: (file, fileListNew) => {
       // Check if file with same name already exists
       if (file.name.length > 50) {
-        message.error(`שם הקובץ ארוך מדי, נא לקצר את שם הקובץ`);
+        message.error(`שם קובץ יכול להכיל עד 50 תווים (רווח גם נחשב כתו)`);
         return Upload.LIST_IGNORE;
       }
       const isDuplicate = fileList.some((existingFile) => existingFile.name === file.name);
