@@ -45,7 +45,7 @@ const ShowAllUsers = () => {
         const studentProjectMap = new Map();
         projectsData.forEach((project) => {
           project.students.forEach((studentId) => {
-            studentProjectMap.set(studentId.toString(), project);
+            studentProjectMap.set(studentId.student, project);
           });
         });
 
@@ -53,7 +53,7 @@ const ShowAllUsers = () => {
         // Add project information to users
         const usersWithProjects = activeUsers.map((user) => ({
           ...user,
-          projectInfo: studentProjectMap.get(user._id.toString()),
+          projectInfo: studentProjectMap.get(user._id),
         }));
 
         setUsers(usersWithProjects);
