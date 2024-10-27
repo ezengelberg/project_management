@@ -104,7 +104,7 @@ export const getUsersNoProjects = async (req, res) => {
     const users = await User.find();
     const usersNoProjects = [];
     for (const user of users) {
-      const projects = await Project.find({ students: { $in: [user._id] } });
+      const projects = await Project.find({ "students.student": user._id });
       if (projects.length === 0) {
         delete user.password;
         usersNoProjects.push(user);
@@ -147,7 +147,7 @@ export const getUserName = async (req, res) => {
 
 export const getUser = async (req, res) => {
   const user = req.user;
-  
+
   const userObj = user.toObject();
   delete userObj.password;
   res.status(200).json(userObj);
