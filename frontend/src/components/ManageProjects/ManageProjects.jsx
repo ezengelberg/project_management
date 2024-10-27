@@ -116,6 +116,20 @@ const ManageProjects = () => {
 
   const approveStudent = (record) => async () => {
     try {
+      const intialResponse = await axios.get(
+        `http://localhost:5000/api/user/check-user-has-projects/${record.candidateInfo._id}`,
+        {
+          withCredentials: true
+        }
+      );
+      if (intialResponse.data.hasProject) {
+        message.open({
+          type: "error",
+          content: "לסטודנט כבר יש פרוייקט",
+          duration: 2
+        });
+        return;
+      }
       const response = await axios.post(
         `http://localhost:5000/api/project/approve-candidate`,
         {

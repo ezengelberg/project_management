@@ -7,6 +7,7 @@ import "./ProjectPage.scss";
 import { processContent } from "../../utils/htmlProcessor";
 
 const ProjectPage = () => {
+  const [user, setUser] = useState({});
   const { projectID } = useParams();
   const [projectData, setProjectData] = useState({});
   const [page, setPage] = useState({
@@ -16,6 +17,7 @@ const ProjectPage = () => {
   });
   const [advisors, setAdvisors] = useState([]);
   const [isCandidate, setIsCandidate] = useState(false);
+  const [hasProject, setHasProject] = useState(false);
 
   useEffect(() => {
     const checkIfUserCandidate = async () => {
@@ -50,6 +52,27 @@ const ProjectPage = () => {
     checkIfUserCandidate();
     getAdvisorInfo();
   }, [projectData]);
+
+  useEffect(() => {
+    localStorage.getItem("user") && setUser(JSON.parse(localStorage.getItem("user")));
+    console.log(JSON.parse(localStorage.getItem("user")));
+  }, []);
+
+  useEffect(() => {
+    const hasProject = async () => {
+      try {
+        console.log(user._id);
+        const response = await axios.get(`http://localhost:5000/api/user/check-user-has-projects/${user._id}`, {
+          withCredentials: true
+        });
+        setHasProject(response.data.hasProject);
+        console.log(response.data.hasProject);
+      } catch (error) {
+        console.error("Error occurred:", error);
+      }
+    };
+    hasProject();
+  }, [user]);
 
   const switchPage = (pageName) => {
     const myPages = { ...page };
@@ -143,24 +166,6 @@ const ProjectPage = () => {
 
   return (
     <div className="project-container">
-      {/* {confirmSignup && (
-        <div className="popup-overlay">
-          <div className="confirm-registration">
-            <h2>הרשמתך התקבלה</h2>
-            <span className="confirm-info">
-              שים לב שיש צורך ליצור קשר עם המרצה באופן אישי ע"י אימייל על מנת לקבל פרטים נוספים על הפרוייקט ולסכם הרשמה.
-              לאחר מכן המרצה יוכל לאשר אותכם כחלק מהפרוייקט.
-            </span>
-            <span className="confirm-info">
-              במידה ואתם נרשמים כזוג, על השותף לבצע הרשמה לחוד. בשליחה המייל למרצה יש לשים לב כי כל השותפים מתוייגים
-              במייל (להוסיף ב CC במעמד הכתיבה)
-            </span>
-            <div className="confirm-button" onClick={() => setConfirmSignup(false)}>
-              הנני מאשר את קריאת ההודעה
-            </div>
-          </div>
-        </div>
-      )} */}
       <div className="project-profile-header">
         <h2 className="project-title">{projectData.title}</h2>
       </div>
@@ -226,14 +231,18 @@ const ProjectPage = () => {
               ))}
             </div>
           </div>
-          {isCandidate ? (
-            <div className="project-unsignup-button" onClick={() => Unsignup()}>
-              הסר הרשמה לפרוייקט
-            </div>
+          {!hasProject ? (
+            isCandidate ? (
+              <div className="project-unsignup-button" onClick={() => Unsignup()}>
+                הסר הרשמה לפרוייקט
+              </div>
+            ) : (
+              <div className="project-signup-button" onClick={() => Signup()}>
+                הרשמה לפרוייקט
+              </div>
+            )
           ) : (
-            <div className="project-signup-button" onClick={() => Signup()}>
-              הרשמה לפרוייקט
-            </div>
+            ""
           )}
         </div>
       )}

@@ -23,7 +23,7 @@ export const registerUser = async (req, res) => {
       firstLogin: true,
       password: hashedPassword,
       registerDate: new Date(),
-      suspensionRecords: [],
+      suspensionRecords: []
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
@@ -272,7 +272,7 @@ export const suspendUser = async (req, res) => {
     user.suspensionRecords.push({
       suspendedBy: req.user._id,
       suspendedAt: new Date(),
-      reason: req.body.reason,
+      reason: req.body.reason
     });
 
     await user.save();
@@ -309,5 +309,24 @@ export const deleteSuspendedUser = async (req, res) => {
     res.status(200).send("User deleted successfully");
   } catch (err) {
     res.status(404).send("User not found");
+  }
+};
+
+export const checkUserHasProject = async (req, res) => {
+  console.log("checking if has project");
+  console.log(req.params);
+  const { userId } = req.params;
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    const projects = await Project.find({ "students.student": user._id });
+    if (projects.length === 0) {
+      return res.status(200).send({ hasProject: false });
+    }
+    return res.status(200).send({ hasProject: true });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };
