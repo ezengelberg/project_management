@@ -127,7 +127,9 @@ const DownloadFile = ({ file, onEdit, onDelete }) => {
         />
         <div className="upload-date">{new Date(file.uploadDate).toLocaleDateString("he-IL")}</div>
         <div className="file-original-name">
-          {file.filename.length > 40 ? `${file.filename.slice(0, 40)}...` : file.filename}
+          <Tooltip title={file.filename}>
+            {file.filename.length > 40 ? `${file.filename.slice(0, 40)}...` : file.filename}
+          </Tooltip>
         </div>
       </Card>
       <Modal
