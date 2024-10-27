@@ -81,7 +81,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
     } else {
       const advisorsList = [];
@@ -101,7 +101,7 @@ export const createProject = async (req, res) => {
           if (!studentUser) {
             return res.status(505).send({ message: `Student ${stud.name} not found` });
           }
-          studentsList.push({student: studentUser});
+          studentsList.push({ student: studentUser });
         }
       }
       newProject = new Project({
@@ -113,7 +113,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
     }
 
@@ -291,9 +291,9 @@ export const addAdvisorToProject = async (req, res) => {};
 export const getProjectsStatus = async (req, res) => {
   try {
     const projects = await Project.find();
-    const numOfTakenProjects = projects.filter((project) => project.isTaken).length;
-    const numOfOpenProjects = projects.filter((project) => !project.isTaken).length;
-    const numOfFinishedProjects = projects.filter((project) => project.isFinished).length;
+    const numOfTakenProjects = projects.filter((project) => project.isTaken && project.isApproved).length;
+    const numOfOpenProjects = projects.filter((project) => !project.isTaken && project.isApproved).length;
+    const numOfFinishedProjects = projects.filter((project) => project.isFinished && project.isApproved).length;
     res.status(200).send({ numOfOpenProjects, numOfTakenProjects, numOfFinishedProjects });
   } catch (err) {
     res.status(500).send({ message: err.message });
