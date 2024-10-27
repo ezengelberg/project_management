@@ -148,6 +148,11 @@
       &:hover {
         background-color: #a53434;
       }
+      .loading-registration {
+        svg {
+          fill: red;
+        }
+      }
     }
     .project-profile-info-emails {
       display: flex;

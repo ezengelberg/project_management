@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { InfoCircleOutlined, BookOutlined, UserOutlined } from "@ant-design/icons";
+import { InfoCircleOutlined, BookOutlined, UserOutlined, LoadingOutlined } from "@ant-design/icons";
 import { Tooltip, message, Spin } from "antd";
 import "./ProjectPage.scss";
 import { processContent } from "../../utils/htmlProcessor";
@@ -236,7 +236,7 @@ const ProjectPage = () => {
               <div className="project-unsignup-button" onClick={() => Unsignup()}>
                 {isLoading ? (
                   <div className="loading-registration">
-                    <Spin />
+                    <Spin indicator={<LoadingOutlined spin />} />
                     <span>מבצע הסרת הרשמה</span>
                   </div>
                 ) : (
@@ -247,7 +247,7 @@ const ProjectPage = () => {
               <div className="project-signup-button" onClick={() => Signup()}>
                 {isLoading ? (
                   <div className="loading-registration">
-                    <Spin />
+                    <Spin indicator={<LoadingOutlined spin />} />
                     <span>מבצע הרשמה</span>
                   </div>
                 ) : (
