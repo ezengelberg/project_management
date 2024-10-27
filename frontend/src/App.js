@@ -30,70 +30,66 @@ const MainLayout = () => {
   const shouldDisplaySidebar = !noSidebarRoutes.includes(location.pathname);
 
   return (
-    <div className="main-container">
+    <>
       {/* Display the sidebar only if the route is not in noSidebarRoutes */}
       {shouldDisplaySidebar && <Sidebar />}
       {/* Render content-container only when the sidebar is visible */}
       {shouldDisplaySidebar ? (
-        <div className="content-wrapper">
-          <HeaderMenu />
-          {/* <Header /> */}
-          <div className="content-container">
-            <Routes>
-              {/* Protected Routes */}
-              <Route path="/profile/:userId" element={<h1>Profile</h1>} />
-              <Route
-                path="/projects"
-                element={
-                  <ProtectedRoute>
-                    <Projects />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/templates"
-                element={
-                  <ProtectedRoute>
-                    <Templates />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/create-project"
-                element={
-                  <ProtectedRoute>
-                    <CreateProject />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/list-projects"
-                element={
-                  <ProtectedRoute>
-                    <ManageProjects />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/create-user"
-                element={
-                  <ProtectedRoute>
-                    <CreateUser />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/display-users"
-                element={
-                  <ProtectedRoute>
-                    <ShowAllUsers />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Development route */}
-              <Route path="/dev" element={<Sidebar />} />
-            </Routes>
-          </div>
+        <div className="content-container">
+          <Routes>
+            {/* Protected Routes */}
+            <Route path="/profile/:userId" element={<h1>Profile</h1>} />
+            <Route
+              path="/projects"
+              element={
+                <ProtectedRoute>
+                  <Projects />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/templates"
+              element={
+                <ProtectedRoute>
+                  <Templates />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create-project"
+              element={
+                <ProtectedRoute>
+                  <CreateProject />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/list-projects"
+              element={
+                <ProtectedRoute>
+                  <ManageProjects />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create-user"
+              element={
+                <ProtectedRoute>
+                  <CreateUser />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/display-users"
+              element={
+                <ProtectedRoute>
+                  <ShowAllUsers />
+                </ProtectedRoute>
+              }
+            />
+            {/* Development route */}
+            <Route path="/dev" element={<Sidebar />} />
+          </Routes>
         </div>
       ) : (
         // Render routes without the sidebar or content container
@@ -103,7 +99,7 @@ const MainLayout = () => {
           <Route path="*" element={<WrongPath />} />
         </Routes>
       )}
-    </div>
+    </>
   );
 };
 

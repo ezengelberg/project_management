@@ -4,6 +4,7 @@ html {
   margin: 0;
   padding: 0;
   height: 100%;
+  width: 100%;
   direction: rtl;
 }
 
@@ -11,10 +12,25 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
+  width: 100%;
 }
 
 #root {
   height: 100%;
+  width: 100%;
+  display: flex;
+}
+
+.sidebar-container {
+  flex: 1;
+  min-width: 22rem;
+  max-width: 22rem;
+}
+
+.content-container {
+  flex: 7;
+  padding: 5rem;
+  overflow-y: auto;
 }
 
 h1 {
