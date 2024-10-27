@@ -4,11 +4,13 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Alert } from "antd";
 import collegeLogo from "../../assets/CollegeLogo.png";
+import { EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
 
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ email: false, password: false });
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -84,7 +86,7 @@ const Login = () => {
           <label htmlFor="password">סיסמה</label>
           <div className="input-icon-holder">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               name="password"
               placeholder="הכנס סיסמה"
@@ -111,6 +113,13 @@ const Login = () => {
                   strokeLinecap="round"></path>
               </g>
             </svg>
+            <div className="login-password-icon">
+              {showPassword ? (
+                <EyeOutlined onClick={() => setShowPassword(false)} />
+              ) : (
+                <EyeInvisibleOutlined onClick={() => setShowPassword(true)} />
+              )}
+            </div>
           </div>
           {errors.password && <Alert message="שדה חובה" type="error" showIcon />}
         </div>
