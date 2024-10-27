@@ -54,6 +54,13 @@
   stroke: rgba(0, 107, 255, 0.5);
 }
 
+.login-password-icon {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .login-input-group input {
   padding: 1rem;
   font-size: 2rem;
