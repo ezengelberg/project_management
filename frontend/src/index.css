@@ -29,8 +29,11 @@ body {
 
 .content-container {
   flex: 7;
-  padding: 5rem;
   overflow-y: auto;
+}
+
+.main-content {
+  padding: 3rem;
 }
 
 h1 {
