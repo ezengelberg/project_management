@@ -32,18 +32,29 @@ export const createTemplateFiles = async (req, res) => {
         decodedFilename = file.originalname;
       }
 
-      const fileTemplate = new templateFiles({
-        title: req.body.title ? req.body.title : decodedFilename,
-        filename: decodedFilename,
-        description: req.body.description,
-        user: req.user._id,
-      });
-      await fileTemplate.save();
+      try {
+        const fileTemplate = new templateFiles({
+          title: req.body.title ? req.body.title : decodedFilename,
+          filename: decodedFilename,
+          description: req.body.description,
+          user: req.user._id,
+        });
+        await fileTemplate.save();
+        try {
+          // Rename the file on the server to use the decoded filename
+          fs.renameSync(file.path, path.join(path.dirname(file.path), decodedFilename));
+        } catch (fsError) {
+          await fileTemplate.delete(fileTemplate._id);
+          throw new Error(`File system error: ${fsError.message}`);
+        }
 
-      // Rename the file on the server to use the decoded filename
-      fs.renameSync(file.path, path.join(path.dirname(file.path), decodedFilename));
-
-      savedFiles.push(fileTemplate);
+        savedFiles.push(fileTemplate);
+      } catch (error) {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+        throw error;
+      }
     }
 
     res.status(201).json({
@@ -51,6 +62,13 @@ export const createTemplateFiles = async (req, res) => {
       templateFiles: savedFiles,
     });
   } catch (err) {
+    if (req.files) {
+      req.files.forEach((file) => {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+      });
+    }
     if (err.message === "A file with this name already exists") {
       res.status(409).send({ message: err.message }); // 409 Conflict
     } else {

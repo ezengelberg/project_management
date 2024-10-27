@@ -87,6 +87,10 @@ const Templates = () => {
     },
     beforeUpload: (file, fileListNew) => {
       // Check if file with same name already exists
+      if (file.name.length > 50) {
+        message.error(`שם הקובץ ארוך מדי, נא לקצר את שם הקובץ`);
+        return Upload.LIST_IGNORE;
+      }
       const isDuplicate = fileList.some((existingFile) => existingFile.name === file.name);
       if (isDuplicate) {
         message.error(`קובץ "${file.name}" כבר קיים`);
@@ -94,7 +98,7 @@ const Templates = () => {
       }
 
       if (fileList.length + fileListNew.length > 10) {
-        message.error("You can only upload up to 10 files!");
+        message.error("ניתן להעלות עד 10 קבצים בו זמנית");
         return Upload.LIST_IGNORE;
       }
       setFileList((prevList) => [...prevList, file]);
