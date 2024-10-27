@@ -83,8 +83,7 @@ const ManageProjects = () => {
 
   const closeRegistration = (record) => async () => {
     try {
-      console.log(record);
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:5000/api/project/switch-registration`,
         {
           projectID: record.key
@@ -139,7 +138,7 @@ const ManageProjects = () => {
         });
         return;
       }
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:5000/api/project/approve-candidate`,
         {
           projectID: record.projectID,
@@ -181,7 +180,7 @@ const ManageProjects = () => {
 
   const declineStudent = (record) => async () => {
     try {
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:5000/api/project/remove-candidate`,
         {
           projectID: record.projectID,
@@ -215,7 +214,7 @@ const ManageProjects = () => {
 
   const removeStudent = (record) => async () => {
     try {
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:5000/api/project/remove-student`,
         {
           projectID: record.projectID,

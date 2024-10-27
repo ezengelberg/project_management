@@ -49,7 +49,7 @@ const ProjectPage = () => {
     };
     checkIfUserCandidate();
     getAdvisorInfo();
-  }, [projectData]);
+  }, [projectData, projectID]);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
