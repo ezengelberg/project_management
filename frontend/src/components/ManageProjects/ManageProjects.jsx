@@ -11,7 +11,7 @@ const ManageProjects = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/project/get-self-projects/`, {
-          withCredentials: true
+          withCredentials: true,
         });
 
         // Assuming `project.candidates` contains the array of student objects
@@ -27,44 +27,53 @@ const ManageProjects = () => {
           candidates: project.candidates, // candidates should be an array of student objects
           students: project.students, // Assuming `project.students` contains the array of student objects
           registered: project.students.length + project.candidates.length,
-          projectInfo: project
+          projectInfo: project,
+          candidatesData: [],
         }));
 
-        projectData.forEach(async (project) => {
-          project.candidatesData = [];
-          project.students.forEach(async (stud) => {
-            const studentResponse = await axios.get(`http://localhost:5000/api/user/get-user-info/${stud.student}`, {
-              withCredentials: true
-            });
-            project.candidatesData.push({
-              key: stud,
-              name: studentResponse.data.name,
-              date: stud.joinDate,
-              status: true,
-              candidateInfo: studentResponse.data,
-              projectID: project.projectInfo._id
-            });
-          });
+        for (const project of projectData) {
+          const candidatesData = [];
+          for (const stud of project.students) {
+            try {
+              const studentResponse = await axios.get(`http://localhost:5000/api/user/get-user-info/${stud.student}`, {
+                withCredentials: true,
+              });
+              candidatesData.push({
+                key: `student-${stud.student}`,
+                name: studentResponse.data.name,
+                date: stud.joinDate,
+                status: true,
+                candidateInfo: studentResponse.data,
+                projectID: project.key,
+              });
+            } catch (error) {
+              console.error("Error fetching student data:", error);
+            }
+          }
 
-          project.candidates.forEach(async (candidate) => {
-            const studentResponse = await axios.get(
-              `http://localhost:5000/api/user/get-user-info/${candidate.student}`,
-              {
-                withCredentials: true
-              }
-            );
-            project.candidatesData.push({
-              key: candidate.student,
-              name: studentResponse.data.name,
-              date: candidate.joinDate,
-              status: false,
-              candidateInfo: studentResponse.data,
-              projectID: project.projectInfo._id
-            });
-          });
-        });
+          for (const candidate of project.candidates) {
+            try {
+              const studentResponse = await axios.get(
+                `http://localhost:5000/api/user/get-user-info/${candidate.student}`,
+                { withCredentials: true }
+              );
+              candidatesData.push({
+                key: `candidate-${candidate.student}`,
+                name: studentResponse.data.name,
+                date: candidate.joinDate,
+                status: false,
+                candidateInfo: studentResponse.data,
+                projectID: project.key,
+              });
+            } catch (error) {
+              console.error("Error fetching candidate data:", error);
+            }
+          }
 
-        setProjects(projectData);
+          project.candidatesData = candidatesData;
+
+          setProjects(projectData);
+        }
       } catch (error) {
         console.error("Error occurred:", error);
       }
@@ -78,23 +87,23 @@ const ManageProjects = () => {
       const response = await axios.post(
         `http://localhost:5000/api/project/switch-registration`,
         {
-          projectID: record.key
+          projectID: record.key,
         },
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
       if (record.isTaken) {
         message.open({
           type: "info",
           content: "הפרוייקט נפתח להרשמה",
-          duration: 2
+          duration: 2,
         });
       } else {
         message.open({
           type: "info",
           content: "הפרוייקט נסגר להרשמה",
-          duration: 2
+          duration: 2,
         });
       }
     } catch (error) {
@@ -106,7 +115,7 @@ const ManageProjects = () => {
         if (project.key === record.key) {
           return {
             ...project,
-            isTaken: !project.isTaken
+            isTaken: !project.isTaken,
           };
         }
         return project;
@@ -120,17 +129,17 @@ const ManageProjects = () => {
         `http://localhost:5000/api/project/approve-candidate`,
         {
           projectID: record.projectID,
-          userID: record.candidateInfo._id
+          userID: record.candidateInfo._id,
         },
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
 
       message.open({
         type: "success",
         content: "הסטודנט אושר לפרוייקט",
-        duration: 2
+        duration: 2,
       });
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
@@ -138,14 +147,14 @@ const ManageProjects = () => {
             return {
               ...project,
               candidatesData: project.candidatesData.map((candidate) => {
-                if (candidate.key === record.candidateInfo._id) {
+                if (candidate.key === record.key) {
                   return {
                     ...candidate,
-                    status: true
+                    status: true,
                   };
                 }
                 return candidate;
-              })
+              }),
             };
           }
           return project;
@@ -162,16 +171,16 @@ const ManageProjects = () => {
         `http://localhost:5000/api/project/remove-candidate`,
         {
           projectID: record.projectID,
-          userID: record.candidateInfo._id
+          userID: record.candidateInfo._id,
         },
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
       message.open({
         type: "info",
         content: "הסטודנט נדחה מהפרוייקט",
-        duration: 2
+        duration: 2,
       });
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
@@ -179,7 +188,7 @@ const ManageProjects = () => {
             return {
               ...project,
               registered: project.registered - 1, // Decrement the number of registered students
-              candidatesData: project.candidatesData.filter((candidate) => candidate.key !== record.candidateInfo._id) // Remove the declined candidate
+              candidatesData: project.candidatesData.filter((candidate) => candidate.key !== record.key), // Remove the declined candidate
             };
           }
           return project;
@@ -196,17 +205,17 @@ const ManageProjects = () => {
         `http://localhost:5000/api/project/remove-student`,
         {
           projectID: record.projectID,
-          userID: record.candidateInfo._id
+          userID: record.candidateInfo._id,
         },
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
 
       message.open({
         type: "info",
         content: "הסטודנט הוסר מהפרוייקט",
-        duration: 2
+        duration: 2,
       });
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
@@ -214,14 +223,14 @@ const ManageProjects = () => {
             return {
               ...project,
               candidatesData: project.candidatesData.map((candidate) => {
-                if (candidate.key === record.candidateInfo._id) {
+                if (candidate.key === record.key) {
                   return {
                     ...candidate,
-                    status: false
+                    status: false,
                   };
                 }
                 return candidate;
-              })
+              }),
             };
           }
           return project;
@@ -236,18 +245,18 @@ const ManageProjects = () => {
     {
       title: "שם הפרוייקט",
       dataIndex: "title",
-      key: "title"
+      key: "title",
     },
     {
       title: "סטטוס אישור",
       dataIndex: "isApproved",
-      key: "isApproved"
+      key: "isApproved",
     },
     {
       title: "מספר רשומים",
       dataIndex: "registered",
       key: "registered",
-      render: (registered) => registered // Display the number of candidates
+      render: (registered) => registered, // Display the number of candidates
     },
     {
       title: "פעולות",
@@ -263,8 +272,8 @@ const ManageProjects = () => {
           </Tooltip>
           {record.isTaken ? "פרוייקט סגור להרשמה" : "פרוייקט פתוח להרשמה"}
         </span>
-      )
-    }
+      ),
+    },
   ];
 
   const expandedRender = (record) => {
@@ -272,20 +281,20 @@ const ManageProjects = () => {
       {
         title: "שם הסטודנט",
         dataIndex: "name",
-        key: "name"
+        key: "name",
       },
       {
         title: "תאריך רישום",
         dataIndex: "date",
         key: "date",
-        render: (date) => new Date(date).toLocaleString("he-IL") // Display the date in
+        render: (date) => new Date(date).toLocaleString("he-IL"), // Display the date in
       },
       {
         title: "סטטוס",
         dataIndex: "status",
         key: "status",
         render: (status) =>
-          status ? <Badge status="success" text="מאושר" /> : <Badge status="error" text="לא מאושר" />
+          status ? <Badge status="success" text="מאושר" /> : <Badge status="error" text="לא מאושר" />,
       },
       {
         title: "פעולה",
@@ -307,8 +316,8 @@ const ManageProjects = () => {
                 <CloseCircleOutlined onClick={declineStudent(record)} />
               </Tooltip>
             </div>
-          )
-      }
+          ),
+      },
     ];
     return <Table columns={expandColumns} dataSource={record.candidatesData} pagination={false} />;
   };
