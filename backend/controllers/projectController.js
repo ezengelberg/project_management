@@ -46,7 +46,6 @@ export const getProject = async (req, res) => {
 
 export const getSelfProjects = async (req, res) => {
   try {
-    console.log(req.params.id);
     const userid = req.user._id;
     const user = await User.findById(userid);
     if (!user) {
@@ -101,7 +100,7 @@ export const createProject = async (req, res) => {
           if (!studentUser) {
             return res.status(505).send({ message: `Student ${stud.name} not found` });
           }
-          studentsList.push({student: studentUser});
+          studentsList.push({ student: studentUser });
         }
       }
       newProject = new Project({
@@ -121,7 +120,7 @@ export const createProject = async (req, res) => {
 
     res.status(201).json({
       message: "Project created successfully",
-      project: savedProject,
+      project: savedProject
     });
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -150,20 +149,19 @@ export const addCandidateToProject = async (req, res) => {
   const userid = req.user._id;
   try {
     const user = await User.findById(userid);
-    console.log(req.body);
     const project = await Project.findById(req.body.projectID);
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
-    console.log(project);
     if (project.isTaken) {
       return res.status(400).send({ error: "Project is already taken", message: "הפרוייקט כבר נלקח" });
     }
     if (project.candidates.find((candidate) => candidate.student.toString() === userid.toString())) {
       return res.status(400).send({ message: "You are already a candidate for this project" });
     }
-    project.candidates.push({ student: user });
+    project.candidates.push({ student: user._id });
     await project.save();
+    console.log(project.candidates);
     console.log(`Candidate ${req.user.name} added successfully`);
     res.status(201).send("Candidate added successfully");
   } catch (err) {

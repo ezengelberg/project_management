@@ -1,34 +1,38 @@
 import mongoose from "mongoose";
 
 const projectSchema = new mongoose.Schema({
-  title: { type: String, required: true }, // the title of the project
+  title: { type: String, required: true },
   description: { type: String, required: true },
-  year: { type: Number, required: true }, // year the student is doing the project לאיזה שנתון שייך הפרוייקט
-  suitableFor: { type: String, required: true }, // solo / duo / both
-  type: { type: String, required: true }, // research / development / hitech / other
-  externalEmail: { type: String, required: false }, // the email of the external partner
-  continues: { type: Boolean, required: false, default: false }, // is it a continues project
-  isApproved: { type: Boolean, required: false, default: false }, // is it approved by the coordinator
-  isFinished: { type: Boolean, required: false, default: false }, // is it finished
-  isTerminated: { type: Boolean, required: false, default: false }, // is it terminated
-  isTaken: { type: Boolean, required: false, default: false }, // is it taken by a student
-  advisors: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }], // the advisor(s) of the project
+  year: { type: Number, required: true },
+  suitableFor: { type: String, required: true },
+  type: { type: String, required: true },
+  externalEmail: { type: String, required: false },
+  continues: { type: Boolean, required: false, default: false },
+  isApproved: { type: Boolean, required: false, default: false },
+  isFinished: { type: Boolean, required: false, default: false },
+  isTerminated: { type: Boolean, required: false, default: false },
+  isTaken: { type: Boolean, required: false, default: false },
+  advisors: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }],
   students: [
     {
-      student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Reference to the User model
-      joinDate: { type: Date, default: Date.now() } // Store the date the student joined
+      student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+      joinDate: { type: Date, default: Date.now }
     }
-  ], // the student(s) of the project
+  ],
+  // Disable _id for candidates sub-documents here
   candidates: [
     {
-      student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Reference to the User model
-      joinDate: { type: Date, default: Date.now() }, // Store the date the student joined
-    },
+      student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+      joinDate: { type: Date, default: Date.now }
+    }
   ],
-  grades: [{ type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: [] }], // the grades of the project
+  grades: [{ type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: [] }],
 });
 
-// Create a compound index to ensure title + year combination is unique
+// Apply the option to disable _id for sub-documents within `candidates`
+projectSchema.path('candidates').schema.set('_id', false);
+projectSchema.path('students').schema.set('_id', false);
+
 projectSchema.index({ title: 1, year: 1 }, { unique: true });
 
 const projectModel = mongoose.model("Project", projectSchema);
