@@ -7,7 +7,6 @@ import "./ProjectPage.scss";
 import { processContent } from "../../utils/htmlProcessor";
 
 const ProjectPage = () => {
-  const [user, setUser] = useState({});
   const { projectID } = useParams();
   const [projectData, setProjectData] = useState({});
   const [page, setPage] = useState({
@@ -54,25 +53,21 @@ const ProjectPage = () => {
   }, [projectData]);
 
   useEffect(() => {
-    localStorage.getItem("user") && setUser(JSON.parse(localStorage.getItem("user")));
-    console.log(JSON.parse(localStorage.getItem("user")));
-  }, []);
-
-  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
     const hasProject = async () => {
       try {
-        console.log(user._id);
         const response = await axios.get(`http://localhost:5000/api/user/check-user-has-projects/${user._id}`, {
           withCredentials: true
         });
         setHasProject(response.data.hasProject);
         console.log(response.data.hasProject);
+        console.log("im here xd");
       } catch (error) {
         console.error("Error occurred:", error);
       }
     };
     hasProject();
-  }, [user]);
+  }, []);
 
   const switchPage = (pageName) => {
     const myPages = { ...page };
