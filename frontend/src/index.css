@@ -29,11 +29,11 @@ body {
 
 .content-container {
   flex: 7;
-  overflow-y: auto;
 }
 
 .main-content {
   padding: 3rem;
+  overflow-y: auto;
 }
 
 h1 {
