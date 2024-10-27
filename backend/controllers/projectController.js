@@ -101,7 +101,7 @@ export const createProject = async (req, res) => {
           if (!studentUser) {
             return res.status(505).send({ message: `Student ${stud.name} not found` });
           }
-          studentsList.push(studentUser);
+          studentsList.push({student: studentUser});
         }
       }
       newProject = new Project({
