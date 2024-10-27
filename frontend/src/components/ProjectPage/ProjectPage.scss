@@ -108,9 +108,7 @@
     }
 
     .navbar-item-selected {
-      //   color: #ccc;
       color: #6e6e6e;
-      //   font-weight: bold;
       border-bottom: 2px solid #ccc;
     }
   }
@@ -128,8 +126,6 @@
     .project-unsignup-button {
       width: fit-content;
       margin-right: auto;
-      // background-color: #a58c55;
-      // color: white;
       font-weight: 700;
       background-color: #82b9f7;
       border-radius: 1rem;
@@ -140,6 +136,11 @@
       &:hover {
         transform: scale(1.05);
         background-color: #5599e7;
+      }
+      .loading-registration {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
       }
     }
     .project-unsignup-button {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { InfoCircleOutlined, BookOutlined, UserOutlined } from "@ant-design/icons";
-import { Tooltip, message } from "antd";
+import { Tooltip, message, Spin } from "antd";
 import "./ProjectPage.scss";
 import { processContent } from "../../utils/htmlProcessor";
 
@@ -17,6 +17,7 @@ const ProjectPage = () => {
   const [advisors, setAdvisors] = useState([]);
   const [isCandidate, setIsCandidate] = useState(false);
   const [hasProject, setHasProject] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const checkIfUserCandidate = async () => {
@@ -25,7 +26,6 @@ const ProjectPage = () => {
           withCredentials: true
         });
         setIsCandidate(response.data.isCandidate);
-        console.log(response.data);
       } catch (error) {
         console.error("Error occurred:", error);
       }
@@ -40,7 +40,6 @@ const ProjectPage = () => {
               withCredentials: true
             });
             advisors.push(response.data);
-            console.log(response.data);
           }
           setAdvisors(advisors);
         } catch (error) {
@@ -60,8 +59,6 @@ const ProjectPage = () => {
           withCredentials: true
         });
         setHasProject(response.data.hasProject);
-        console.log(response.data.hasProject);
-        console.log("im here xd");
       } catch (error) {
         console.error("Error occurred:", error);
       }
@@ -84,7 +81,6 @@ const ProjectPage = () => {
           withCredentials: true
         });
         setProjectData(response.data);
-        console.log(response.data);
       } catch (error) {
         console.error("Error occurred:", error);
       }
@@ -99,7 +95,7 @@ const ProjectPage = () => {
 
   const Unsignup = async () => {
     try {
-      setIsCandidate(false);
+      setIsLoading(true);
       message.open({
         type: "loading",
         content: "מבצע הסרת הרשמה מהפרוייקט..."
@@ -108,7 +104,6 @@ const ProjectPage = () => {
         withCredentials: true
       });
       const userID = response.data._id;
-      console.log(userID);
       await axios.post(
         `http://localhost:5000/api/project/remove-candidate`,
         { projectID: projectID, userID: userID },
@@ -121,14 +116,20 @@ const ProjectPage = () => {
           content: "הוסר הרשמה מהפרוייקט",
           duration: 2
         });
-      }, 1000);
+      }, 500);
     } catch (error) {
       console.log("Error occurred:", error.response.data.message);
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+        setIsCandidate(false);
+      }, 1000);
     }
   };
 
   const Signup = async () => {
     try {
+      setIsLoading(true);
       message.open({
         type: "loading",
         content: "מבצע הרשמה לפרוייקט..."
@@ -145,8 +146,7 @@ const ProjectPage = () => {
           content: "נרשם בהצלחה",
           duration: 2
         });
-      }, 1000);
-      setIsCandidate(true);
+      }, 500);
     } catch (error) {
       console.log("Error occurred:", error.response.data.message);
       setTimeout(() => {
@@ -155,6 +155,11 @@ const ProjectPage = () => {
           content: error.response.data.message,
           duration: 2
         });
+      }, 500);
+    } finally {
+      setTimeout(() => {
+        setIsLoading(false);
+        setIsCandidate(true);
       }, 1000);
     }
   };
@@ -229,11 +234,25 @@ const ProjectPage = () => {
           {!hasProject ? (
             isCandidate ? (
               <div className="project-unsignup-button" onClick={() => Unsignup()}>
-                הסר הרשמה לפרוייקט
+                {isLoading ? (
+                  <div className="loading-registration">
+                    <Spin />
+                    <span>מבצע הסרת הרשמה</span>
+                  </div>
+                ) : (
+                  "הסר הרשמה מפרוייקט"
+                )}
               </div>
             ) : (
               <div className="project-signup-button" onClick={() => Signup()}>
-                הרשמה לפרוייקט
+                {isLoading ? (
+                  <div className="loading-registration">
+                    <Spin />
+                    <span>מבצע הרשמה</span>
+                  </div>
+                ) : (
+                  "הרשמה לפרוייקט"
+                )}
               </div>
             )
           ) : (
