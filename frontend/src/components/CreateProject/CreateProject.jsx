@@ -183,7 +183,7 @@ const CreateProject = () => {
         form={form}
         name="createProject"
         labelCol={{
-          span: 3,
+          span: 4,
         }}
         initialValues={{
           remember: true,
