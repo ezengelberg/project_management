@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Badge, Table, Tooltip, Switch, message, Divider } from "antd";
+import { Badge, Table, Tooltip, Switch, message, Divider, Modal } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined, UserDeleteOutlined, EditOutlined } from "@ant-design/icons";
 import axios from "axios";
 import "./ManageProjects.scss";
 
 const ManageProjects = () => {
   const [projects, setProjects] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editProjectData, setEditProjectData] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -95,13 +97,13 @@ const ManageProjects = () => {
       if (record.isTaken) {
         message.open({
           type: "info",
-          content: "הפרוייקט נפתח להרשמה",
+          content: "הפרויקט נפתח להרשמה",
           duration: 2
         });
       } else {
         message.open({
           type: "info",
-          content: "הפרוייקט נסגר להרשמה",
+          content: "הפרויקט נסגר להרשמה",
           duration: 2
         });
       }
@@ -133,7 +135,7 @@ const ManageProjects = () => {
       if (intialResponse.data.hasProject) {
         message.open({
           type: "error",
-          content: "לסטודנט כבר יש פרוייקט",
+          content: "לסטודנט כבר יש פרויקט",
           duration: 2
         });
         return;
@@ -151,7 +153,7 @@ const ManageProjects = () => {
 
       message.open({
         type: "success",
-        content: "הסטודנט אושר לפרוייקט",
+        content: "הסטודנט אושר לפרויקט",
         duration: 2
       });
       setProjects((prevProjects) =>
@@ -192,7 +194,7 @@ const ManageProjects = () => {
       );
       message.open({
         type: "info",
-        content: "הסטודנט נדחה מהפרוייקט",
+        content: "הסטודנט נדחה מהפרויקט",
         duration: 2
       });
       setProjects((prevProjects) =>
@@ -227,7 +229,7 @@ const ManageProjects = () => {
 
       message.open({
         type: "info",
-        content: "הסטודנט הוסר מהפרוייקט",
+        content: "הסטודנט הוסר מהפרויקט",
         duration: 2
       });
       setProjects((prevProjects) =>
@@ -254,9 +256,20 @@ const ManageProjects = () => {
     }
   };
 
+  const handleEditProject = (project) => {
+    setEditProjectData({
+      _id: project.projectInfo._id,
+      title: project.projectInfo.title,
+      description: project.projectInfo.description,
+      year: project.projectInfo.year,
+      type: project.projectInfo.type
+    });
+    setIsEditing(true);
+  };
+
   const columns = [
     {
-      title: "שם הפרוייקט",
+      title: "שם הפרויקט",
       dataIndex: "title",
       key: "title"
     },
@@ -276,14 +289,18 @@ const ManageProjects = () => {
       key: "action",
       render: (record) => (
         <span className="project-management-actions">
-          <Tooltip title="עריכת פרוייקט">
-            <EditOutlined />
+          <Tooltip title="עריכת פרויקט">
+            <EditOutlined
+              onClick={() => {
+                handleEditProject(record);
+              }}
+            />
           </Tooltip>
           <Divider type="vertical" />
           <Tooltip title={record.isTaken ? "פתח להרשמה" : "סגור להרשמה"}>
             <Switch checked={!record.isTaken} onChange={closeRegistration(record)} />
           </Tooltip>
-          {record.isTaken ? "פרוייקט סגור להרשמה" : "פרוייקט פתוח להרשמה"}
+          {record.isTaken ? "פרויקט סגור להרשמה" : "פרויקט פתוח להרשמה"}
         </span>
       )
     }
@@ -316,7 +333,7 @@ const ManageProjects = () => {
         render: (record) =>
           record.status ? (
             <div className="approve-decline-student">
-              <Tooltip title="הסר סטודנט מפרוייקט">
+              <Tooltip title="הסר סטודנט מפרויקט">
                 <UserDeleteOutlined onClick={removeStudent(record)} />
               </Tooltip>
             </div>
@@ -337,6 +354,12 @@ const ManageProjects = () => {
 
   return (
     <div>
+      <Modal
+        title={`עריכת פרויקט: ${editProjectData["title"]}`}
+        open={isEditing}
+        onCancel={() => setIsEditing(false)}
+        footer={null}
+      />
       <Table columns={columns} dataSource={projects} expandable={{ expandedRowRender: expandedRender }} />
     </div>
   );

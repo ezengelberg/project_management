@@ -65,7 +65,7 @@ const Sidebar = () => {
           <li>
             <div className={`sidebar-option ${isActive("/projects") ? "active" : ""}`} onClick={() => navigate("/projects")}>
               <ProjectOutlined />
-              <span>פרוייקטים</span>
+              <span>פרויקטים</span>
             </div>
           </li>
           <li>
@@ -77,7 +77,7 @@ const Sidebar = () => {
           <li className={`${openSubmenus.myProject ? "open" : "closed"}`}>
             <div className="sidebar-option" onClick={() => toggleSubmenu("myProject")}>
               <ApartmentOutlined />
-              <span>הפרוייקט שלי</span>
+              <span>הפרויקט שלי</span>
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                   d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
@@ -89,7 +89,7 @@ const Sidebar = () => {
             </div>
             <div className={`sidebar-drop-menu`}>
               <ul>
-                <li className={`${isActive("/home") ? "active" : ""}`}>הפרוייקט שלי</li>
+                <li className={`${isActive("/home") ? "active" : ""}`}>הפרויקט שלי</li>
                 <li>הצגת קבצים</li>
                 <li>הגשות</li>
                 <li>הערות מנחה</li>
@@ -101,7 +101,7 @@ const Sidebar = () => {
           <li className={`${openSubmenus.myProjects ? "open" : "closed"}`}>
             <div className="sidebar-option" onClick={() => toggleSubmenu("myProjects")}>
               <FundProjectionScreenOutlined />
-              <span>פרוייקטים שלי</span>
+              <span>פרויקטים שלי</span>
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                   d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
@@ -113,8 +113,8 @@ const Sidebar = () => {
             </div>
             <div className={`sidebar-drop-menu ${openSubmenus.myProjects ? "open" : "closed"}`}>
               <ul>
-                <li className={`${isActive("/create-project") ? "active" : ""}`} onClick={() => navigate("/create-project")}>הזנת פרוייקט</li>
-                <li className={`${isActive("/list-projects") ? "active" : ""}`} onClick={() => navigate("/list-projects")}>סטטוס פרוייקטים</li>
+                <li className={`${isActive("/create-project") ? "active" : ""}`} onClick={() => navigate("/create-project")}>הזנת פרויקט</li>
+                <li className={`${isActive("/list-projects") ? "active" : ""}`} onClick={() => navigate("/list-projects")}>סטטוס פרויקטים</li>
                 <li onClick={() => {}}>סטטוס הגשות</li>
               </ul>
             </div>
@@ -122,7 +122,7 @@ const Sidebar = () => {
           <li>
             <div className="sidebar-option">
               <FundProjectionScreenOutlined />
-              <span>ניהול פרוייקטים</span>
+              <span>ניהול פרויקטים</span>
             </div>
           </li>
           <li className={`${openSubmenus.manageUsers ? "open" : "closed"}`}>

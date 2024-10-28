@@ -60,7 +60,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
             <Tooltip title="מתאים ל">
               <div className="project-badge project-suitable">{props.suitableFor}</div>
             </Tooltip>
-            <Tooltip title="סוג פרוייקט">
+            <Tooltip title="סוג פרויקט">
               <div className="project-badge project-type">{props.type}</div>
             </Tooltip>
           </div>

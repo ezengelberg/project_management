@@ -81,7 +81,7 @@ const ShowAllUsers = () => {
     userId: user.id,
     registerDate: new Date(user.registerDate).toLocaleDateString("he-IL"),
     projectId: user.projectInfo?._id || null,
-    projectTitle: user.projectInfo?.title || "לא נבחר פרוייקט",
+    projectTitle: user.projectInfo?.title || "לא נבחר פרויקט",
     email: user.email,
     isStudent: user.isStudent,
     isAdvisor: user.isAdvisor,
@@ -133,12 +133,12 @@ const ShowAllUsers = () => {
       width: "10%",
     },
     {
-      title: "פרוייקט נבחר",
+      title: "פרויקט נבחר",
       dataIndex: "selectedProject",
       key: "selectedProject",
       render: (text, record) => {
         if (!record.projectId) {
-          return "לא נבחר פרוייקט";
+          return "לא נבחר פרויקט";
         }
         return <a onClick={() => navigate(`/dashboard/project/${record.projectId}`)}>{record.projectTitle}</a>;
       },
@@ -148,11 +148,11 @@ const ShowAllUsers = () => {
       sorter: (a, b) => a.projectTitle.localeCompare(b.projectTitle),
       sortDirections: ["descend", "ascend"],
       filters: [
-        { text: "נבחר פרוייקט", value: "נבחר פרוייקט" },
-        { text: "לא נבחר פרוייקט", value: "לא נבחר פרוייקט" },
+        { text: "נבחר פרויקט", value: "נבחר פרויקט" },
+        { text: "לא נבחר פרויקט", value: "לא נבחר פרויקט" },
       ],
       onFilter: (value, record) => {
-        if (value === "נבחר פרוייקט") {
+        if (value === "נבחר פרויקט") {
           return record.projectId !== null;
         }
         return record.projectId === null;
@@ -383,12 +383,12 @@ const ShowAllUsers = () => {
       width: "10%",
     },
     {
-      title: "פרוייקט נבחר",
+      title: "פרויקט נבחר",
       dataIndex: "selectedProject",
       key: "selectedProject",
       render: (text, record) => {
         if (!record.projectId) {
-          return "לא נבחר פרוייקט";
+          return "לא נבחר פרויקט";
         }
         return <a onClick={() => navigate(`/dashboard/project/${record.projectId}`)}>{record.projectTitle}</a>;
       },
@@ -398,11 +398,11 @@ const ShowAllUsers = () => {
       sorter: (a, b) => a.projectTitle.localeCompare(b.projectTitle),
       sortDirections: ["descend", "ascend"],
       filters: [
-        { text: "נבחר פרוייקט", value: "נבחר פרוייקט" },
-        { text: "לא נבחר פרוייקט", value: "לא נבחר פרוייקט" },
+        { text: "נבחר פרויקט", value: "נבחר פרויקט" },
+        { text: "לא נבחר פרויקט", value: "לא נבחר פרויקט" },
       ],
       onFilter: (value, record) => {
-        if (value === "נבחר פרוייקט") {
+        if (value === "נבחר פרויקט") {
           return record.projectId !== null;
         }
         return record.projectId === null;
@@ -514,7 +514,7 @@ const ShowAllUsers = () => {
     userId: user.id,
     registerDate: new Date(user.registerDate).toLocaleDateString("he-IL"),
     projectId: user.projectInfo?._id || null,
-    projectTitle: user.projectInfo?.title || "לא נבחר פרוייקט",
+    projectTitle: user.projectInfo?.title || "לא נבחר פרויקט",
     email: user.email,
     isStudent: user.isStudent,
     isAdvisor: user.isAdvisor,

@@ -154,7 +154,7 @@ export const addCandidateToProject = async (req, res) => {
       return res.status(404).send({ message: "Project not found" });
     }
     if (project.isTaken) {
-      return res.status(400).send({ error: "Project is already taken", message: "הפרוייקט כבר נלקח" });
+      return res.status(400).send({ error: "Project is already taken", message: "הפרויקט כבר נלקח" });
     }
     if (project.candidates.find((candidate) => candidate.student.toString() === userid.toString())) {
       return res.status(400).send({ message: "You are already a candidate for this project" });
