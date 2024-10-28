@@ -66,9 +66,9 @@ const CreateProject = () => {
   }, []);
 
   const handleTypeChange = (value) => {
-    setIsOtherType(value === "other");
-    setStudentInitiative(value === "student-initiative");
-    if (value !== "other") {
+    setIsOtherType(value === "אחר");
+    setStudentInitiative(value === "יוזמת סטודנט");
+    if (value !== "אחר") {
       form.setFieldValue("customType", undefined);
     }
   };
@@ -141,7 +141,7 @@ const CreateProject = () => {
     const finalValues = {
       ...values,
       description: processedDescription,
-      type: values.type === "other" ? values.customType : values.type,
+      type: values.type === "אחר" ? values.customType : values.type,
       advisors: values.advisors?.map((advisorId) => advisorUsers.find((user) => user._id === advisorId)) || [],
       students:
         values.students?.map((studentId) => studentsNoProject.find((student) => student.id === studentId)) || [],
@@ -262,12 +262,12 @@ const CreateProject = () => {
             },
           ]}>
           <Select placeholder="בחר סוג" onChange={handleTypeChange}>
-            <Option value="research">מחקרי</Option>
-            <Option value="development">תעשייתי הייטק</Option>
-            <Option value="hitech">תעשייתי לא הייטק</Option>
-            <Option value="advisor-initiative">יוזמת מנחה</Option>
-            <Option value="student-initiative">יוזמת סטודנט</Option>
-            <Option value="other">אחר</Option>
+            <Option value="מחקרי">מחקרי</Option>
+            <Option value="תעשייתי הייטק">תעשייתי הייטק</Option>
+            <Option value="תעשייתי לא הייטק">תעשייתי לא הייטק</Option>
+            <Option value="יוזמת מנחה">יוזמת מנחה</Option>
+            <Option value="יוזמת סטודנט">יוזמת סטודנט</Option>
+            <Option value="אחר">אחר</Option>
           </Select>
         </Form.Item>
 
@@ -398,7 +398,7 @@ const CreateProject = () => {
           <FloatButton
             type="primary"
             shape="square"
-            onClick={() => navigate(`/dashboard/project/${projectCreatedId}`)}
+            onClick={() => navigate(`/project/${projectCreatedId}`)}
             description={
               <div className="float-button-text">
                 <svg

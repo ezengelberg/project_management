@@ -80,7 +80,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: [],
+        grades: []
       });
     } else {
       const advisorsList = [];
@@ -112,7 +112,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: [],
+        grades: []
       });
     }
 
@@ -278,7 +278,70 @@ export const checkIfUserIsCandidate = async (req, res) => {
   }
 };
 
-export const updateProject = async (req, res) => {};
+export const updateProject = async (req, res) => {
+  console.log("edit project");
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    console.log("found project");
+    const { title, description, year, suitableFor, type, continues } = req.body;
+    console.log(req.body);
+    if (!title || !description || !year || !suitableFor || !type) {
+      return res.status(400).send({ message: "Missing required fields" });
+    }
+    console.log("valid fields");
+    if (req.user.isAdvisor && !req.user.isCoordinator) {
+      project.title = title;
+      project.description = description;
+      project.year = year;
+      project.suitableFor = suitableFor;
+      project.type = type;
+      project.continues = continues;
+      // project.isApproved = isApproved;
+    } else {
+      // const advisorsList = [];
+      // if (advisors.length > 0) {
+      //   for (const adv of advisors) {
+      //     const advisorUser = await User.findOne({ _id: adv, isAdvisor: true });
+      //     if (!advisorUser) {
+      //       return res.status(505).send({ message: `Advisor ${adv.name} not found` });
+      //     }
+      //     advisorsList.push(advisorUser);
+      //   }
+      // }
+      // const studentsList = [];
+      // if (students.length > 0) {
+      //   for (const stud of students) {
+      //     const studentUser = await User.findOne({ id: stud.id, isStudent: true });
+      //     if (!studentUser) {
+      //       return res.status(505).send({ message: `Student ${stud.name} not found` });
+      //     }
+      //     studentsList.push({ student: studentUser });
+      //   }
+      // }
+      project.title = title;
+      project.description = description;
+      project.year = year;
+      project.suitableFor = suitableFor;
+      project.type = type;
+      project.continues = continues;
+      // project.isApproved = isApproved;
+      // project.advisors = advisorsList;
+      // project.students = studentsList;
+    }
+
+    const savedProject = await project.save();
+
+    res.status(201).json({
+      message: "Project updated successfully",
+      project: savedProject
+    });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
 
 export const deleteProject = async (req, res) => {};
 

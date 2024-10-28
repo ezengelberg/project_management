@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Badge, Table, Tooltip, Switch, message, Divider, Modal, Form, Input, InputNumber, Select } from "antd";
-import { CheckCircleOutlined, CloseCircleOutlined, UserDeleteOutlined, EditOutlined } from "@ant-design/icons";
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  UserDeleteOutlined,
+  EditOutlined,
+  CloseOutlined,
+  CheckOutlined
+} from "@ant-design/icons";
+import { Editor } from "primereact/editor";
+import DOMPurify from "dompurify";
 import axios from "axios";
 import "./ManageProjects.scss";
 
@@ -10,8 +19,30 @@ const ManageProjects = () => {
   const [projects, setProjects] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editProjectData, setEditProjectData] = useState({});
+  const [isOtherType, setIsOtherType] = useState(false);
+  const [studentInitiative, setStudentInitiative] = useState(false);
+  const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
+  const [studentsNoProject, setStudentsNoProject] = useState([]);
+
+  const getUsersNoProjects = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/user/users-no-projects", { withCredentials: true });
+      setStudentsNoProject(response.data.usersNoProjects);
+    } catch (error) {
+      console.error("Error occurred:", error.response.data.message);
+    }
+  };
 
   useEffect(() => {
+    const fetchPrivileges = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/user/privileges", { withCredentials: true });
+        setPrivileges(response.data);
+      } catch (error) {
+        console.error("Error occurred:", error.response.data.message);
+      }
+    };
+
     const fetchData = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/project/get-self-projects/`, {
@@ -83,6 +114,8 @@ const ManageProjects = () => {
       }
     };
     fetchData();
+    fetchPrivileges();
+    getUsersNoProjects();
   }, []);
 
   useEffect(() => {
@@ -90,6 +123,14 @@ const ManageProjects = () => {
       form.setFieldsValue(editProjectData);
     }
   }, [editProjectData]);
+
+  const handleTypeChange = (value) => {
+    setIsOtherType(value === "אחר");
+    setStudentInitiative(value === "יוזמת סטודנט");
+    if (value !== "אחר") {
+      form.setFieldValue("customType", undefined);
+    }
+  };
 
   const closeRegistration = (record) => async () => {
     try {
@@ -118,6 +159,7 @@ const ManageProjects = () => {
     } catch (error) {
       console.error("Error occurred:", error);
     }
+
     // TODO: update in database
     setProjects((prevProjects) =>
       prevProjects.map((project) => {
@@ -265,6 +307,7 @@ const ManageProjects = () => {
   };
 
   const handleEditProject = (project) => {
+    getUsersNoProjects();
     console.log(project);
     setEditProjectData({
       _id: project.projectInfo._id,
@@ -272,7 +315,9 @@ const ManageProjects = () => {
       description: project.projectInfo.description,
       suitableFor: project.projectInfo.suitableFor,
       year: project.projectInfo.year,
-      type: project.projectInfo.type
+      type: project.projectInfo.type,
+      continues: project.projectInfo.continues,
+      isApproved: project.projectInfo.isApproved
     });
     setIsEditing(true);
   };
@@ -317,10 +362,34 @@ const ManageProjects = () => {
   ];
 
   const handleCancel = () => {
-    console.log("do stuff");
     setEditProjectData({});
     form.resetFields();
     setIsEditing(false);
+    setIsOtherType(false);
+    setStudentInitiative(false);
+  };
+
+  const handleEditorChange = (e) => {
+    const sanitizedHtml = DOMPurify.sanitize(e.htmlValue || "");
+    form.setFieldsValue({ description: sanitizedHtml });
+  };
+
+  const onConfirmEdit = async () => {
+    console.log(editProjectData._id);
+    console.log("Form values:", form.getFieldsValue());
+    const { title, description, year, suitableFor, type, continues } = form.getFieldsValue();
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/project/edit-project/${editProjectData._id}`,
+        { title, description, year, suitableFor, type, continues },
+        {
+          withCredentials: true
+        }
+      );
+      console.log(response);
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
   };
 
   const expandedRender = (record) => {
@@ -377,16 +446,38 @@ const ManageProjects = () => {
         onCancel={() => {
           handleCancel();
         }}
+        onOk={onConfirmEdit}
         okText="שמור שינויים"
-        cancelText="בטל">
+        cancelText="בטל"
+        width={"70rem"}>
         <Form form={form} layout="vertical" initialValues={editProjectData}>
           <Form.Item name="title" label="שם הפרויקט">
             <Input />
           </Form.Item>
-          {/* <Form.Item label="תיאור הפרויקט">
-              <Input value={editProjectData["description"]} />
-            </Form.Item> */}
-          <Form.Item name="year" label="שנה">
+          <Form.Item
+            className="create-project-form-item"
+            label="תיאור"
+            name="description"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין תיאור לפרויקט"
+              }
+            ]}>
+            <Editor style={{ height: "320px" }} onTextChange={handleEditorChange} />
+          </Form.Item>
+          <Form.Item
+            className="create-project-form-item"
+            label="שנה"
+            name="year"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין שנה"
+              }
+            ]}>
             <InputNumber />
           </Form.Item>
           <Form.Item
@@ -404,6 +495,154 @@ const ManageProjects = () => {
               <Option value="יחיד">יחיד</Option>
               <Option value="זוג">זוג</Option>
               <Option value="יחיד \ זוג">יחיד \ זוג</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            className="create-project-form-item"
+            name="type"
+            label="סוג הפרויקט"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה לבחור סוג"
+              }
+            ]}>
+            <Select placeholder="בחר סוג" onChange={handleTypeChange}>
+              <Option value="מחקרי">מחקרי</Option>
+              <Option value="תעשייתי הייטק">תעשייתי הייטק</Option>
+              <Option value="תעשייתי לא הייטק">תעשייתי לא הייטק</Option>
+              <Option value="יוזמת מנחה">יוזמת מנחה</Option>
+              <Option value="יוזמת סטודנט">יוזמת סטודנט</Option>
+              <Option value="אחר">אחר</Option>
+            </Select>
+          </Form.Item>
+          {studentInitiative && (
+            <Form.Item
+              className="create-project-form-item"
+              label="מייל גורם חיצוני"
+              name="externalEmail"
+              hasFeedback
+              rules={[
+                {
+                  required: true,
+                  message: "חובה להזין מייל גורם חיצוני"
+                }
+              ]}>
+              <Input type="email" placeholder="הזן מייל גורם חיצוני" />
+            </Form.Item>
+          )}
+
+          {isOtherType && (
+            <Form.Item
+              className="create-project-form-item"
+              label="סוג מותאם"
+              name="customType"
+              hasFeedback
+              rules={[
+                {
+                  required: true,
+                  message: "חובה להזין סוג"
+                }
+              ]}>
+              <Input placeholder="הזן סוג פרויקט מותאם" />
+            </Form.Item>
+          )}
+
+          <Form.Item
+            className="create-project-form-item"
+            label="ממשיך"
+            name="continues"
+            rules={[
+              {
+                required: false
+              }
+            ]}>
+            <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
+          </Form.Item>
+
+          {privileges.isCoordinator && (
+            <Form.Item
+              className="create-project-form-item"
+              label="מאושר"
+              name="isApproved"
+              rules={[
+                {
+                  required: false
+                }
+              ]}>
+              <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
+            </Form.Item>
+          )}
+          {/*
+          {privileges.isCoordinator ? (
+            <Form.Item
+              className="create-project-form-item"
+              label="מנחים"
+              name="advisors"
+              hasFeedback
+              rules={[
+                {
+                  required: false
+                }
+              ]}>
+              <Select mode="multiple" placeholder="בחר מנחים">
+                {advisorUsers.map((user) => (
+                  <Option key={user._id} value={user._id}>
+                    {user.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          ) : (
+            <Form.Item
+              className="create-project-form-item"
+              label="מנחים"
+              name="advisors"
+              hasFeedback
+              rules={[
+                {
+                  required: false
+                }
+              ]}>
+              <Input disabled value={currentUser.name} placeholder={currentUser.name} />
+            </Form.Item>
+          )}
+
+          <Form.Item
+            className="create-project-form-item"
+            label="סטודנטים"
+            name="students"
+            hasFeedback
+            rules={[
+              {
+                required: false
+              }
+            ]}>
+            <Select mode="multiple" placeholder="בחר סטודנטים">
+              {studentsNoProject.map((student) => (
+                <Option key={student.id} value={student.id}>
+                  {student.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item> */}
+          <Form.Item
+            className="create-project-form-item"
+            label="סטודנטים"
+            name="students"
+            hasFeedback
+            rules={[
+              {
+                required: false
+              }
+            ]}>
+            <Select mode="multiple" placeholder="בחר סטודנטים">
+              {studentsNoProject.map((student) => (
+                <Option key={student.id} value={student.id}>
+                  {student.name}
+                </Option>
+              ))}
             </Select>
           </Form.Item>
         </Form>
