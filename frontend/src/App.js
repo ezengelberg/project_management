@@ -13,6 +13,7 @@ import CreateProject from "./components/CreateProject/CreateProject";
 import CreateUser from "./components/CreateUser/CreateUser";
 import ShowAllUsers from "./components/ShowAllUsers/ShowAllUsers";
 import HeaderMenu from "./components/HeaderMenu/HeaderMenu";
+import ProjectPage from "./components/ProjectPage/ProjectPage";
 
 function App() {
   return (
@@ -56,6 +57,8 @@ const MainLayout = () => {
                   </ProtectedRoute>
                 }
               />
+
+              <Route path="/project/:projectID" element={<ProjectPage />} />
               <Route
                 path="/templates"
                 element={

@@ -78,7 +78,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
                 </div>
               ))}
             </div>
-            <div className="more-info" onClick={() => navigate(`/dashboard/project/${props._id}`)}>
+            <div className="more-info" onClick={() => navigate(`/project/${props._id}`)}>
               <Tooltip title="לפירוט מלא + הרשמה">[ למידע נוסף ורישום ]</Tooltip>
             </div>
           </div>
