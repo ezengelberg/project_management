@@ -33,7 +33,12 @@ body {
   flex-direction: column;
 }
 
+.header-container {
+  flex: 1;
+}
+
 .main-content {
+  flex: 14;
   padding: 3rem;
   overflow-y: auto;
   border: 2rem solid #f0f0f0;
