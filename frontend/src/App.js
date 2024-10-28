@@ -4,7 +4,7 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import Login from "./components/Login/Login";
 import WrongPath from "./components/WrongPath/WrongPath";
-import Dashboard from "./components/Dashboard/Dashboard";
+import HomePage from "./components/HomePage/HomePage";
 import ManageProjects from "./components/ManageProjects/ManageProjects";
 import Sidebar from "./components/Sidebar/Sidebar";
 import Projects from "./components/Projects/Projects";
@@ -40,6 +40,14 @@ const MainLayout = () => {
             <Routes>
               {/* Protected Routes */}
               <Route path="/profile/:userId" element={<h1>Profile</h1>} />
+              <Route
+                path="/home"
+                element={
+                  <ProtectedRoute>
+                    <HomePage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/projects"
                 element={

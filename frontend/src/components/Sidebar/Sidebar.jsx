@@ -8,17 +8,18 @@ import {
   ApartmentOutlined,
   FundProjectionScreenOutlined,
   TeamOutlined,
-  SettingOutlined
+  SettingOutlined,
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState({});
   const [openSubmenus, setOpenSubmenus] = useState({
     myProject: false,
     myProjects: false,
-    manageUsers: false
+    manageUsers: false,
   });
 
   useEffect(() => {
@@ -37,8 +38,15 @@ const Sidebar = () => {
   const toggleSubmenu = (submenu) => {
     setOpenSubmenus((prev) => ({
       ...prev,
-      [submenu]: !prev[submenu]
+      [submenu]: !prev[submenu],
     }));
+  };
+
+  const isActive = (path) => {
+    if (typeof path === "string") {
+      return location.pathname === path;
+    }
+    return path.some((p) => location.pathname === p);
   };
 
   return (
@@ -49,7 +57,7 @@ const Sidebar = () => {
         </div>
         <ul>
           <li>
-            <div className="sidebar-option" onClick={() => navigate("/home")}>
+            <div className={`sidebar-option ${isActive("/home") ? "active" : ""}`} onClick={() => navigate("/home")}>
               <HomeOutlined />
               <span>בית</span>
             </div>
@@ -74,8 +82,8 @@ const Sidebar = () => {
                 <path
                   d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
                   stroke="#0C0310"
-                  stroke-width="2"
-                  stroke-linecap="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                 />
               </svg>
             </div>
@@ -98,8 +106,8 @@ const Sidebar = () => {
                 <path
                   d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
                   stroke="#0C0310"
-                  stroke-width="2"
-                  stroke-linecap="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                 />
               </svg>
             </div>
@@ -125,8 +133,8 @@ const Sidebar = () => {
                 <path
                   d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
                   stroke="#0C0310"
-                  stroke-width="2"
-                  stroke-linecap="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                 />
               </svg>
             </div>
