@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Badge, Table, Tooltip, Switch, message, Divider, Modal } from "antd";
+import { Badge, Table, Tooltip, Switch, message, Divider, Modal, Form, Input, InputNumber, Select } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined, UserDeleteOutlined, EditOutlined } from "@ant-design/icons";
 import axios from "axios";
 import "./ManageProjects.scss";
 
 const ManageProjects = () => {
+  const { Option } = Select;
+  const [form] = Form.useForm();
   const [projects, setProjects] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editProjectData, setEditProjectData] = useState({});
@@ -82,6 +84,12 @@ const ManageProjects = () => {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (isEditing) {
+      form.setFieldsValue(editProjectData);
+    }
+  }, [editProjectData]);
 
   const closeRegistration = (record) => async () => {
     try {
@@ -257,10 +265,12 @@ const ManageProjects = () => {
   };
 
   const handleEditProject = (project) => {
+    console.log(project);
     setEditProjectData({
       _id: project.projectInfo._id,
       title: project.projectInfo.title,
       description: project.projectInfo.description,
+      suitableFor: project.projectInfo.suitableFor,
       year: project.projectInfo.year,
       type: project.projectInfo.type
     });
@@ -305,6 +315,13 @@ const ManageProjects = () => {
       )
     }
   ];
+
+  const handleCancel = () => {
+    console.log("do stuff");
+    setEditProjectData({});
+    form.resetFields();
+    setIsEditing(false);
+  };
 
   const expandedRender = (record) => {
     const expandColumns = [
@@ -357,9 +374,40 @@ const ManageProjects = () => {
       <Modal
         title={`עריכת פרויקט: ${editProjectData["title"]}`}
         open={isEditing}
-        onCancel={() => setIsEditing(false)}
-        footer={null}
-      />
+        onCancel={() => {
+          handleCancel();
+        }}
+        okText="שמור שינויים"
+        cancelText="בטל">
+        <Form form={form} layout="vertical" initialValues={editProjectData}>
+          <Form.Item name="title" label="שם הפרויקט">
+            <Input />
+          </Form.Item>
+          {/* <Form.Item label="תיאור הפרויקט">
+              <Input value={editProjectData["description"]} />
+            </Form.Item> */}
+          <Form.Item name="year" label="שנה">
+            <InputNumber />
+          </Form.Item>
+          <Form.Item
+            className="create-project-form-item"
+            name="suitableFor"
+            label="מתאים ל"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה לבחור התאמה"
+              }
+            ]}>
+            <Select placeholder="בחר יחיד/זוג/שניהם">
+              <Option value="יחיד">יחיד</Option>
+              <Option value="זוג">זוג</Option>
+              <Option value="יחיד \ זוג">יחיד \ זוג</Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
       <Table columns={columns} dataSource={projects} expandable={{ expandedRowRender: expandedRender }} />
     </div>
   );
