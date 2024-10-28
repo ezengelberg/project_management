@@ -63,13 +63,13 @@ const Sidebar = () => {
             </div>
           </li>
           <li>
-            <div className="sidebar-option" onClick={() => navigate("/projects")}>
+            <div className={`sidebar-option ${isActive("/projects") ? "active" : ""}`} onClick={() => navigate("/projects")}>
               <ProjectOutlined />
               <span>פרוייקטים</span>
             </div>
           </li>
           <li>
-            <div className="sidebar-option" onClick={() => navigate("/templates")}>
+            <div className={`sidebar-option ${isActive("/templates") ? "active" : ""}`} onClick={() => navigate("/templates")}>
               <FileSearchOutlined />
               <span> תבנית דוחות</span>
             </div>
@@ -89,7 +89,7 @@ const Sidebar = () => {
             </div>
             <div className={`sidebar-drop-menu`}>
               <ul>
-                <li>הפרוייקט שלי</li>
+                <li className={`${isActive("/home") ? "active" : ""}`}>הפרוייקט שלי</li>
                 <li>הצגת קבצים</li>
                 <li>הגשות</li>
                 <li>הערות מנחה</li>
@@ -113,8 +113,8 @@ const Sidebar = () => {
             </div>
             <div className={`sidebar-drop-menu ${openSubmenus.myProjects ? "open" : "closed"}`}>
               <ul>
-                <li onClick={() => navigate("/create-project")}>הזנת פרוייקט</li>
-                <li onClick={() => navigate("/list-projects")}>סטטוס פרוייקטים</li>
+                <li className={`${isActive("/create-project") ? "active" : ""}`} onClick={() => navigate("/create-project")}>הזנת פרוייקט</li>
+                <li className={`${isActive("/list-projects") ? "active" : ""}`} onClick={() => navigate("/list-projects")}>סטטוס פרוייקטים</li>
                 <li onClick={() => {}}>סטטוס הגשות</li>
               </ul>
             </div>
@@ -140,9 +140,9 @@ const Sidebar = () => {
             </div>
             <div className={`sidebar-drop-menu`}>
               <ul>
-                <li onClick={() => navigate("/create-user")}>יצירת משתמשים</li>
+                <li className={`${isActive("/create-user") ? "active" : ""}`} onClick={() => navigate("/create-user")}>יצירת משתמשים</li>
                 <li>עדכון הרשאות</li>
-                <li onClick={() => navigate("display-users")}>הצגת משתמשים</li>
+                <li className={`${isActive("/display-users") ? "active" : ""}`} onClick={() => navigate("display-users")}>הצגת משתמשים</li>
               </ul>
             </div>
           </li>

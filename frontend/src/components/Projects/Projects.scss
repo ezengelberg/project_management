@@ -4,6 +4,7 @@
 
 .projects {
   width: 100%;
+  font-size: 1.5rem;
 
   .list-projects {
     display: grid;
@@ -21,7 +22,6 @@
       border-radius: 3rem;
       border: 1px solid #ccc;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      // width: calc(100% / 3 - 2rem);
       .taken-tag {
         position: absolute;
         visibility: hidden;

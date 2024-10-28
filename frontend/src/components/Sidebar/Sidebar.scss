@@ -24,6 +24,7 @@
       padding: 0;
       margin: 0;
       li {
+        margin: 0;
         display: flex;
         flex-direction: column;
         cursor: pointer;
@@ -42,11 +43,6 @@
             transition: transform 0.2s linear;
             border-radius: 0.5rem;
             transition: background-color 0.2s ease;
-
-            &.active {
-              background-color: #1890ff;
-              color: white;
-            }
           }
           &:hover {
             border-radius: 0.5rem;
@@ -57,6 +53,11 @@
               fill: white;
             }
           }
+        }
+        .active {
+          background-color: #1890ff;
+          border-radius: 1.5rem;
+          color: white;
         }
         /* .sidebar-drop-menu {
           background-color: #09243d;
@@ -80,6 +81,7 @@
             padding: 0;
             li {
               padding: 1.5rem 0;
+              margin: 0;
               text-indent: 5.5rem;
               color: rgb(228, 222, 222);
 
@@ -87,6 +89,11 @@
                 color: white;
                 transform: scale(1.05);
               }
+            }
+            .active {
+              background-color: #1890ff;
+              border-radius: 1.5rem;
+              color: white;
             }
           }
         }
