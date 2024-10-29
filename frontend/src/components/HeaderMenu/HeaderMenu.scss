@@ -1,6 +1,6 @@
 .header-container {
-  min-height: 7rem;
-  max-height: 7rem;
+  min-height: 7.5rem;
+  max-height: 7.5rem;
   img {
     width: 20rem;
     cursor: pointer;
@@ -60,5 +60,6 @@
 
   .logout-icon svg:hover {
     fill: #ff7875;
+    transform: scale(1.1);
   }
 }
