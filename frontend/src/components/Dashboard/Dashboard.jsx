@@ -10,7 +10,7 @@ import {
   SettingOutlined,
   FundProjectionScreenOutlined,
   TeamOutlined,
-  MessageOutlined
+  MessageOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, theme, Avatar, Badge, Tooltip, Spin, Form, Input, Button, message } from "antd";
 import { useNavigate, useLocation, Routes, Route, Navigate } from "react-router-dom";
@@ -88,7 +88,7 @@ const Dashboard = () => {
       key,
       icon,
       children,
-      label
+      label,
     };
   }
 
@@ -99,31 +99,27 @@ const Dashboard = () => {
     privileges.isStudent &&
       getItem("הפרוייקט שלי", "sub1", <ApartmentOutlined />, [
         getItem("דף הפרוייקט", "project-page"),
-        getItem("הצגת קבצים", "show-files"),
         getItem("הגשות", "submissions"),
-        getItem("הערות מנחה", "advisor-comments"),
-        getItem("הערות שופט", "judge-comments"),
-        getItem("צפייה בציון", "grade")
+        getItem("צפייה בציון", "grade"),
       ]),
 
     (privileges.isAdvisor || privileges.isCoordinator) &&
       getItem("פרוייקטים שלי", "sub2", <FundProjectionScreenOutlined />, [
         getItem("הזנת פרוייקט", "create-project"),
         getItem("סטטוס פרוייקטים", "projects-status"),
-        getItem("סטטוס הגשות", "submissions-status")
+        getItem("סטטוס הגשות", "submissions-status"),
       ]),
     privileges.isCoordinator && getItem("ניהול פרוייקטים", "project-managment", <FundProjectionScreenOutlined />),
     privileges.isCoordinator &&
       getItem("ניהול משתמשים", "sub4", <TeamOutlined />, [
         getItem("יצירת משתמש חדש", "create-user"),
-        getItem("עדכון הרשאות", "update-privileges"),
-        getItem("הצגת משתמשים", "show-all-users")
+        getItem("הצגת משתמשים", "show-all-users"),
       ]),
-    privileges.isCoordinator && getItem("ניהול מערכת", "settings", <SettingOutlined />)
+    privileges.isCoordinator && getItem("ניהול מערכת", "settings", <SettingOutlined />),
   ];
 
   const {
-    token: { colorBgContainer, borderRadiusLG }
+    token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
   const handleLogout = async () => {
@@ -160,16 +156,16 @@ const Dashboard = () => {
             rules={[
               {
                 required: true,
-                message: "חובה להזין סיסמה חדשה"
+                message: "חובה להזין סיסמה חדשה",
               },
               {
                 min: 8,
-                message: "הסיסמה חייבת להכיל לפחות 8 תווים"
+                message: "הסיסמה חייבת להכיל לפחות 8 תווים",
               },
               {
                 pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                message: "הסיסמה חייבת להכיל אות גדולה, אות קטנה, מספר ותו מיוחד"
-              }
+                message: "הסיסמה חייבת להכיל אות גדולה, אות קטנה, מספר ותו מיוחד",
+              },
             ]}>
             <Input.Password />
           </Form.Item>
@@ -181,7 +177,7 @@ const Dashboard = () => {
             rules={[
               {
                 required: true,
-                message: "חובה לאמת את הסיסמה"
+                message: "חובה לאמת את הסיסמה",
               },
               ({ getFieldValue }) => ({
                 validator(rule, value) {
@@ -189,8 +185,8 @@ const Dashboard = () => {
                     return Promise.resolve();
                   }
                   return Promise.reject("הסיסמאות אינן תואמות");
-                }
-              })
+                },
+              }),
             ]}>
             <Input.Password style={{ textAlign: "right" }} />
           </Form.Item>
@@ -210,7 +206,7 @@ const Dashboard = () => {
       <Layout
         style={{
           minHeight: "100vh",
-          maxHeight: "100vh"
+          maxHeight: "100vh",
         }}>
         <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
           {!collapsed ? (
@@ -232,7 +228,7 @@ const Dashboard = () => {
           <Header
             style={{
               padding: 0,
-              background: colorBgContainer
+              background: colorBgContainer,
             }}
           />
 
@@ -265,14 +261,14 @@ const Dashboard = () => {
             style={{
               margin: "16px 16px 0 16px",
               overflowY: "auto",
-              maxHeight: "92%"
+              maxHeight: "92%",
             }}>
             <div
               style={{
                 padding: 24,
                 minHeight: "100%",
                 background: colorBgContainer,
-                borderRadius: borderRadiusLG
+                borderRadius: borderRadiusLG,
               }}>
               <Routes>
                 <Route path="/" element={<Navigate to="home" replace />} />
@@ -290,57 +286,6 @@ const Dashboard = () => {
           </Content>
         </Layout>
       </Layout>
-
-      {/* <Modal title="שינוי סיסמה" open={changePassword} closable={false} maskClosable={false} footer={null}>
-        <p>עליך לשנות סיסמה ראשונית</p>
-        <Form name="change-password" layout="vertical" size="large" onFinish={handleChangePassword}>
-          <Form.Item
-            label="סיסמה חדשה"
-            name="password"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה להזין סיסמה חדשה",
-              },
-              {
-                min: 8,
-                message: "הסיסמה חייבת להכיל לפחות 8 תווים",
-              },
-              {
-                pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                message: "הסיסמה חייבת להכיל אות גדולה, אות קטנה, מספר ותו מיוחד",
-              },
-            ]}>
-            <Input.Password />
-          </Form.Item>
-          <Form.Item
-            label="אימות סיסמה"
-            name="confirmPassword"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה לאמת את הסיסמה",
-              },
-              ({ getFieldValue }) => ({
-                validator(rule, value) {
-                  if (!value || getFieldValue("password") === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject("הסיסמאות אינן תואמות");
-                },
-              }),
-            ]}>
-            <Input.Password style={{ textAlign: "right" }} />
-          </Form.Item>
-          <Form.Item style={{ marginBottom: "0", textAlign: "left" }}>
-            <Button type="primary" htmlType="submit">
-              שנה סיסמה
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal> */}
     </div>
   );
 };
