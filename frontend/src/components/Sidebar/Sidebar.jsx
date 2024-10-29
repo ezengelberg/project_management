@@ -63,13 +63,17 @@ const Sidebar = () => {
             </div>
           </li>
           <li>
-            <div className={`sidebar-option ${isActive("/projects") ? "active" : ""}`} onClick={() => navigate("/projects")}>
+            <div
+              className={`sidebar-option ${isActive("/projects") ? "active" : ""}`}
+              onClick={() => navigate("/projects")}>
               <ProjectOutlined />
               <span>פרויקטים</span>
             </div>
           </li>
           <li>
-            <div className={`sidebar-option ${isActive("/templates") ? "active" : ""}`} onClick={() => navigate("/templates")}>
+            <div
+              className={`sidebar-option ${isActive("/templates") ? "active" : ""}`}
+              onClick={() => navigate("/templates")}>
               <FileSearchOutlined />
               <span> תבנית דוחות</span>
             </div>
@@ -89,12 +93,8 @@ const Sidebar = () => {
             </div>
             <div className={`sidebar-drop-menu`}>
               <ul>
-                <li className={`${isActive("/home") ? "active" : ""}`}>הפרויקט שלי</li>
-                <li>הצגת קבצים</li>
+                <li className={`${isActive("/my-project") ? "active" : ""}`}>הפרויקט שלי</li>
                 <li>הגשות</li>
-                <li>הערות מנחה</li>
-                <li>הערות שופט</li>
-                <li>צפיה בציון</li>
               </ul>
             </div>
           </li>
@@ -113,8 +113,16 @@ const Sidebar = () => {
             </div>
             <div className={`sidebar-drop-menu ${openSubmenus.myProjects ? "open" : "closed"}`}>
               <ul>
-                <li className={`${isActive("/create-project") ? "active" : ""}`} onClick={() => navigate("/create-project")}>הזנת פרויקט</li>
-                <li className={`${isActive("/list-projects") ? "active" : ""}`} onClick={() => navigate("/list-projects")}>סטטוס פרויקטים</li>
+                <li
+                  className={`${isActive("/create-project") ? "active" : ""}`}
+                  onClick={() => navigate("/create-project")}>
+                  הזנת פרויקט
+                </li>
+                <li
+                  className={`${isActive("/list-projects") ? "active" : ""}`}
+                  onClick={() => navigate("/list-projects")}>
+                  סטטוס פרויקטים
+                </li>
                 <li onClick={() => {}}>סטטוס הגשות</li>
               </ul>
             </div>
@@ -140,9 +148,14 @@ const Sidebar = () => {
             </div>
             <div className={`sidebar-drop-menu`}>
               <ul>
-                <li className={`${isActive("/create-user") ? "active" : ""}`} onClick={() => navigate("/create-user")}>יצירת משתמשים</li>
-                <li>עדכון הרשאות</li>
-                <li className={`${isActive("/display-users") ? "active" : ""}`} onClick={() => navigate("display-users")}>הצגת משתמשים</li>
+                <li className={`${isActive("/create-user") ? "active" : ""}`} onClick={() => navigate("/create-user")}>
+                  יצירת משתמשים
+                </li>
+                <li
+                  className={`${isActive("/display-users") ? "active" : ""}`}
+                  onClick={() => navigate("display-users")}>
+                  הצגת משתמשים
+                </li>
               </ul>
             </div>
           </li>
