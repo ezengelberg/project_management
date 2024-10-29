@@ -10,7 +10,7 @@
   width: 30rem;
 }
 
-.login form {
+.login .login-form {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -97,8 +97,26 @@
   font-size: 1.5rem !important;
 }
 
-.login form .MuiAlert-standardError .MuiAlert-icon {
-  margin: 0;
+.change-password-form {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 40rem;
+  padding: 4rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  border-radius: 1rem;
+}
+
+.change-password-form h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.change-password-button {
+  text-align: left;
+  margin-bottom: 0;
 }
 
 @media (max-width: 640px) {
