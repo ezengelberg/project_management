@@ -36,7 +36,9 @@ const Login = () => {
         },
         { withCredentials: true }
       );
-      navigate("/dashboard");
+      localStorage.setItem("user", JSON.stringify(result.data));
+      sessionStorage.setItem("user", JSON.stringify(result.data));
+      navigate("/home");
     } catch (error) {
       if (error.response.status === 403) {
         setErrorMessage("משתמש מושהה, פנה למנהל הפרויקטים");

@@ -23,7 +23,7 @@ export const registerUser = async (req, res) => {
       firstLogin: true,
       password: hashedPassword,
       registerDate: new Date(),
-      suspensionRecords: []
+      suspensionRecords: [],
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
@@ -41,8 +41,9 @@ export const loginUser = (req, res, next) => {
 
     req.login(user, (err) => {
       if (err) return next(err);
-      console.log("Login successful");
-      res.status(200).send("Login successful");
+      const userObj = user.toObject();
+      delete userObj.password;
+      res.status(200).json(userObj);
     });
   })(req, res, next);
 };
@@ -272,7 +273,7 @@ export const suspendUser = async (req, res) => {
     user.suspensionRecords.push({
       suspendedBy: req.user._id,
       suspendedAt: new Date(),
-      reason: req.body.reason
+      reason: req.body.reason,
     });
 
     await user.save();

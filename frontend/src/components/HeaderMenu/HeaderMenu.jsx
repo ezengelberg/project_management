@@ -1,7 +1,7 @@
 import "./HeaderMenu.scss";
 import collegeLogo from "../../assets/CollegeLogo.png";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -10,12 +10,17 @@ import { MessageOutlined, LogoutOutlined } from "@ant-design/icons";
 
 const HeaderMenu = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(JSON.parse(sessionStorage.getItem("user")) || {});
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : {};
+  });
+
   const handleLogout = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/api/user/logout", { withCredentials: true });
-      console.log(response.data);
+      const response = await axios.post("http://localhost:5000/api/user/logout", null, { withCredentials: true });
       navigate("/login", { replace: true });
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("user");
     } catch (error) {
       console.error("Error occurred:", error);
     }
@@ -24,17 +29,12 @@ const HeaderMenu = () => {
   return (
     <div className="header-container">
       <div className="site-upper-header-right">
-        <img
-          src={collegeLogo}
-          alt="collage logo"
-          className="collage-logo"
-          onClick={() => navigate("/dashboard/home")}
-        />
+        <img src={collegeLogo} alt="collage logo" className="collage-logo" onClick={() => navigate("/home")} />
         <h1>מערכת ניהול פרויקטים</h1>
       </div>
       <div className="site-upper-header-left">
         <Tooltip title="פרופיל">
-          <Avatar className="avatar-icon" size="large" onClick={() => navigate(`/dashboard/profile/${user.id}`)}>
+          <Avatar className="avatar-icon" size="large" onClick={() => navigate(`/profile/${user.id}`)}>
             {user.name && user.name[0]}
             {user.name && user.name.split(" ")[1] ? user.name.split(" ")[1][0] : ""}
           </Avatar>
