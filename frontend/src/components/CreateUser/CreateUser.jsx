@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import "./CreateUser.scss";
-import { UploadOutlined, InboxOutlined } from "@ant-design/icons";
+import { DeleteOutlined, InboxOutlined } from "@ant-design/icons";
 import axios from "axios";
 import Papa from "papaparse";
-import { Button, Form, Input, Select, message, Upload, Table, Checkbox } from "antd";
+import { Button, Form, Input, Select, message, Upload, Table, Checkbox, Tooltip } from "antd";
 const { Dragger } = Upload;
 
 const CreateUser = () => {
@@ -110,6 +110,17 @@ const CreateUser = () => {
         <div>
           <Checkbox.Group options={roleOptions} defaultValue={["סטודנט"]} />
         </div>
+      )
+    },
+    {
+      title: "פעולות",
+      key: "action",
+      render: (text, record) => (
+        <span className="user-actions">
+          <Tooltip title="הסר משתמש מרשימה">
+            <DeleteOutlined />
+          </Tooltip>
+        </span>
       )
     }
   ];
