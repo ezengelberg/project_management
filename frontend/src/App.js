@@ -14,6 +14,7 @@ import CreateUser from "./components/CreateUser/CreateUser";
 import ShowAllUsers from "./components/ShowAllUsers/ShowAllUsers";
 import HeaderMenu from "./components/HeaderMenu/HeaderMenu";
 import ProjectPage from "./components/ProjectPage/ProjectPage";
+import ProjectsManagment from "./components/ProjectsManagment/ProjectsManagment";
 
 function App() {
   return (
@@ -99,8 +100,15 @@ const MainLayout = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/projects-managment"
+                element={
+                  <ProtectedRoute>
+                    <ProjectsManagment />
+                  </ProtectedRoute>
+                }
+              />
               {/* Development route */}
-              <Route path="/dev" element={<Sidebar />} />
             </Routes>
           </div>
         </div>

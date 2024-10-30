@@ -128,7 +128,7 @@ const Sidebar = () => {
             </div>
           </li>
           <li>
-            <div className="sidebar-option">
+            <div className="sidebar-option" onClick={() => navigate("/projects-managment")}>
               <FundProjectionScreenOutlined />
               <span>ניהול פרויקטים</span>
             </div>
