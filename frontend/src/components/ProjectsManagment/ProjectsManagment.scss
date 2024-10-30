@@ -1,0 +1,41 @@
+.ant-tabs-nav-list {
+  gap: 1rem;
+
+  .ant-tabs-tab {
+    display: flex;
+    align-items: center;
+    font-size: 1.7rem;
+    margin: 0 0 0 2rem !important;
+
+    .ant-tabs-tab-btn {
+      display: flex;
+      align-items: center;
+
+      .ant-tabs-tab-icon {
+        margin-top: 0.8rem;
+        .tab-icon,
+        .tab-icon-special {
+          width: 2rem;
+          height: 2rem;
+        }
+      }
+    }
+  }
+  .ant-tabs-tab-active {
+    .ant-tabs-tab-btn {
+      .ant-tabs-tab-icon {
+        .tab-icon {
+          path {
+            stroke: #1677ff;
+            fill: #1677ff;
+          }
+        }
+        .tab-icon-special {
+          path {
+            stroke: #1677ff;
+          }
+        }
+      }
+    }
+  }
+}
