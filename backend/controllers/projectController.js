@@ -205,7 +205,10 @@ export const approveCandidate = async (req, res) => {
         project.students = [];
       }
       if (project.students.find((candidate) => candidate.student.toString() === user._id.toString())) {
-        return res.status(400).send({ message: "Candidate is already approved" });
+        return res.status(409).send({ error: "Candidate is already approved", message: "המועמד כבר אושר" });
+      }
+      if(project.students.length >= 2) {
+        return res.status(409).send({ error: "Project is already full", message: "הפרויקט כבר מלא - רשומים שני סטודנטים" });
       }
       const { _id, ...candidateWithoutId } = candidate.toObject();
       project.students.push(candidateWithoutId);
@@ -301,26 +304,6 @@ export const updateProject = async (req, res) => {
       project.continues = continues;
       // project.isApproved = isApproved;
     } else {
-      // const advisorsList = [];
-      // if (advisors.length > 0) {
-      //   for (const adv of advisors) {
-      //     const advisorUser = await User.findOne({ _id: adv, isAdvisor: true });
-      //     if (!advisorUser) {
-      //       return res.status(505).send({ message: `Advisor ${adv.name} not found` });
-      //     }
-      //     advisorsList.push(advisorUser);
-      //   }
-      // }
-      // const studentsList = [];
-      // if (students.length > 0) {
-      //   for (const stud of students) {
-      //     const studentUser = await User.findOne({ id: stud.id, isStudent: true });
-      //     if (!studentUser) {
-      //       return res.status(505).send({ message: `Student ${stud.name} not found` });
-      //     }
-      //     studentsList.push({ student: studentUser });
-      //   }
-      // }
       project.title = title;
       project.description = description;
       project.year = year;
