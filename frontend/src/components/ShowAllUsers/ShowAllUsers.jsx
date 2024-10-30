@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./ShowAllUsers.scss";
 import axios from "axios";
-import { Space, Table, Tag, Spin, Avatar, Modal, Form, Input, Select, message, Tooltip, Switch } from "antd";
-import { EditOutlined, UserDeleteOutlined, UserAddOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Space, Table, Tag, Spin, Avatar, Modal, Form, Input, Select, message, Tooltip, Switch, Button } from "antd";
+import { EditOutlined, UserDeleteOutlined, UserAddOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import Highlighter from "react-highlight-words";
 
 const ShowAllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -25,6 +26,9 @@ const ShowAllUsers = () => {
   const [suspensionReason, setSuspensionReason] = useState("");
   const [ConfirmDelete, setConfirmDelete] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,6 +79,75 @@ const ShowAllUsers = () => {
     }
   }, [editUserDetails]);
 
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    setSearchText("");
+  };
+
+  const getColumnSearchProps = (dataIndex) => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInput}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          style={{ marginBottom: 8, display: "block" }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}>
+            חיפוש
+          </Button>
+          <Button onClick={() => clearFilters && handleReset(clearFilters)} size="small" style={{ width: 90 }}>
+            איפוס
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close();
+            }}>
+            סגור
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />,
+    onFilter: (value, record) => {
+      if (dataIndex === "name") {
+        return record[dataIndex].toString().toLowerCase().includes(value.toLowerCase());
+      }
+      return record[dataIndex].toString().includes(value);
+    },
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
+    },
+    render: (text) =>
+      searchedColumn === dataIndex ? (
+        <Highlighter
+          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ""}
+        />
+      ) : (
+        text
+      ),
+  });
+
   const dataSource = users.map((user) => ({
     key: user._id,
     name: user.name,
@@ -93,13 +166,19 @@ const ShowAllUsers = () => {
       title: "שם",
       dataIndex: "name",
       key: "name",
+      ...getColumnSearchProps("name"),
       render: (text, record) => (
         <a className="column-name" onClick={() => navigate(`/profile/${record.userId}`)}>
           <Avatar size="medium">
             {text[0].toUpperCase()}
             {text.split(" ")[1] ? text.split(" ")[1][0].toUpperCase() : ""}
           </Avatar>
-          {text}
+          <Highlighter
+            highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+            searchWords={[searchText]}
+            autoEscape
+            textToHighlight={text ? text.toString() : ""}
+          />
         </a>
       ),
       showSorterTooltip: {
@@ -114,6 +193,7 @@ const ShowAllUsers = () => {
       title: "ת.ז.",
       dataIndex: "userId",
       key: "userId",
+      ...getColumnSearchProps("userId"),
       showSorterTooltip: {
         target: "full-header",
       },
@@ -125,6 +205,7 @@ const ShowAllUsers = () => {
       title: "תאריך הרשמה",
       dataIndex: "registerDate",
       key: "registerDate",
+      ...getColumnSearchProps("registerDate"),
       showSorterTooltip: {
         target: "full-header",
       },
@@ -189,6 +270,7 @@ const ShowAllUsers = () => {
       title: "אימייל",
       dataIndex: "email",
       key: "email",
+      ...getColumnSearchProps("email"),
       showSorterTooltip: {
         target: "full-header",
       },
@@ -343,13 +425,19 @@ const ShowAllUsers = () => {
       title: "שם",
       dataIndex: "name",
       key: "name",
+      ...getColumnSearchProps("name"),
       render: (text, record) => (
         <a className="column-name" onClick={() => navigate(`/profile/${record.userId}`)}>
           <Avatar size="medium">
             {text[0].toUpperCase()}
             {text.split(" ")[1] ? text.split(" ")[1][0].toUpperCase() : ""}
           </Avatar>
-          {text}
+          <Highlighter
+            highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+            searchWords={[searchText]}
+            autoEscape
+            textToHighlight={text ? text.toString() : ""}
+          />
         </a>
       ),
       showSorterTooltip: {
@@ -364,6 +452,7 @@ const ShowAllUsers = () => {
       title: "ת.ז.",
       dataIndex: "userId",
       key: "userId",
+      ...getColumnSearchProps("userId"),
       showSorterTooltip: {
         target: "full-header",
       },
@@ -375,6 +464,7 @@ const ShowAllUsers = () => {
       title: "תאריך הרשמה",
       dataIndex: "registerDate",
       key: "registerDate",
+      ...getColumnSearchProps("registerDate"),
       showSorterTooltip: {
         target: "full-header",
       },
@@ -440,6 +530,7 @@ const ShowAllUsers = () => {
       title: "אימייל",
       dataIndex: "email",
       key: "email",
+      ...getColumnSearchProps("email"),
       showSorterTooltip: {
         target: "full-header",
       },
@@ -451,6 +542,7 @@ const ShowAllUsers = () => {
       title: "סיבת השעיה",
       dataIndex: "suspensionReason",
       key: "suspensionReason",
+      ...getColumnSearchProps("suspensionReason"),
       render: (text) => (
         <div>
           <Tooltip title={text}>
@@ -476,6 +568,7 @@ const ShowAllUsers = () => {
       title: "תאריך השעיה",
       dataIndex: "suspensionDate",
       key: "suspensionDate",
+      ...getColumnSearchProps("suspensionDate"),
       showSorterTooltip: {
         target: "full-header",
       },
