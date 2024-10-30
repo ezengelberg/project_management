@@ -22,7 +22,7 @@ const CreateUser = () => {
         isCoordinator: values.role.includes("coordinator")
       };
 
-      const response = await axios.post("http://localhost:5000/api/user/register", registerValues, {
+      const response = await axios.post("/api/user/register", registerValues, {
         withCredentials: true
       });
       message.success("משתמש נוצר בהצלחה");
@@ -57,7 +57,7 @@ const CreateUser = () => {
         setUsers(parsedData);
 
         // try {
-        //   const response = await axios.post("http://localhost:5000/api/user/register-many", result.data, {
+        //   const response = await axios.post("/api/user/register-many", result.data, {
         //     withCredentials: true
         //   });
         //   message.success("משתמשים נוצרו בהצלחה");

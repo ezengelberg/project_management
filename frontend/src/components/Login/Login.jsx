@@ -34,7 +34,7 @@ const Login = () => {
 
     try {
       const result = await axios.post(
-        "http://localhost:5000/api/user/login",
+        "/api/user/login",
         {
           email,
           password,
@@ -68,7 +68,7 @@ const Login = () => {
     try {
       // Change password
       await axios.put(
-        "http://localhost:5000/api/user/change-password",
+        "/api/user/change-password",
         {
           oldPassword: tempUserData.id,
           newPassword: values.newPassword,

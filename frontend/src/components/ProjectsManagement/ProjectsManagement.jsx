@@ -19,8 +19,8 @@ const ProjectsManagement = () => {
       setLoading(true);
       try {
         const [projectsRes, usersRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/project", { withCredentials: true }),
-          axios.get("http://localhost:5000/api/user/all-users", { withCredentials: true }),
+          axios.get("/api/project", { withCredentials: true }),
+          axios.get("/api/user/all-users", { withCredentials: true }),
         ]);
 
         const activeUsers = usersRes.data.filter((user) => !user.suspended && user.isStudent);
@@ -45,7 +45,7 @@ const ProjectsManagement = () => {
   const handleAddStudents = async () => {
     try {
       await axios.post(
-        `http://localhost:5000/api/project/${selectedProject._id}/students`,
+        `/api/project/${selectedProject._id}/students`,
         {
           students: selectedStudents,
         },
@@ -85,7 +85,7 @@ const ProjectsManagement = () => {
   const handleTerminateProject = async () => {
     try {
       await axios.post(
-        `http://localhost:5000/api/project/${selectedProject._id}/terminate`,
+        `/api/project/${selectedProject._id}/terminate`,
         {},
         { withCredentials: true }
       );

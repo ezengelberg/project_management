@@ -25,7 +25,7 @@ const Sidebar = () => {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/user/get-user", { withCredentials: true });
+        const response = await axios.get("/api/user/get-user", { withCredentials: true });
         setUser(response.data);
         localStorage.setItem("user", JSON.stringify(response.data));
       } catch (error) {

@@ -17,7 +17,7 @@ const HeaderMenu = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/api/user/logout", null, { withCredentials: true });
+      const response = await axios.post("/api/user/logout", null, { withCredentials: true });
       navigate("/login", { replace: true });
       localStorage.removeItem("user");
       sessionStorage.removeItem("user");

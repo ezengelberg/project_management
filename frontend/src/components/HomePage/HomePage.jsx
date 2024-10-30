@@ -12,7 +12,7 @@ const Homepage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/project/status", { withCredentials: true });
+        const response = await axios.get("/api/project/status", { withCredentials: true });
         setNumOfOpenProjects(response.data.numOfOpenProjects);
         setNumOfTakenProjects(response.data.numOfTakenProjects);
         setNumOfFinishedProjects(response.data.numOfFinishedProjects);

@@ -22,7 +22,7 @@ const ProjectPage = () => {
   useEffect(() => {
     const checkIfUserCandidate = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/project/check-if-candidate/${projectID}`, {
+        const response = await axios.get(`/api/project/check-if-candidate/${projectID}`, {
           withCredentials: true
         });
         setIsCandidate(response.data.isCandidate);
@@ -36,7 +36,7 @@ const ProjectPage = () => {
           if (projectData.advisors.length === 0) return;
           const advisors = [];
           for (const advisor of projectData.advisors) {
-            const response = await axios.get(`http://localhost:5000/api/user/get-user-info/${advisor}`, {
+            const response = await axios.get(`/api/user/get-user-info/${advisor}`, {
               withCredentials: true
             });
             advisors.push(response.data);
@@ -55,7 +55,7 @@ const ProjectPage = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     const hasProject = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/user/check-user-has-projects/${user._id}`, {
+        const response = await axios.get(`/api/user/check-user-has-projects/${user._id}`, {
           withCredentials: true
         });
         setHasProject(response.data.hasProject);
@@ -77,7 +77,7 @@ const ProjectPage = () => {
   useEffect(() => {
     const fetchProjectData = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/project/get-project/${projectID}`, {
+        const response = await axios.get(`/api/project/get-project/${projectID}`, {
           withCredentials: true
         });
         setProjectData(response.data);
@@ -100,12 +100,12 @@ const ProjectPage = () => {
         type: "loading",
         content: "מבצע הסרת הרשמה מהפרויקט..."
       });
-      const response = await axios.get(`http://localhost:5000/api/user/get-user`, {
+      const response = await axios.get(`/api/user/get-user`, {
         withCredentials: true
       });
       const userID = response.data._id;
       await axios.post(
-        `http://localhost:5000/api/project/remove-candidate`,
+        `/api/project/remove-candidate`,
         { projectID: projectID, userID: userID },
         { withCredentials: true }
       );
@@ -135,7 +135,7 @@ const ProjectPage = () => {
         content: "מבצע הרשמה לפרויקט..."
       });
       await axios.post(
-        `http://localhost:5000/api/project/add-candidate`,
+        `/api/project/add-candidate`,
         { projectID: projectID },
         { withCredentials: true }
       );

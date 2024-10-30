@@ -22,7 +22,7 @@ const Templates = () => {
   useEffect(() => {
     const fetchPrivileges = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/user/privileges", { withCredentials: true });
+        const response = await axios.get("/api/user/privileges", { withCredentials: true });
         setPrivileges(response.data);
       } catch (error) {
         console.error("Error occurred:", error);
@@ -31,7 +31,7 @@ const Templates = () => {
 
     const fetchTemplateFiles = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/file-templates", { withCredentials: true });
+        const response = await axios.get("/api/file-templates", { withCredentials: true });
         setTemplateFiles(response.data);
       } catch (error) {
         console.error("Error fetching template files:", error);
@@ -54,14 +54,14 @@ const Templates = () => {
     setUploading(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/file-templates", formData, {
+      const response = await axios.post("/api/file-templates", formData, {
         headers: { "Content-Type": "multipart/form-data", "X-Filename-Encoding": "url" },
         withCredentials: true,
       });
       setFileList([]);
       message.success("הקובץ הועלה בהצלחה");
       // Refresh the template files list after successful upload
-      const updatedFiles = await axios.get("http://localhost:5000/api/file-templates", { withCredentials: true });
+      const updatedFiles = await axios.get("/api/file-templates", { withCredentials: true });
       setTemplateFiles(updatedFiles.data);
     } catch (error) {
       console.error("Error occurred:", error);
@@ -122,7 +122,7 @@ const Templates = () => {
   const handleEdit = async (fileId) => {
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/file-templates/update/${fileId}`,
+        `/api/file-templates/update/${fileId}`,
         {
           title: editTitle,
           description: editDescription,
@@ -134,14 +134,14 @@ const Templates = () => {
       console.error("Error updating file:", error);
     } finally {
       setIsEditing(false);
-      const updatedFiles = await axios.get("http://localhost:5000/api/file-templates", { withCredentials: true });
+      const updatedFiles = await axios.get("/api/file-templates", { withCredentials: true });
       setTemplateFiles(updatedFiles.data);
     }
   };
 
   const handleDelete = async (fileId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/file-templates/delete/${fileId}`, { withCredentials: true });
+      await axios.delete(`/api/file-templates/delete/${fileId}`, { withCredentials: true });
       message.success("קובץ נמחק בהצלחה");
     } catch (error) {
       console.error("Error deleting file:", error);

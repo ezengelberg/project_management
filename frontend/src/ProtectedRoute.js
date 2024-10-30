@@ -11,7 +11,7 @@ const ProtectedRoute = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/user/check-auth", { withCredentials: true });
+        const response = await axios.get("/api/user/check-auth", { withCredentials: true });
         if (response.data.authenticated) {
           setIsAuthenticated(true);
           console.log("DEV: Authenticated");

@@ -35,14 +35,14 @@ const ShowAllUsers = () => {
       try {
         setLoading(true);
         // Fetch all users
-        const usersResponse = await axios.get("http://localhost:5000/api/user/all-users", { withCredentials: true });
+        const usersResponse = await axios.get("/api/user/all-users", { withCredentials: true });
         const userData = usersResponse.data;
 
         const suspendedUsersData = userData.filter((user) => user.suspended);
         const activeUsers = userData.filter((user) => !user.suspended);
 
         // Fetch all projects
-        const projectsResponse = await axios.get("http://localhost:5000/api/project", { withCredentials: true });
+        const projectsResponse = await axios.get("/api/project", { withCredentials: true });
         const projectsData = projectsResponse.data;
 
         // Create a map of student ID to project
@@ -340,7 +340,7 @@ const ShowAllUsers = () => {
 
       try {
         const response = await axios.put(
-          `http://localhost:5000/api/user/edit-user-coordinator/${userId}`,
+          `/api/user/edit-user-coordinator/${userId}`,
           updatedUser,
           { withCredentials: true }
         );
@@ -383,7 +383,7 @@ const ShowAllUsers = () => {
       const values = await suspensionForm.validateFields();
 
       const response = await axios.put(
-        `http://localhost:5000/api/user/suspend-user/${suspensionDetails.key}`,
+        `/api/user/suspend-user/${suspensionDetails.key}`,
         {
           reason: values.reason,
         },
@@ -619,7 +619,7 @@ const ShowAllUsers = () => {
   const handleUnsuspend = async (userId) => {
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/user/unsuspend-user/${userId}`,
+        `/api/user/unsuspend-user/${userId}`,
         {},
         { withCredentials: true }
       );
@@ -644,7 +644,7 @@ const ShowAllUsers = () => {
 
   const handleDelete = (userId) => {
     try {
-      axios.delete(`http://localhost:5000/api/user/delete-suspended-user/${userId}`, { withCredentials: true });
+      axios.delete(`/api/user/delete-suspended-user/${userId}`, { withCredentials: true });
       setConfirmDelete(false);
       setSuspendedUsers(suspendedUsers.filter((user) => user._id !== userId));
       message.success("המשתמש נמחק בהצלחה");
