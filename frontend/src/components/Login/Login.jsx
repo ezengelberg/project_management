@@ -33,11 +33,12 @@ const Login = () => {
     }
 
     try {
+      console.log(process.env.REACT_APP_SERVER_URL);
       const result = await axios.post(
         `${process.env.REACT_APP_SERVER_URL}/api/user/login`,
         {
           email,
-          password,
+          password
         },
         { withCredentials: true }
       );
@@ -68,10 +69,10 @@ const Login = () => {
     try {
       // Change password
       await axios.put(
-        "/api/user/change-password",
+        `${process.env.REACT_APP_SERVER_URL}/api/user/change-password`,
         {
           oldPassword: tempUserData.id,
-          newPassword: values.newPassword,
+          newPassword: values.newPassword
         },
         { withCredentials: true }
       );
@@ -79,7 +80,7 @@ const Login = () => {
       // Update the user data to reflect password change
       const updatedUserData = {
         ...tempUserData,
-        firstLogin: false,
+        firstLogin: false
       };
 
       localStorage.setItem("user", JSON.stringify(updatedUserData));
@@ -192,8 +193,8 @@ const Login = () => {
               { min: 8, message: "הסיסמה חייבת להכיל לפחות 8 תווים" },
               {
                 pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                message: "הסיסמה חייבת להכיל אות גדולה, אות קטנה, מספר ותו מיוחד",
-              },
+                message: "הסיסמה חייבת להכיל אות גדולה, אות קטנה, מספר ותו מיוחד"
+              }
             ]}>
             <Input.Password
               placeholder="סיסמה חדשה"
@@ -213,8 +214,8 @@ const Login = () => {
                     return Promise.resolve();
                   }
                   return Promise.reject(new Error("הסיסמאות אינן תואמות"));
-                },
-              }),
+                }
+              })
             ]}>
             <Input.Password
               placeholder="אימות סיסמה"

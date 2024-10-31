@@ -32,7 +32,7 @@ const DownloadFile = ({ file, onEdit, onDelete }) => {
 
   const handleDownload = async () => {
     try {
-      const response = await axios.get(`/api/file-templates/download/${file._id}`, {
+      const response = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/file-templates/download/${file._id}`, {
         responseType: "blob",
         withCredentials: true,
       });

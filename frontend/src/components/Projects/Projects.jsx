@@ -19,7 +19,7 @@ const Projects = () => {
         const projectsWithFavorites = await Promise.all(
           response.data.map(async (project) => {
             const responsePerProject = await axios.get(
-              `/api/user/ensure-favorite/${project._id}`,
+              `${process.env.REACT_APP_SERVER_URL}/api/user/ensure-favorite/${project._id}`,
               {
                 withCredentials: true
               }
@@ -56,7 +56,7 @@ const Projects = () => {
     if (project.isTaken) return; // Do not allow marking a taken project as favorite
     try {
       await axios.post(
-        "/api/user/toggle-favorite",
+        `${process.env.REACT_APP_SERVER_URL}/api/user/toggle-favorite`,
         {
           projectId: project._id
         },
@@ -96,17 +96,17 @@ const Projects = () => {
     <div>
       {isLoading ? (
         <div style={{ position: "relative", height: "100vh" }}>
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            fontSize: "50px",
-            transform: "translate(-50%, -50%)",
-          }}>
-          <LoadingOutlined />
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              fontSize: "50px",
+              transform: "translate(-50%, -50%)"
+            }}>
+            <LoadingOutlined />
+          </div>
         </div>
-      </div>
       ) : (
         <div className="projects">
           <h2>רשימת פרויקטים</h2>

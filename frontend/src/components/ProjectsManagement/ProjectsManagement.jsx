@@ -46,7 +46,7 @@ const ProjectsManagement = () => {
   const handleAddStudents = async () => {
     try {
       await axios.post(
-        `/api/project/${selectedProject._id}/students`,
+        `${process.env.REACT_APP_SERVER_URL}/api/project/${selectedProject._id}/students`,
         {
           students: selectedStudents,
         },
@@ -85,7 +85,7 @@ const ProjectsManagement = () => {
 
   const handleTerminateProject = async () => {
     try {
-      await axios.post(`/api/project/${selectedProject._id}/terminate`, {}, { withCredentials: true });
+      await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/project/${selectedProject._id}/terminate`, {}, { withCredentials: true });
 
       // Update local state
       const updatedProjects = projects.map((project) => {
