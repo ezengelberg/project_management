@@ -3,6 +3,7 @@ import "./CreateUser.scss";
 import { DeleteOutlined, InboxOutlined } from "@ant-design/icons";
 import axios from "axios";
 import Papa from "papaparse";
+import { Popconfirm } from "antd";
 import { Button, Form, Input, Select, message, Upload, Table, Checkbox, Tooltip } from "antd";
 const { Dragger } = Upload;
 
@@ -70,6 +71,10 @@ const CreateUser = () => {
     });
   };
 
+  const handleRemoveUser = (record) => {
+    const filteredUsers = users.filter((user) => user.email !== record.email);
+    setUsers(filteredUsers);
+  }
   const props = {
     name: "file",
     maxCount: 1,
@@ -115,10 +120,19 @@ const CreateUser = () => {
     {
       title: "פעולות",
       key: "action",
-      render: (text, record) => (
+      render: (record) => (
         <span className="user-actions">
           <Tooltip title="הסר משתמש מרשימה">
-            <DeleteOutlined />
+          <Popconfirm
+            title="הסרת משתמש מרשימה"
+            description={`האם ברצונך להסיר את ${record.name}?`}
+            okText="הסר"
+            cancelText="בטל"
+            onConfirm={() => handleRemoveUser(record)}
+            onOpenChange={() => console.log('open change')}
+          >
+            <DeleteOutlined/>
+          </Popconfirm>
           </Tooltip>
         </span>
       )

@@ -3,8 +3,7 @@ import axios from "axios";
 import "./Projects.scss";
 import { Tooltip } from "antd";
 import ProjectBox from "./ProjectBox";
-import { Watermark } from "antd";
-import DownloadFile from "../DownloadFile/DownloadFile";
+import { LoadingOutlined } from "@ant-design/icons";
 
 const Projects = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -32,6 +31,7 @@ const Projects = () => {
           })
         );
         setProjects(sortProjects(projectsWithFavorites)); // Set sorted projects
+        // setIsLoading(false);
       } catch (error) {
         console.error("Error occurred:", error);
       }
@@ -93,25 +93,40 @@ const Projects = () => {
   };
 
   return (
-    <div className="projects">
-      <h2>רשימת פרויקטים</h2>
-      <div className="list-projects">
-        {projects.length > 0 ? (
-          projects.map((project) => (
-            <ProjectBox
-              key={project._id} // Assuming each project has a unique _id field
-              {...project}
-              markFavorite={() => {
-                toggleFavorite(project);
-              }}
-            />
-          ))
-        ) : (
-          <p>אין פרויקטים זמינים כרגע</p>
-        )}
+    <div>
+      {isLoading ? (
+        <div style={{ position: "relative", height: "100vh" }}>
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            fontSize: "50px",
+            transform: "translate(-50%, -50%)",
+          }}>
+          <LoadingOutlined />
+        </div>
       </div>
-
-      {/* <DownloadFile /> */}
+      ) : (
+        <div className="projects">
+          <h2>רשימת פרויקטים</h2>
+          <div className="list-projects">
+            {projects.length > 0 ? (
+              projects.map((project) => (
+                <ProjectBox
+                  key={project._id} // Assuming each project has a unique _id field
+                  {...project}
+                  markFavorite={() => {
+                    toggleFavorite(project);
+                  }}
+                />
+              ))
+            ) : (
+              <p>אין פרויקטים זמינים כרגע</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

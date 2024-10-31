@@ -25,6 +25,12 @@
       width: 2rem;
       height: 2rem;
       fill: #1677ff;
+      cursor: pointer;
+      transition: all 0.2s linear;
+      &:hover {
+        fill: #0a5dc9;
+        scale: 1.05;
+      }
     }
   }
 }
