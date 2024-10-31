@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from "react";
+import "./ProjectsManagement.scss";
 import { useNavigate } from "react-router-dom";
 import { Tabs, Table, Modal, Select, Badge, Button } from "antd";
 import axios from "axios";
-import OpenIcon from "../../assets/openIcon.svg";
-import TakenIcon from "../../assets/takenIcon.svg";
-import FinishedIcon from "../../assets/finishedIcon.svg";
-import TerminatedIcon from "../../assets/terminatedIcon.svg";
 
 const ProjectsManagement = () => {
   const navigate = useNavigate();
@@ -27,7 +24,7 @@ const ProjectsManagement = () => {
           axios.get("/api/user/all-users", { withCredentials: true }),
         ]);
 
-        const activeUsers = usersRes.data.filter((user) => !user.suspended && user.isStudent);
+        const activeUsers = usersRes.data.filter((user) => !user.suspended);
         setProjects(projectsRes.data);
         setUsers(activeUsers);
 
@@ -121,61 +118,60 @@ const ProjectsManagement = () => {
   const columns = {
     open: [
       {
-        title: "Project Name",
+        title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
-        render: (text, record) => (
-          <Button variant="link" onClick={() => navigate(`/project/${record._id}`)}>
-            {text}
-          </Button>
-        ),
+        render: (text, record) => <a onClick={() => navigate(`/project/${record._id}`)}>{text}</a>,
       },
       {
-        title: "Advisor",
+        title: "מנחה",
         dataIndex: "advisors",
         key: "advisors",
         render: (advisors) => (
-          <div className="space-y-1">
+          <div>
             {advisors.map((advisor) => {
               const advisorUser = users.find((u) => u._id === advisor);
               return advisorUser ? (
-                <Button key={advisor} variant="link" onClick={() => navigate(`/profile/${advisor}`)}>
+                <a key={advisor} onClick={() => navigate(`/profile/${advisor}`)}>
                   {advisorUser.name}
-                </Button>
-              ) : null;
+                </a>
+              ) : (
+                "לא משויך מנחה"
+              );
             })}
           </div>
         ),
       },
       {
-        title: "Suitable For",
+        title: "מתאים ל...",
         dataIndex: "suitableFor",
         key: "suitableFor",
       },
       {
-        title: "Type",
+        title: "סוג",
         dataIndex: "type",
         key: "type",
       },
       {
-        title: "Actions",
+        title: "פעולות",
         key: "actions",
         render: (_, record) => (
-          <div className="space-x-2">
+          <div className="project-manage-actions">
+            <Button>הוסף מנחה</Button>
             <Button
               onClick={() => {
                 setSelectedProject(record);
                 setIsAddStudentsModalOpen(true);
               }}>
-              Add Students
+              הוסף סטודנטים
             </Button>
             <Button
-              variant="destructive"
+              danger
               onClick={() => {
                 setSelectedProject(record);
                 setIsTerminateModalOpen(true);
               }}>
-              Terminate
+              הפסקת פרויקט
             </Button>
           </div>
         ),
@@ -353,7 +349,29 @@ const ProjectsManagement = () => {
   const tabs = [
     {
       key: "open",
-      label: "Open Projects",
+      label: (
+        <div className="lable-with-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+            <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path
+                d="M12.1999 11.8L10.7899 13.21C10.0099 13.99 10.0099 15.26 10.7899 16.04C11.5699 16.82 12.8399 16.82 13.6199 16.04L15.8399 13.82C17.3999 12.26 17.3999 9.72999 15.8399 8.15999C14.2799 6.59999 11.7499 6.59999 10.1799 8.15999L7.75988 10.58C6.41988 11.92 6.41988 14.09 7.75988 15.43"
+                stroke="#000000"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"></path>
+              <path
+                d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                stroke="#000000"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"></path>
+            </g>
+          </svg>
+          <span>פרוייקטים פתוחים</span>
+        </div>
+      ),
       children: (
         <Table
           columns={columns.open}
@@ -365,7 +383,40 @@ const ProjectsManagement = () => {
     },
     {
       key: "taken",
-      label: "Taken Projects",
+      label: (
+        <div className="lable-with-icon">
+          <svg height="24" width="24" version="1.1" id="Capa_1" viewBox="0 0 363.868 363.868">
+            <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+            <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <g>
+                <path
+                  fill="#000000"
+                  d="M92.723,274.945c-3.178,3.178-5.747,9.388-5.747,13.875v58.444h33.929v-92.373 c0-4.487-2.569-5.56-5.747-2.382L92.723,274.945z"></path>
+                <path
+                  fill="#000000"
+                  d="M241.752,219.573c-3.17,3.178-5.747,9.389-5.747,13.884v113.816h33.929V199.487 c0-4.487-2.569-5.552-5.747-2.374L241.752,219.573z"></path>
+                <path
+                  fill="#000000"
+                  d="M291.418,169.834c-3.178,3.17-5.755,9.38-5.755,13.867v163.563h31.547V152.212 c0-4.487-2.577-5.56-5.755-2.382L291.418,169.834z"></path>
+                <path
+                  fill="#000000"
+                  d="M193.078,268.239c0,0-1.512,1.52-3.381,3.39c-1.861,1.87-3.373,7.031-3.373,11.518v64.118h33.929 v-98.047c0-4.487-2.577-5.56-5.755-2.382L193.078,268.239z"></path>
+                <path
+                  fill="#000000"
+                  d="M142.405,250.998c-3.178-3.17-5.755-2.105-5.755,2.382v93.885h33.929v-60.03 c0-4.487-2.439-10.559-5.454-13.558l-5.454-5.43L142.405,250.998z"></path>
+                <path
+                  fill="#000000"
+                  d="M50.023,317.669l-10.957,10.974c-3.17,3.178-5.739,8.633-5.739,12.193v6.438h37.871V304.59 c0-4.487-2.569-5.552-5.747-2.374L50.023,317.669z"></path>
+                <path
+                  fill="#000000"
+                  d="M358.121,150.724c3.17,3.178,5.747,2.105,5.747-2.382V32.193c0-8.316-7.966-15.599-16.233-15.599 H232.16c-4.487,0-5.56,2.577-2.382,5.755l41.074,41.106l-16.753,16.68l-77.701,77.774L135.3,116.82 c-3.178-3.178-8.316-3.17-11.494,0L9.519,231.189C-3.178,243.894-3.17,264.484,9.527,277.18l0.797,0.805 c12.697,12.697,33.287,12.697,45.975-0.008l73.247-73.287l41.098,41.057c3.178,3.17,8.324,3.17,11.502,0l135.479-135.503 L358.121,150.724z"></path>
+              </g>
+            </g>
+          </svg>
+          <span>פרוייקטים בתהליך</span>
+        </div>
+      ),
       children: (
         <Table
           columns={columns.taken}
@@ -377,7 +428,27 @@ const ProjectsManagement = () => {
     },
     {
       key: "finished",
-      label: "Finished Projects",
+      label: (
+        <div className="lable-with-icon">
+          <svg viewBox="0 0 32 32" version="1.1" fill="#000000">
+            <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+            <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <title>checkmark-circle</title>
+              <desc>Created with Sketch Beta.</desc>
+              <defs></defs>
+              <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+                <g id="Icon-Set" transform="translate(-100.000000, -1139.000000)" fill="#000000">
+                  <path
+                    d="M122.027,1148.07 C121.548,1147.79 120.937,1147.96 120.661,1148.43 L114.266,1159.51 L110.688,1156.21 C110.31,1155.81 109.677,1155.79 109.274,1156.17 C108.871,1156.54 108.85,1157.18 109.228,1157.58 L113.8,1161.8 C114.177,1162.2 114.81,1162.22 115.213,1161.84 C115.335,1161.73 122.393,1149.43 122.393,1149.43 C122.669,1148.96 122.505,1148.34 122.027,1148.07 L122.027,1148.07 Z M116,1169 C108.268,1169 102,1162.73 102,1155 C102,1147.27 108.268,1141 116,1141 C123.732,1141 130,1147.27 130,1155 C130,1162.73 123.732,1169 116,1169 L116,1169 Z M116,1139 C107.164,1139 100,1146.16 100,1155 C100,1163.84 107.164,1171 116,1171 C124.836,1171 132,1163.84 132,1155 C132,1146.16 124.836,1139 116,1139 L116,1139 Z"
+                    id="checkmark-circle"></path>
+                </g>
+              </g>
+            </g>
+          </svg>
+          <span>פרוייקטים שהושלמו</span>
+        </div>
+      ),
       children: (
         <Table
           columns={columns.finished}
@@ -389,7 +460,26 @@ const ProjectsManagement = () => {
     },
     {
       key: "terminated",
-      label: "Terminated Projects",
+      label: (
+        <div className="lable-with-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+            <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              {" "}
+              <path
+                d="M10.0303 8.96965C9.73741 8.67676 9.26253 8.67676 8.96964 8.96965C8.67675 9.26255 8.67675 9.73742 8.96964 10.0303L10.9393 12L8.96966 13.9697C8.67677 14.2625 8.67677 14.7374 8.96966 15.0303C9.26255 15.3232 9.73743 15.3232 10.0303 15.0303L12 13.0607L13.9696 15.0303C14.2625 15.3232 14.7374 15.3232 15.0303 15.0303C15.3232 14.7374 15.3232 14.2625 15.0303 13.9696L13.0606 12L15.0303 10.0303C15.3232 9.73744 15.3232 9.26257 15.0303 8.96968C14.7374 8.67678 14.2625 8.67678 13.9696 8.96968L12 10.9393L10.0303 8.96965Z"
+                fill="#000000"></path>{" "}
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z"
+                fill="#000000"></path>{" "}
+            </g>
+          </svg>
+          <span>פרוייקטים שהופסקו</span>
+        </div>
+      ),
       children: (
         <Table
           columns={columns.terminated}
@@ -402,7 +492,7 @@ const ProjectsManagement = () => {
   ];
 
   return (
-    <div className="p-6">
+    <div>
       <Tabs items={tabs} />
 
       {/* Add Students Modal */}
