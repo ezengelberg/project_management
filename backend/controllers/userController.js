@@ -1,6 +1,6 @@
 import User from "../models/users.js";
 import Project from "../models/projects.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import passport from "passport";
 import mongoose from "mongoose";
 
