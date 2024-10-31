@@ -53,7 +53,10 @@ const CreateProject = () => {
     const getUsersNoProjects = async () => {
       try {
         const response = await axios.get("/api/user/users-no-projects", { withCredentials: true });
-        setStudentsNoProject(response.data.usersNoProjects);
+        const onlyStudents = response.data.usersNoProjects.filter(
+          (user) => user.isStudent === true && user.isAdvisor === false && user.isCoordinator === false
+        );
+        setStudentsNoProject(onlyStudents);
       } catch (error) {
         console.error("Error occurred:", error.response.data.message);
       }

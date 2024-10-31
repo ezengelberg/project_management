@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, Table, Modal, Select, Badge, Button } from "antd";
 import axios from "axios";
+import OpenIcon from "../../assets/openIcon.svg";
+import TakenIcon from "../../assets/takenIcon.svg";
+import FinishedIcon from "../../assets/finishedIcon.svg";
+import TerminatedIcon from "../../assets/terminatedIcon.svg";
 
 const ProjectsManagement = () => {
   const navigate = useNavigate();
@@ -84,11 +88,7 @@ const ProjectsManagement = () => {
 
   const handleTerminateProject = async () => {
     try {
-      await axios.post(
-        `/api/project/${selectedProject._id}/terminate`,
-        {},
-        { withCredentials: true }
-      );
+      await axios.post(`/api/project/${selectedProject._id}/terminate`, {}, { withCredentials: true });
 
       // Update local state
       const updatedProjects = projects.map((project) => {
