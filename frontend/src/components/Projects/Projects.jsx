@@ -31,7 +31,7 @@ const Projects = () => {
           })
         );
         setProjects(sortProjects(projectsWithFavorites)); // Set sorted projects
-        // setIsLoading(false);
+        setIsLoading(false);
       } catch (error) {
         console.error("Error occurred:", error);
       }
