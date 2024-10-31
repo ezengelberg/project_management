@@ -26,7 +26,7 @@ const ManageProjects = () => {
 
   const getUsersNoProjects = async () => {
     try {
-      const response = await axios.get("/api/user/users-no-projects", { withCredentials: true });
+      const response = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/user/users-no-projects`, { withCredentials: true });
       setStudentsNoProject(response.data.usersNoProjects);
     } catch (error) {
       console.error("Error occurred:", error.response.data.message);
@@ -36,7 +36,7 @@ const ManageProjects = () => {
   useEffect(() => {
     const fetchPrivileges = async () => {
       try {
-        const response = await axios.get("/api/user/privileges", { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/user/privileges`, { withCredentials: true });
         setPrivileges(response.data);
       } catch (error) {
         console.error("Error occurred:", error.response.data.message);

@@ -20,8 +20,8 @@ const ProjectsManagement = () => {
       setLoading(true);
       try {
         const [projectsRes, usersRes] = await Promise.all([
-          axios.get("/api/project", { withCredentials: true }),
-          axios.get("/api/user/all-users", { withCredentials: true }),
+          axios.get(`${process.env.REACT_APP_SERVER_URL}/api/project`, { withCredentials: true }),
+          axios.get(`${process.env.REACT_APP_SERVER_URL}/api/user/all-users`, { withCredentials: true }),
         ]);
 
         const activeUsers = usersRes.data.filter((user) => !user.suspended);

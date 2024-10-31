@@ -35,14 +35,14 @@ const ShowAllUsers = () => {
       try {
         setLoading(true);
         // Fetch all users
-        const usersResponse = await axios.get("/api/user/all-users", { withCredentials: true });
+        const usersResponse = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/user/all-users`, { withCredentials: true });
         const userData = usersResponse.data;
 
         const suspendedUsersData = userData.filter((user) => user.suspended);
         const activeUsers = userData.filter((user) => !user.suspended);
 
         // Fetch all projects
-        const projectsResponse = await axios.get("/api/project", { withCredentials: true });
+        const projectsResponse = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/project`, { withCredentials: true });
         const projectsData = projectsResponse.data;
 
         // Create a map of student ID to project

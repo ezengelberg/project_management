@@ -15,7 +15,7 @@ const DownloadFile = ({ file, onEdit, onDelete }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get("/api/user/get-user", { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/user/get-user`, { withCredentials: true });
         setUser(response.data);
         setPrivileges({
           isStudent: response.data.isStudent,

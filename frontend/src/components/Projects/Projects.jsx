@@ -12,7 +12,7 @@ const Projects = () => {
   useEffect(() => {
     const grabProjects = async () => {
       try {
-        const response = await axios.get("/api/project/available-projects", {
+        const response = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/project/available-projects`, {
           withCredentials: true
         });
 
