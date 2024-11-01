@@ -23,7 +23,7 @@ export const registerUser = async (req, res) => {
       firstLogin: true,
       password: hashedPassword,
       registerDate: new Date(),
-      suspensionRecords: [],
+      suspensionRecords: []
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
@@ -34,8 +34,10 @@ export const registerUser = async (req, res) => {
 };
 
 export const loginUser = (req, res, next) => {
+  console.log("Logging in user");
   passport.authenticate("local", (err, user, info) => {
     if (err) return next(err);
+    console.log(info.message);
     if (!user) return res.status(401).send(info.message);
     if (user.suspended) return res.status(403).send("User is suspended");
 
@@ -273,7 +275,7 @@ export const suspendUser = async (req, res) => {
     user.suspensionRecords.push({
       suspendedBy: req.user._id,
       suspendedAt: new Date(),
-      reason: req.body.reason,
+      reason: req.body.reason
     });
 
     await user.save();

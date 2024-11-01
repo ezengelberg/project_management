@@ -33,9 +33,9 @@ const Login = () => {
     }
 
     try {
-      console.log(process.env.REACT_APP_SERVER_URL);
+      console.log("address:", process.env.REACT_APP_BACKEND_URL);
       const result = await axios.post(
-        `${process.env.REACT_APP_SERVER_URL}/api/user/login`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/user/login`,
         {
           email,
           password
@@ -69,7 +69,7 @@ const Login = () => {
     try {
       // Change password
       await axios.put(
-        `${process.env.REACT_APP_SERVER_URL}/api/user/change-password`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/user/change-password`,
         {
           oldPassword: tempUserData.id,
           newPassword: values.newPassword

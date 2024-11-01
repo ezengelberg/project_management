@@ -26,7 +26,7 @@ const ManageProjects = () => {
 
   const getUsersNoProjects = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/user/users-no-projects`, {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects`, {
         withCredentials: true
       });
       setStudentsNoProject(response.data.usersNoProjects);
@@ -38,7 +38,7 @@ const ManageProjects = () => {
   useEffect(() => {
     const fetchPrivileges = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/user/privileges`, {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, {
           withCredentials: true
         });
         setPrivileges(response.data);
@@ -49,7 +49,7 @@ const ManageProjects = () => {
 
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/project/get-self-projects/`, {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects/`, {
           withCredentials: true
         });
 
@@ -75,7 +75,7 @@ const ManageProjects = () => {
           for (const stud of project.students) {
             try {
               const studentResponse = await axios.get(
-                `${process.env.REACT_APP_SERVER_URL}/api/user/get-user-info/${stud.student}`,
+                `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${stud.student}`,
                 {
                   withCredentials: true
                 }
@@ -96,7 +96,7 @@ const ManageProjects = () => {
           for (const candidate of project.candidates) {
             try {
               const studentResponse = await axios.get(
-                `${process.env.REACT_APP_SERVER_URL}/api/user/get-user-info/${candidate.student}`,
+                `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${candidate.student}`,
                 { withCredentials: true }
               );
               candidatesData.push({
@@ -142,7 +142,7 @@ const ManageProjects = () => {
   const closeRegistration = (record) => async () => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_SERVER_URL}/api/project/switch-registration`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/switch-registration`,
         {
           projectID: record.key
         },
@@ -183,7 +183,7 @@ const ManageProjects = () => {
 
   const approveStudent = (record) => async () => {
     try {
-      const intialResponse = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/user/check-user-has-projects/${record.candidateInfo._id}`, {
+      const intialResponse = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${record.candidateInfo._id}`, {
         withCredentials: true
       });
       if (intialResponse.data.hasProject) {
@@ -195,7 +195,7 @@ const ManageProjects = () => {
         return;
       }
       await axios.post(
-        `${process.env.REACT_APP_SERVER_URL}/api/project/approve-candidate`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/approve-candidate`,
         {
           projectID: record.projectID,
           userID: record.candidateInfo._id
@@ -237,7 +237,7 @@ const ManageProjects = () => {
   const declineStudent = (record) => async () => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_SERVER_URL}/api/project/remove-candidate`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/remove-candidate`,
         {
           projectID: record.projectID,
           userID: record.candidateInfo._id
@@ -271,7 +271,7 @@ const ManageProjects = () => {
   const removeStudent = (record) => async () => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_SERVER_URL}/api/project/remove-student`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/remove-student`,
         {
           projectID: record.projectID,
           userID: record.candidateInfo._id
@@ -384,7 +384,7 @@ const ManageProjects = () => {
     const { title, description, year, suitableFor, type, continues } = form.getFieldsValue();
     try {
       const response = await axios.put(
-        `${process.env.REACT_APP_SERVER_URL}/api/project/edit-project/${editProjectData._id}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/edit-project/${editProjectData._id}`,
         { title, description, year, suitableFor, type, continues },
         {
           withCredentials: true

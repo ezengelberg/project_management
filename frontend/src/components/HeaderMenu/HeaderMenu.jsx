@@ -17,7 +17,7 @@ const HeaderMenu = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/user/logout`, null, { withCredentials: true });
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/logout`, null, { withCredentials: true });
       navigate("/login", { replace: true });
       localStorage.removeItem("user");
       sessionStorage.removeItem("user");

@@ -12,14 +12,14 @@ const Projects = () => {
   useEffect(() => {
     const grabProjects = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/project/available-projects`, {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/available-projects`, {
           withCredentials: true
         });
 
         const projectsWithFavorites = await Promise.all(
           response.data.map(async (project) => {
             const responsePerProject = await axios.get(
-              `${process.env.REACT_APP_SERVER_URL}/api/user/ensure-favorite/${project._id}`,
+              `${process.env.REACT_APP_BACKEND_URL}/api/user/ensure-favorite/${project._id}`,
               {
                 withCredentials: true
               }
@@ -56,7 +56,7 @@ const Projects = () => {
     if (project.isTaken) return; // Do not allow marking a taken project as favorite
     try {
       await axios.post(
-        `${process.env.REACT_APP_SERVER_URL}/api/user/toggle-favorite`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/user/toggle-favorite`,
         {
           projectId: project._id
         },
