@@ -34,10 +34,8 @@ export const registerUser = async (req, res) => {
 };
 
 export const loginUser = (req, res, next) => {
-  console.log("Logging in user");
   passport.authenticate("local", (err, user, info) => {
     if (err) return next(err);
-    console.log(info.message);
     if (!user) return res.status(401).send(info.message);
     if (user.suspended) return res.status(403).send("User is suspended");
 
