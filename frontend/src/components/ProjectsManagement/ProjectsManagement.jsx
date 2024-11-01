@@ -9,11 +9,14 @@ const ProjectsManagement = () => {
   const [projects, setProjects] = useState([]);
   const [users, setUsers] = useState([]);
   const [usersWithoutProjects, setUsersWithoutProjects] = useState([]);
+  const [advisorsWithoutProjects, setAdvisorsWithoutProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [isAddStudentsModalOpen, setIsAddStudentsModalOpen] = useState(false);
   const [isTerminateModalOpen, setIsTerminateModalOpen] = useState(false);
+  const [isAddAdvisorModalOpen, setIsAddAdvisorModalOpen] = useState(false);
+  const [selectedAdvisor, setSelectedAdvisor] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,7 +36,12 @@ const ProjectsManagement = () => {
           projectsRes.data.flatMap((project) => project.students.map((student) => student.student.toString()))
         );
 
-        setUsersWithoutProjects(activeUsers.filter((user) => !usersWithProject.has(user._id.toString())));
+        setUsersWithoutProjects(
+          activeUsers.filter((user) => !usersWithProject.has(user._id.toString()) && user.isStudent)
+        );
+        setAdvisorsWithoutProjects(
+          activeUsers.filter((user) => !usersWithProject.has(user._id.toString()) && user.isAdvisor)
+        );
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -83,9 +91,17 @@ const ProjectsManagement = () => {
     }
   };
 
+  const handleAddAdvisor = async () => {
+    console.log(selectedAdvisor);
+  };
+
   const handleTerminateProject = async () => {
     try {
-      await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/project/${selectedProject._id}/terminate`, {}, { withCredentials: true });
+      await axios.post(
+        `${process.env.REACT_APP_SERVER_URL}/api/project/${selectedProject._id}/terminate`,
+        {},
+        { withCredentials: true }
+      );
 
       // Update local state
       const updatedProjects = projects.map((project) => {
@@ -121,7 +137,12 @@ const ProjectsManagement = () => {
         title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
-        render: (text, record) => <a onClick={() => navigate(`/project/${record._id}`)}>{text}</a>,
+        render: (text, record) => (
+          <a onClick={() => navigate(`/project/${record._id}`)}>
+            {text.length > 70 ? `${text.substring(0, 70)}...` : text}
+          </a>
+        ),
+        width: "30%",
       },
       {
         title: "מנחה",
@@ -141,23 +162,32 @@ const ProjectsManagement = () => {
             })}
           </div>
         ),
+        width: "20%",
       },
       {
         title: "מתאים ל...",
         dataIndex: "suitableFor",
         key: "suitableFor",
+        width: "15%",
       },
       {
         title: "סוג",
         dataIndex: "type",
         key: "type",
+        width: "15%",
       },
       {
         title: "פעולות",
         key: "actions",
         render: (_, record) => (
           <div className="project-manage-actions">
-            <Button>הוסף מנחה</Button>
+            <Button
+              onClick={() => {
+                setSelectedProject(record);
+                setIsAddAdvisorModalOpen(true);
+              }}>
+              הוסף מנחה
+            </Button>
             <Button
               onClick={() => {
                 setSelectedProject(record);
@@ -175,6 +205,7 @@ const ProjectsManagement = () => {
             </Button>
           </div>
         ),
+        width: "20%",
       },
     ],
     taken: [
@@ -351,7 +382,7 @@ const ProjectsManagement = () => {
       key: "open",
       label: (
         <div className="lable-with-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg className="tab-icon-special" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
             <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
             <g id="SVGRepo_iconCarrier">
@@ -369,7 +400,7 @@ const ProjectsManagement = () => {
                 strokeLinejoin="round"></path>
             </g>
           </svg>
-          <span>פרוייקטים פתוחים</span>
+          <span>פרוייקטים ללא שיבוץ</span>
         </div>
       ),
       children: (
@@ -385,7 +416,7 @@ const ProjectsManagement = () => {
       key: "taken",
       label: (
         <div className="lable-with-icon">
-          <svg height="24" width="24" version="1.1" id="Capa_1" viewBox="0 0 363.868 363.868">
+          <svg className="tab-icon" height="24" width="24" version="1.1" id="Capa_1" viewBox="0 0 363.868 363.868">
             <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
             <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
             <g id="SVGRepo_iconCarrier">
@@ -430,7 +461,7 @@ const ProjectsManagement = () => {
       key: "finished",
       label: (
         <div className="lable-with-icon">
-          <svg viewBox="0 0 32 32" version="1.1" fill="#000000">
+          <svg className="tab-icon" viewBox="0 0 32 32" version="1.1" fill="#000000">
             <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
             <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
             <g id="SVGRepo_iconCarrier">
@@ -462,19 +493,18 @@ const ProjectsManagement = () => {
       key: "terminated",
       label: (
         <div className="lable-with-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg className="tab-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
             <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
             <g id="SVGRepo_iconCarrier">
-              {" "}
               <path
                 d="M10.0303 8.96965C9.73741 8.67676 9.26253 8.67676 8.96964 8.96965C8.67675 9.26255 8.67675 9.73742 8.96964 10.0303L10.9393 12L8.96966 13.9697C8.67677 14.2625 8.67677 14.7374 8.96966 15.0303C9.26255 15.3232 9.73743 15.3232 10.0303 15.0303L12 13.0607L13.9696 15.0303C14.2625 15.3232 14.7374 15.3232 15.0303 15.0303C15.3232 14.7374 15.3232 14.2625 15.0303 13.9696L13.0606 12L15.0303 10.0303C15.3232 9.73744 15.3232 9.26257 15.0303 8.96968C14.7374 8.67678 14.2625 8.67678 13.9696 8.96968L12 10.9393L10.0303 8.96965Z"
-                fill="#000000"></path>{" "}
+                fill="#000000"></path>
               <path
-                fill-rule="evenodd"
-                clip-rule="evenodd"
+                fillRule="evenodd"
+                clipRule="evenodd"
                 d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z"
-                fill="#000000"></path>{" "}
+                fill="#000000"></path>
             </g>
           </svg>
           <span>פרוייקטים שהופסקו</span>
@@ -498,65 +528,70 @@ const ProjectsManagement = () => {
       {/* Add Students Modal */}
       <Modal
         open={isAddStudentsModalOpen}
-        title="Add Students to Project"
-        onClose={() => {
+        title={`הוספת סטודנטים לפרויקט: ${selectedProject?.title}`}
+        onOk={handleAddStudents}
+        onCancel={() => {
           setIsAddStudentsModalOpen(false);
           setSelectedStudents([]);
           setSelectedProject(null);
-        }}>
-        <div className="space-y-4">
-          <p>Select up to 2 students for this project:</p>
+        }}
+        okText="הוסף סטודנטים"
+        okButtonProps={{ disabled: selectedStudents.length === 0 || selectedStudents.length > 2 }}
+        cancelText="ביטול">
+        <div className="modal-select-input">
+          <p>בחר עד 2 סטודנטים לפרויקט:</p>
           <Select
             mode="multiple"
-            maxTagCount={2}
             value={selectedStudents}
             onChange={setSelectedStudents}
             options={usersWithoutProjects.map((user) => ({
               label: user.name,
               value: user._id,
             }))}
-            className="w-full"
           />
-          <div className="flex justify-end space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsAddStudentsModalOpen(false);
-                setSelectedStudents([]);
-                setSelectedProject(null);
-              }}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddStudents} disabled={selectedStudents.length === 0 || selectedStudents.length > 2}>
-              Add Students
-            </Button>
-          </div>
+        </div>
+      </Modal>
+
+      {/* Add Advisor Modal */}
+      <Modal
+        open={isAddAdvisorModalOpen}
+        title={`הוספת מנחה לפרויקט: ${selectedProject?.title}`}
+        onOk={handleAddAdvisor}
+        onCancel={() => {
+          setIsAddAdvisorModalOpen(false);
+          setSelectedProject(null);
+          setSelectedAdvisor(null);
+        }}
+        okText="הוסף מנחה"
+        okButtonProps={{ disabled: !selectedAdvisor }}
+        cancelText="ביטול">
+        <div className="modal-select-input">
+          <p>בחר מנחה לפרויקט:</p>
+          <Select
+            value={selectedAdvisor}
+            onChange={setSelectedAdvisor}
+            options={advisorsWithoutProjects.map((user) => ({
+              label: user.name,
+              value: user._id,
+            }))}
+          />
         </div>
       </Modal>
 
       {/* Terminate Project Modal */}
       <Modal
         open={isTerminateModalOpen}
-        title="Terminate Project"
-        onClose={() => {
+        title={`הפסקת פרויקט: ${selectedProject?.title}`}
+        onOk={handleTerminateProject}
+        onCancel={() => {
           setIsTerminateModalOpen(false);
           setSelectedProject(null);
-        }}>
-        <div className="space-y-4">
-          <p>Are you sure you want to terminate this project? This action cannot be undone.</p>
-          <div className="flex justify-end space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsTerminateModalOpen(false);
-                setSelectedProject(null);
-              }}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleTerminateProject}>
-              Terminate Project
-            </Button>
-          </div>
+        }}
+        okText="הפסק פרויקט"
+        okButtonProps={{ danger: true }}
+        cancelText="ביטול">
+        <div>
+          <p>אתה בטוח שברצונך להפסיק את הפרויקט?</p>
         </div>
       </Modal>
     </div>
