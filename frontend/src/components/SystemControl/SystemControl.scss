@@ -39,7 +39,7 @@
       transition: background-color 0.2s linear;
       &:hover {
         background-color: #fd3e41;
-        animation: popout 0.5s ease-in-out;
+        animation: popout-rattle 0.5s ease-in-out;
       }
       svg {
         width: 5rem;
@@ -53,14 +53,25 @@
   margin: 0 0 1.5rem;
 }
 
-@keyframes popout {
+@keyframes popout-rattle {
   0% {
+    transform: translateX(0);
     transform: scale(1);
   }
+  25% {
+    transform: translateX(-0.5rem);
+    // transform: scale(1.1);
+  }
   50% {
-    transform: scale(1.15);
+    transform: translateX(0.5rem);
+    transform: scale(1.05);
+  }
+  75% {
+    transform: translateX(-0.5rem);
+    // transform: scale(1.1);
   }
   100% {
+    transform: translateX(0);
     transform: scale(1);
   }
 }
