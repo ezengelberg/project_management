@@ -213,7 +213,6 @@ export const addCandidateToProject = async (req, res) => {
     }
     project.candidates.push({ student: user._id });
     await project.save();
-    console.log(project.candidates);
     console.log(`Candidate ${req.user.name} added successfully`);
     res.status(201).send("Candidate added successfully");
   } catch (err) {
@@ -242,23 +241,27 @@ export const removeCandidateFromProject = async (req, res) => {
 };
 
 export const approveCandidate = async (req, res) => {
-  console.log("trying to approve");
   try {
     const project = await Project.findById(req.body.projectID);
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
-    console.log("found project");
     const user = await User.findById(req.body.userID);
     const candidate = project.candidates.find((candidate) => candidate.student.toString() === user._id.toString());
     if (candidate) {
-      console.log("found candidate");
       if (!project.students) {
         project.students = [];
       }
       if (project.students.find((candidate) => candidate.student.toString() === user._id.toString())) {
         return res.status(409).send({ error: "Candidate is already approved", message: "המועמד כבר אושר" });
       }
+      await Project.findOne({ students: { $elemMatch: { student: user._id } } }, (err, doc) => {
+        if (doc) {
+          return res
+            .status(409)
+            .send({ error: "Student is already in another project", message: "הסטודנט כבר נמצא בפרויקט אחר" });
+        }
+      });
       if (project.students.length >= 2) {
         return res
           .status(409)
@@ -281,18 +284,15 @@ export const approveCandidate = async (req, res) => {
 
 export const removeStudentFromProject = async (req, res) => {
   try {
-    console.log("moving student back to candidates.......");
     const userid = req.body.userID;
     const user = await User.findById(userid);
     const project = await Project.findById(req.body.projectID);
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
-    console.log("found project");
     if (!project.students.find((student) => student.student.toString() === userid.toString())) {
       return res.status(400).send({ message: "User is not a student in this project" });
     }
-    console.log("found student");
     const student = project.students.find((student) => student.student.toString() === userid.toString());
     project.students = project.students.filter((student) => student.student.toString() !== userid.toString());
     project.candidates.push(student);
@@ -336,18 +336,37 @@ export const checkIfUserIsCandidate = async (req, res) => {
 };
 
 export const updateProject = async (req, res) => {
-  console.log("edit project");
   try {
     const project = await Project.findById(req.params.id);
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
-    console.log("found project");
     const { title, description, year, suitableFor, type, continues } = req.body;
-    console.log(req.body);
     if (!title || !description || !year || !suitableFor || !type) {
       return res.status(400).send({ message: "Missing required fields" });
     }
+    const updatedFields = [];
+    const oldFields = { title: project.title, description: project.description, year: project.year };
+    if (title !== project.title) {
+      updatedFields.push({ field: "title", oldValue: oldFields.title, newValue: title });
+    }
+    if (description !== project.description) {
+      updatedFields.push({ field: "description", oldValue: oldFields.description, newValue: description });
+    }
+    if (year !== project.year) {
+      updatedFields.push({ field: "year", oldValue: oldFields.year, newValue: year });
+    }
+    if (suitableFor !== project.suitableFor) {
+      updatedFields.push({ field: "suitableFor", oldValue: project.suitableFor, newValue: suitableFor });
+    }
+    if (type !== project.type) {
+      updatedFields.push({ field: "type", oldValue: project.type, newValue: type });
+    }
+    if (continues !== project.continues) {
+      updatedFields.push({ field: "continues", oldValue: project.continues, newValue: continues });
+    }
+
+    project.updateRecords.push({ date: new Date(), changes: updatedFields });
 
     project.title = title;
     project.description = description;

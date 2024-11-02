@@ -15,6 +15,7 @@ import ShowAllUsers from "./components/ShowAllUsers/ShowAllUsers";
 import HeaderMenu from "./components/HeaderMenu/HeaderMenu";
 import ProjectPage from "./components/ProjectPage/ProjectPage";
 import ProjectsManagement from "./components/ProjectsManagement/ProjectsManagement";
+import SystemControl from "./components/SystemControl/SystemControl";
 
 function App() {
   return (
@@ -105,6 +106,14 @@ const MainLayout = () => {
                 element={
                   <ProtectedRoute>
                     <ProjectsManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/system"
+                element={
+                  <ProtectedRoute>
+                    <SystemControl />
                   </ProtectedRoute>
                 }
               />
