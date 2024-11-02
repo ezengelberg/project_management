@@ -33,4 +33,16 @@
       }
     }
   }
+  .upload-users-csv {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 70%;
+    margin: 0 auto;
+
+    .uploader-users-csv {
+      width: 50%;
+      margin: 0 auto;
+    }
+  }
 }
