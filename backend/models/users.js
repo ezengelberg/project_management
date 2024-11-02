@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   isStudent: { type: Boolean, required: true, default: true },
   isAdvisor: { type: Boolean, required: true, default: false },
   isCoordinator: { type: Boolean, required: true, default: false },
+  isJudge: { type: Boolean, required: true, default: false },
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Project", required: false, default: [] }],
   registerDate: { type: Date, required: true, default: Date.now },
   suspended: { type: Boolean, default: false },
@@ -16,7 +17,7 @@ const userSchema = new mongoose.Schema({
   suspendedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   suspendedReason: { type: String, default: null },
   suspensionRecords: { type: Array, required: true, default: [] },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
 const userModel = mongoose.model("User", userSchema);
