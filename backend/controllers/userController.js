@@ -319,22 +319,3 @@ export const deleteSuspendedUser = async (req, res) => {
     res.status(404).send("User not found");
   }
 };
-
-export const checkUserHasProject = async (req, res) => {
-  console.log("checking if has project");
-  console.log(req.params);
-  const { userId } = req.params;
-  try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-    const projects = await Project.find({ "students.student": user._id });
-    if (projects.length === 0) {
-      return res.status(200).send({ hasProject: false });
-    }
-    return res.status(200).send({ hasProject: true });
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
-};

@@ -16,8 +16,7 @@ import {
   suspendUser,
   unsuspendUser,
   deleteSuspendedUser,
-  changePassword,
-  checkUserHasProject
+  changePassword
 } from "../controllers/userController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -43,6 +42,5 @@ router.put("/edit-user-coordinator/:userId", ensureAuthenticated, isCoordinator,
 router.put("/suspend-user/:userId", ensureAuthenticated, isCoordinator, suspendUser);
 router.put("/unsuspend-user/:userId", ensureAuthenticated, isCoordinator, unsuspendUser);
 router.delete("/delete-suspended-user/:userId", ensureAuthenticated, isCoordinator, deleteSuspendedUser);
-router.get("/check-user-has-projects/:userId", ensureAuthenticated, checkUserHasProject);
 
 export default router;
