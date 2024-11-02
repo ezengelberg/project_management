@@ -16,6 +16,7 @@ import {
   getSelfProjects,
   addAdvisorToProject,
   addStudentToProject,
+  updateStudentsInProject,
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../middleware/auth.js";
 
@@ -37,5 +38,6 @@ router.get("/status", getProjectsStatus);
 router.put("/edit-project/:id", ensureAuthenticated, isAdvisorOrCoordinator, updateProject);
 router.post("/add-advisor", ensureAuthenticated, isCoordinator, addAdvisorToProject);
 router.post("/add-student", ensureAuthenticated, isCoordinator, addStudentToProject);
+router.put("/update-students", ensureAuthenticated, isCoordinator, updateStudentsInProject);
 
 export default router;
