@@ -60,7 +60,7 @@ export const getSelfProjects = async (req, res) => {
 
 export const createProject = async (req, res) => {
   try {
-    const { title, description, year, suitableFor, type, continues, isApproved, advisors, students } = req.body;
+    const { title, description, year, suitableFor, type, continues, advisors, students } = req.body;
 
     if (!title || !description || !year || !suitableFor || !type) {
       return res.status(400).send({ message: "Missing required fields" });
@@ -76,7 +76,6 @@ export const createProject = async (req, res) => {
         ...req.body,
         advisors: [req.user._id],
         continues,
-        isApproved,
         isFinished: false,
         isTerminated: false,
         isTaken: false,
@@ -108,7 +107,6 @@ export const createProject = async (req, res) => {
         advisors: advisorsList,
         students: studentsList,
         continues,
-        isApproved,
         isFinished: false,
         isTerminated: false,
         isTaken: false,
@@ -370,9 +368,9 @@ export const addAdvisorToProject = async (req, res) => {
 export const getProjectsStatus = async (req, res) => {
   try {
     const projects = await Project.find();
-    const numOfTakenProjects = projects.filter((project) => project.isTaken && project.isApproved).length;
-    const numOfOpenProjects = projects.filter((project) => !project.isTaken && project.isApproved).length;
-    const numOfFinishedProjects = projects.filter((project) => project.isFinished && project.isApproved).length;
+    const numOfTakenProjects = projects.filter((project) => project.isTaken).length;
+    const numOfOpenProjects = projects.filter((project) => !project.isTake).length;
+    const numOfFinishedProjects = projects.filter((project) => project.isFinished).length;
     res.status(200).send({ numOfOpenProjects, numOfTakenProjects, numOfFinishedProjects });
   } catch (err) {
     res.status(500).send({ message: err.message });

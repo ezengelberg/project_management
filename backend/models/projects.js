@@ -8,7 +8,6 @@ const projectSchema = new mongoose.Schema({
   type: { type: String, required: true },
   externalEmail: { type: String, required: false },
   continues: { type: Boolean, required: false, default: false },
-  isApproved: { type: Boolean, required: false, default: false },
   isFinished: { type: Boolean, required: false, default: false },
   isTerminated: { type: Boolean, required: false, default: false },
   isTaken: { type: Boolean, required: false, default: false },

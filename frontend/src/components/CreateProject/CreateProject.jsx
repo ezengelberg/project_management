@@ -318,20 +318,6 @@ const CreateProject = () => {
           <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
         </Form.Item>
 
-        {privileges.isCoordinator && (
-          <Form.Item
-            className="create-project-form-item"
-            label="מאושר"
-            name="isApproved"
-            rules={[
-              {
-                required: false,
-              },
-            ]}>
-            <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
-          </Form.Item>
-        )}
-
         {privileges.isCoordinator ? (
           <Form.Item
             className="create-project-form-item"
