@@ -39,7 +39,9 @@ const ProjectBox = ({ markFavorite, ...props }) => {
         </svg>
         <div className="project-info">
           <div className="project-header">
-            <h3 className="project-title">{props.title}</h3>
+            <h3 className="project-title">
+              {props.title.length > 60 ? props.title.substring(0, 60) + "..." : props.title}
+            </h3>
             {props.isFavorite ? (
               <Tooltip title="הסר ממועדפים">
                 <StarFilled className="favorite-star star-marked" onClick={() => markFavorite()} />
