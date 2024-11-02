@@ -11,6 +11,18 @@ export const getProjects = async (req, res) => {
   }
 };
 
+export const getProjectsStatus = async (req, res) => {
+  try {
+    const projects = await Project.find();
+    const numOfTakenProjects = projects.filter((project) => project.isTaken).length;
+    const numOfOpenProjects = projects.filter((project) => !project.isTake).length;
+    const numOfFinishedProjects = projects.filter((project) => project.isFinished).length;
+    res.status(200).send({ numOfOpenProjects, numOfTakenProjects, numOfFinishedProjects });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const getAvailableProjects = async (req, res) => {
   try {
     const projects = await Project.find({ isTerminated: false, isFinished: false });
@@ -79,7 +91,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
     } else {
       const advisorsList = [];
@@ -110,7 +122,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
     }
 
@@ -118,7 +130,7 @@ export const createProject = async (req, res) => {
 
     res.status(201).json({
       message: "Project created successfully",
-      project: savedProject
+      project: savedProject,
     });
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -185,6 +197,10 @@ export const updateStudentsInProject = async (req, res) => {
         return res.status(400).send({ message: `Invalid student ID: ${studentID}` });
       }
       validStudents.push({ student: student._id });
+    }
+
+    if (project.students.length === 0) {
+      project.isTaken = false;
     }
 
     // Update students in the project
@@ -359,7 +375,7 @@ export const updateProject = async (req, res) => {
     await project.save();
     res.status(201).json({
       message: "Project updated successfully",
-      project: project
+      project: project,
     });
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -393,13 +409,74 @@ export const addAdvisorToProject = async (req, res) => {
   }
 };
 
-export const getProjectsStatus = async (req, res) => {
+export const updateAdvisorInProject = async (req, res) => {
   try {
-    const projects = await Project.find();
-    const numOfTakenProjects = projects.filter((project) => project.isTaken).length;
-    const numOfOpenProjects = projects.filter((project) => !project.isTake).length;
-    const numOfFinishedProjects = projects.filter((project) => project.isFinished).length;
-    res.status(200).send({ numOfOpenProjects, numOfTakenProjects, numOfFinishedProjects });
+    const { projectID, advisorID } = req.body;
+    const project = await Project.findById(projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+
+    const advisor = await User.findById(advisorID);
+    if (!advisor || !advisor.isAdvisor) {
+      return res.status(400).send({ message: "Invalid advisor ID" });
+    }
+
+    project.advisors = [advisorID];
+
+    if (project.advisors.length === 0) {
+      project.isTaken = false;
+    }
+
+    await project.save();
+
+    res.status(200).send({ message: "Advisor updated successfully", project });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const addJudgesToProject = async (req, res) => {
+  try {
+    const { projectID, judges } = req.body;
+    const project = await Project.findById(projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    const validJudges = [];
+    for (const judgeID of judges) {
+      const judge = await User.findById(judgeID);
+      if (!judge || !judge.isJudge) {
+        return res.status(400).send({ message: `Invalid judge ID: ${judgeID}` });
+      }
+      validJudges.push(judgeID);
+    }
+    project.judges = validJudges;
+    await project.save();
+    res.status(200).send({ message: "Judges updated successfully", project });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const updateJudgesInProject = async (req, res) => {
+  try {
+    const { projectID, judges } = req.body;
+    const project = await Project.findById(projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    const validJudges = [];
+    for (const judgeID of judges) {
+      const judge = await User.findById(judgeID);
+      if (!judge || !judge.isJudge) {
+        return res.status(400).send({ message: `Invalid judge ID: ${judgeID}` });
+      }
+      validJudges.push(judgeID);
+    }
+    project.judges = validJudges;
+    await project.save();
+    res.status(200).send({ message: "Judges updated successfully", project });
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

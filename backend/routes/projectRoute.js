@@ -17,6 +17,9 @@ import {
   addAdvisorToProject,
   addStudentToProject,
   updateStudentsInProject,
+  updateAdvisorInProject,
+  addJudgesToProject,
+  updateJudgesInProject,
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../middleware/auth.js";
 
@@ -39,5 +42,8 @@ router.put("/edit-project/:id", ensureAuthenticated, isAdvisorOrCoordinator, upd
 router.post("/add-advisor", ensureAuthenticated, isCoordinator, addAdvisorToProject);
 router.post("/add-student", ensureAuthenticated, isCoordinator, addStudentToProject);
 router.put("/update-students", ensureAuthenticated, isCoordinator, updateStudentsInProject);
+router.put("/update-advisor", ensureAuthenticated, isCoordinator, updateAdvisorInProject);
+router.post("/add-judges", ensureAuthenticated, isCoordinator, addJudgesToProject);
+router.put("/update-judges", ensureAuthenticated, isCoordinator, updateJudgesInProject);
 
 export default router;

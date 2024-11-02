@@ -17,6 +17,7 @@ const ProjectsManagement = () => {
   const [isAddStudentsModalOpen, setIsAddStudentsModalOpen] = useState(false);
   const [isTerminateModalOpen, setIsTerminateModalOpen] = useState(false);
   const [isAddAdvisorModalOpen, setIsAddAdvisorModalOpen] = useState(false);
+  const [isUpdateAdvisorsModalOpen, setIsUpdateAdvisorsModalOpen] = useState(false);
   const [selectedAdvisor, setSelectedAdvisor] = useState(null);
   const [isUpdateStudentsModalOpen, setIsUpdateStudentsModalOpen] = useState(false);
   const [isAddJudgeModalOpen, setIsAddJudgeModalOpen] = useState(false);
@@ -171,6 +172,108 @@ const ProjectsManagement = () => {
     }
   };
 
+  const handleUpdateAdvisor = async () => {
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/update-advisor`,
+        {
+          projectID: selectedProject._id,
+          advisorID: selectedAdvisor,
+        },
+        { withCredentials: true }
+      );
+
+      // Update local state
+      const updatedProjects = projects.map((project) => {
+        if (project._id === selectedProject._id) {
+          const updatedProject = {
+            ...project,
+            advisors: [selectedAdvisor],
+          };
+          return updatedProject;
+        }
+        return project;
+      });
+
+      setProjects(updatedProjects);
+      setIsUpdateAdvisorsModalOpen(false);
+      setSelectedAdvisor(null);
+      setSelectedProject(null);
+      message.success("המנחה עודכן בהצלחה!");
+    } catch (error) {
+      console.error("Error updating advisor:", error);
+      message.error("שגיאה בעדכון מנחה");
+    }
+  };
+
+  const handleAddJudges = async () => {
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/add-judges`,
+        {
+          projectID: selectedProject._id,
+          judges: selectedJudges,
+        },
+        { withCredentials: true }
+      );
+
+      // Update local state
+      const updatedProjects = projects.map((project) => {
+        if (project._id === selectedProject._id) {
+          const updatedProject = {
+            ...project,
+            judges: selectedJudges,
+          };
+          return updatedProject;
+        }
+        return project;
+      });
+
+      setProjects(updatedProjects);
+      setIsAddJudgeModalOpen(false);
+      setSelectedJudges([]);
+      setSelectedProject(null);
+      message.success("השופטים נוספו בהצלחה!");
+    } catch (error) {
+      console.error("Error adding judges:", error);
+      message.error("שגיאה בהוספת שופטים");
+    }
+  };
+
+  const handleUpdateJudges = async () => {
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/update-judges`,
+        {
+          projectID: selectedProject._id,
+          judges: selectedJudges,
+        },
+        { withCredentials: true }
+      );
+
+      // Update local state
+      const updatedProjects = projects.map((project) => {
+        if (project._id === selectedProject._id) {
+          const updatedProject = {
+            ...project,
+            judges: selectedJudges,
+          };
+          return updatedProject;
+        }
+        return project;
+      });
+
+      setProjects(updatedProjects);
+      setIsUpdateJudgesModalOpen(false);
+      setSelectedJudges([]);
+      setSelectedProject(null);
+      message.success("השופטים עודכנו בהצלחה!");
+    } catch (error) {
+      console.error("Error updating judges:", error);
+      message.error("שגיאה בעדכון שופטים");
+    }
+  };
+
   const handleTerminateProject = async () => {
     try {
       await axios.post(
@@ -277,13 +380,22 @@ const ProjectsManagement = () => {
         key: "actions",
         render: (_, record) => (
           <div className="project-manage-actions">
-            {record.advisors.length === 0 && (
+            {record.advisors.length === 0 ? (
               <Button
                 onClick={() => {
                   setSelectedProject(record);
                   setIsAddAdvisorModalOpen(true);
                 }}>
                 הוסף מנחה
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  setSelectedProject(record);
+                  setIsUpdateAdvisorsModalOpen(true);
+                  setSelectedAdvisor(record.advisors[0]);
+                }}>
+                עדכן מנחה
               </Button>
             )}
             {record.students.length === 0 ? (
@@ -351,7 +463,7 @@ const ProjectsManagement = () => {
               : "לא משוייך מנחה"}
           </div>
         ),
-        width: "15%",
+        width: "12%",
       },
       {
         title: "סטודנטים",
@@ -377,14 +489,14 @@ const ProjectsManagement = () => {
         title: "סוג",
         dataIndex: "type",
         key: "type",
-        width: "10%",
+        width: "7%",
       },
       {
         title: "שופטים",
         dataIndex: "judges",
         key: "judges",
         render: (judges) => (
-          <div>
+          <div className="projects-judge-list">
             {judges.length > 0
               ? judges.map((judge) => {
                   const judgeUser = users.find((u) => u._id === judge);
@@ -410,7 +522,7 @@ const ProjectsManagement = () => {
                   setSelectedProject(record);
                   setIsAddJudgeModalOpen(true);
                 }}>
-                הוסף שופט
+                הוסף שופטים
               </Button>
             ) : (
               <Button
@@ -423,6 +535,26 @@ const ProjectsManagement = () => {
               </Button>
             )}
             <Button
+              onClick={() => {
+                setSelectedProject(record);
+                setIsUpdateAdvisorsModalOpen(true);
+                setSelectedAdvisor(record.advisors[0]);
+              }}>
+              עדכן מנחה
+            </Button>
+            <Button
+              onClick={() => {
+                setSelectedProject(record);
+                setIsUpdateStudentsModalOpen(true);
+                setSelectedStudents(record.students.map((s) => s.student));
+                setUsersWithoutProjects((prev) => [
+                  ...prev,
+                  ...record.students.map((s) => users.find((u) => u._id === s.student)).filter(Boolean),
+                ]);
+              }}>
+              עדכן סטודנטים
+            </Button>
+            <Button
               danger
               onClick={() => {
                 setSelectedProject(record);
@@ -432,6 +564,7 @@ const ProjectsManagement = () => {
             </Button>
           </div>
         ),
+        width: "20%",
       },
     ],
     finished: [
@@ -760,6 +893,85 @@ const ProjectsManagement = () => {
             value={selectedAdvisor}
             onChange={setSelectedAdvisor}
             options={advisors.map((user) => ({
+              label: user.name,
+              value: user._id,
+            }))}
+          />
+        </div>
+      </Modal>
+
+      {/* Update Advisors Modal */}
+      <Modal
+        open={isUpdateAdvisorsModalOpen}
+        title={`עדכון מנחה לפרויקט: ${selectedProject?.title}`}
+        onOk={handleUpdateAdvisor}
+        onCancel={() => {
+          setIsUpdateAdvisorsModalOpen(false);
+          setSelectedProject(null);
+          setSelectedAdvisor(null);
+        }}
+        okText="עדכן מנחה"
+        cancelText="ביטול">
+        <div className="modal-select-input">
+          <p>בחר עד 3 שופטים לפרויקט:</p>
+          <Select
+            value={selectedAdvisor}
+            onChange={setSelectedAdvisor}
+            options={advisors.map((user) => ({
+              label: user.name,
+              value: user._id,
+            }))}
+          />
+        </div>
+      </Modal>
+
+      {/* Add Judge Modal */}
+      <Modal
+        open={isAddJudgeModalOpen}
+        title={`הוספת שופט לפרויקט: ${selectedProject?.title}`}
+        onOk={handleAddJudges}
+        onCancel={() => {
+          setIsAddJudgeModalOpen(false);
+          setSelectedProject(null);
+          setSelectedJudges([]);
+        }}
+        okButtonProps={{ disabled: selectedJudges.length === 0 || selectedJudges.length > 3 }}
+        okText="הוסף שופט"
+        cancelText="ביטול">
+        <div className="modal-select-input">
+          <p>בחר עד 3 שופטים לפרויקט:</p>
+          <Select
+            mode="multiple"
+            value={selectedJudges}
+            onChange={setSelectedJudges}
+            options={judges.map((user) => ({
+              label: user.name,
+              value: user._id,
+            }))}
+          />
+        </div>
+      </Modal>
+
+      {/* Update Judges Modal */}
+      <Modal
+        open={isUpdateJudgesModalOpen}
+        title={`עדכון שופטים לפרויקט: ${selectedProject?.title}`}
+        onOk={handleUpdateJudges}
+        onCancel={() => {
+          setIsUpdateJudgesModalOpen(false);
+          setSelectedProject(null);
+          setSelectedJudges([]);
+        }}
+        okButtonProps={{ disabled: selectedJudges.length > 3 }}
+        okText="עדכן שופטים"
+        cancelText="ביטול">
+        <div className="modal-select-input">
+          <p>בחר שופטים לפרויקט:</p>
+          <Select
+            mode="multiple"
+            value={selectedJudges}
+            onChange={setSelectedJudges}
+            options={judges.map((user) => ({
               label: user.name,
               value: user._id,
             }))}
