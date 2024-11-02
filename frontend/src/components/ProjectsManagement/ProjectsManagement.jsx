@@ -17,6 +17,7 @@ const ProjectsManagement = () => {
   const [isTerminateModalOpen, setIsTerminateModalOpen] = useState(false);
   const [isAddAdvisorModalOpen, setIsAddAdvisorModalOpen] = useState(false);
   const [selectedAdvisor, setSelectedAdvisor] = useState(null);
+  const [isUpdateStudentsModalOpen, setIsUpdateStudentsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,7 +38,10 @@ const ProjectsManagement = () => {
         );
 
         setUsersWithoutProjects(
-          activeUsers.filter((user) => !usersWithProject.has(user._id.toString()) && user.isStudent)
+          activeUsers.filter(
+            (user) =>
+              !usersWithProject.has(user._id.toString()) && user.isStudent && !user.isAdvisor && !user.isCoordinator
+          )
         );
         setAdvisors(activeUsers.filter((user) => user.isAdvisor));
       } catch (error) {
@@ -85,6 +89,42 @@ const ProjectsManagement = () => {
     } catch (error) {
       console.error("Error adding students:", error);
       message.error("שגיאה בהוספת סטודנטים");
+    }
+  };
+
+  const handleUpdateStudents = async () => {
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/update-students`,
+        {
+          projectID: selectedProject._id,
+          students: selectedStudents,
+        },
+        { withCredentials: true }
+      );
+
+      // Update local state
+      const updatedProjects = projects.map((project) => {
+        if (project._id === selectedProject._id) {
+          const updatedProject = {
+            ...project,
+            students: selectedStudents.map((id) => ({ student: id })),
+          };
+          return updatedProject;
+        }
+        return project;
+      });
+
+      setProjects(updatedProjects);
+      setUsersWithoutProjects(usersWithoutProjects.filter((user) => !selectedStudents.includes(user._id)));
+
+      setIsUpdateStudentsModalOpen(false);
+      setSelectedStudents([]);
+      setSelectedProject(null);
+      message.success("סטודנטים עודכנו בהצלחה!");
+    } catch (error) {
+      console.error("Error updating students:", error);
+      message.error("שגיאה בעדכון סטודנטים");
     }
   };
 
@@ -170,10 +210,10 @@ const ProjectsManagement = () => {
         key: "title",
         render: (text, record) => (
           <a onClick={() => navigate(`/project/${record._id}`)}>
-            {text.length > 70 ? `${text.substring(0, 70)}...` : text}
+            {text.length > 65 ? `${text.substring(0, 65)}...` : text}
           </a>
         ),
-        width: "30%",
+        width: "25%",
       },
       {
         title: "מנחה",
@@ -193,39 +233,76 @@ const ProjectsManagement = () => {
               : "לא משוייך מנחה"}
           </div>
         ),
-        width: "20%",
+        width: "15%",
+      },
+      {
+        title: "סטודנטים",
+        dataIndex: "students",
+        key: "students",
+        render: (students) => (
+          <div className="open-projects-student-list">
+            {students.length > 0
+              ? students.map(({ student }) => {
+                  const studentUser = users.find((u) => u._id === student);
+                  return studentUser ? (
+                    <a key={student} onClick={() => navigate(`/profile/${student}`)}>
+                      {studentUser.name}
+                    </a>
+                  ) : null;
+                })
+              : "לא משוייכים סטודנטים"}
+          </div>
+        ),
+        width: "15%",
       },
       {
         title: "מתאים ל...",
         dataIndex: "suitableFor",
         key: "suitableFor",
-        width: "15%",
+        width: "10%",
       },
       {
         title: "סוג",
         dataIndex: "type",
         key: "type",
-        width: "15%",
+        width: "10%",
       },
       {
         title: "פעולות",
         key: "actions",
         render: (_, record) => (
           <div className="project-manage-actions">
-            <Button
-              onClick={() => {
-                setSelectedProject(record);
-                setIsAddAdvisorModalOpen(true);
-              }}>
-              הוסף מנחה
-            </Button>
-            <Button
-              onClick={() => {
-                setSelectedProject(record);
-                setIsAddStudentsModalOpen(true);
-              }}>
-              הוסף סטודנטים
-            </Button>
+            {record.advisors.length === 0 && (
+              <Button
+                onClick={() => {
+                  setSelectedProject(record);
+                  setIsAddAdvisorModalOpen(true);
+                }}>
+                הוסף מנחה
+              </Button>
+            )}
+            {record.students.length === 0 ? (
+              <Button
+                onClick={() => {
+                  setSelectedProject(record);
+                  setIsAddStudentsModalOpen(true);
+                }}>
+                הוסף סטודנטים
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  setSelectedProject(record);
+                  setIsUpdateStudentsModalOpen(true);
+                  setSelectedStudents(record.students.map((s) => s.student));
+                  setUsersWithoutProjects((prev) => [
+                    ...prev,
+                    ...record.students.map((s) => users.find((u) => u._id === s.student)).filter(Boolean),
+                  ]);
+                }}>
+                עדכן סטודנטים
+              </Button>
+            )}
             <Button
               danger
               onClick={() => {
@@ -567,7 +644,35 @@ const ProjectsManagement = () => {
           setSelectedProject(null);
         }}
         okText="הוסף סטודנטים"
-        okButtonProps={{ disabled: selectedStudents.length === 0 || selectedStudents.length > 2 }}
+        okButtonProps={{ disabled: selectedStudents.length > 2 }}
+        cancelText="ביטול">
+        <div className="modal-select-input">
+          <p>בחר עד 2 סטודנטים לפרויקט:</p>
+          <Select
+            mode="multiple"
+            value={selectedStudents}
+            onChange={setSelectedStudents}
+            options={usersWithoutProjects.map((user) => ({
+              label: user.name,
+              value: user._id,
+            }))}
+          />
+        </div>
+      </Modal>
+
+      {/* Update Students Modal */}
+      <Modal
+        open={isUpdateStudentsModalOpen}
+        title={`עדכון סטודנטים לפרויקט: ${selectedProject?.title}`}
+        onOk={handleUpdateStudents}
+        onCancel={() => {
+          setIsUpdateStudentsModalOpen(false);
+          setSelectedStudents([]);
+          setSelectedProject(null);
+          setUsersWithoutProjects(usersWithoutProjects.filter((user) => !selectedStudents.includes(user._id)));
+        }}
+        okText="עדכן סטודנטים"
+        okButtonProps={{ disabled: selectedStudents.length > 2 }}
         cancelText="ביטול">
         <div className="modal-select-input">
           <p>בחר עד 2 סטודנטים לפרויקט:</p>

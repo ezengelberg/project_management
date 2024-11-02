@@ -171,6 +171,34 @@ export const addStudentToProject = async (req, res) => {
   }
 };
 
+export const updateStudentsInProject = async (req, res) => {
+  try {
+    const { projectID, students } = req.body;
+    const project = await Project.findById(projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+
+    // Validate students
+    const validStudents = [];
+    for (const studentID of students) {
+      const student = await User.findById(studentID);
+      if (!student || !student.isStudent) {
+        return res.status(400).send({ message: `Invalid student ID: ${studentID}` });
+      }
+      validStudents.push({ student: student._id });
+    }
+
+    // Update students in the project
+    project.students = validStudents;
+    await project.save();
+
+    res.status(200).send({ message: "Students updated successfully", project });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const addCandidateToProject = async (req, res) => {
   const userid = req.user._id;
   try {
