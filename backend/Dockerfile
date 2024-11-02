@@ -17,4 +17,5 @@ COPY . .
 EXPOSE 4000
 
 # Define the command to run the application
-CMD ["node", "server.js"]
+# CMD ["node", "server.js"]
+CMD ["npx", "nodemon", "--legacy-watch", "server.js"]

@@ -13,7 +13,7 @@ export const getProjects = async (req, res) => {
 
 export const getAvailableProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ isTerminated: false, isFinished: false, isApproved: true });
+    const projects = await Project.find({ isTerminated: false, isFinished: false });
     res.status(200).send(projects);
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -80,7 +80,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: [],
+        grades: []
       });
     } else {
       const advisorsList = [];
@@ -112,7 +112,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: [],
+        grades: []
       });
     }
 
@@ -120,7 +120,7 @@ export const createProject = async (req, res) => {
 
     res.status(201).json({
       message: "Project created successfully",
-      project: savedProject,
+      project: savedProject
     });
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -350,32 +350,18 @@ export const updateProject = async (req, res) => {
     if (!title || !description || !year || !suitableFor || !type) {
       return res.status(400).send({ message: "Missing required fields" });
     }
-    console.log("valid fields");
-    if (req.user.isAdvisor && !req.user.isCoordinator) {
-      project.title = title;
-      project.description = description;
-      project.year = year;
-      project.suitableFor = suitableFor;
-      project.type = type;
-      project.continues = continues;
-      // project.isApproved = isApproved;
-    } else {
-      project.title = title;
-      project.description = description;
-      project.year = year;
-      project.suitableFor = suitableFor;
-      project.type = type;
-      project.continues = continues;
-      // project.isApproved = isApproved;
-      // project.advisors = advisorsList;
-      // project.students = studentsList;
-    }
 
-    const savedProject = await project.save();
+    project.title = title;
+    project.description = description;
+    project.year = year;
+    project.suitableFor = suitableFor;
+    project.type = type;
+    project.continues = continues;
 
+    await project.save();
     res.status(201).json({
       message: "Project updated successfully",
-      project: savedProject,
+      project: project
     });
   } catch (err) {
     res.status(500).send({ message: err.message });
