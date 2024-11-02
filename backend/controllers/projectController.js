@@ -80,7 +80,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
     } else {
       const advisorsList = [];
@@ -112,7 +112,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
     }
 
@@ -120,7 +120,7 @@ export const createProject = async (req, res) => {
 
     res.status(201).json({
       message: "Project created successfully",
-      project: savedProject
+      project: savedProject,
     });
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -140,6 +140,32 @@ export const getProjectsNoStudent = async (req, res) => {
   try {
     const projects = await Project.find({ students: [] });
     res.status(200).send(projects);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const addStudentToProject = async (req, res) => {
+  try {
+    for (const student of req.body.students) {
+      const user = await User.findById(student);
+      if (!user) {
+        return res.status(404).send({ message: "Student not found" });
+      }
+      const project = await Project.findById(req.body.projectID);
+      if (!project) {
+        return res.status(404).send({ message: "Project not found" });
+      }
+      if (project.students.find((student) => student.student.toString() === user.toString())) {
+        return res.status(400).send({ message: "Student is already in this project" });
+      }
+      project.students.push({ student: user._id });
+      if (project.advisors.length !== 0) {
+        project.isTaken = true;
+      }
+      await project.save();
+    }
+    res.status(200).send("Student added successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -207,8 +233,10 @@ export const approveCandidate = async (req, res) => {
       if (project.students.find((candidate) => candidate.student.toString() === user._id.toString())) {
         return res.status(409).send({ error: "Candidate is already approved", message: "המועמד כבר אושר" });
       }
-      if(project.students.length >= 2) {
-        return res.status(409).send({ error: "Project is already full", message: "הפרויקט כבר מלא - רשומים שני סטודנטים" });
+      if (project.students.length >= 2) {
+        return res
+          .status(409)
+          .send({ error: "Project is already full", message: "הפרויקט כבר מלא - רשומים שני סטודנטים" });
       }
       const { _id, ...candidateWithoutId } = candidate.toObject();
       project.students.push(candidateWithoutId);
@@ -319,7 +347,7 @@ export const updateProject = async (req, res) => {
 
     res.status(201).json({
       message: "Project updated successfully",
-      project: savedProject
+      project: savedProject,
     });
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -330,7 +358,28 @@ export const deleteProject = async (req, res) => {};
 
 export const closeProject = async (req, res) => {};
 
-export const addAdvisorToProject = async (req, res) => {};
+export const addAdvisorToProject = async (req, res) => {
+  try {
+    const project = await Project.findById(req.body.projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    const advisor = await User.findById(req.body.advisorID);
+    if (!advisor) {
+      return res.status(404).send({ message: "Advisor not found" });
+    }
+    if (!project.advisors.find((advisor) => advisor.toString() === req.body.advisorID)) {
+      project.advisors.push(req.body.advisorID);
+    }
+    if (project.students.length !== 0) {
+      project.isTaken = true;
+    }
+    await project.save();
+    res.status(200).send("Advisor added successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
 
 export const getProjectsStatus = async (req, res) => {
   try {

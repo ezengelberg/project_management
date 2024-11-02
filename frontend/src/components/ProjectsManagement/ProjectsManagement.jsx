@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./ProjectsManagement.scss";
 import { useNavigate } from "react-router-dom";
-import { Tabs, Table, Modal, Select, Badge, Button } from "antd";
+import { Tabs, Table, Modal, Select, Badge, Button, message } from "antd";
 import axios from "axios";
 
 const ProjectsManagement = () => {
@@ -9,7 +9,7 @@ const ProjectsManagement = () => {
   const [projects, setProjects] = useState([]);
   const [users, setUsers] = useState([]);
   const [usersWithoutProjects, setUsersWithoutProjects] = useState([]);
-  const [advisorsWithoutProjects, setAdvisorsWithoutProjects] = useState([]);
+  const [advisors, setAdvisors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedStudents, setSelectedStudents] = useState([]);
@@ -39,9 +39,7 @@ const ProjectsManagement = () => {
         setUsersWithoutProjects(
           activeUsers.filter((user) => !usersWithProject.has(user._id.toString()) && user.isStudent)
         );
-        setAdvisorsWithoutProjects(
-          activeUsers.filter((user) => !usersWithProject.has(user._id.toString()) && user.isAdvisor)
-        );
+        setAdvisors(activeUsers.filter((user) => user.isAdvisor));
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -54,50 +52,87 @@ const ProjectsManagement = () => {
   const handleAddStudents = async () => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/project/${selectedProject._id}/students`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/add-student`,
         {
+          projectID: selectedProject._id,
           students: selectedStudents,
         },
         { withCredentials: true }
       );
 
       // Update local state
-      setProjects(
-        projects.map((project) => {
-          if (project._id === selectedProject._id) {
-            return {
-              ...project,
-              students: [
-                ...project.students,
-                ...selectedStudents.map((studentId) => ({
-                  student: studentId,
-                  joinDate: new Date(),
-                })),
-              ],
-              isTaken: true,
-            };
+      const updatedProjects = projects.map((project) => {
+        if (project._id === selectedProject._id) {
+          const updatedProject = {
+            ...project,
+            students: [...project.students, ...selectedStudents.map((id) => ({ student: id }))],
+          };
+          if (updatedProject.students.length > 0 && updatedProject.advisors.length > 0) {
+            updatedProject.isTaken = true;
           }
-          return project;
-        })
-      );
+          return updatedProject;
+        }
+        return project;
+      });
 
+      setProjects(updatedProjects);
       setUsersWithoutProjects(usersWithoutProjects.filter((user) => !selectedStudents.includes(user._id)));
 
       setIsAddStudentsModalOpen(false);
       setSelectedStudents([]);
       setSelectedProject(null);
+      message.success("סטודנטים נוספו בהצלחה!");
     } catch (error) {
       console.error("Error adding students:", error);
+      message.error("שגיאה בהוספת סטודנטים");
     }
   };
 
   const handleAddAdvisor = async () => {
-    console.log(selectedAdvisor);
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/add-advisor`,
+        {
+          projectID: selectedProject._id,
+          advisorID: selectedAdvisor,
+        },
+        { withCredentials: true }
+      );
+
+      // Update local state
+      const updatedProjects = projects.map((project) => {
+        if (project._id === selectedProject._id) {
+          const updatedProject = {
+            ...project,
+            advisors: [...project.advisors, selectedAdvisor],
+          };
+          if (updatedProject.students.length > 0 && updatedProject.advisors.length > 0) {
+            updatedProject.isTaken = true;
+          }
+          return updatedProject;
+        }
+        return project;
+      });
+
+      setProjects(updatedProjects);
+
+      setIsAddAdvisorModalOpen(false);
+      setSelectedAdvisor(null);
+      setSelectedProject(null);
+      message.success("המנחה נוסף בהצלחה!");
+    } catch (error) {
+      console.error("Error adding advisor:", error);
+      message.error("שגיאה בהוספת מנחה");
+    }
   };
 
   const handleTerminateProject = async () => {
     try {
-      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/project/${selectedProject._id}/terminate`, {}, { withCredentials: true });
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/${selectedProject._id}/terminate`,
+        {},
+        { withCredentials: true }
+      );
 
       // Update local state
       const updatedProjects = projects.map((project) => {
@@ -146,16 +181,16 @@ const ProjectsManagement = () => {
         key: "advisors",
         render: (advisors) => (
           <div>
-            {advisors.map((advisor) => {
-              const advisorUser = users.find((u) => u._id === advisor);
-              return advisorUser ? (
-                <a key={advisor} onClick={() => navigate(`/profile/${advisor}`)}>
-                  {advisorUser.name}
-                </a>
-              ) : (
-                "לא משויך מנחה"
-              );
-            })}
+            {advisors.length > 0
+              ? advisors.map((advisor) => {
+                  const advisorUser = users.find((u) => u._id === advisor);
+                  return advisorUser ? (
+                    <a key={advisor} onClick={() => navigate(`/profile/${advisor}`)}>
+                      {advisorUser.name}
+                    </a>
+                  ) : null;
+                })
+              : "לא משוייך מנחה"}
           </div>
         ),
         width: "20%",
@@ -566,7 +601,7 @@ const ProjectsManagement = () => {
           <Select
             value={selectedAdvisor}
             onChange={setSelectedAdvisor}
-            options={advisorsWithoutProjects.map((user) => ({
+            options={advisors.map((user) => ({
               label: user.name,
               value: user._id,
             }))}

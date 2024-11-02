@@ -23,7 +23,7 @@ export const registerUser = async (req, res) => {
       firstLogin: true,
       password: hashedPassword,
       registerDate: new Date(),
-      suspensionRecords: []
+      suspensionRecords: [],
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
@@ -79,10 +79,12 @@ export const logoutUser = (req, res, next) => {
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
-    users.forEach((user) => {
-      delete user.password;
+    const usersWithoutPassword = users.map((user) => {
+      const userObj = user.toObject();
+      delete userObj.password;
+      return userObj;
     });
-    res.status(200).send(users);
+    res.status(200).send(usersWithoutPassword);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -273,7 +275,7 @@ export const suspendUser = async (req, res) => {
     user.suspensionRecords.push({
       suspendedBy: req.user._id,
       suspendedAt: new Date(),
-      reason: req.body.reason
+      reason: req.body.reason,
     });
 
     await user.save();
