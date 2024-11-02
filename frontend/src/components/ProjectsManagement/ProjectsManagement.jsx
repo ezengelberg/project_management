@@ -836,7 +836,7 @@ const ProjectsManagement = () => {
                 strokeLinejoin="round"></path>
             </g>
           </svg>
-          <span>פרוייקטים ללא שיבוץ</span>
+          <span>פרויקטים ללא שיבוץ</span>
         </div>
       ),
       children: (
@@ -881,7 +881,7 @@ const ProjectsManagement = () => {
               </g>
             </g>
           </svg>
-          <span>פרוייקטים בתהליך</span>
+          <span>פרויקטים בתהליך</span>
         </div>
       ),
       children: (
@@ -913,7 +913,7 @@ const ProjectsManagement = () => {
               </g>
             </g>
           </svg>
-          <span>פרוייקטים שהושלמו</span>
+          <span>פרויקטים שהושלמו</span>
         </div>
       ),
       children: (
@@ -943,7 +943,7 @@ const ProjectsManagement = () => {
                 fill="#000000"></path>
             </g>
           </svg>
-          <span>פרוייקטים שהופסקו</span>
+          <span>פרויקטים שהופסקו</span>
         </div>
       ),
       children: (
