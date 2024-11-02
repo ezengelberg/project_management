@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, id, password, isStudent, isAdvisor, isCoordinator } = req.body;
+    const { name, email, id, password, isStudent, isAdvisor, isJudge, isCoordinator } = req.body;
     const userByEmail = await User.findOne({ email: email });
     if (userByEmail) {
       return res.status(400).send("Email already in use");
@@ -24,6 +24,10 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
       registerDate: new Date(),
       suspensionRecords: [],
+      isStudent: isStudent || false,
+      isAdvisor: isAdvisor || false,
+      isJudge: isJudge || false,
+      isCoordinator: isCoordinator || false
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
@@ -276,7 +280,7 @@ export const suspendUser = async (req, res) => {
     user.suspensionRecords.push({
       suspendedBy: req.user._id,
       suspendedAt: new Date(),
-      reason: req.body.reason,
+      reason: req.body.reason
     });
 
     await user.save();

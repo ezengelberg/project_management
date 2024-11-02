@@ -20,10 +20,11 @@ const CreateUser = () => {
         password: values.userId,
         isStudent: values.role.includes("student"),
         isAdvisor: values.role.includes("advisor"),
+        isJudge: values.role.includes("judge"),
         isCoordinator: values.role.includes("coordinator")
       };
 
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/register`, registerValues, {
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/register`, registerValues, {
         withCredentials: true
       });
       message.success("משתמש נוצר בהצלחה");
@@ -80,6 +81,7 @@ const CreateUser = () => {
   const roleOptions = [
     { label: "סטודנט", value: "סטודנט" },
     { label: "מנחה", value: "מנחה" },
+    { label: "שופט", value: "שופט" },
     { label: "אדמין", value: "אדמין" }
   ];
 
@@ -186,6 +188,7 @@ const CreateUser = () => {
           <Select mode="multiple">
             <Select.Option value="student">סטודנט</Select.Option>
             <Select.Option value="advisor">מנחה</Select.Option>
+            <Select.Option value="judge">שופט</Select.Option>
             <Select.Option value="coordinator">מנהל</Select.Option>
           </Select>
         </Form.Item>

@@ -91,7 +91,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: [],
+        grades: []
       });
     } else {
       const advisorsList = [];
@@ -122,7 +122,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: [],
+        grades: []
       });
     }
 
@@ -130,7 +130,7 @@ export const createProject = async (req, res) => {
 
     res.status(201).json({
       message: "Project created successfully",
-      project: savedProject,
+      project: savedProject
     });
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -394,7 +394,7 @@ export const updateProject = async (req, res) => {
     await project.save();
     res.status(201).json({
       message: "Project updated successfully",
-      project: project,
+      project: project
     });
   } catch (err) {
     res.status(500).send({ message: err.message });
