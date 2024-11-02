@@ -271,13 +271,19 @@ export const approveCandidate = async (req, res) => {
       if (project.students.find((candidate) => candidate.student.toString() === user._id.toString())) {
         return res.status(409).send({ error: "Candidate is already approved", message: "המועמד כבר אושר" });
       }
-      await Project.findOne({ students: { $elemMatch: { student: user._id } } }, (err, doc) => {
-        if (doc) {
-          return res
-            .status(409)
-            .send({ error: "Student is already in another project", message: "הסטודנט כבר נמצא בפרויקט אחר" });
-        }
-      });
+      // await Project.findOne({ students: { $elemMatch: { student: user._id } } }, (err, doc) => {
+      //   if (doc) {
+      //     return res
+      //       .status(409)
+      //       .send({ error: "Student is already in another project", message: "הסטודנט כבר נמצא בפרויקט אחר" });
+      //   }
+      // });
+      const projectResult = await Project.findOne({ students: { $elemMatch: { student: user._id } } });
+      if (projectResult) {
+        return res
+          .status(409)
+          .send({ error: "Student is already in another project", message: "הסטודנט כבר נמצא בפרויקט אחר" });
+      }
       if (project.students.length >= 2) {
         return res
           .status(409)
