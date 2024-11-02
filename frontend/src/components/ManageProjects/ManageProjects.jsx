@@ -21,7 +21,6 @@ const ManageProjects = () => {
   const [editProjectData, setEditProjectData] = useState({});
   const [isOtherType, setIsOtherType] = useState(false);
   const [studentInitiative, setStudentInitiative] = useState(false);
-  const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const [studentsNoProject, setStudentsNoProject] = useState([]);
 
   const getUsersNoProjects = async () => {
@@ -30,17 +29,6 @@ const ManageProjects = () => {
         withCredentials: true
       });
       setStudentsNoProject(response.data.usersNoProjects);
-    } catch (error) {
-      console.error("Error occurred:", error.response.data.message);
-    }
-  };
-
-  const fetchPrivileges = async () => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, {
-        withCredentials: true
-      });
-      setPrivileges(response.data);
     } catch (error) {
       console.error("Error occurred:", error.response.data.message);
     }
@@ -118,7 +106,6 @@ const ManageProjects = () => {
   useEffect(() => {
     console.log("Fetching data...");
     fetchData();
-    fetchPrivileges();
     getUsersNoProjects();
   }, []);
 

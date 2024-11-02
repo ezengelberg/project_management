@@ -45,44 +45,36 @@ const CreateUser = () => {
       header: true,
       complete: async (result) => {
         const parsedData = result.data
-          .map((row) => ({
+          .map((row, index) => ({
+            key: index,
             email: row['דוא"ל'],
             firstName: row["שם פרטי"],
             lastName: row["שם משפחה"],
             name: `${row["שם פרטי"]} ${row["שם משפחה"]}`,
-            groups: row["קבוצות"]
+            id: row["ת.ז."]
           }))
           .filter((row) => row.email && row.firstName && row.lastName); // Filter out rows with undefined or empty values
 
         console.log(parsedData); // Processed CSV data with English keys
         setUsers(parsedData);
-
-        // try {
-        //   const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/register-many`, result.data, {
-        //     withCredentials: true
-        //   });
-        //   message.success("משתמשים נוצרו בהצלחה");
-        //   form.resetFields();
-        // } catch (error) {
-        //   message.error("שגיאה ביצירת משתמשים");
-        //   console.error("Error creating users:", error);
-        // }
       }
     });
+    return false;
   };
 
   const handleRemoveUser = (record) => {
     const filteredUsers = users.filter((user) => user.email !== record.email);
     setUsers(filteredUsers);
-  }
+  };
   const props = {
     name: "file",
     maxCount: 1,
     accept: ".csv",
     beforeUpload: handleUploadFile,
-    onDrop(e) {
-      console.log("Dropped files", e.dataTransfer.files);
-    }
+    customRequest: ({ onSuccess }) => {
+      onSuccess("ok");
+    },
+    showUploadList: false
   };
 
   const roleOptions = [
@@ -123,16 +115,15 @@ const CreateUser = () => {
       render: (record) => (
         <span className="user-actions">
           <Tooltip title="הסר משתמש מרשימה">
-          <Popconfirm
-            title="הסרת משתמש מרשימה"
-            description={`האם ברצונך להסיר את ${record.name}?`}
-            okText="הסר"
-            cancelText="בטל"
-            onConfirm={() => handleRemoveUser(record)}
-            onOpenChange={() => console.log('open change')}
-          >
-            <DeleteOutlined/>
-          </Popconfirm>
+            <Popconfirm
+              title="הסרת משתמש מרשימה"
+              description={`האם ברצונך להסיר את ${record.name}?`}
+              okText="הסר"
+              cancelText="בטל"
+              onConfirm={() => handleRemoveUser(record)}
+              onOpenChange={() => console.log("open change")}>
+              <DeleteOutlined />
+            </Popconfirm>
           </Tooltip>
         </span>
       )

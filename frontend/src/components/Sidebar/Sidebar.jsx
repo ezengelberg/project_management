@@ -8,7 +8,7 @@ import {
   ApartmentOutlined,
   FundProjectionScreenOutlined,
   TeamOutlined,
-  SettingOutlined,
+  SettingOutlined
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -19,15 +19,13 @@ const Sidebar = () => {
   const [openSubmenus, setOpenSubmenus] = useState({
     myProject: false,
     myProjects: false,
-    manageUsers: false,
+    manageUsers: false
   });
 
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, {
-          withCredentials: true,
-        });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, { withCredentials: true });
         setUser(response.data);
         localStorage.setItem("user", JSON.stringify(response.data));
       } catch (error) {
@@ -40,7 +38,7 @@ const Sidebar = () => {
   const toggleSubmenu = (submenu) => {
     setOpenSubmenus((prev) => ({
       ...prev,
-      [submenu]: !prev[submenu],
+      [submenu]: !prev[submenu]
     }));
   };
 
@@ -164,7 +162,7 @@ const Sidebar = () => {
             </div>
           </li>
           <li>
-            <div className="sidebar-option">
+            <div className={`sidebar-option ${isActive("/system") ? "active" : ""}`} onClick={() => navigate("/system")}>
               <SettingOutlined />
               <span>ניהול מערכת</span>
             </div>

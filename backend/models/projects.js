@@ -16,23 +16,30 @@ const projectSchema = new mongoose.Schema({
   students: [
     {
       student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-      joinDate: { type: Date, default: Date.now },
-    },
+      joinDate: { type: Date, default: Date.now }
+    }
   ],
   judges: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }],
   // Disable _id for candidates sub-documents here
   candidates: [
     {
       student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-      joinDate: { type: Date, default: Date.now },
-    },
+      joinDate: { type: Date, default: Date.now }
+    }
   ],
   grades: [{ type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: [] }],
+  updateRecords: [
+    {
+      date: { type: Date, default: Date.now },
+      changes: { type: Object, required: true }
+    }
+  ]
 });
 
 // Apply the option to disable _id for sub-documents within `candidates`
 projectSchema.path("candidates").schema.set("_id", false);
 projectSchema.path("students").schema.set("_id", false);
+projectSchema.path("updateRecords").schema.set("_id", false);
 
 projectSchema.index({ title: 1, year: 1 }, { unique: true });
 
