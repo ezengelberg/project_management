@@ -16,8 +16,7 @@
     .project-overlay {
       position: relative;
       display: flex;
-      min-height: 35rem;
-      max-height: 35rem;
+      height: 35rem;
       padding: 3rem;
       border-radius: 3rem;
       border: 1px solid #ccc;
@@ -84,7 +83,11 @@
           }
 
           .project-description {
+            position: relative;
             width: 90%;
+            word-break: break-word;
+            max-height: 22.5rem;
+            overflow: hidden;
           }
 
           .project-actions {

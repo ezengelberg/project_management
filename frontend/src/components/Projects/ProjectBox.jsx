@@ -68,7 +68,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
           </div>
           <div
             className="project-description rich-text-content"
-            dangerouslySetInnerHTML={{ __html: processContent(props.description, 300) }}
+            dangerouslySetInnerHTML={{ __html: processContent(props.description, 750) }}
           />
 
           <div className="project-actions">
