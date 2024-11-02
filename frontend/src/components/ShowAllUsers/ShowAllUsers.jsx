@@ -166,6 +166,7 @@ const ShowAllUsers = () => {
     email: user.email,
     isStudent: user.isStudent,
     isAdvisor: user.isAdvisor,
+    isJudge: user.isJudge,
     isCoordinator: user.isCoordinator,
   }));
 
@@ -229,7 +230,11 @@ const ShowAllUsers = () => {
         if (!record.projectId) {
           return "לא נבחר פרויקט";
         }
-        return <a onClick={() => navigate(`/project/${record.projectId}`)}>{record.projectTitle}</a>;
+        return (
+          <a onClick={() => navigate(`/project/${record.projectId}`)}>
+            {record.projectTitle.length > 50 ? `${record.projectTitle.slice(0, 50)}...` : record.projectTitle}
+          </a>
+        );
       },
       showSorterTooltip: {
         target: "full-header",
@@ -246,6 +251,7 @@ const ShowAllUsers = () => {
         }
         return record.projectId === null;
       },
+      width: "20%",
     },
     {
       title: "תפקיד",
@@ -254,12 +260,14 @@ const ShowAllUsers = () => {
         <Space>
           {record.isStudent && <Tag color="blue">סטודנט</Tag>}
           {record.isAdvisor && <Tag color="green">מנחה</Tag>}
+          {record.isJudge && <Tag color="orange">שופט</Tag>}
           {record.isCoordinator && <Tag color="purple">מנהל</Tag>}
         </Space>
       ),
       filters: [
         { text: "סטודנט", value: "סטודנט" },
         { text: "מנחה", value: "מנחה" },
+        { text: "שופט", value: "שופט" },
         { text: "מנהל", value: "מנהל" },
       ],
       onFilter: (value, record) => {
@@ -267,12 +275,14 @@ const ShowAllUsers = () => {
           return record.isStudent;
         } else if (value === "מנחה") {
           return record.isAdvisor;
+        } else if (value === "שופט") {
+          return record.isJudge;
         } else if (value === "מנהל") {
           return record.isCoordinator;
         }
         return false;
       },
-      width: "12%",
+      width: "15%",
     },
     {
       title: "אימייל",
@@ -301,6 +311,7 @@ const ShowAllUsers = () => {
                 id: record.userId,
                 isStudent: record.isStudent,
                 isAdvisor: record.isAdvisor,
+                isJudge: record.isJudge,
                 isCoordinator: record.isCoordinator,
               });
             }}>
@@ -343,6 +354,7 @@ const ShowAllUsers = () => {
         id: values.id,
         isStudent: values.isStudent,
         isAdvisor: values.isAdvisor,
+        isJudge: values.isJudge,
         isCoordinator: values.isCoordinator,
       };
 
@@ -761,6 +773,12 @@ const ShowAllUsers = () => {
             </Select>
           </Form.Item>
           <Form.Item label="מנחה" name="isAdvisor" hasFeedback={!submitting && touched.isAdvisor}>
+            <Select>
+              <Option value={true}>כן</Option>
+              <Option value={false}>לא</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item label="שופט" name="isJudge" hasFeedback={!submitting && touched.isJudge}>
             <Select>
               <Option value={true}>כן</Option>
               <Option value={false}>לא</Option>

@@ -237,7 +237,7 @@ export const ensureFavoriteProject = async (req, res) => {
 
 export const editUserCoordinator = async (req, res) => {
   const { userId } = req.params;
-  const { name, email, id, isStudent, isAdvisor, isCoordinator } = req.body;
+  const { name, email, id, isStudent, isAdvisor, isJudge, isCoordinator } = req.body;
 
   try {
     const user = await User.findById(userId);
@@ -250,6 +250,7 @@ export const editUserCoordinator = async (req, res) => {
     if (id !== undefined) user.id = id;
     if (isStudent !== undefined) user.isStudent = isStudent;
     if (isAdvisor !== undefined) user.isAdvisor = isAdvisor;
+    if (isJudge !== undefined) user.isJudge = isJudge;
     if (isCoordinator !== undefined) user.isCoordinator = isCoordinator;
     user.updatedAt = new Date();
 
