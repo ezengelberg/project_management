@@ -22,7 +22,9 @@ const Templates = () => {
   useEffect(() => {
     const fetchPrivileges = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, {
+          withCredentials: true,
+        });
         setPrivileges(response.data);
       } catch (error) {
         console.error("Error occurred:", error);
@@ -31,7 +33,9 @@ const Templates = () => {
 
     const fetchTemplateFiles = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, {
+          withCredentials: true,
+        });
         setTemplateFiles(response.data);
       } catch (error) {
         console.error("Error fetching template files:", error);
@@ -61,7 +65,9 @@ const Templates = () => {
       setFileList([]);
       message.success("הקובץ הועלה בהצלחה");
       // Refresh the template files list after successful upload
-      const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, { withCredentials: true });
+      const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, {
+        withCredentials: true,
+      });
       setTemplateFiles(updatedFiles.data);
     } catch (error) {
       console.error("Error occurred:", error);
@@ -134,7 +140,9 @@ const Templates = () => {
       console.error("Error updating file:", error);
     } finally {
       setIsEditing(false);
-      const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, { withCredentials: true });
+      const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, {
+        withCredentials: true,
+      });
       setTemplateFiles(updatedFiles.data);
     }
   };
@@ -193,7 +201,7 @@ const Templates = () => {
               placeholder="תיאור לקובץ"
               value={description}
               onTextChange={handleEditorChange}
-              style={{ height: "320px" }}
+              style={{ height: "320px", wordBreak: "break-word" }}
             />
           </div>
           <Button
@@ -235,7 +243,7 @@ const Templates = () => {
             placeholder="תיאור לקובץ"
             value={editDescription}
             onTextChange={handleEditEditorChange}
-            style={{ height: "320px" }}
+            style={{ height: "320px", wordBreak: "break-word" }}
           />
         </div>
       </Modal>

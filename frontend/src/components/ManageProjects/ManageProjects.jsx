@@ -471,7 +471,7 @@ const ManageProjects = () => {
                 message: "חובה להזין תיאור לפרויקט",
               },
             ]}>
-            <Editor style={{ height: "320px" }} onTextChange={handleEditorChange} />
+            <Editor style={{ height: "320px", wordBreak: "break-word" }} onTextChange={handleEditorChange} />
           </Form.Item>
           <Form.Item
             className="create-project-form-item"
