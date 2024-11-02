@@ -15,7 +15,7 @@ const DownloadFile = ({ file, onEdit, onDelete }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get("/api/user/get-user", { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, { withCredentials: true });
         setUser(response.data);
         setPrivileges({
           isStudent: response.data.isStudent,
@@ -32,7 +32,7 @@ const DownloadFile = ({ file, onEdit, onDelete }) => {
 
   const handleDownload = async () => {
     try {
-      const response = await axios.get(`/api/file-templates/download/${file._id}`, {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates/download/${file._id}`, {
         responseType: "blob",
         withCredentials: true,
       });

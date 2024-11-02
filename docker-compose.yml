@@ -4,9 +4,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "4000:3000"
+      - "4000:4000"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/mongoosedb  # Database name set as mongoosedb
+      - MONGO_URI=mongodb://mongo:27017/pr-mngt-db  # Database name set as mongoosedb
       - PORT=4000
     volumes:
       - ./backend:/app

@@ -29,12 +29,13 @@ const Login = () => {
 
     if (newErrors.email || newErrors.password) {
       setErrors(newErrors);
+      setLoading(false);
       return;
     }
 
     try {
       const result = await axios.post(
-        "/api/user/login",
+        `${process.env.REACT_APP_BACKEND_URL}/api/user/login`,
         {
           email,
           password,
@@ -52,12 +53,18 @@ const Login = () => {
         navigate("/home");
       }
     } catch (error) {
-      if (error.response.status === 403) {
-        setErrorMessage("משתמש מושהה, פנה למנהל הפרויקטים");
+      if (error.response) {
+        if (error.response.status === 403) {
+          setErrorMessage("משתמש מושהה, פנה למנהל הפרויקטים");
+        } else {
+          setErrorMessage(error.response.data || "שגיאה בהתחברות");
+        }
+      } else if (error.request) {
+        setErrorMessage("לא ניתן להתחבר לשרת. אנא בדוק את החיבור לאינטרנט ונסה שוב");
       } else {
-        setErrorMessage(error.response.data);
+        setErrorMessage("שגיאה בהתחברות");
       }
-      console.error("Error occurred:", error.response ? error.response.data : error.message);
+      console.error("Error occurred:", error);
     } finally {
       setLoading(false);
     }
@@ -68,7 +75,7 @@ const Login = () => {
     try {
       // Change password
       await axios.put(
-        "/api/user/change-password",
+        `${process.env.REACT_APP_BACKEND_URL}/api/user/change-password`,
         {
           oldPassword: tempUserData.id,
           newPassword: values.newPassword,

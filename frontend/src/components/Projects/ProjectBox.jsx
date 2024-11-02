@@ -16,7 +16,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
           if (props.advisors.length === 0) return;
           const advisors = [];
           for (const advisor of props.advisors) {
-            const response = await axios.get(`/api/user/get-user-name/${advisor}`, {
+            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-name/${advisor}`, {
               withCredentials: true,
             });
             advisors.push(response.data.name);

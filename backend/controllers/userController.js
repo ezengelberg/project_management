@@ -79,10 +79,12 @@ export const logoutUser = (req, res, next) => {
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
-    users.forEach((user) => {
-      delete user.password;
+    const usersWithoutPassword = users.map((user) => {
+      const userObj = user.toObject();
+      delete userObj.password;
+      return userObj;
     });
-    res.status(200).send(users);
+    res.status(200).send(usersWithoutPassword);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

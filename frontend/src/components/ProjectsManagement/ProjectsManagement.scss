@@ -11,10 +11,11 @@
       display: flex;
       align-items: center;
 
-      .ant-tabs-tab-icon {
-        margin-top: 0.8rem;
-        .tab-icon,
-        .tab-icon-special {
+      .lable-with-icon {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        svg {
           width: 2rem;
           height: 2rem;
         }
@@ -23,7 +24,7 @@
   }
   .ant-tabs-tab-active {
     .ant-tabs-tab-btn {
-      .ant-tabs-tab-icon {
+      .lable-with-icon {
         .tab-icon {
           path {
             stroke: #1677ff;
@@ -43,4 +44,12 @@
 .project-manage-actions {
   display: flex;
   gap: 1rem;
+}
+
+.modal-select-input {
+  width: 100%;
+
+  .ant-select {
+    width: 100%;
+  }
 }
