@@ -25,7 +25,9 @@ const CreateProject = () => {
     // Fetch data from the API
     const fetchPrivileges = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, {
+          withCredentials: true,
+        });
         setPrivileges(response.data);
       } catch (error) {
         console.error("Error occurred:", error.response.data.message);
@@ -34,7 +36,9 @@ const CreateProject = () => {
 
     const getAdvisorUsers = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/advisor-users`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/advisor-users`, {
+          withCredentials: true,
+        });
         setAdvisorUsers(response.data);
       } catch (error) {
         console.error("Error occurred:", error.response.data.message);
@@ -43,7 +47,9 @@ const CreateProject = () => {
 
     const getCurrentUser = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, {
+          withCredentials: true,
+        });
         setCurrentUser(response.data);
       } catch (error) {
         console.error("Error occurred:", error.response.data.message);
@@ -52,7 +58,9 @@ const CreateProject = () => {
 
     const getUsersNoProjects = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects`, {
+          withCredentials: true,
+        });
         const onlyStudents = response.data.usersNoProjects.filter(
           (user) => user.isStudent === true && user.isAdvisor === false && user.isCoordinator === false
         );
@@ -153,9 +161,13 @@ const CreateProject = () => {
     delete finalValues.customType;
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/project/create-project`, finalValues, {
-        withCredentials: true,
-      });
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/create-project`,
+        finalValues,
+        {
+          withCredentials: true,
+        }
+      );
       message.success("הפרויקט נוצר בהצלחה");
       setProjectCreated(true);
       setProjectCreatedId(response.data.project._id);
@@ -218,7 +230,7 @@ const CreateProject = () => {
               message: "חובה להזין תיאור לפרויקט",
             },
           ]}>
-          <Editor style={{ height: "320px" }} onTextChange={handleEditorChange} />
+          <Editor style={{ height: "320px", wordBreak: "break-word" }} onTextChange={handleEditorChange} />
         </Form.Item>
 
         <Form.Item
