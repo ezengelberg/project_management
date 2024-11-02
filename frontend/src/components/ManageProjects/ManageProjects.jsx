@@ -35,91 +35,88 @@ const ManageProjects = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchPrivileges = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, {
-          withCredentials: true
-        });
-        setPrivileges(response.data);
-      } catch (error) {
-        console.error("Error occurred:", error.response.data.message);
-      }
-    };
+  const fetchPrivileges = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, {
+        withCredentials: true
+      });
+      setPrivileges(response.data);
+    } catch (error) {
+      console.error("Error occurred:", error.response.data.message);
+    }
+  };
 
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects/`, {
-          withCredentials: true
-        });
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects/`, {
+        withCredentials: true
+      });
 
-        // Assuming `project.candidates` contains the array of student objects
-        const projectData = response.data.projects.map((project) => ({
-          key: project._id, // Assuming there's an `_id` field
-          title: project.title,
-          isApproved: project.isApproved ? (
-            <Badge status="success" text="מאושר" />
-          ) : (
-            <Badge status="error" text="לא מאושר" />
-          ),
-          isTaken: project.isTaken,
-          candidates: project.candidates, // candidates should be an array of student objects
-          students: project.students, // Assuming `project.students` contains the array of student objects
-          registered: project.students.length + project.candidates.length,
-          projectInfo: project,
-          candidatesData: []
-        }));
+      // Assuming `project.candidates` contains the array of student objects
+      const projectData = response.data.projects.map((project) => ({
+        key: project._id, // Assuming there's an `_id` field
+        title: project.title,
+        isTaken: project.isTaken,
+        candidates: project.candidates, // candidates should be an array of student objects
+        students: project.students, // Assuming `project.students` contains the array of student objects
+        registered: project.students.length + project.candidates.length,
+        projectInfo: project,
+        candidatesData: []
+      }));
 
-        for (const project of projectData) {
-          const candidatesData = [];
-          for (const stud of project.students) {
-            try {
-              const studentResponse = await axios.get(
-                `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${stud.student}`,
-                {
-                  withCredentials: true
-                }
-              );
-              candidatesData.push({
-                key: `student-${stud.student}`,
-                name: studentResponse.data.name,
-                date: stud.joinDate,
-                status: true,
-                candidateInfo: studentResponse.data,
-                projectID: project.key
-              });
-            } catch (error) {
-              console.error("Error fetching student data:", error);
-            }
+      for (const project of projectData) {
+        const candidatesData = [];
+        for (const stud of project.students) {
+          try {
+            const studentResponse = await axios.get(
+              `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${stud.student}`,
+              {
+                withCredentials: true
+              }
+            );
+            candidatesData.push({
+              key: `student-${stud.student}`,
+              name: studentResponse.data.name,
+              date: stud.joinDate,
+              status: true,
+              candidateInfo: studentResponse.data,
+              projectID: project.key
+            });
+          } catch (error) {
+            console.error("Error fetching student data:", error);
           }
-
-          for (const candidate of project.candidates) {
-            try {
-              const studentResponse = await axios.get(
-                `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${candidate.student}`,
-                { withCredentials: true }
-              );
-              candidatesData.push({
-                key: `candidate-${candidate.student}`,
-                name: studentResponse.data.name,
-                date: candidate.joinDate,
-                status: false,
-                candidateInfo: studentResponse.data,
-                projectID: project.key
-              });
-            } catch (error) {
-              console.error("Error fetching candidate data:", error);
-            }
-          }
-
-          project.candidatesData = candidatesData;
-
-          setProjects(projectData);
         }
-      } catch (error) {
-        console.error("Error occurred:", error);
+
+        for (const candidate of project.candidates) {
+          try {
+            const studentResponse = await axios.get(
+              `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${candidate.student}`,
+              { withCredentials: true }
+            );
+            candidatesData.push({
+              key: `candidate-${candidate.student}`,
+              name: studentResponse.data.name,
+              date: candidate.joinDate,
+              status: false,
+              candidateInfo: studentResponse.data,
+              projectID: project.key
+            });
+          } catch (error) {
+            console.error("Error fetching candidate data:", error);
+          }
+        }
+
+        project.candidatesData = candidatesData;
+
+        setProjects(projectData);
       }
-    };
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
+  };
+
+  useEffect(() => {
+    console.log("Fetching data...");
     fetchData();
     fetchPrivileges();
     getUsersNoProjects();
@@ -183,9 +180,12 @@ const ManageProjects = () => {
 
   const approveStudent = (record) => async () => {
     try {
-      const intialResponse = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${record.candidateInfo._id}`, {
-        withCredentials: true
-      });
+      const intialResponse = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${record.candidateInfo._id}`,
+        {
+          withCredentials: true
+        }
+      );
       if (intialResponse.data.hasProject) {
         message.open({
           type: "error",
@@ -320,8 +320,7 @@ const ManageProjects = () => {
       suitableFor: project.projectInfo.suitableFor,
       year: project.projectInfo.year,
       type: project.projectInfo.type,
-      continues: project.projectInfo.continues,
-      isApproved: project.projectInfo.isApproved
+      continues: project.projectInfo.continues
     });
     setIsEditing(true);
   };
@@ -331,11 +330,6 @@ const ManageProjects = () => {
       title: "שם הפרויקט",
       dataIndex: "title",
       key: "title"
-    },
-    {
-      title: "סטטוס אישור",
-      dataIndex: "isApproved",
-      key: "isApproved"
     },
     {
       title: "מספר רשומים",
@@ -379,8 +373,6 @@ const ManageProjects = () => {
   };
 
   const onConfirmEdit = async () => {
-    console.log(editProjectData._id);
-    console.log("Form values:", form.getFieldsValue());
     const { title, description, year, suitableFor, type, continues } = form.getFieldsValue();
     try {
       const response = await axios.put(
@@ -390,7 +382,30 @@ const ManageProjects = () => {
           withCredentials: true
         }
       );
-      console.log(response);
+      message.open({
+        type: "success",
+        content: `הפרוייקט ${response.data.project.title} עודכן בהצלחה`,
+        duration: 2
+      });
+      const projectUpdate = projects.map((project) => {
+        if (project.key === editProjectData._id) {
+          return {
+            ...project,
+            title,
+            projectInfo: {
+              ...project.projectInfo,
+              title,
+              description,
+              year,
+              suitableFor,
+              type,
+              continues
+            }
+          };
+        }
+      });
+      setProjects(projectUpdate);
+      handleCancel();
     } catch (error) {
       console.error("Error occurred:", error);
     }
@@ -563,91 +578,6 @@ const ManageProjects = () => {
               }
             ]}>
             <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
-          </Form.Item>
-
-          {privileges.isCoordinator && (
-            <Form.Item
-              className="create-project-form-item"
-              label="מאושר"
-              name="isApproved"
-              rules={[
-                {
-                  required: false
-                }
-              ]}>
-              <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
-            </Form.Item>
-          )}
-          {/*
-          {privileges.isCoordinator ? (
-            <Form.Item
-              className="create-project-form-item"
-              label="מנחים"
-              name="advisors"
-              hasFeedback
-              rules={[
-                {
-                  required: false
-                }
-              ]}>
-              <Select mode="multiple" placeholder="בחר מנחים">
-                {advisorUsers.map((user) => (
-                  <Option key={user._id} value={user._id}>
-                    {user.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          ) : (
-            <Form.Item
-              className="create-project-form-item"
-              label="מנחים"
-              name="advisors"
-              hasFeedback
-              rules={[
-                {
-                  required: false
-                }
-              ]}>
-              <Input disabled value={currentUser.name} placeholder={currentUser.name} />
-            </Form.Item>
-          )}
-
-          <Form.Item
-            className="create-project-form-item"
-            label="סטודנטים"
-            name="students"
-            hasFeedback
-            rules={[
-              {
-                required: false
-              }
-            ]}>
-            <Select mode="multiple" placeholder="בחר סטודנטים">
-              {studentsNoProject.map((student) => (
-                <Option key={student.id} value={student.id}>
-                  {student.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item> */}
-          <Form.Item
-            className="create-project-form-item"
-            label="סטודנטים"
-            name="students"
-            hasFeedback
-            rules={[
-              {
-                required: false
-              }
-            ]}>
-            <Select mode="multiple" placeholder="בחר סטודנטים">
-              {studentsNoProject.map((student) => (
-                <Option key={student.id} value={student.id}>
-                  {student.name}
-                </Option>
-              ))}
-            </Select>
           </Form.Item>
         </Form>
       </Modal>
