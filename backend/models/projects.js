@@ -10,30 +10,35 @@ const projectSchema = new mongoose.Schema({
   continues: { type: Boolean, required: false, default: false },
   isFinished: { type: Boolean, required: false, default: false },
   isTerminated: { type: Boolean, required: false, default: false },
-  terminationRecord: { type: Array, required: false, default: [] },
+  terminationRecord: [
+    {
+      student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+      joinDate: { type: Date, default: Date.now },
+    },
+  ],
   isTaken: { type: Boolean, required: false, default: false },
   advisors: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }],
   students: [
     {
       student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-      joinDate: { type: Date, default: Date.now }
-    }
+      joinDate: { type: Date, default: Date.now },
+    },
   ],
   judges: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }],
   // Disable _id for candidates sub-documents here
   candidates: [
     {
       student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-      joinDate: { type: Date, default: Date.now }
-    }
+      joinDate: { type: Date, default: Date.now },
+    },
   ],
   grades: [{ type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: [] }],
   updateRecords: [
     {
       date: { type: Date, default: Date.now },
-      changes: { type: Object, required: true }
-    }
-  ]
+      changes: { type: Object, required: true },
+    },
+  ],
 });
 
 // Apply the option to disable _id for sub-documents within `candidates`

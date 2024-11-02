@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./ProjectsManagement.scss";
 import { useNavigate } from "react-router-dom";
-import { Tabs, Table, Modal, Select, Badge, Button, message } from "antd";
+import { Tabs, Table, Modal, Select, Button, message, Tooltip } from "antd";
+import { DeleteOutlined, RollbackOutlined } from "@ant-design/icons";
 import axios from "axios";
 
 const ProjectsManagement = () => {
@@ -23,6 +24,8 @@ const ProjectsManagement = () => {
   const [isAddJudgeModalOpen, setIsAddJudgeModalOpen] = useState(false);
   const [isUpdateJudgesModalOpen, setIsUpdateJudgesModalOpen] = useState(false);
   const [selectedJudges, setSelectedJudges] = useState([]);
+  const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] = useState(false);
+  const [isRestoreProjectModalOpen, setIsRestoreProjectModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -276,8 +279,63 @@ const ProjectsManagement = () => {
 
   const handleTerminateProject = async () => {
     try {
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/project/${selectedProject._id}/terminate`,
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/terminate-project`,
+        { projectID: selectedProject._id },
+        { withCredentials: true }
+      );
+
+      // Update local state
+      const updatedProjects = projects.map((project) => {
+        if (project._id === selectedProject._id) {
+          return {
+            ...project,
+            isTerminated: true,
+            terminationRecord: project.students,
+            students: [],
+          };
+        }
+        return project;
+      });
+
+      setProjects(updatedProjects);
+      setUsersWithoutProjects((prev) => [
+        ...prev,
+        ...selectedProject.students.map((s) => users.find((u) => u._id === s.student)).filter(Boolean),
+      ]);
+
+      setIsTerminateModalOpen(false);
+      setSelectedProject(null);
+      message.success("הפרויקט הופסק בהצלחה!");
+    } catch (error) {
+      console.error("Error terminating project:", error);
+      message.error("שגיאה בהפסקת הפרויקט");
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    try {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/project/delete-project/${selectedProject._id}`, {
+        withCredentials: true,
+      });
+
+      // Update local state
+      const updatedProjects = projects.filter((project) => project._id !== selectedProject._id);
+      setProjects(updatedProjects);
+
+      setIsDeleteProjectModalOpen(false);
+      setSelectedProject(null);
+      message.success("הפרויקט נמחק בהצלחה!");
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      message.error("שגיאה במחיקת הפרויקט");
+    }
+  };
+
+  const handleRestoreProject = async () => {
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/restore-project/${selectedProject._id}`,
         {},
         { withCredentials: true }
       );
@@ -285,28 +343,23 @@ const ProjectsManagement = () => {
       // Update local state
       const updatedProjects = projects.map((project) => {
         if (project._id === selectedProject._id) {
-          const updatedProject = {
+          return {
             ...project,
-            isTerminated: true,
+            isTerminated: false,
+            terminationRecord: [],
           };
-
-          // Add terminated project's students back to available pool
-          setUsersWithoutProjects((prev) =>
-            [...prev, ...project.students.map((student) => users.find((u) => u._id === student.student))].filter(
-              Boolean
-            )
-          );
-
-          return updatedProject;
         }
         return project;
       });
 
       setProjects(updatedProjects);
-      setIsTerminateModalOpen(false);
+
+      setIsRestoreProjectModalOpen(false);
       setSelectedProject(null);
+      message.success("הפרויקט שוחזר בהצלחה!");
     } catch (error) {
-      console.error("Error terminating project:", error);
+      console.error("Error restoring project:", error);
+      message.error("שגיאה בשחזור הפרויקט");
     }
   };
 
@@ -318,7 +371,7 @@ const ProjectsManagement = () => {
         key: "title",
         render: (text, record) => (
           <a onClick={() => navigate(`/project/${record._id}`)}>
-            {text.length > 65 ? `${text.substring(0, 65)}...` : text}
+            <Tooltip title={text}>{text.length > 65 ? `${text.substring(0, 65)}...` : text}</Tooltip>
           </a>
         ),
         width: "25%",
@@ -440,7 +493,7 @@ const ProjectsManagement = () => {
         key: "title",
         render: (text, record) => (
           <a onClick={() => navigate(`/project/${record._id}`)}>
-            {text.length > 65 ? `${text.substring(0, 65)}...` : text}
+            <Tooltip title={text}>{text.length > 65 ? `${text.substring(0, 65)}...` : text}</Tooltip>
           </a>
         ),
         width: "25%",
@@ -569,104 +622,193 @@ const ProjectsManagement = () => {
     ],
     finished: [
       {
-        title: "Project Name",
+        title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
         render: (text, record) => (
-          <Button variant="link" onClick={() => navigate(`/project/${record._id}`)}>
-            {text}
-          </Button>
+          <a onClick={() => navigate(`/project/${record._id}`)}>
+            <Tooltip title={text}>{text.length > 65 ? `${text.substring(0, 65)}...` : text}</Tooltip>
+          </a>
         ),
+        width: "25%",
       },
       {
-        title: "Students",
-        dataIndex: "students",
-        key: "students",
-        render: (students) => (
-          <div className="space-y-1">
-            {students.map(({ student }) => {
-              const studentUser = users.find((u) => u._id === student);
-              return studentUser ? (
-                <Button key={student} variant="link" onClick={() => navigate(`/profile/${student}`)}>
-                  {studentUser.name}
-                </Button>
-              ) : null;
-            })}
-          </div>
-        ),
-      },
-      {
-        title: "Advisor",
+        title: "מנחה",
         dataIndex: "advisors",
         key: "advisors",
         render: (advisors) => (
-          <div className="space-y-1">
-            {advisors.map((advisor) => {
-              const advisorUser = users.find((u) => u._id === advisor);
-              return advisorUser ? (
-                <Button key={advisor} variant="link" onClick={() => navigate(`/profile/${advisor}`)}>
-                  {advisorUser.name}
-                </Button>
-              ) : null;
-            })}
+          <div>
+            {advisors.length > 0
+              ? advisors.map((advisor) => {
+                  const advisorUser = users.find((u) => u._id === advisor);
+                  return advisorUser ? (
+                    <a key={advisor} onClick={() => navigate(`/profile/${advisor}`)}>
+                      {advisorUser.name}
+                    </a>
+                  ) : null;
+                })
+              : "לא משוייך מנחה"}
           </div>
         ),
+        width: "10%",
       },
       {
-        title: "Status",
-        key: "status",
-        render: () => <Badge className="bg-green-500">Completed</Badge>,
+        title: "סטודנטים",
+        dataIndex: "students",
+        key: "students",
+        render: (students) => (
+          <div className="projects-student-list">
+            {students.length > 0
+              ? students.map(({ student }) => {
+                  const studentUser = users.find((u) => u._id === student);
+                  return studentUser ? (
+                    <a key={student} onClick={() => navigate(`/profile/${student}`)}>
+                      {studentUser.name}
+                    </a>
+                  ) : null;
+                })
+              : "לא משוייכים סטודנטים"}
+          </div>
+        ),
+        width: "20%",
+      },
+      {
+        title: "סוג",
+        dataIndex: "type",
+        key: "type",
+        width: "10%",
+      },
+      {
+        title: "שופטים",
+        dataIndex: "judges",
+        key: "judges",
+        render: (judges) => (
+          <div className="projects-judge-list">
+            {judges.length > 0
+              ? judges.map((judge) => {
+                  const judgeUser = users.find((u) => u._id === judge);
+                  return judgeUser ? (
+                    <a key={judge} onClick={() => navigate(`/profile/${judge}`)}>
+                      {judgeUser.name}
+                    </a>
+                  ) : null;
+                })
+              : "לא משוייכים שופטים"}
+          </div>
+        ),
+        width: "20%",
+      },
+      {
+        title: "ציון סופי",
+        dataIndex: "grades",
+        key: "grades",
+        width: "8%",
+      },
+      {
+        title: "פעולות",
+        key: "actions",
+        render: (_, record) => (
+          <a>
+            <Tooltip title="מחק מהמערכת">
+              <DeleteOutlined
+                style={{ fontSize: "25px" }}
+                onClick={() => {
+                  setSelectedProject(record);
+                  setIsDeleteProjectModalOpen(true);
+                }}
+              />
+            </Tooltip>
+          </a>
+        ),
+        width: "7%",
       },
     ],
     terminated: [
       {
-        title: "Project Name",
+        title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
         render: (text, record) => (
-          <Button variant="link" onClick={() => navigate(`/project/${record._id}`)}>
-            {text}
-          </Button>
+          <a onClick={() => navigate(`/project/${record._id}`)}>
+            <Tooltip title={text}>{text.length > 75 ? `${text.substring(0, 75)}...` : text}</Tooltip>
+          </a>
         ),
+        width: "35%",
       },
       {
-        title: "Previous Students",
-        dataIndex: "students",
-        key: "students",
-        render: (students) => (
-          <div className="space-y-1">
-            {students.map(({ student }) => {
-              const studentUser = users.find((u) => u._id === student);
-              return studentUser ? (
-                <Button key={student} variant="link" onClick={() => navigate(`/profile/${student}`)}>
-                  {studentUser.name}
-                </Button>
-              ) : null;
-            })}
-          </div>
-        ),
-      },
-      {
-        title: "Advisor",
+        title: "מנחה",
         dataIndex: "advisors",
         key: "advisors",
         render: (advisors) => (
-          <div className="space-y-1">
-            {advisors.map((advisor) => {
-              const advisorUser = users.find((u) => u._id === advisor);
-              return advisorUser ? (
-                <Button key={advisor} variant="link" onClick={() => navigate(`/profile/${advisor}`)}>
-                  {advisorUser.name}
-                </Button>
-              ) : null;
-            })}
+          <div>
+            {advisors.length > 0
+              ? advisors.map((advisor) => {
+                  const advisorUser = users.find((u) => u._id === advisor);
+                  return advisorUser ? (
+                    <a key={advisor} onClick={() => navigate(`/profile/${advisor}`)}>
+                      {advisorUser.name}
+                    </a>
+                  ) : null;
+                })
+              : "לא משוייך מנחה"}
           </div>
         ),
+        width: "10%",
       },
       {
-        title: "Status",
-        key: "status",
-        render: () => <Badge className="bg-red-500">Terminated</Badge>,
+        title: "סטודנטים",
+        dataIndex: "terminationRecord",
+        key: "terminationRecord",
+        render: (terminationRecord) => (
+          <div className="projects-student-list">
+            {terminationRecord.length > 0
+              ? terminationRecord.map(({ student }) => {
+                  const studentUser = users.find((u) => u._id === student);
+                  return studentUser ? (
+                    <a key={student} onClick={() => navigate(`/profile/${student}`)}>
+                      {studentUser.name}
+                    </a>
+                  ) : null;
+                })
+              : "לא משוייכים סטודנטים"}
+          </div>
+        ),
+        width: "20%",
+      },
+      {
+        title: "סוג",
+        dataIndex: "type",
+        key: "type",
+        width: "10%",
+      },
+      {
+        title: "פעולות",
+        key: "actions",
+        render: (_, record) => (
+          <div className="termination-project-actions">
+            <a>
+              <Tooltip title="מחק מהמערכת">
+                <DeleteOutlined
+                  onClick={() => {
+                    setSelectedProject(record);
+                    setIsDeleteProjectModalOpen(true);
+                  }}
+                />
+              </Tooltip>
+            </a>
+            <a>
+              <Tooltip title="שחזר פרויקט">
+                <RollbackOutlined
+                  onClick={() => {
+                    setSelectedProject(record);
+                    setIsRestoreProjectModalOpen(true);
+                  }}
+                />
+              </Tooltip>
+            </a>
+          </div>
+        ),
+        width: "5%",
       },
     ],
   };
@@ -993,6 +1135,47 @@ const ProjectsManagement = () => {
         cancelText="ביטול">
         <div>
           <p>אתה בטוח שברצונך להפסיק את הפרויקט?</p>
+        </div>
+      </Modal>
+
+      {/* Delete Project Modal */}
+      <Modal
+        open={isDeleteProjectModalOpen}
+        title={`מחיקת פרויקט: ${selectedProject?.title}`}
+        onOk={handleDeleteProject}
+        onCancel={() => {
+          setIsDeleteProjectModalOpen(false);
+          setSelectedProject(null);
+        }}
+        okText="מחק פרויקט"
+        okButtonProps={{ danger: true }}
+        cancelText="ביטול">
+        <div>
+          <p>
+            אתה בטוח שברצונך למחוק את הפרויקט?
+            <br />
+            פעולה זו היא בלתי הפיכה!
+          </p>
+        </div>
+      </Modal>
+
+      {/* Restore Project Modal */}
+      <Modal
+        open={isRestoreProjectModalOpen}
+        title={`שחזור פרויקט: ${selectedProject?.title}`}
+        onOk={handleRestoreProject}
+        onCancel={() => {
+          setIsRestoreProjectModalOpen(false);
+          setSelectedProject(null);
+        }}
+        okText="שחזר פרויקט"
+        cancelText="ביטול">
+        <div>
+          <p>
+            הפרויקט ישוחזר ללא תלמידים.
+            <br />
+            אתה בטוח שברצונך לבצע פעולה זאת?
+          </p>
         </div>
       </Modal>
     </div>

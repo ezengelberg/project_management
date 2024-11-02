@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./ShowAllUsers.scss";
 import axios from "axios";
-import { Space, Table, Tag, Spin, Avatar, Modal, Form, Input, Select, message, Tooltip, Switch, Button } from "antd";
+import { Space, Table, Tag, Avatar, Modal, Form, Input, Select, message, Tooltip, Switch, Button } from "antd";
 import { EditOutlined, UserDeleteOutlined, UserAddOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
@@ -715,13 +715,11 @@ const ShowAllUsers = () => {
     <div>
       <div className="active-users">
         <h2>משתמשים רשומים</h2>
-        {loading && <Spin />}
-        <Table columns={columns} dataSource={dataSource} style={{ minHeight: "770px" }} />
+        <Table columns={columns} dataSource={dataSource} style={{ minHeight: "770px" }} loading={loading} />
       </div>
       <div className="deleted-users">
         <h2>משתמשים מושעים</h2>
-        {loading && <Spin />}
-        <Table columns={suspendedColumns} dataSource={suspendedDataSource} />
+        <Table columns={suspendedColumns} dataSource={suspendedDataSource} loading={loading} />
       </div>
       <Modal
         title={`עריכת משתמש: ${editUserDetails.name}`}

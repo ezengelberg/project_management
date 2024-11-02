@@ -20,6 +20,9 @@ import {
   updateAdvisorInProject,
   addJudgesToProject,
   updateJudgesInProject,
+  terminateProject,
+  deleteProject,
+  restoreProject,
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../middleware/auth.js";
 
@@ -45,5 +48,8 @@ router.put("/update-students", ensureAuthenticated, isCoordinator, updateStudent
 router.put("/update-advisor", ensureAuthenticated, isCoordinator, updateAdvisorInProject);
 router.post("/add-judges", ensureAuthenticated, isCoordinator, addJudgesToProject);
 router.put("/update-judges", ensureAuthenticated, isCoordinator, updateJudgesInProject);
+router.put("/terminate-project", ensureAuthenticated, isCoordinator, terminateProject);
+router.delete("/delete-project/:id", ensureAuthenticated, isCoordinator, deleteProject);
+router.put("/restore-project/:id", ensureAuthenticated, isCoordinator, restoreProject);
 
 export default router;

@@ -401,10 +401,6 @@ export const updateProject = async (req, res) => {
   }
 };
 
-export const deleteProject = async (req, res) => {};
-
-export const closeProject = async (req, res) => {};
-
 export const addAdvisorToProject = async (req, res) => {
   try {
     const project = await Project.findById(req.body.projectID);
@@ -496,6 +492,64 @@ export const updateJudgesInProject = async (req, res) => {
     project.judges = validJudges;
     await project.save();
     res.status(200).send({ message: "Judges updated successfully", project });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const terminateProject = async (req, res) => {
+  try {
+    const project = await Project.findById(req.body.projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+
+    // Save students to terminationRecord and free them from the project
+    project.terminationRecord = project.students;
+    project.students = [];
+    project.judges = [];
+    project.isTerminated = true;
+
+    await project.save();
+    res.status(200).send("Project terminated successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const deleteProject = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    await project.deleteOne();
+    res.status(200).send("Project deleted successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const restoreProject = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    if (!project.isTerminated) {
+      return res.status(400).send({ message: "Project is not terminated" });
+    }
+    project.isTerminated = false;
+    project.terminationRecord = [];
+    project.isTaken = false;
+    project.isFinished = false;
+    project.students = [];
+    project.judges = [];
+    project.candidates = [];
+    project.grades = [];
+
+    await project.save();
+    res.status(200).send("Project restored successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
