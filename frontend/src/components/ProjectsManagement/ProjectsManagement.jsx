@@ -10,6 +10,7 @@ const ProjectsManagement = () => {
   const [users, setUsers] = useState([]);
   const [usersWithoutProjects, setUsersWithoutProjects] = useState([]);
   const [advisors, setAdvisors] = useState([]);
+  const [judges, setJudges] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedStudents, setSelectedStudents] = useState([]);
@@ -18,6 +19,9 @@ const ProjectsManagement = () => {
   const [isAddAdvisorModalOpen, setIsAddAdvisorModalOpen] = useState(false);
   const [selectedAdvisor, setSelectedAdvisor] = useState(null);
   const [isUpdateStudentsModalOpen, setIsUpdateStudentsModalOpen] = useState(false);
+  const [isAddJudgeModalOpen, setIsAddJudgeModalOpen] = useState(false);
+  const [isUpdateJudgesModalOpen, setIsUpdateJudgesModalOpen] = useState(false);
+  const [selectedJudges, setSelectedJudges] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,6 +48,7 @@ const ProjectsManagement = () => {
           )
         );
         setAdvisors(activeUsers.filter((user) => user.isAdvisor));
+        setJudges(activeUsers.filter((user) => user.isJudge));
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -240,7 +245,7 @@ const ProjectsManagement = () => {
         dataIndex: "students",
         key: "students",
         render: (students) => (
-          <div className="open-projects-student-list">
+          <div className="projects-student-list">
             {students.length > 0
               ? students.map(({ student }) => {
                   const studentUser = users.find((u) => u._id === student);
@@ -318,66 +323,114 @@ const ProjectsManagement = () => {
     ],
     taken: [
       {
-        title: "Project Name",
+        title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
         render: (text, record) => (
-          <Button variant="link" onClick={() => navigate(`/project/${record._id}`)}>
-            {text}
-          </Button>
+          <a onClick={() => navigate(`/project/${record._id}`)}>
+            {text.length > 65 ? `${text.substring(0, 65)}...` : text}
+          </a>
         ),
+        width: "25%",
       },
       {
-        title: "Students",
-        dataIndex: "students",
-        key: "students",
-        render: (students) => (
-          <div className="space-y-1">
-            {students.map(({ student }) => {
-              const studentUser = users.find((u) => u._id === student);
-              return studentUser ? (
-                <Button key={student} variant="link" onClick={() => navigate(`/profile/${student}`)}>
-                  {studentUser.name}
-                </Button>
-              ) : null;
-            })}
-          </div>
-        ),
-      },
-      {
-        title: "Advisor",
+        title: "מנחה",
         dataIndex: "advisors",
         key: "advisors",
         render: (advisors) => (
-          <div className="space-y-1">
-            {advisors.map((advisor) => {
-              const advisorUser = users.find((u) => u._id === advisor);
-              return advisorUser ? (
-                <Button key={advisor} variant="link" onClick={() => navigate(`/profile/${advisor}`)}>
-                  {advisorUser.name}
-                </Button>
-              ) : null;
-            })}
+          <div>
+            {advisors.length > 0
+              ? advisors.map((advisor) => {
+                  const advisorUser = users.find((u) => u._id === advisor);
+                  return advisorUser ? (
+                    <a key={advisor} onClick={() => navigate(`/profile/${advisor}`)}>
+                      {advisorUser.name}
+                    </a>
+                  ) : null;
+                })
+              : "לא משוייך מנחה"}
           </div>
         ),
+        width: "15%",
       },
       {
-        title: "Status",
-        key: "status",
-        render: () => <Badge className="bg-blue-500">Active</Badge>,
+        title: "סטודנטים",
+        dataIndex: "students",
+        key: "students",
+        render: (students) => (
+          <div className="projects-student-list">
+            {students.length > 0
+              ? students.map(({ student }) => {
+                  const studentUser = users.find((u) => u._id === student);
+                  return studentUser ? (
+                    <a key={student} onClick={() => navigate(`/profile/${student}`)}>
+                      {studentUser.name}
+                    </a>
+                  ) : null;
+                })
+              : "לא משוייכים סטודנטים"}
+          </div>
+        ),
+        width: "15%",
       },
       {
-        title: "Actions",
+        title: "סוג",
+        dataIndex: "type",
+        key: "type",
+        width: "10%",
+      },
+      {
+        title: "שופטים",
+        dataIndex: "judges",
+        key: "judges",
+        render: (judges) => (
+          <div>
+            {judges.length > 0
+              ? judges.map((judge) => {
+                  const judgeUser = users.find((u) => u._id === judge);
+                  return judgeUser ? (
+                    <a key={judge} onClick={() => navigate(`/profile/${judge}`)}>
+                      {judgeUser.name}
+                    </a>
+                  ) : null;
+                })
+              : "לא משוייכים שופטים"}
+          </div>
+        ),
+        width: "15%",
+      },
+      {
+        title: "פעולות",
         key: "actions",
         render: (_, record) => (
-          <Button
-            variant="destructive"
-            onClick={() => {
-              setSelectedProject(record);
-              setIsTerminateModalOpen(true);
-            }}>
-            Terminate
-          </Button>
+          <div className="project-manage-actions">
+            {record.judges.length === 0 ? (
+              <Button
+                onClick={() => {
+                  setSelectedProject(record);
+                  setIsAddJudgeModalOpen(true);
+                }}>
+                הוסף שופט
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  setSelectedProject(record);
+                  setIsUpdateJudgesModalOpen(true);
+                  setSelectedJudges(record.judges);
+                }}>
+                עדכן שופטים
+              </Button>
+            )}
+            <Button
+              danger
+              onClick={() => {
+                setSelectedProject(record);
+                setIsTerminateModalOpen(true);
+              }}>
+              הפסקת פרויקט
+            </Button>
+          </div>
         ),
       },
     ],

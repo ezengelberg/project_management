@@ -19,6 +19,7 @@ const projectSchema = new mongoose.Schema({
       joinDate: { type: Date, default: Date.now }
     }
   ],
+  judges: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }],
   // Disable _id for candidates sub-documents here
   candidates: [
     {

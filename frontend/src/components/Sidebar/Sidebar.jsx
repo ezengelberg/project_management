@@ -25,9 +25,7 @@ const Sidebar = () => {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, {
-          withCredentials: true
-        });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, { withCredentials: true });
         setUser(response.data);
         localStorage.setItem("user", JSON.stringify(response.data));
       } catch (error) {
@@ -130,7 +128,9 @@ const Sidebar = () => {
             </div>
           </li>
           <li>
-            <div className="sidebar-option" onClick={() => navigate("/projects-managment")}>
+            <div
+              className={`sidebar-option ${isActive("/projects-managment") ? "active" : ""}`}
+              onClick={() => navigate("/projects-managment")}>
               <FundProjectionScreenOutlined />
               <span>ניהול פרויקטים</span>
             </div>
