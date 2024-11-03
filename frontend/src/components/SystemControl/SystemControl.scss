@@ -39,7 +39,7 @@
       transition: background-color 0.2s linear;
       &:hover {
         background-color: #fd3e41;
-        animation: popout-rattle 0.5s ease-in-out;
+        animation: tilt-n-move-shaking 0.15s infinite;
       }
       svg {
         width: 5rem;
@@ -53,25 +53,10 @@
   margin: 0 0 1.5rem;
 }
 
-@keyframes popout-rattle {
-  0% {
-    transform: translateX(0);
-    transform: scale(1);
-  }
-  25% {
-    transform: translateX(-0.5rem);
-    // transform: scale(1.1);
-  }
-  50% {
-    transform: translateX(0.5rem);
-    transform: scale(1.05);
-  }
-  75% {
-    transform: translateX(-0.5rem);
-    // transform: scale(1.1);
-  }
-  100% {
-    transform: translateX(0);
-    transform: scale(1);
-  }
+@keyframes tilt-n-move-shaking {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(5px, 5px) rotate(5deg); }
+  50% { transform: translate(0, 0) rotate(0eg); }
+  75% { transform: translate(-5px, 5px) rotate(-5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
 }
