@@ -138,8 +138,8 @@ const Sidebar = () => {
           {user.isCoordinator && (
             <li>
               <div
-                className={`sidebar-option ${isActive("/projects-managment") ? "active" : ""}`}
-                onClick={() => navigate("/projects-managment")}>
+                className={`sidebar-option ${isActive("/overview-projects") ? "active" : ""}`}
+                onClick={() => navigate("/overview-projects")}>
                 <FundProjectionScreenOutlined />
                 <span>ניהול פרויקטים</span>
               </div>

@@ -102,7 +102,7 @@ const MainLayout = () => {
                 }
               />
               <Route
-                path="/projects-managment"
+                path="/overview-projects"
                 element={
                   <ProtectedRoute>
                     <ProjectsManagement />
