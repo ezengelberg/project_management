@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import "./ProjectsManagement.scss";
+import "./OverviewProjects.scss";
 import { useNavigate } from "react-router-dom";
 import { Tabs, Table, Modal, Select, Button, message, Tooltip } from "antd";
 import { DeleteOutlined, RollbackOutlined } from "@ant-design/icons";
 import axios from "axios";
 
-const ProjectsManagement = () => {
+const OverviewProjects = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [users, setUsers] = useState([]);
@@ -1182,4 +1182,4 @@ const ProjectsManagement = () => {
   );
 };
 
-export default ProjectsManagement;
+export default OverviewProjects;

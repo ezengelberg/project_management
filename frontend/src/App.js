@@ -14,7 +14,7 @@ import CreateUser from "./components/CreateUser/CreateUser";
 import ShowAllUsers from "./components/ShowAllUsers/ShowAllUsers";
 import HeaderMenu from "./components/HeaderMenu/HeaderMenu";
 import ProjectPage from "./components/ProjectPage/ProjectPage";
-import ProjectsManagement from "./components/ProjectsManagement/ProjectsManagement";
+import OverviewProjects from "./components/OverviewProjects/OverviewProjects";
 import SystemControl from "./components/SystemControl/SystemControl";
 
 function App() {
@@ -105,7 +105,7 @@ const MainLayout = () => {
                 path="/overview-projects"
                 element={
                   <ProtectedRoute>
-                    <ProjectsManagement />
+                    <OverviewProjects />
                   </ProtectedRoute>
                 }
               />
