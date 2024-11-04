@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
+  index: { type: Number, required: true, unique: true },
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   id: { type: String, required: true, unique: true },
@@ -17,7 +18,30 @@ const userSchema = new mongoose.Schema({
   suspendedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   suspendedReason: { type: String, default: null },
   suspensionRecords: { type: Array, required: true, default: [] },
-  updatedAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+userSchema.pre("validate", async function (next) {
+  try {
+    if (this.isNew && !this.index) {
+      // First try to get the max index
+      const maxIndexUser = await this.constructor.findOne({}, { index: 1 }).sort({ index: -1 });
+      // If there's a maxIndexUser and it has a valid index, increment it
+      if (maxIndexUser && typeof maxIndexUser.index === "number") {
+        this.index = maxIndexUser.index + 1;
+      } else {
+        // If no users exist or no valid index found, start from 1
+        this.index = 1;
+      }
+      if (!Number.isInteger(this.index)) {
+        throw new Error("Failed to generate valid index");
+      }
+    }
+    next();
+  } catch (error) {
+    console.log("Error in pre-validate middleware:", error);
+    next(error);
+  }
 });
 
 const userModel = mongoose.model("User", userSchema);
