@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
-import "./ProjectsManagement.scss";
+import React, { useState, useEffect, useRef } from "react";
+import "./OverviewProjects.scss";
 import { useNavigate } from "react-router-dom";
-import { Tabs, Table, Modal, Select, Button, message, Tooltip } from "antd";
-import { DeleteOutlined, RollbackOutlined } from "@ant-design/icons";
+import { Tabs, Table, Modal, Select, Button, message, Tooltip, Input, Space } from "antd";
+import { DeleteOutlined, RollbackOutlined, SearchOutlined } from "@ant-design/icons";
 import axios from "axios";
+import Highlighter from "react-highlight-words";
 
-const ProjectsManagement = () => {
+const OverviewProjects = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [users, setUsers] = useState([]);
@@ -26,6 +27,9 @@ const ProjectsManagement = () => {
   const [selectedJudges, setSelectedJudges] = useState([]);
   const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] = useState(false);
   const [isRestoreProjectModalOpen, setIsRestoreProjectModalOpen] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -363,23 +367,105 @@ const ProjectsManagement = () => {
     }
   };
 
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    setSearchText("");
+  };
+
+  const getColumnSearchProps = (dataIndex) => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInput}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          style={{ marginBottom: 8, display: "block" }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}>
+            חיפוש
+          </Button>
+          <Button onClick={() => clearFilters && handleReset(clearFilters)} size="small" style={{ width: 90 }}>
+            איפוס
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close();
+            }}>
+            סגור
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />,
+    onFilter: (value, record) => {
+      if (dataIndex === "advisors") {
+        return record[dataIndex].some((advisor) => {
+          const advisorUser = users.find((u) => u._id === advisor);
+          return advisorUser && advisorUser.name.toLowerCase().includes(value.toLowerCase());
+        });
+      }
+      return record[dataIndex].toString().toLowerCase().includes(value.toLowerCase());
+    },
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
+    },
+    render: (text, record) =>
+      searchedColumn === dataIndex ? (
+        <Highlighter
+          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text}
+        />
+      ) : (
+        text
+      ),
+  });
+
   const columns = {
     open: [
       {
         title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
+        ...getColumnSearchProps("title"),
         render: (text, record) => (
           <a onClick={() => navigate(`/project/${record._id}`)}>
-            <Tooltip title={text}>{text.length > 65 ? `${text.substring(0, 65)}...` : text}</Tooltip>
+            <Highlighter
+              highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+              searchWords={[searchText]}
+              autoEscape
+              textToHighlight={text.length > 65 ? `${text.substring(0, 65)}...` : text}
+            />
           </a>
         ),
         width: "25%",
+        sorter: (a, b) => a.title.localeCompare(b.title),
+        defaultSortOrder: "ascend",
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "מנחה",
         dataIndex: "advisors",
         key: "advisors",
+        ...getColumnSearchProps("advisors"),
         render: (advisors) => (
           <div>
             {advisors.length > 0
@@ -387,7 +473,12 @@ const ProjectsManagement = () => {
                   const advisorUser = users.find((u) => u._id === advisor);
                   return advisorUser ? (
                     <a key={advisor} onClick={() => navigate(`/profile/${advisor}`)}>
-                      {advisorUser.name}
+                      <Highlighter
+                        highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+                        searchWords={[searchText]}
+                        autoEscape
+                        textToHighlight={advisorUser.name}
+                      />
                     </a>
                   ) : null;
                 })
@@ -395,6 +486,12 @@ const ProjectsManagement = () => {
           </div>
         ),
         width: "15%",
+        sorter: (a, b) => {
+          const advisorA = users.find((u) => u._id === a.advisors[0]);
+          const advisorB = users.find((u) => u._id === b.advisors[0]);
+          return advisorA && advisorB ? advisorA.name.localeCompare(advisorB.name) : 0;
+        },
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "סטודנטים",
@@ -415,18 +512,40 @@ const ProjectsManagement = () => {
           </div>
         ),
         width: "15%",
+        filters: [
+          { text: "ללא סטודנטים", value: "ללא סטודנטים" },
+          { text: "סטודנט אחד", value: "סטודנט אחד" },
+          { text: "שני סטודנטים", value: "שני סטודנטים" },
+        ],
+        onFilter: (value, record) => {
+          if (value === "ללא סטודנטים") {
+            return record.students.length === 0;
+          }
+          if (value === "סטודנט אחד") {
+            return record.students.length === 1;
+          }
+          if (value === "שני סטודנטים") {
+            return record.students.length === 2;
+          }
+        },
       },
       {
         title: "מתאים ל...",
         dataIndex: "suitableFor",
         key: "suitableFor",
         width: "10%",
+        ...getColumnSearchProps("suitableFor"),
+        sorter: (a, b) => a.suitableFor.localeCompare(b.suitableFor),
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "סוג",
         dataIndex: "type",
         key: "type",
         width: "10%",
+        ...getColumnSearchProps("type"),
+        sorter: (a, b) => a.type.localeCompare(b.type),
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "פעולות",
@@ -491,17 +610,27 @@ const ProjectsManagement = () => {
         title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
+        ...getColumnSearchProps("title"),
         render: (text, record) => (
           <a onClick={() => navigate(`/project/${record._id}`)}>
-            <Tooltip title={text}>{text.length > 65 ? `${text.substring(0, 65)}...` : text}</Tooltip>
+            <Highlighter
+              highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+              searchWords={[searchText]}
+              autoEscape
+              textToHighlight={text.length > 65 ? `${text.substring(0, 65)}...` : text}
+            />
           </a>
         ),
         width: "25%",
+        sorter: (a, b) => a.title.localeCompare(b.title),
+        defaultSortOrder: "ascend",
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "מנחה",
         dataIndex: "advisors",
         key: "advisors",
+        ...getColumnSearchProps("advisors"),
         render: (advisors) => (
           <div>
             {advisors.length > 0
@@ -509,7 +638,12 @@ const ProjectsManagement = () => {
                   const advisorUser = users.find((u) => u._id === advisor);
                   return advisorUser ? (
                     <a key={advisor} onClick={() => navigate(`/profile/${advisor}`)}>
-                      {advisorUser.name}
+                      <Highlighter
+                        highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+                        searchWords={[searchText]}
+                        autoEscape
+                        textToHighlight={advisorUser.name}
+                      />
                     </a>
                   ) : null;
                 })
@@ -517,6 +651,12 @@ const ProjectsManagement = () => {
           </div>
         ),
         width: "12%",
+        sorter: (a, b) => {
+          const advisorA = users.find((u) => u._id === a.advisors[0]);
+          const advisorB = users.find((u) => u._id === b.advisors[0]);
+          return advisorA && advisorB ? advisorA.name.localeCompare(advisorB.name) : 0;
+        },
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "סטודנטים",
@@ -537,12 +677,31 @@ const ProjectsManagement = () => {
           </div>
         ),
         width: "15%",
+        filters: [
+          { text: "ללא סטודנטים", value: "ללא סטודנטים" },
+          { text: "סטודנט אחד", value: "סטודנט אחד" },
+          { text: "שני סטודנטים", value: "שני סטודנטים" },
+        ],
+        onFilter: (value, record) => {
+          if (value === "ללא סטודנטים") {
+            return record.students.length === 0;
+          }
+          if (value === "סטודנט אחד") {
+            return record.students.length === 1;
+          }
+          if (value === "שני סטודנטים") {
+            return record.students.length === 2;
+          }
+        },
       },
       {
         title: "סוג",
         dataIndex: "type",
         key: "type",
         width: "7%",
+        ...getColumnSearchProps("type"),
+        sorter: (a, b) => a.type.localeCompare(b.type),
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "שופטים",
@@ -563,6 +722,26 @@ const ProjectsManagement = () => {
           </div>
         ),
         width: "15%",
+        filters: [
+          { text: "ללא שופטים", value: "ללא שופטים" },
+          { text: "שופט אחד", value: "שופט אחד" },
+          { text: "שני שופטים", value: "שני שופטים" },
+          { text: "שלושה שופטים", value: "שלושה שופטים" },
+        ],
+        onFilter: (value, record) => {
+          if (value === "ללא שופטים") {
+            return record.judges.length === 0;
+          }
+          if (value === "שופט אחד") {
+            return record.judges.length === 1;
+          }
+          if (value === "שני שופטים") {
+            return record.judges.length === 2;
+          }
+          if (value === "שלושה שופטים") {
+            return record.judges.length === 3;
+          }
+        },
       },
       {
         title: "פעולות",
@@ -625,17 +804,26 @@ const ProjectsManagement = () => {
         title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
+        ...getColumnSearchProps("title"),
         render: (text, record) => (
           <a onClick={() => navigate(`/project/${record._id}`)}>
-            <Tooltip title={text}>{text.length > 65 ? `${text.substring(0, 65)}...` : text}</Tooltip>
+            <Highlighter
+              highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+              searchWords={[searchText]}
+              autoEscape
+              textToHighlight={text.length > 65 ? `${text.substring(0, 65)}...` : text}
+            />
           </a>
         ),
         width: "25%",
+        sorter: (a, b) => a.title.localeCompare(b.title),
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "מנחה",
         dataIndex: "advisors",
         key: "advisors",
+        ...getColumnSearchProps("advisors"),
         render: (advisors) => (
           <div>
             {advisors.length > 0
@@ -651,6 +839,12 @@ const ProjectsManagement = () => {
           </div>
         ),
         width: "10%",
+        sorter: (a, b) => {
+          const advisorA = users.find((u) => u._id === a.advisors[0]);
+          const advisorB = users.find((u) => u._id === b.advisors[0]);
+          return advisorA && advisorB ? advisorA.name.localeCompare(advisorB.name) : 0;
+        },
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "סטודנטים",
@@ -671,12 +865,31 @@ const ProjectsManagement = () => {
           </div>
         ),
         width: "20%",
+        filters: [
+          { text: "ללא סטודנטים", value: "ללא סטודנטים" },
+          { text: "סטודנט אחד", value: "סטודנט אחד" },
+          { text: "שני סטודנטים", value: "שני סטודנטים" },
+        ],
+        onFilter: (value, record) => {
+          if (value === "ללא סטודנטים") {
+            return record.students.length === 0;
+          }
+          if (value === "סטודנט אחד") {
+            return record.students.length === 1;
+          }
+          if (value === "שני סטודנטים") {
+            return record.students.length === 2;
+          }
+        },
       },
       {
         title: "סוג",
         dataIndex: "type",
         key: "type",
         width: "10%",
+        ...getColumnSearchProps("type"),
+        sorter: (a, b) => a.type.localeCompare(b.type),
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "שופטים",
@@ -697,12 +910,34 @@ const ProjectsManagement = () => {
           </div>
         ),
         width: "20%",
+        filters: [
+          { text: "ללא שופטים", value: "ללא שופטים" },
+          { text: "שופט אחד", value: "שופט אחד" },
+          { text: "שני שופטים", value: "שני שופטים" },
+          { text: "שלושה שופטים", value: "שלושה שופטים" },
+        ],
+        onFilter: (value, record) => {
+          if (value === "ללא שופטים") {
+            return record.judges.length === 0;
+          }
+          if (value === "שופט אחד") {
+            return record.judges.length === 1;
+          }
+          if (value === "שני שופטים") {
+            return record.judges.length === 2;
+          }
+          if (value === "שלושה שופטים") {
+            return record.judges.length === 3;
+          }
+        },
       },
       {
         title: "ציון סופי",
         dataIndex: "grades",
         key: "grades",
         width: "8%",
+        sorter: (a, b) => a.grades.final - b.grades.final,
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "פעולות",
@@ -728,17 +963,26 @@ const ProjectsManagement = () => {
         title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
+        ...getColumnSearchProps("title"),
         render: (text, record) => (
           <a onClick={() => navigate(`/project/${record._id}`)}>
-            <Tooltip title={text}>{text.length > 75 ? `${text.substring(0, 75)}...` : text}</Tooltip>
+            <Highlighter
+              highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+              searchWords={[searchText]}
+              autoEscape
+              textToHighlight={text.length > 75 ? `${text.substring(0, 75)}...` : text}
+            />
           </a>
         ),
         width: "35%",
+        sorter: (a, b) => a.title.localeCompare(b.title),
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "מנחה",
         dataIndex: "advisors",
         key: "advisors",
+        ...getColumnSearchProps("advisors"),
         render: (advisors) => (
           <div>
             {advisors.length > 0
@@ -754,6 +998,12 @@ const ProjectsManagement = () => {
           </div>
         ),
         width: "10%",
+        sorter: (a, b) => {
+          const advisorA = users.find((u) => u._id === a.advisors[0]);
+          const advisorB = users.find((u) => u._id === b.advisors[0]);
+          return advisorA && advisorB ? advisorA.name.localeCompare(advisorB.name) : 0;
+        },
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "סטודנטים",
@@ -774,12 +1024,31 @@ const ProjectsManagement = () => {
           </div>
         ),
         width: "20%",
+        filters: [
+          { text: "ללא סטודנטים", value: "ללא סטודנטים" },
+          { text: "סטודנט אחד", value: "סטודנט אחד" },
+          { text: "שני סטודנטים", value: "שני סטודנטים" },
+        ],
+        onFilter: (value, record) => {
+          if (value === "ללא סטודנטים") {
+            return record.terminationRecord.length === 0;
+          }
+          if (value === "סטודנט אחד") {
+            return record.terminationRecord.length === 1;
+          }
+          if (value === "שני סטודנטים") {
+            return record.terminationRecord.length === 2;
+          }
+        },
       },
       {
         title: "סוג",
         dataIndex: "type",
         key: "type",
         width: "10%",
+        ...getColumnSearchProps("type"),
+        sorter: (a, b) => a.type.localeCompare(b.type),
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "פעולות",
@@ -1182,4 +1451,4 @@ const ProjectsManagement = () => {
   );
 };
 
-export default ProjectsManagement;
+export default OverviewProjects;
