@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-g;
 import "./OverviewProjects.scss";
 import { useNavigate } from "react-router-dom";
 import { Tabs, Table, Modal, Select, Button, message, Tooltip, Input, Space } from "antd";
