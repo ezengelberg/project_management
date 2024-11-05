@@ -41,8 +41,32 @@ const CreateUser = () => {
     }
   };
 
-  const handleSubmitCSV = async () => {
-    console.log("Submitting users:", users);
+  const handleSubmitCSV = async (users) => {
+    try {
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/register-multiple`, users, {
+        withCredentials: true
+      });
+      message.success("משתמשים נוצרו בהצלחה");
+      console.log(response.data.existingUsers);
+      if (response.data.existingUsers.length > 0) {
+        message.warning(
+          `המשתמשים הבאים כבר קיימים במערכת: ${response.data.existingUsers.map((user) => user.email).join(", ")}`
+        );
+      }
+      const usersData = users.filter(
+        (user) => response.data.existingUsers.some((existingUser) => existingUser.email === user.email)
+      );
+      setUsers(usersData);
+    } catch (error) {
+      if (error.response.data === "Email already in use") {
+        message.error("כתובת המייל כבר קיימת במערכת");
+      } else if (error.response.data === "ID already in use") {
+        message.error("תעודת הזהות כבר קיימת במערכת");
+      } else {
+        message.error("שגיאה ביצירת משתמשים");
+      }
+      console.error("Error creating users:", error);
+    }
   };
 
   const handleUploadFile = async (file) => {
@@ -56,7 +80,8 @@ const CreateUser = () => {
             firstName: row["שם פרטי"],
             lastName: row["שם משפחה"],
             name: `${row["שם פרטי"]} ${row["שם משפחה"]}`,
-            id: row["ת.ז."]
+            id: row["ת.ז."],
+            role: ["isStudent"]
           }))
           .filter((row) => row.email && row.firstName && row.lastName); // Filter out rows with undefined or empty values
 
@@ -83,10 +108,10 @@ const CreateUser = () => {
   };
 
   const roleOptions = [
-    { label: "סטודנט", value: "סטודנט" },
-    { label: "מנחה", value: "מנחה" },
-    { label: "שופט", value: "שופט" },
-    { label: "מנהל", value: "מנהל" }
+    { label: "סטודנט", value: "isStudent" },
+    { label: "מנחה", value: "isAdvisor" },
+    { label: "שופט", value: "isJudge" },
+    { label: "מנהל", value: "isCoordinator" }
   ];
 
   const columns = [
@@ -109,9 +134,21 @@ const CreateUser = () => {
       title: "תפקיד",
       dataIndex: "role",
       key: "role",
-      render: () => (
+      render: (text, record) => (
         <div>
-          <Checkbox.Group options={roleOptions} defaultValue={["סטודנט"]} />
+          <Checkbox.Group
+            options={roleOptions}
+            defaultValue={record.role || ["isStudent"]}
+            onChange={(checkedValues) => {
+              const updatedUsers = users.map((user) => {
+                if (user.email === record.email) {
+                  return { ...user, role: checkedValues };
+                }
+                return user;
+              });
+              setUsers(updatedUsers);
+            }}
+          />
         </div>
       )
     },
@@ -205,11 +242,6 @@ const CreateUser = () => {
           </Button>
         </Form.Item>
       </Form>
-      {/* <Upload maxCount={1} accept=".csv" beforeUpload={handleUploadFile}>
-        <Button color="primary" variant="outlined" icon={<UploadOutlined />}>
-          העלה קובץ משתמשים
-        </Button>
-      </Upload> */}
       <div className="upload-users-csv">
         <Dragger className="uploader-users-csv" {...props}>
           <p className="ant-upload-drag-icon">
@@ -222,7 +254,7 @@ const CreateUser = () => {
         {users.length > 0 && (
           <div className="users-csv">
             <Table columns={columns} dataSource={users} />
-            <Button type="primary" className="submit-csv" onClick={() => handleSubmitCSV()}>
+            <Button type="primary" className="submit-csv" onClick={() => handleSubmitCSV(users)}>
               צור משתמשים
             </Button>
           </div>

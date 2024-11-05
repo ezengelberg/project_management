@@ -37,6 +37,49 @@ export const registerUser = async (req, res) => {
   }
 };
 
+export const registerMultiple = async (req, res) => {
+  try {
+    console.log("Registering multiple users");
+    const users = req.body;
+    const existingUsers = [];
+    for (const user of users) {
+      console.log("printing user");
+      const { name, email, id, role } = user;
+      delete user.key;
+      delete user.role;
+      console.log(user);
+      const userByEmail = await User.findOne({ email: email });
+      if (userByEmail) {
+        existingUsers.push(user);
+        continue;
+      }
+      console.log("email not found");
+      const userById = await User.findOne({ id: id });
+      if (userById) {
+        existingUsers.push(user);
+        continue;
+      }
+      console.log("id not found");
+      console.log(role);
+      const newUser = new User({
+        ...user,
+        firstLogin: true,
+        password: await bcrypt.hash(id, 10),
+        registerDate: new Date(),
+        suspensionRecords: [],
+        isStudent: role.includes("isStudent"),
+        isAdvisor: role.includes("isAdvisor"),
+        isJudge: role.includes("isJudge"),
+        isCoordinator: role.includes("isCoordinator")
+      });
+      await newUser.save();
+    }
+    res.status(201).send({ message: "Users registered successfully", existingUsers });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const loginUser = (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) return next(err);
