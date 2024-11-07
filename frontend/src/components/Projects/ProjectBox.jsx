@@ -17,7 +17,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
           const advisors = [];
           for (const advisor of props.advisors) {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-name/${advisor}`, {
-              withCredentials: true,
+              withCredentials: true
             });
             advisors.push(response.data.name);
           }
@@ -29,6 +29,8 @@ const ProjectBox = ({ markFavorite, ...props }) => {
     };
     getAdvisorName();
   }, []);
+
+  console.log(props.continues);
 
   return (
     <div className={`project-overlay ${props.isTaken ? "project-overlay-taken" : ""}`}>
@@ -65,6 +67,11 @@ const ProjectBox = ({ markFavorite, ...props }) => {
             <Tooltip title="סוג פרויקט">
               <div className="project-badge project-type">{props.type}</div>
             </Tooltip>
+            {props.continues && (
+              <Tooltip title=" פרויקט ממשיך">
+                <div className="project-badge project-continues">פרויקט ממשיך</div>
+              </Tooltip>
+            )}
           </div>
           <div
             className="project-description rich-text-content"
