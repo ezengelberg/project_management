@@ -30,8 +30,6 @@ const ProjectBox = ({ markFavorite, ...props }) => {
     getAdvisorName();
   }, []);
 
-  console.log(props.continues);
-
   return (
     <div className={`project-overlay ${props.isTaken ? "project-overlay-taken" : ""}`}>
       <div className="taken-tag">נלקח</div>
