@@ -2,3 +2,16 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
 }
+
+.home-page-upcoming-events-list {
+  display: flex;
+  gap: 2rem;
+
+  .list-calendar {
+    flex: 6;
+  }
+
+  .list-info {
+    flex: 4;
+  }
+}

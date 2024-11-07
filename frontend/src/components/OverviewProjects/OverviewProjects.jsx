@@ -439,6 +439,49 @@ const OverviewProjects = () => {
       ),
   });
 
+  const expandedRowRender = (record) => {
+    const expandColumns = [
+      {
+        title: "שופטים עבור דוח אלפה",
+        dataIndex: "alphaReportJudges",
+        key: "alphaReportJudges",
+        render: (judgeId) => {
+          const judgeUser = users.find((u) => u._id === judgeId);
+          return judgeUser ? <a onClick={() => navigate(`/profile/${judgeId}`)}>{judgeUser.name}</a> : null;
+        },
+        width: "35%",
+      },
+      {
+        title: "שופטים עבור דוח סופי ומבחן",
+        dataIndex: "finalReportJudges",
+        key: "finalReportJudges",
+        render: (judgeId) => {
+          const judgeUser = users.find((u) => u._id === judgeId);
+          return judgeUser ? <a onClick={() => navigate(`/profile/${judgeId}`)}>{judgeUser.name}</a> : null;
+        },
+        width: "35%",
+      },
+      {
+        title: "פעולות",
+        key: "actions",
+        render: () => (
+          <div>
+            <Button>הוסף שופטים עבור דוח אלפה</Button>
+            <Button>הוסף שופטים עבור דוח סופי ומבחן</Button>
+          </div>
+        ),
+        width: "30%",
+      },
+    ];
+
+    const expandDataSource = record.judges.map((judgeId) => ({
+      key: judgeId,
+      name: judgeId,
+    }));
+
+    return <Table columns={expandColumns} dataSource={expandDataSource} pagination={false} bordered={true} />;
+  };
+
   const columns = {
     open: [
       {
@@ -650,7 +693,7 @@ const OverviewProjects = () => {
               : "לא משוייך מנחה"}
           </div>
         ),
-        width: "12%",
+        width: "7%",
         sorter: (a, b) => {
           const advisorA = users.find((u) => u._id === a.advisors[0]);
           const advisorB = users.find((u) => u._id === b.advisors[0]);
@@ -703,45 +746,61 @@ const OverviewProjects = () => {
         sorter: (a, b) => a.type.localeCompare(b.type),
         sortDirections: ["descend", "ascend"],
       },
+      // {
+      //   title: "שופטים",
+      //   dataIndex: "judges",
+      //   key: "judges",
+      //   render: (judges) => (
+      //     <div className="projects-judge-list">
+      //       {judges.length > 0
+      //         ? judges.map((judge) => {
+      //             const judgeUser = users.find((u) => u._id === judge);
+      //             return judgeUser ? (
+      //               <a key={judge} onClick={() => navigate(`/profile/${judge}`)}>
+      //                 {judgeUser.name}
+      //               </a>
+      //             ) : null;
+      //           })
+      //         : "לא משוייכים שופטים"}
+      //     </div>
+      //   ),
+      //   width: "15%",
+      //   filters: [
+      //     { text: "ללא שופטים", value: "ללא שופטים" },
+      //     { text: "שופט אחד", value: "שופט אחד" },
+      //     { text: "שני שופטים", value: "שני שופטים" },
+      //     { text: "שלושה שופטים", value: "שלושה שופטים" },
+      //   ],
+      //   onFilter: (value, record) => {
+      //     if (value === "ללא שופטים") {
+      //       return record.judges.length === 0;
+      //     }
+      //     if (value === "שופט אחד") {
+      //       return record.judges.length === 1;
+      //     }
+      //     if (value === "שני שופטים") {
+      //       return record.judges.length === 2;
+      //     }
+      //     if (value === "שלושה שופטים") {
+      //       return record.judges.length === 3;
+      //     }
+      //   },
+      // },
       {
-        title: "שופטים",
-        dataIndex: "judges",
-        key: "judges",
-        render: (judges) => (
-          <div className="projects-judge-list">
-            {judges.length > 0
-              ? judges.map((judge) => {
-                  const judgeUser = users.find((u) => u._id === judge);
-                  return judgeUser ? (
-                    <a key={judge} onClick={() => navigate(`/profile/${judge}`)}>
-                      {judgeUser.name}
-                    </a>
-                  ) : null;
-                })
-              : "לא משוייכים שופטים"}
-          </div>
-        ),
-        width: "15%",
-        filters: [
-          { text: "ללא שופטים", value: "ללא שופטים" },
-          { text: "שופט אחד", value: "שופט אחד" },
-          { text: "שני שופטים", value: "שני שופטים" },
-          { text: "שלושה שופטים", value: "שלושה שופטים" },
-        ],
-        onFilter: (value, record) => {
-          if (value === "ללא שופטים") {
-            return record.judges.length === 0;
-          }
-          if (value === "שופט אחד") {
-            return record.judges.length === 1;
-          }
-          if (value === "שני שופטים") {
-            return record.judges.length === 2;
-          }
-          if (value === "שלושה שופטים") {
-            return record.judges.length === 3;
-          }
-        },
+        title: "ציון דוח אלפה",
+        dataIndex: "alphaReportGrade",
+        key: "alphaReportGrade",
+        width: "10%",
+        sorter: (a, b) => a.alphaReportGrade - b.alphaReportGrade,
+        sortDirections: ["descend", "ascend"],
+      },
+      {
+        title: "ציון דוח סופי ומבחן",
+        dataIndex: "finalReportGrade",
+        key: "finalReportGrade",
+        width: "10%",
+        sorter: (a, b) => a.finalReportGrade - b.finalReportGrade,
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "פעולות",
@@ -891,51 +950,67 @@ const OverviewProjects = () => {
         sorter: (a, b) => a.type.localeCompare(b.type),
         sortDirections: ["descend", "ascend"],
       },
+      // {
+      //   title: "שופטים",
+      //   dataIndex: "judges",
+      //   key: "judges",
+      //   render: (judges) => (
+      //     <div className="projects-judge-list">
+      //       {judges.length > 0
+      //         ? judges.map((judge) => {
+      //             const judgeUser = users.find((u) => u._id === judge);
+      //             return judgeUser ? (
+      //               <a key={judge} onClick={() => navigate(`/profile/${judge}`)}>
+      //                 {judgeUser.name}
+      //               </a>
+      //             ) : null;
+      //           })
+      //         : "לא משוייכים שופטים"}
+      //     </div>
+      //   ),
+      //   width: "17%",
+      //   filters: [
+      //     { text: "ללא שופטים", value: "ללא שופטים" },
+      //     { text: "שופט אחד", value: "שופט אחד" },
+      //     { text: "שני שופטים", value: "שני שופטים" },
+      //     { text: "שלושה שופטים", value: "שלושה שופטים" },
+      //   ],
+      //   onFilter: (value, record) => {
+      //     if (value === "ללא שופטים") {
+      //       return record.judges.length === 0;
+      //     }
+      //     if (value === "שופט אחד") {
+      //       return record.judges.length === 1;
+      //     }
+      //     if (value === "שני שופטים") {
+      //       return record.judges.length === 2;
+      //     }
+      //     if (value === "שלושה שופטים") {
+      //       return record.judges.length === 3;
+      //     }
+      //   },
+      // },
       {
-        title: "שופטים",
-        dataIndex: "judges",
-        key: "judges",
-        render: (judges) => (
-          <div className="projects-judge-list">
-            {judges.length > 0
-              ? judges.map((judge) => {
-                  const judgeUser = users.find((u) => u._id === judge);
-                  return judgeUser ? (
-                    <a key={judge} onClick={() => navigate(`/profile/${judge}`)}>
-                      {judgeUser.name}
-                    </a>
-                  ) : null;
-                })
-              : "לא משוייכים שופטים"}
-          </div>
-        ),
-        width: "20%",
-        filters: [
-          { text: "ללא שופטים", value: "ללא שופטים" },
-          { text: "שופט אחד", value: "שופט אחד" },
-          { text: "שני שופטים", value: "שני שופטים" },
-          { text: "שלושה שופטים", value: "שלושה שופטים" },
-        ],
-        onFilter: (value, record) => {
-          if (value === "ללא שופטים") {
-            return record.judges.length === 0;
-          }
-          if (value === "שופט אחד") {
-            return record.judges.length === 1;
-          }
-          if (value === "שני שופטים") {
-            return record.judges.length === 2;
-          }
-          if (value === "שלושה שופטים") {
-            return record.judges.length === 3;
-          }
-        },
+        title: "ציון דוח אלפה",
+        dataIndex: "alphaReportGrade",
+        key: "alphaReportGrade",
+        width: "10%",
+        sorter: (a, b) => a.alphaReportGrade - b.alphaReportGrade,
+        sortDirections: ["descend", "ascend"],
+      },
+      {
+        title: "ציון דוח סופי ומבחן",
+        dataIndex: "finalReportGrade",
+        key: "finalReportGrade",
+        width: "10%",
+        sorter: (a, b) => a.finalReportGrade - b.finalReportGrade,
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "ציון סופי",
         dataIndex: "grades",
         key: "grades",
-        width: "8%",
+        width: "10%",
         sorter: (a, b) => a.grades.final - b.grades.final,
         sortDirections: ["descend", "ascend"],
       },
@@ -955,7 +1030,7 @@ const OverviewProjects = () => {
             </Tooltip>
           </a>
         ),
-        width: "7%",
+        width: "5%",
       },
     ],
     terminated: [
@@ -1159,6 +1234,10 @@ const OverviewProjects = () => {
           dataSource={projects.filter((p) => p.isTaken && !p.isFinished && !p.isTerminated)}
           loading={loading}
           rowKey="_id"
+          expandable={{
+            expandedRowRender,
+            defaultExpandedRowKeys: [],
+          }}
         />
       ),
     },
@@ -1191,6 +1270,10 @@ const OverviewProjects = () => {
           dataSource={projects.filter((p) => p.isFinished)}
           loading={loading}
           rowKey="_id"
+          expandable={{
+            expandedRowRender,
+            defaultExpandedRowKeys: [],
+          }}
         />
       ),
     },
