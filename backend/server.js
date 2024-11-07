@@ -12,6 +12,7 @@ import MongoStore from "connect-mongo";
 import userRoute from "./routes/userRoute.js";
 import projectRoute from "./routes/projectRoute.js";
 import templateFilesRoute from "./routes/templateFilesRoute.js";
+import uploadsRoute from "./routes/uploadsRoute.js";
 
 // Load environment variables and allows to use .env file
 dotenv.config();
@@ -27,8 +28,8 @@ app.use(
     store: MongoStore.create({ mongoUrl: process.env.MONGO_URI, collectionName: "sessions" }),
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
-      secure: false, // Set to true if using HTTPS
-    },
+      secure: false // Set to true if using HTTPS
+    }
   })
 );
 
@@ -38,18 +39,21 @@ app.use(passport.session());
 // Allow cross-origin requests
 const corsOptions = {
   origin: true, // Allow all origins for Development purposes only
-  credentials: true, // Allow cookies and credentials
+  credentials: true // Allow cookies and credentials
 };
 
 app.use(cors(corsOptions));
 
 // Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true })); // Middleware to parse URL-encoded bodies
 
 app.use("/api/user", userRoute);
 app.use("/api/project", projectRoute);
 app.use("/api/file-templates", templateFilesRoute);
 app.use("/templateFiles", express.static("templateFiles"));
+app.use("/api/uploads", uploadsRoute);
+app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
 app.get("/", (req, res) => {
   res.send("Hello World! Nothing to see here yet!");
