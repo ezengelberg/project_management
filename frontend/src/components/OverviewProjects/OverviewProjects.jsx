@@ -617,11 +617,11 @@ const OverviewProjects = () => {
               highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
               searchWords={[searchText]}
               autoEscape
-              textToHighlight={text.length > 65 ? `${text.substring(0, 65)}...` : text}
+              textToHighlight={text.length > 60 ? `${text.substring(0, 60)}...` : text}
             />
           </a>
         ),
-        width: "25%",
+        width: "22%",
         sorter: (a, b) => a.title.localeCompare(b.title),
         defaultSortOrder: "ascend",
         sortDirections: ["descend", "ascend"],
@@ -650,7 +650,7 @@ const OverviewProjects = () => {
               : "לא משוייך מנחה"}
           </div>
         ),
-        width: "12%",
+        width: "7%",
         sorter: (a, b) => {
           const advisorA = users.find((u) => u._id === a.advisors[0]);
           const advisorB = users.find((u) => u._id === b.advisors[0]);
@@ -698,7 +698,7 @@ const OverviewProjects = () => {
         title: "סוג",
         dataIndex: "type",
         key: "type",
-        width: "7%",
+        width: "5%",
         ...getColumnSearchProps("type"),
         sorter: (a, b) => a.type.localeCompare(b.type),
         sortDirections: ["descend", "ascend"],
@@ -742,6 +742,22 @@ const OverviewProjects = () => {
             return record.judges.length === 3;
           }
         },
+      },
+      {
+        title: "ציון דוח אלפה",
+        dataIndex: "alphaReportGrade",
+        key: "alphaReportGrade",
+        width: "5%",
+        sorter: (a, b) => a.alphaReportGrade - b.alphaReportGrade,
+        sortDirections: ["descend", "ascend"],
+      },
+      {
+        title: "ציון דוח סופי ומבחן",
+        dataIndex: "finalReportGrade",
+        key: "finalReportGrade",
+        width: "5%",
+        sorter: (a, b) => a.finalReportGrade - b.finalReportGrade,
+        sortDirections: ["descend", "ascend"],
       },
       {
         title: "פעולות",
@@ -909,7 +925,7 @@ const OverviewProjects = () => {
               : "לא משוייכים שופטים"}
           </div>
         ),
-        width: "20%",
+        width: "17%",
         filters: [
           { text: "ללא שופטים", value: "ללא שופטים" },
           { text: "שופט אחד", value: "שופט אחד" },
@@ -932,10 +948,26 @@ const OverviewProjects = () => {
         },
       },
       {
+        title: "ציון דוח אלפה",
+        dataIndex: "alphaReportGrade",
+        key: "alphaReportGrade",
+        width: "5%",
+        sorter: (a, b) => a.alphaReportGrade - b.alphaReportGrade,
+        sortDirections: ["descend", "ascend"],
+      },
+      {
+        title: "ציון דוח סופי ומבחן",
+        dataIndex: "finalReportGrade",
+        key: "finalReportGrade",
+        width: "5%",
+        sorter: (a, b) => a.finalReportGrade - b.finalReportGrade,
+        sortDirections: ["descend", "ascend"],
+      },
+      {
         title: "ציון סופי",
         dataIndex: "grades",
         key: "grades",
-        width: "8%",
+        width: "5%",
         sorter: (a, b) => a.grades.final - b.grades.final,
         sortDirections: ["descend", "ascend"],
       },
@@ -955,7 +987,7 @@ const OverviewProjects = () => {
             </Tooltip>
           </a>
         ),
-        width: "7%",
+        width: "3%",
       },
     ],
     terminated: [
