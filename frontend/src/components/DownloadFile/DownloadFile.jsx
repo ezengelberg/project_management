@@ -5,7 +5,7 @@ import { Tooltip, Modal, Card, message } from "antd";
 import axios from "axios";
 import { processContent } from "../../utils/htmlProcessor";
 
-const DownloadFile = ({ file, onEdit, onDelete }) => {
+const DownloadFile = ({ file, onEdit, onDelete, destination }) => {
   const [isDescriptionModalVisible, setIsDescriptionModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -15,12 +15,14 @@ const DownloadFile = ({ file, onEdit, onDelete }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, {
+          withCredentials: true
+        });
         setUser(response.data);
         setPrivileges({
           isStudent: response.data.isStudent,
           isAdvisor: response.data.isAdvisor,
-          isCoordinator: response.data.isCoordinator,
+          isCoordinator: response.data.isCoordinator
         });
       } catch (error) {
         console.error("Error occurred:", error);
@@ -32,10 +34,13 @@ const DownloadFile = ({ file, onEdit, onDelete }) => {
 
   const handleDownload = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates/download/${file._id}`, {
-        responseType: "blob",
-        withCredentials: true,
-      });
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/uploads/download/${file._id}?destination=${destination}`,
+        {
+          responseType: "blob",
+          withCredentials: true
+        }
+      );
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -108,12 +113,12 @@ const DownloadFile = ({ file, onEdit, onDelete }) => {
           ),
           <Tooltip title="הורדה">
             <DownloadOutlined key="download" className="action-icon" onClick={handleDownload} />
-          </Tooltip>,
+          </Tooltip>
         ]}
         style={{
           height: "230px",
           minWidth: "450px",
-          maxWidth: "450px",
+          maxWidth: "450px"
         }}>
         <Card.Meta
           className="file-card-meta"

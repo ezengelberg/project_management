@@ -5,9 +5,12 @@ import path from "path";
 
 export const getFiles = async (req, res) => {
   try {
-    const yes = req.body.destination;
-    const destination = req.body.destination;
-    const files = await Upload.find({ destination: destination });
+    const destination = req.query.destination; // Use `req.query` for GET request parameters
+    if (!destination) {
+      return res.status(400).send({ message: "Destination is required" });
+    }
+
+    const files = await Upload.find({ destination });
     res.status(200).send(files);
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -19,62 +22,55 @@ export const createFile = async (req, res) => {
     return res.status(400).json({ message: "No files uploaded" });
   }
   try {
-    const user = User.findOne({ _id: req.user._id });
+    const user = await User.findOne({ _id: req.user._id });
     if (!user) {
-      return res.status(404).send({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
+
+
     const savedFiles = [];
     for (const file of req.files) {
-      let decodedFilename;
-      if (req.headers["x-filename-encoding"] === "url") {
-        decodedFilename = decodeURIComponent(file.originalname);
-      } else {
-        decodedFilename = file.originalname;
-      }
+      const decodedFilename =
+        req.headers["x-filename-encoding"] === "url" ? decodeURIComponent(file.originalname) : file.originalname;
       try {
-        const file = new Upload({
-          title: req.body.title ? req.body.title : decodedFilename,
+        const newFile = new Upload({
+          title: req.body.title || decodedFilename,
           filename: decodedFilename,
           description: req.body.description,
-          user: req.user._id
+          user: req.user._id,
+          destination: req.body.destination
         });
-        await file.save();
-        try {
-          // Rename the file on the server to use the decoded filename
-          fs.renameSync(file.path, path.join(path.dirname(file.path), decodedFilename));
-        } catch (fsError) {
-          await file.delete(file._id);
-          throw new Error(`File system error: ${fsError.message}`);
-        }
-        savedFiles.push(file);
+        await newFile.save();
+
+        // Rename file on server to decoded filename
+        const newPath = path.join(path.dirname(file.path), decodedFilename);
+        fs.renameSync(file.path, newPath);
+        savedFiles.push(newFile);
       } catch (error) {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+        console.error("File save error:", error.message);
         throw error;
       }
     }
+
     res.status(201).json({
       message: "Files uploaded and saved successfully",
       files: savedFiles
     });
   } catch (err) {
+    console.error("Error in createFile:", err);
     if (req.files) {
       req.files.forEach((file) => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
       });
     }
-    if (err.message === "A file with this name already exists") {
-      res.status(409).send({ message: err.message }); // 409 Conflict
-    } else {
-      res.status(500).send({ message: err.message });
-    }
+    res.status(err.message === "A file with this name already exists" ? 409 : 500).json({ message: err.message });
   }
 };
 
 export const updateFile = async (req, res) => {
+  console.log("editting file");
+  console.log(req.params.id);
   try {
     const file = await Upload.findById(req.params.id);
     if (!file) {
@@ -88,29 +84,47 @@ export const updateFile = async (req, res) => {
 };
 
 export const deleteFile = async (req, res) => {
-  const file = await Upload.findById(req.params.id);
-  if (!file) {
-    return res.status(404).send({ message: "File not found" });
-  }
-  const result = await Upload.deleteOne({ _id: req.params.id });
-  if (result.deletedCount === 0) {
-    return res.status(404).send({ message: "File not found" });
-  }
-  const destination = req.body.destination;
-  const filePath = path.join(process.cwd(), `uploads/${destination}`, file.filename);
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
-  }
-  res.status(200).send({ message: "File deleted successfully" });
-};
-
-export const downloadFile = async (req, res) => {
   try {
     const file = await Upload.findById(req.params.id);
     if (!file) {
       return res.status(404).send({ message: "File not found" });
     }
-    const destination = req.body.destination;
+
+    const result = await Upload.deleteOne({ _id: req.params.id });
+    if (result.deletedCount === 0) {
+      return res.status(404).send({ message: "File not found" });
+    }
+
+    const destination = req.query.destination; // Use query instead of body
+    if (!destination) {
+      return res.status(400).send({ message: "Destination is required" });
+    }
+
+    const filePath = path.join(process.cwd(), `uploads/${destination}`, file.filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    res.status(200).send({ message: "File deleted successfully" });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const downloadFile = async (req, res) => {
+  try {
+    console.log("Downloading file");
+    console.log(req.params.id);
+    const file = await Upload.findById(req.params.id);
+    if (!file) {
+      return res.status(404).send({ message: "File not found" });
+    }
+
+    const destination = req.query.destination; // Use query instead of body
+    if (!destination) {
+      return res.status(400).send({ message: "Destination is required" });
+    }
+
     const filePath = path.join(process.cwd(), `uploads/${destination}`, file.filename);
     if (fs.existsSync(filePath)) {
       res.setHeader("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(file.filename)}`);

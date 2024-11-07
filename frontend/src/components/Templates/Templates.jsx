@@ -5,6 +5,7 @@ import DownloadFile from "../DownloadFile/DownloadFile";
 import { InboxOutlined } from "@ant-design/icons";
 import { Button, message, Upload, Input, Modal } from "antd";
 import { Editor } from "primereact/editor";
+import { json } from "react-router-dom";
 
 const Templates = () => {
   const [fileList, setFileList] = useState([]);
@@ -23,7 +24,7 @@ const Templates = () => {
     const fetchPrivileges = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, {
-          withCredentials: true,
+          withCredentials: true
         });
         setPrivileges(response.data);
       } catch (error) {
@@ -33,8 +34,8 @@ const Templates = () => {
 
     const fetchTemplateFiles = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, {
-          withCredentials: true,
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, {
+          withCredentials: true
         });
         setTemplateFiles(response.data);
       } catch (error) {
@@ -49,35 +50,39 @@ const Templates = () => {
   const handleUpload = async () => {
     const formData = new FormData();
     fileList.forEach((file) => {
-      // Encode the filename to handle non-English characters
-      const encodedFilename = encodeURIComponent(file.name);
-      formData.append("files", file, encodedFilename);
+      formData.append("files", file, encodeURIComponent(file.name));
     });
     formData.append("title", title);
     formData.append("description", description);
+    formData.append("destination", "templates"); // Set destination for dynamic pathing
     setUploading(true);
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, formData, {
-        headers: { "Content-Type": "multipart/form-data", "X-Filename-Encoding": "url" },
-        withCredentials: true,
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "X-Filename-Encoding": "url"
+        },
+        withCredentials: true
       });
-      setFileList([]);
       message.success("הקובץ הועלה בהצלחה");
-      // Refresh the template files list after successful upload
-      const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, {
-        withCredentials: true,
+      setFileList([]);
+      clearForm();
+
+      // Fetch updated files
+      const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, {
+        withCredentials: true
       });
       setTemplateFiles(updatedFiles.data);
     } catch (error) {
       console.error("Error occurred:", error);
-      if (error.response.status === 500) {
+      if (error.response?.status === 500) {
         message.error("קובץ עם שם זה כבר קיים");
+      } else {
+        message.error("העלאת הקובץ נכשלה");
       }
-      message.error("העלאת הקובץ נכשלה");
     } finally {
       setUploading(false);
-      clearForm();
     }
   };
 
@@ -110,7 +115,7 @@ const Templates = () => {
       setFileList((prevList) => [...prevList, file]);
       return false;
     },
-    fileList,
+    fileList
   };
 
   const setEditing = (fileId) => {
@@ -126,30 +131,36 @@ const Templates = () => {
   };
 
   const handleEdit = async (fileId) => {
+    console.log("Editing file:", fileId);
     try {
-      const response = await axios.put(
-        `/api/file-templates/update/${fileId}`,
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/uploads/update/${fileId}?destination=templates`,
         {
           title: editTitle,
-          description: editDescription,
+          description: editDescription
         },
         { withCredentials: true }
       );
       message.success("קובץ עודכן בהצלחה");
-    } catch (error) {
-      console.error("Error updating file:", error);
-    } finally {
-      setIsEditing(false);
-      const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, {
-        withCredentials: true,
+
+      // Refresh updated files based on dynamic destination
+      const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, {
+        withCredentials: true
       });
       setTemplateFiles(updatedFiles.data);
+    } catch (error) {
+      console.error("Error updating file:", error);
+      message.error("שגיאה בעדכון הקובץ");
+    } finally {
+      setIsEditing(false);
     }
   };
 
   const handleDelete = async (fileId) => {
     try {
-      await axios.delete(`/api/file-templates/delete/${fileId}`, { withCredentials: true });
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete/${fileId}?destination=templates`, {
+        withCredentials: true
+      });
       message.success("קובץ נמחק בהצלחה");
     } catch (error) {
       console.error("Error deleting file:", error);
@@ -216,7 +227,13 @@ const Templates = () => {
       )}
       <div className="template-content">
         {templateFiles.map((file) => (
-          <DownloadFile key={file._id} file={file} onDelete={handleDelete} onEdit={() => setEditing(file._id)} />
+          <DownloadFile
+            key={file._id}
+            file={file}
+            destination={"templates"}
+            onDelete={handleDelete}
+            onEdit={() => setEditing(file._id)}
+          />
         ))}
       </div>
       <Modal
