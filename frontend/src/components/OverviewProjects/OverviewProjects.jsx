@@ -1150,7 +1150,7 @@ const OverviewProjects = () => {
               </g>
             </g>
           </svg>
-          <span>פרויקטים בתהליך</span>
+          <span>פרויקטים פעילים</span>
         </div>
       ),
       children: (
