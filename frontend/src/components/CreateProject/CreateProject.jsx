@@ -15,7 +15,6 @@ const CreateProject = () => {
   const [currentUser, setCurrentUser] = useState({});
   const [studentsNoProject, setStudentsNoProject] = useState([]);
   const [isOtherType, setIsOtherType] = useState(false);
-  const [studentInitiative, setStudentInitiative] = useState(false);
   const [projectCreated, setProjectCreated] = useState(false);
   const [projectCreatedId, setProjectCreatedId] = useState("");
   const [form] = Form.useForm();
@@ -78,7 +77,6 @@ const CreateProject = () => {
 
   const handleTypeChange = (value) => {
     setIsOtherType(value === "אחר");
-    setStudentInitiative(value === "יוזמת סטודנט");
     if (value !== "אחר") {
       form.setFieldValue("customType", undefined);
     }
@@ -186,7 +184,6 @@ const CreateProject = () => {
   const onReset = () => {
     form.resetFields();
     setIsOtherType(false);
-    setStudentInitiative(false);
     setProjectCreated(false);
   };
 
@@ -286,21 +283,19 @@ const CreateProject = () => {
           </Select>
         </Form.Item>
 
-        {studentInitiative && (
-          <Form.Item
-            className="create-project-form-item"
-            label="מייל גורם חיצוני"
-            name="externalEmail"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה להזין מייל גורם חיצוני",
-              },
-            ]}>
-            <Input type="email" placeholder="הזן מייל גורם חיצוני" />
-          </Form.Item>
-        )}
+        <Form.Item
+          className="create-project-form-item"
+          label="מייל גורם חיצוני"
+          name="externalEmail"
+          hasFeedback
+          rules={[
+            {
+              type: "email",
+              message: "נא להזין כתובת מייל תקינה",
+            },
+          ]}>
+          <Input type="email" placeholder="הזן מייל גורם חיצוני" />
+        </Form.Item>
 
         {isOtherType && (
           <Form.Item
