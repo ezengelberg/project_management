@@ -38,10 +38,13 @@ const Sidebar = () => {
   }, []);
 
   const toggleSubmenu = (submenu) => {
-    setOpenSubmenus((prev) => ({
-      ...prev,
-      [submenu]: !prev[submenu]
-    }));
+    setOpenSubmenus((prev) => {
+      const newSubmenus = Object.keys(prev).reduce((acc, key) => {
+        acc[key] = key === submenu ? !prev[key] : false;
+        return acc;
+      }, {});
+      return newSubmenus;
+    });
   };
 
   const isActive = (path) => {
