@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./OverviewProjects.scss";
 import { useNavigate } from "react-router-dom";
-import { Tabs, Table, Modal, Select, Button, message, Tooltip, Input, Space } from "antd";
+import { Tabs, Table, Modal, Select, Button, message, Tooltip, Input, Space, Divider } from "antd";
 import { DeleteOutlined, RollbackOutlined, SearchOutlined } from "@ant-design/icons";
 import axios from "axios";
 import Highlighter from "react-highlight-words";
@@ -22,14 +22,16 @@ const OverviewProjects = () => {
   const [isUpdateAdvisorsModalOpen, setIsUpdateAdvisorsModalOpen] = useState(false);
   const [selectedAdvisor, setSelectedAdvisor] = useState(null);
   const [isUpdateStudentsModalOpen, setIsUpdateStudentsModalOpen] = useState(false);
-  const [isAddJudgeModalOpen, setIsAddJudgeModalOpen] = useState(false);
-  const [isUpdateJudgesModalOpen, setIsUpdateJudgesModalOpen] = useState(false);
-  const [selectedJudges, setSelectedJudges] = useState([]);
+  const [isJudgesModalOpen, setIsJudgesModalOpen] = useState(false);
   const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] = useState(false);
   const [isRestoreProjectModalOpen, setIsRestoreProjectModalOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const [selectedAlphaReportJudges, setSelectedAlphaReportJudges] = useState([]);
+  const [selectedFinalReportJudges, setSelectedFinalReportJudges] = useState([]);
+  const [selectedExamJudges, setSelectedExamJudges] = useState([]);
+  const [takenFilter, setTakenFilter] = useState("all");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -123,6 +125,9 @@ const OverviewProjects = () => {
             ...project,
             students: selectedStudents.map((id) => ({ student: id })),
           };
+          if (updatedProject.students.length === 0) {
+            updatedProject.isTaken = false;
+          }
           return updatedProject;
         }
         return project;
@@ -213,47 +218,23 @@ const OverviewProjects = () => {
     }
   };
 
-  const handleAddJudges = async () => {
-    try {
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/project/add-judges`,
-        {
-          projectID: selectedProject._id,
-          judges: selectedJudges,
-        },
-        { withCredentials: true }
-      );
-
-      // Update local state
-      const updatedProjects = projects.map((project) => {
-        if (project._id === selectedProject._id) {
-          const updatedProject = {
-            ...project,
-            judges: selectedJudges,
-          };
-          return updatedProject;
-        }
-        return project;
-      });
-
-      setProjects(updatedProjects);
-      setIsAddJudgeModalOpen(false);
-      setSelectedJudges([]);
-      setSelectedProject(null);
-      message.success("השופטים נוספו בהצלחה!");
-    } catch (error) {
-      console.error("Error adding judges:", error);
-      message.error("שגיאה בהוספת שופטים");
-    }
-  };
-
   const handleUpdateJudges = async () => {
+    if (
+      selectedAlphaReportJudges.length === 0 &&
+      selectedFinalReportJudges.length === 0 &&
+      selectedExamJudges.length === 0
+    ) {
+      message.error("יש לבחור שופט אחד לפחות");
+      return;
+    }
     try {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/update-judges`,
         {
           projectID: selectedProject._id,
-          judges: selectedJudges,
+          alphaReportJudges: selectedAlphaReportJudges,
+          finalReportJudges: selectedFinalReportJudges,
+          examJudges: selectedExamJudges,
         },
         { withCredentials: true }
       );
@@ -261,18 +242,21 @@ const OverviewProjects = () => {
       // Update local state
       const updatedProjects = projects.map((project) => {
         if (project._id === selectedProject._id) {
-          const updatedProject = {
+          return {
             ...project,
-            judges: selectedJudges,
+            alphaReportJudges: selectedAlphaReportJudges,
+            finalReportJudges: selectedFinalReportJudges,
+            examJudges: selectedExamJudges,
           };
-          return updatedProject;
         }
         return project;
       });
 
       setProjects(updatedProjects);
-      setIsUpdateJudgesModalOpen(false);
-      setSelectedJudges([]);
+      setIsJudgesModalOpen(false);
+      setSelectedAlphaReportJudges([]);
+      setSelectedFinalReportJudges([]);
+      setSelectedExamJudges([]);
       setSelectedProject(null);
       message.success("השופטים עודכנו בהצלחה!");
     } catch (error) {
@@ -445,42 +429,110 @@ const OverviewProjects = () => {
         title: "שופטים עבור דוח אלפה",
         dataIndex: "alphaReportJudges",
         key: "alphaReportJudges",
-        render: (judgeId) => {
-          const judgeUser = users.find((u) => u._id === judgeId);
-          return judgeUser ? <a onClick={() => navigate(`/profile/${judgeId}`)}>{judgeUser.name}</a> : null;
-        },
-        width: "35%",
-      },
-      {
-        title: "שופטים עבור דוח סופי ומבחן",
-        dataIndex: "finalReportJudges",
-        key: "finalReportJudges",
-        render: (judgeId) => {
-          const judgeUser = users.find((u) => u._id === judgeId);
-          return judgeUser ? <a onClick={() => navigate(`/profile/${judgeId}`)}>{judgeUser.name}</a> : null;
-        },
-        width: "35%",
-      },
-      {
-        title: "פעולות",
-        key: "actions",
-        render: () => (
-          <div>
-            <Button>הוסף שופטים עבור דוח אלפה</Button>
-            <Button>הוסף שופטים עבור דוח סופי ומבחן</Button>
+        render: (alphaReportJudges) => (
+          <div className="judges-list">
+            {alphaReportJudges.length > 0
+              ? alphaReportJudges.map((judgeId) => {
+                  const judgeUser = users.find((u) => u._id === judgeId);
+                  return judgeUser ? (
+                    <React.Fragment key={judgeId}>
+                      <a onClick={() => navigate(`/profile/${judgeId}`)}>{judgeUser.name}</a>
+                      {alphaReportJudges.indexOf(judgeId) !== alphaReportJudges.length - 1 &&
+                        alphaReportJudges.length > 1 && <Divider type="vertical" style={{ borderColor: "black" }} />}
+                    </React.Fragment>
+                  ) : null;
+                })
+              : "לא משוייכים שופטים"}
           </div>
         ),
         width: "30%",
       },
+      {
+        title: "שופטים עבור דוח סופי",
+        dataIndex: "finalReportJudges",
+        key: "finalReportJudges",
+        render: (finalReportJudges) => (
+          <div className="judges-list">
+            {finalReportJudges.length > 0
+              ? finalReportJudges.map((judgeId) => {
+                  const judgeUser = users.find((u) => u._id === judgeId);
+                  return judgeUser ? (
+                    <React.Fragment key={judgeId}>
+                      <a onClick={() => navigate(`/profile/${judgeId}`)}>{judgeUser.name}</a>
+                      {finalReportJudges.indexOf(judgeId) !== finalReportJudges.length - 1 &&
+                        finalReportJudges.length > 1 && <Divider type="vertical" style={{ borderColor: "black" }} />}
+                    </React.Fragment>
+                  ) : null;
+                })
+              : "לא משוייכים שופטים"}
+          </div>
+        ),
+        width: "30%",
+      },
+      {
+        title: "שופטים עבור מבחן",
+        dataIndex: "examJudges",
+        key: "examJudges",
+        render: (examJudges) => (
+          <div className="judges-list">
+            {examJudges.length > 0
+              ? examJudges.map((judgeId) => {
+                  const judgeUser = users.find((u) => u._id === judgeId);
+                  return judgeUser ? (
+                    <React.Fragment key={judgeId}>
+                      <a onClick={() => navigate(`/profile/${judgeId}`)}>{judgeUser.name}</a>
+                      {examJudges.indexOf(judgeId) !== examJudges.length - 1 && examJudges.length > 1 && (
+                        <Divider type="vertical" style={{ borderColor: "black" }} />
+                      )}
+                    </React.Fragment>
+                  ) : null;
+                })
+              : "לא משוייכים שופטים"}
+          </div>
+        ),
+        width: "30%",
+      },
+      {
+        title: "פעולות",
+        key: "actions",
+        render: () =>
+          !record.isFinished && (
+            <div className="project-manage-actions">
+              <Button
+                onClick={() => {
+                  setSelectedProject(record);
+                  setIsJudgesModalOpen(true);
+                  setSelectedAlphaReportJudges(record.alphaReportJudges);
+                  setSelectedFinalReportJudges(record.finalReportJudges);
+                  setSelectedExamJudges(record.examJudges);
+                }}>
+                הוסף/עדכן שופטים
+              </Button>
+            </div>
+          ),
+        width: "10%",
+      },
     ];
 
-    const expandDataSource = record.judges.map((judgeId) => ({
-      key: judgeId,
-      name: judgeId,
-    }));
+    const expandDataSource = [
+      {
+        key: "1",
+        alphaReportJudges: record.alphaReportJudges,
+        finalReportJudges: record.finalReportJudges,
+        examJudges: record.examJudges,
+      },
+    ];
 
     return <Table columns={expandColumns} dataSource={expandDataSource} pagination={false} bordered={true} />;
   };
+
+  const filteredTakenProjects = projects.filter((p) => {
+    if (!p.isTaken || p.isFinished || p.isTerminated) return false;
+    if (takenFilter === "missingJudges") {
+      return p.alphaReportJudges.length < 3 || p.finalReportJudges.length < 3 || p.examJudges.length < 3;
+    }
+    return true;
+  });
 
   const columns = {
     open: [
@@ -543,12 +595,15 @@ const OverviewProjects = () => {
         render: (students) => (
           <div className="projects-student-list">
             {students.length > 0
-              ? students.map(({ student }) => {
+              ? students.map(({ student }, index) => {
                   const studentUser = users.find((u) => u._id === student);
                   return studentUser ? (
-                    <a key={student} onClick={() => navigate(`/profile/${student}`)}>
-                      {studentUser.name}
-                    </a>
+                    <React.Fragment key={`student-${index}`}>
+                      <a onClick={() => navigate(`/profile/${student}`)}>{studentUser.name}</a>
+                      {index !== students.length - 1 && students.length > 1 && (
+                        <Divider type="vertical" style={{ borderColor: "black" }} />
+                      )}
+                    </React.Fragment>
                   ) : null;
                 })
               : "לא משוייכים סטודנטים"}
@@ -708,12 +763,15 @@ const OverviewProjects = () => {
         render: (students) => (
           <div className="projects-student-list">
             {students.length > 0
-              ? students.map(({ student }) => {
+              ? students.map(({ student }, index) => {
                   const studentUser = users.find((u) => u._id === student);
                   return studentUser ? (
-                    <a key={student} onClick={() => navigate(`/profile/${student}`)}>
-                      {studentUser.name}
-                    </a>
+                    <React.Fragment key={`student-${index}`}>
+                      <a onClick={() => navigate(`/profile/${student}`)}>{studentUser.name}</a>
+                      {index !== students.length - 1 && students.length > 1 && (
+                        <Divider type="vertical" style={{ borderColor: "black" }} />
+                      )}
+                    </React.Fragment>
                   ) : null;
                 })
               : "לא משוייכים סטודנטים"}
@@ -741,65 +799,38 @@ const OverviewProjects = () => {
         title: "סוג",
         dataIndex: "type",
         key: "type",
-        width: "7%",
+        width: "9%",
         ...getColumnSearchProps("type"),
         sorter: (a, b) => a.type.localeCompare(b.type),
         sortDirections: ["descend", "ascend"],
       },
-      // {
-      //   title: "שופטים",
-      //   dataIndex: "judges",
-      //   key: "judges",
-      //   render: (judges) => (
-      //     <div className="projects-judge-list">
-      //       {judges.length > 0
-      //         ? judges.map((judge) => {
-      //             const judgeUser = users.find((u) => u._id === judge);
-      //             return judgeUser ? (
-      //               <a key={judge} onClick={() => navigate(`/profile/${judge}`)}>
-      //                 {judgeUser.name}
-      //               </a>
-      //             ) : null;
-      //           })
-      //         : "לא משוייכים שופטים"}
-      //     </div>
-      //   ),
-      //   width: "15%",
-      //   filters: [
-      //     { text: "ללא שופטים", value: "ללא שופטים" },
-      //     { text: "שופט אחד", value: "שופט אחד" },
-      //     { text: "שני שופטים", value: "שני שופטים" },
-      //     { text: "שלושה שופטים", value: "שלושה שופטים" },
-      //   ],
-      //   onFilter: (value, record) => {
-      //     if (value === "ללא שופטים") {
-      //       return record.judges.length === 0;
-      //     }
-      //     if (value === "שופט אחד") {
-      //       return record.judges.length === 1;
-      //     }
-      //     if (value === "שני שופטים") {
-      //       return record.judges.length === 2;
-      //     }
-      //     if (value === "שלושה שופטים") {
-      //       return record.judges.length === 3;
-      //     }
-      //   },
-      // },
       {
         title: "ציון דוח אלפה",
         dataIndex: "alphaReportGrade",
         key: "alphaReportGrade",
-        width: "10%",
-        sorter: (a, b) => a.alphaReportGrade - b.alphaReportGrade,
+        width: "8%",
+        render: (grade) => (grade ? grade.grade : "אין ציון"),
+        sorter: (a, b) =>
+          (a.alphaReportGrade ? a.alphaReportGrade.grade : 0) - (b.alphaReportGrade ? b.alphaReportGrade.grade : 0),
         sortDirections: ["descend", "ascend"],
       },
       {
-        title: "ציון דוח סופי ומבחן",
+        title: "ציון דוח סופי",
         dataIndex: "finalReportGrade",
         key: "finalReportGrade",
-        width: "10%",
-        sorter: (a, b) => a.finalReportGrade - b.finalReportGrade,
+        width: "8%",
+        render: (grade) => (grade ? grade.grade : "אין ציון"),
+        sorter: (a, b) =>
+          (a.finalReportGrade ? a.finalReportGrade.grade : 0) - (b.finalReportGrade ? b.finalReportGrade.grade : 0),
+        sortDirections: ["descend", "ascend"],
+      },
+      {
+        title: "ציון מבחן",
+        dataIndex: "examGrade",
+        key: "examGrade",
+        width: "8%",
+        render: (grade) => (grade ? grade.grade : "אין ציון"),
+        sorter: (a, b) => (a.examGrade ? a.examGrade.grade : 0) - (b.examGrade ? b.examGrade.grade : 0),
         sortDirections: ["descend", "ascend"],
       },
       {
@@ -807,24 +838,16 @@ const OverviewProjects = () => {
         key: "actions",
         render: (_, record) => (
           <div className="project-manage-actions">
-            {record.judges.length === 0 ? (
-              <Button
-                onClick={() => {
-                  setSelectedProject(record);
-                  setIsAddJudgeModalOpen(true);
-                }}>
-                הוסף שופטים
-              </Button>
-            ) : (
-              <Button
-                onClick={() => {
-                  setSelectedProject(record);
-                  setIsUpdateJudgesModalOpen(true);
-                  setSelectedJudges(record.judges);
-                }}>
-                עדכן שופטים
-              </Button>
-            )}
+            <Button
+              onClick={() => {
+                setSelectedProject(record);
+                setIsJudgesModalOpen(true);
+                setSelectedAlphaReportJudges(record.alphaReportJudges);
+                setSelectedFinalReportJudges(record.finalReportJudges);
+                setSelectedExamJudges(record.examJudges);
+              }}>
+              הוסף/עדכן שופטים
+            </Button>
             <Button
               onClick={() => {
                 setSelectedProject(record);
@@ -912,12 +935,15 @@ const OverviewProjects = () => {
         render: (students) => (
           <div className="projects-student-list">
             {students.length > 0
-              ? students.map(({ student }) => {
+              ? students.map(({ student }, index) => {
                   const studentUser = users.find((u) => u._id === student);
                   return studentUser ? (
-                    <a key={student} onClick={() => navigate(`/profile/${student}`)}>
-                      {studentUser.name}
-                    </a>
+                    <React.Fragment key={`student-${index}`}>
+                      <a onClick={() => navigate(`/profile/${student}`)}>{studentUser.name}</a>
+                      {index !== students.length - 1 && students.length > 1 && (
+                        <Divider type="vertical" style={{ borderColor: "black" }} />
+                      )}
+                    </React.Fragment>
                   ) : null;
                 })
               : "לא משוייכים סטודנטים"}
@@ -950,68 +976,31 @@ const OverviewProjects = () => {
         sorter: (a, b) => a.type.localeCompare(b.type),
         sortDirections: ["descend", "ascend"],
       },
-      // {
-      //   title: "שופטים",
-      //   dataIndex: "judges",
-      //   key: "judges",
-      //   render: (judges) => (
-      //     <div className="projects-judge-list">
-      //       {judges.length > 0
-      //         ? judges.map((judge) => {
-      //             const judgeUser = users.find((u) => u._id === judge);
-      //             return judgeUser ? (
-      //               <a key={judge} onClick={() => navigate(`/profile/${judge}`)}>
-      //                 {judgeUser.name}
-      //               </a>
-      //             ) : null;
-      //           })
-      //         : "לא משוייכים שופטים"}
-      //     </div>
-      //   ),
-      //   width: "17%",
-      //   filters: [
-      //     { text: "ללא שופטים", value: "ללא שופטים" },
-      //     { text: "שופט אחד", value: "שופט אחד" },
-      //     { text: "שני שופטים", value: "שני שופטים" },
-      //     { text: "שלושה שופטים", value: "שלושה שופטים" },
-      //   ],
-      //   onFilter: (value, record) => {
-      //     if (value === "ללא שופטים") {
-      //       return record.judges.length === 0;
-      //     }
-      //     if (value === "שופט אחד") {
-      //       return record.judges.length === 1;
-      //     }
-      //     if (value === "שני שופטים") {
-      //       return record.judges.length === 2;
-      //     }
-      //     if (value === "שלושה שופטים") {
-      //       return record.judges.length === 3;
-      //     }
-      //   },
-      // },
       {
         title: "ציון דוח אלפה",
         dataIndex: "alphaReportGrade",
         key: "alphaReportGrade",
+        render: (grade) => (grade ? grade.grade : "אין ציון"),
         width: "10%",
         sorter: (a, b) => a.alphaReportGrade - b.alphaReportGrade,
         sortDirections: ["descend", "ascend"],
       },
       {
-        title: "ציון דוח סופי ומבחן",
+        title: "ציון דוח סופי",
         dataIndex: "finalReportGrade",
         key: "finalReportGrade",
+        render: (grade) => (grade ? grade.grade : "אין ציון"),
         width: "10%",
         sorter: (a, b) => a.finalReportGrade - b.finalReportGrade,
         sortDirections: ["descend", "ascend"],
       },
       {
         title: "ציון סופי",
-        dataIndex: "grades",
-        key: "grades",
+        dataIndex: "finalGrade",
+        key: "finalGrade",
+        render: (grades) => (grades ? grades.finalGrade : "אין ציון"),
         width: "10%",
-        sorter: (a, b) => a.grades.final - b.grades.final,
+        sorter: (a, b) => a.grades.finalGrade - b.grades.finalGrade,
         sortDirections: ["descend", "ascend"],
       },
       {
@@ -1087,12 +1076,15 @@ const OverviewProjects = () => {
         render: (terminationRecord) => (
           <div className="projects-student-list">
             {terminationRecord.length > 0
-              ? terminationRecord.map(({ student }) => {
+              ? terminationRecord.map(({ student }, index) => {
                   const studentUser = users.find((u) => u._id === student);
                   return studentUser ? (
-                    <a key={student} onClick={() => navigate(`/profile/${student}`)}>
-                      {studentUser.name}
-                    </a>
+                    <React.Fragment key={`student-${index}`}>
+                      <a onClick={() => navigate(`/profile/${student}`)}>{studentUser.name}</a>
+                      {index !== terminationRecord.length - 1 && terminationRecord.length > 1 && (
+                        <Divider type="vertical" style={{ borderColor: "black" }} />
+                      )}
+                    </React.Fragment>
                   ) : null;
                 })
               : "לא משוייכים סטודנטים"}
@@ -1229,16 +1221,22 @@ const OverviewProjects = () => {
         </div>
       ),
       children: (
-        <Table
-          columns={columns.taken}
-          dataSource={projects.filter((p) => p.isTaken && !p.isFinished && !p.isTerminated)}
-          loading={loading}
-          rowKey="_id"
-          expandable={{
-            expandedRowRender,
-            defaultExpandedRowKeys: [],
-          }}
-        />
+        <>
+          <Select value={takenFilter} onChange={setTakenFilter} style={{ marginBottom: 16, width: "200px" }}>
+            <Select.Option value="all">כל הפרויקטים</Select.Option>
+            <Select.Option value="missingJudges">פרויקטים שחסר שופטים</Select.Option>
+          </Select>
+          <Table
+            columns={columns.taken}
+            dataSource={filteredTakenProjects}
+            loading={loading}
+            rowKey="_id"
+            expandable={{
+              expandedRowRender,
+              defaultExpandedRowKeys: [],
+            }}
+          />
+        </>
       ),
     },
     {
@@ -1419,52 +1417,52 @@ const OverviewProjects = () => {
         </div>
       </Modal>
 
-      {/* Add Judge Modal */}
+      {/* Update Judges Modal */}
       <Modal
-        open={isAddJudgeModalOpen}
-        title={`הוספת שופט לפרויקט: ${selectedProject?.title}`}
-        onOk={handleAddJudges}
+        open={isJudgesModalOpen}
+        title={`עדכון שופטים לפרויקט: ${selectedProject?.title}`}
+        onOk={handleUpdateJudges}
         onCancel={() => {
-          setIsAddJudgeModalOpen(false);
+          setIsJudgesModalOpen(false);
           setSelectedProject(null);
-          setSelectedJudges([]);
+          setSelectedAlphaReportJudges([]);
+          setSelectedFinalReportJudges([]);
+          setSelectedExamJudges([]);
         }}
-        okButtonProps={{ disabled: selectedJudges.length === 0 || selectedJudges.length > 3 }}
-        okText="הוסף שופט"
+        okText="עדכן שופטים"
+        okButtonProps={{
+          disabled:
+            selectedAlphaReportJudges.length > 3 ||
+            selectedFinalReportJudges.length > 3 ||
+            selectedExamJudges.length > 3,
+        }}
         cancelText="ביטול">
         <div className="modal-select-input">
-          <p>בחר עד 3 שופטים לפרויקט:</p>
+          <p>בחר עד 3 שופטים עבור דוח אלפה:</p>
           <Select
             mode="multiple"
-            value={selectedJudges}
-            onChange={setSelectedJudges}
+            value={selectedAlphaReportJudges}
+            onChange={setSelectedAlphaReportJudges}
             options={judges.map((user) => ({
               label: user.name,
               value: user._id,
             }))}
           />
-        </div>
-      </Modal>
-
-      {/* Update Judges Modal */}
-      <Modal
-        open={isUpdateJudgesModalOpen}
-        title={`עדכון שופטים לפרויקט: ${selectedProject?.title}`}
-        onOk={handleUpdateJudges}
-        onCancel={() => {
-          setIsUpdateJudgesModalOpen(false);
-          setSelectedProject(null);
-          setSelectedJudges([]);
-        }}
-        okButtonProps={{ disabled: selectedJudges.length > 3 }}
-        okText="עדכן שופטים"
-        cancelText="ביטול">
-        <div className="modal-select-input">
-          <p>בחר שופטים לפרויקט:</p>
+          <p>בחר עד 3 שופטים עבור דוח סופי:</p>
           <Select
             mode="multiple"
-            value={selectedJudges}
-            onChange={setSelectedJudges}
+            value={selectedFinalReportJudges}
+            onChange={setSelectedFinalReportJudges}
+            options={judges.map((user) => ({
+              label: user.name,
+              value: user._id,
+            }))}
+          />
+          <p>בחר עד 3 שופטים עבור מבחן:</p>
+          <Select
+            mode="multiple"
+            value={selectedExamJudges}
+            onChange={setSelectedExamJudges}
             options={judges.map((user) => ({
               label: user.name,
               value: user._id,

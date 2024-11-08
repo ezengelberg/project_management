@@ -24,7 +24,9 @@ const projectSchema = new mongoose.Schema({
       joinDate: { type: Date, default: Date.now },
     },
   ],
-  judges: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }],
+  alphaReportJudges: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }],
+  finalReportJudges: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }],
+  examJudges: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: false, default: [] }],
   // Disable _id for candidates sub-documents here
   candidates: [
     {
@@ -32,7 +34,10 @@ const projectSchema = new mongoose.Schema({
       joinDate: { type: Date, default: Date.now },
     },
   ],
-  grades: [{ type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: [] }],
+  alphaReportGrade: { type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: null },
+  finalReportGrade: { type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: null },
+  examGrade: { type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: null },
+  finalGrade: { type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: null },
   updateRecords: [
     {
       date: { type: Date, default: Date.now },

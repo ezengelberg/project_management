@@ -91,7 +91,7 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
     } else {
       const advisorsList = [];
@@ -122,15 +122,19 @@ export const createProject = async (req, res) => {
         isFinished: false,
         isTerminated: false,
         isTaken: false,
-        grades: []
+        grades: [],
       });
+    }
+
+    if (newProject.students.length > 0 && newProject.advisors.length > 0) {
+      newProject.isTaken = true;
     }
 
     const savedProject = await newProject.save();
 
     res.status(201).json({
       message: "Project created successfully",
-      project: savedProject
+      project: savedProject,
     });
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -157,24 +161,27 @@ export const getProjectsNoStudent = async (req, res) => {
 
 export const addStudentToProject = async (req, res) => {
   try {
+    const project = await Project.findById(req.body.projectID);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+
     for (const student of req.body.students) {
       const user = await User.findById(student);
       if (!user) {
         return res.status(404).send({ message: "Student not found" });
       }
-      const project = await Project.findById(req.body.projectID);
-      if (!project) {
-        return res.status(404).send({ message: "Project not found" });
-      }
-      if (project.students.find((student) => student.student.toString() === user.toString())) {
+      if (project.students.find((student) => student.student.toString() === user._id.toString())) {
         return res.status(400).send({ message: "Student is already in this project" });
       }
       project.students.push({ student: user._id });
-      if (project.advisors.length !== 0) {
-        project.isTaken = true;
-      }
-      await project.save();
     }
+
+    if (project.students.length > 0 && project.advisors.length > 0) {
+      project.isTaken = true;
+    }
+
+    await project.save();
     res.status(200).send("Student added successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -199,14 +206,13 @@ export const updateStudentsInProject = async (req, res) => {
       validStudents.push({ student: student._id });
     }
 
+    project.students = validStudents;
+
     if (project.students.length === 0) {
       project.isTaken = false;
     }
 
-    // Update students in the project
-    project.students = validStudents;
     await project.save();
-
     res.status(200).send({ message: "Students updated successfully", project });
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -400,7 +406,7 @@ export const updateProject = async (req, res) => {
     await project.save();
     res.status(201).json({
       message: "Project updated successfully",
-      project: project
+      project: project,
     });
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -457,45 +463,40 @@ export const updateAdvisorInProject = async (req, res) => {
   }
 };
 
-export const addJudgesToProject = async (req, res) => {
-  try {
-    const { projectID, judges } = req.body;
-    const project = await Project.findById(projectID);
-    if (!project) {
-      return res.status(404).send({ message: "Project not found" });
-    }
-    const validJudges = [];
-    for (const judgeID of judges) {
-      const judge = await User.findById(judgeID);
-      if (!judge || !judge.isJudge) {
-        return res.status(400).send({ message: `Invalid judge ID: ${judgeID}` });
-      }
-      validJudges.push(judgeID);
-    }
-    project.judges = validJudges;
-    await project.save();
-    res.status(200).send({ message: "Judges updated successfully", project });
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
-};
-
 export const updateJudgesInProject = async (req, res) => {
   try {
-    const { projectID, judges } = req.body;
+    const { projectID, alphaReportJudges, finalReportJudges, examJudges } = req.body;
     const project = await Project.findById(projectID);
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
-    const validJudges = [];
-    for (const judgeID of judges) {
+    const validAlphaReportJudges = [];
+    for (const judgeID of alphaReportJudges) {
       const judge = await User.findById(judgeID);
       if (!judge || !judge.isJudge) {
         return res.status(400).send({ message: `Invalid judge ID: ${judgeID}` });
       }
-      validJudges.push(judgeID);
+      validAlphaReportJudges.push(judgeID);
     }
-    project.judges = validJudges;
+    const validFinalReportJudges = [];
+    for (const judgeID of finalReportJudges) {
+      const judge = await User.findById(judgeID);
+      if (!judge || !judge.isJudge) {
+        return res.status(400).send({ message: `Invalid judge ID: ${judgeID}` });
+      }
+      validFinalReportJudges.push(judgeID);
+    }
+    const validExamJudges = [];
+    for (const judgeID of examJudges) {
+      const judge = await User.findById(judgeID);
+      if (!judge || !judge.isJudge) {
+        return res.status(400).send({ message: `Invalid judge ID: ${judgeID}` });
+      }
+      validExamJudges.push(judgeID);
+    }
+    project.alphaReportJudges = validAlphaReportJudges;
+    project.finalReportJudges = validFinalReportJudges;
+    project.examJudges = validExamJudges;
     await project.save();
     res.status(200).send({ message: "Judges updated successfully", project });
   } catch (err) {
@@ -513,7 +514,9 @@ export const terminateProject = async (req, res) => {
     // Save students to terminationRecord and free them from the project
     project.terminationRecord = project.students;
     project.students = [];
-    project.judges = [];
+    project.alphaReportJudges = [];
+    project.finalReportJudges = [];
+    project.examJudges = [];
     project.isTerminated = true;
 
     await project.save();
@@ -550,7 +553,9 @@ export const restoreProject = async (req, res) => {
     project.isTaken = false;
     project.isFinished = false;
     project.students = [];
-    project.judges = [];
+    project.alphaReportJudges = [];
+    project.finalReportJudges = [];
+    project.examJudges = [];
     project.candidates = [];
     project.grades = [];
 
