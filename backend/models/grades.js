@@ -2,8 +2,7 @@ import mongoose from "mongoose";
 
 const gradeSchema = new mongoose.Schema(
   {
-    grade: { type: Number, required: true, default: null },
-    project: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true }, // the project the grade is for
+    grade: { type: Number, default: null },
     judge: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // the judge that gave the grade
     comment: { type: String, required: false, default: "" }, // the comment the judge gave
     overridden: {
