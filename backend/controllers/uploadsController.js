@@ -27,24 +27,30 @@ export const createFile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-
     const savedFiles = [];
     for (const file of req.files) {
       const decodedFilename =
         req.headers["x-filename-encoding"] === "url" ? decodeURIComponent(file.originalname) : file.originalname;
+
+      // Check for duplicate filename
+      const existingFile = await Upload.findOne({ filename: decodedFilename, destination: req.body.destination });
+      if (existingFile) {
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+        throw new Error("A file with this name already exists");
+      }
+
       try {
         const newFile = new Upload({
-          title: req.body.title || decodedFilename,
+          title: req.body.title ? req.body.title : decodedFilename,
           filename: decodedFilename,
           description: req.body.description,
           user: req.user._id,
-          destination: req.body.destination
+          destination: req.body.destination,
         });
         await newFile.save();
 
         // Rename file on server to decoded filename
-        const newPath = path.join(path.dirname(file.path), decodedFilename);
-        fs.renameSync(file.path, newPath);
+        fs.renameSync(file.path, path.join(path.dirname(file.path), decodedFilename));
         savedFiles.push(newFile);
       } catch (error) {
         if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
@@ -55,7 +61,7 @@ export const createFile = async (req, res) => {
 
     res.status(201).json({
       message: "Files uploaded and saved successfully",
-      files: savedFiles
+      files: savedFiles,
     });
   } catch (err) {
     console.error("Error in createFile:", err);
@@ -69,14 +75,27 @@ export const createFile = async (req, res) => {
 };
 
 export const updateFile = async (req, res) => {
-  console.log("editting file");
-  console.log(req.params.id);
   try {
     const file = await Upload.findById(req.params.id);
     if (!file) {
       return res.status(404).send({ message: "File not found" });
     }
-    const updatedFile = await Upload.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+    const user = await User.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    file.editRecord.push({
+      oldTitle: req.body.oldTitle,
+      newTitle: req.body.title,
+      oldDescription: req.body.oldDescription,
+      newDescription: req.body.description,
+      editDate: new Date(),
+      editedBy: { name: user.name, id: user.id },
+    });
+
+    const updatedFile = await file.save();
     res.status(200).send(updatedFile);
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -113,8 +132,6 @@ export const deleteFile = async (req, res) => {
 
 export const downloadFile = async (req, res) => {
   try {
-    console.log("Downloading file");
-    console.log(req.params.id);
     const file = await Upload.findById(req.params.id);
     if (!file) {
       return res.status(404).send({ message: "File not found" });

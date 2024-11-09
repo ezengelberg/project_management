@@ -78,7 +78,7 @@ const Templates = () => {
       setTemplateFiles(updatedFiles.data);
     } catch (error) {
       console.error("Error occurred:", error);
-      if (error.response?.status === 500) {
+      if (error.response?.status === 500 || error.response?.status === 409) {
         message.error("קובץ עם שם זה כבר קיים");
       } else {
         message.error("העלאת הקובץ נכשלה");
@@ -99,11 +99,11 @@ const Templates = () => {
       setFileList(newFileList);
     },
     beforeUpload: (file, fileListNew) => {
-      // Check if file with same name already exists
       if (file.name.length > 50) {
         message.error(`שם קובץ יכול להכיל עד 50 תווים (רווח גם נחשב כתו)`);
         return Upload.LIST_IGNORE;
       }
+      // Check if file with same name already exists in the list of uploaded files
       const isDuplicate = fileList.some((existingFile) => existingFile.name === file.name);
       if (isDuplicate) {
         message.error(`קובץ "${file.name}" כבר קיים`);
@@ -133,13 +133,15 @@ const Templates = () => {
   };
 
   const handleEdit = async (fileId) => {
-    console.log("Editing file:", fileId);
     try {
+      const oldFile = templateFiles.find((file) => file._id === fileId);
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/uploads/update/${fileId}?destination=templates`,
         {
           title: editTitle,
           description: editDescription,
+          oldTitle: oldFile.title,
+          oldDescription: oldFile.description,
         },
         { withCredentials: true }
       );
