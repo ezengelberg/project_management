@@ -79,3 +79,21 @@
     max-width: 95%;
   }
 }
+
+.edit-record-modal {
+  width: 60% !important;
+  height: 80% !important;
+  overflow-y: auto;
+
+  .ant-descriptions-item-content {
+    max-width: 20rem;
+  }
+  .edited-description-modal-item {
+    display: flex;
+    gap: 1rem;
+
+    p {
+      margin: 0;
+    }
+  }
+}

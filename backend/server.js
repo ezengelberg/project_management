@@ -28,8 +28,8 @@ app.use(
     store: MongoStore.create({ mongoUrl: process.env.MONGO_URI, collectionName: "sessions" }),
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
-      secure: false // Set to true if using HTTPS
-    }
+      secure: false, // Set to true if using HTTPS
+    },
   })
 );
 
@@ -39,7 +39,7 @@ app.use(passport.session());
 // Allow cross-origin requests
 const corsOptions = {
   origin: true, // Allow all origins for Development purposes only
-  credentials: true // Allow cookies and credentials
+  credentials: true, // Allow cookies and credentials
 };
 
 app.use(cors(corsOptions));
