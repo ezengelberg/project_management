@@ -27,7 +27,7 @@ export const registerUser = async (req, res) => {
       isStudent: isStudent || false,
       isAdvisor: isAdvisor || false,
       isJudge: isJudge || false,
-      isCoordinator: isCoordinator || false
+      isCoordinator: isCoordinator || false,
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
@@ -70,7 +70,7 @@ export const registerMultiple = async (req, res) => {
         isStudent: role.includes("isStudent"),
         isAdvisor: role.includes("isAdvisor"),
         isJudge: role.includes("isJudge"),
-        isCoordinator: role.includes("isCoordinator")
+        isCoordinator: role.includes("isCoordinator"),
       });
       await newUser.save();
     }
@@ -146,6 +146,16 @@ export const getAdvisorUsers = async (req, res) => {
     res.status(200).send(users);
   } catch (err) {
     res.status(500).send({ message: err.message });
+  }
+};
+
+export const checkUserHasProject = async (req, res) => {
+  const user = req.user;
+  const projects = await Project.find({ "students.student": user._id });
+  if (projects.length > 0) {
+    res.status(200).send({ hasProject: true });
+  } else {
+    res.status(200).send({ hasProject: false });
   }
 };
 
@@ -323,7 +333,7 @@ export const suspendUser = async (req, res) => {
     user.suspensionRecords.push({
       suspendedBy: req.user._id,
       suspendedAt: new Date(),
-      reason: req.body.reason
+      reason: req.body.reason,
     });
 
     await user.save();
