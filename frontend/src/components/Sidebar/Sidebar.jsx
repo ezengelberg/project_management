@@ -8,7 +8,8 @@ import {
   ApartmentOutlined,
   FundProjectionScreenOutlined,
   TeamOutlined,
-  SettingOutlined
+  SettingOutlined,
+  FilePdfOutlined
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -175,6 +176,16 @@ const Sidebar = () => {
                     הצגת משתמשים
                   </li>
                 </ul>
+              </div>
+            </li>
+          )}
+          {user.isCoordinator && (
+            <li>
+              <div
+                className={`sidebar-option ${isActive("/submissions") ? "active" : ""}`}
+                onClick={() => navigate("/submissions")}>
+                <FilePdfOutlined />
+                <span>ניהול הגשות</span>
               </div>
             </li>
           )}
