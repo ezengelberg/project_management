@@ -53,15 +53,6 @@ export const createSpecificSubmission = async (req, res) => {
           openDate: new Date(req.body.startDate),
           grades: [gradeByAdvisor]
         });
-        // const judges = await User.find({ isJudge: true });
-        // judges.forEach(async (judge) => {
-        //   const submissionCount = await Submission.countDocuments({ "grades.judge": judge._id });
-        // });
-        // judges.sort((a, b) => submissionCount[a._id] - submissionCount[b._id]);
-        // const leastAssignedJudges = judges.slice(0, 2);
-        // leastAssignedJudges.forEach((judge) => {
-        //   submission.grades.push(new Grade({ judge: judge._id }));
-        // });
         await submission.save();
       })
     );

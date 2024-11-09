@@ -124,7 +124,7 @@ const Submissions = () => {
       sortDirections: ["ascend", "descend"]
     },
     {
-      title: "ציון משוכלל",
+      title: "ציון משוקלל",
       dataIndex: "gradesDetailed",
       key: "gradesDetailed",
       render: (text) => {
