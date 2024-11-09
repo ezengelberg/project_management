@@ -54,11 +54,6 @@
   }
 }
 
-// .projects-student-list {
-//   display: flex;
-//   gap: 1.5rem;
-// }
-
 .projects-judge-list {
   display: flex;
   gap: 1.5rem;
@@ -68,4 +63,10 @@
   display: flex;
   font-size: 2.5rem;
   gap: 1.5rem;
+}
+
+.upper-table-options {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
 }

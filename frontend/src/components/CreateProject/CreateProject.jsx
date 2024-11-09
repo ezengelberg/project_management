@@ -258,7 +258,7 @@ const CreateProject = () => {
           <Select placeholder="בחר יחיד/זוג/שניהם">
             <Option value="יחיד">יחיד</Option>
             <Option value="זוג">זוג</Option>
-            <Option value="יחיד \ זוג">יחיד \ זוג</Option>
+            <Option value="יחיד / זוג">יחיד / זוג</Option>
           </Select>
         </Form.Item>
 

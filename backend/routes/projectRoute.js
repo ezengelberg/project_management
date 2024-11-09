@@ -22,6 +22,7 @@ import {
   terminateProject,
   deleteProject,
   restoreProject,
+  assignAdvisorsAutomatically,
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../middleware/auth.js";
 
@@ -49,5 +50,6 @@ router.put("/update-judges", ensureAuthenticated, isCoordinator, updateJudgesInP
 router.put("/terminate-project", ensureAuthenticated, isCoordinator, terminateProject);
 router.delete("/delete-project/:id", ensureAuthenticated, isCoordinator, deleteProject);
 router.put("/restore-project/:id", ensureAuthenticated, isCoordinator, restoreProject);
+router.post("/assign-advisors-automatically", ensureAuthenticated, isCoordinator, assignAdvisorsAutomatically);
 
 export default router;

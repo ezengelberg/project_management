@@ -565,3 +565,71 @@ export const restoreProject = async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 };
+
+export const assignAdvisorsAutomatically = async (req, res) => {
+  try {
+    const projects = await Project.find({ advisors: [] });
+    const advisors = await User.find({ isAdvisor: true });
+
+    // Create a map to store advisor project counts and ranks
+    const advisorStats = new Map();
+
+    // Initialize advisor stats
+    advisors.forEach((advisor) => {
+      advisorStats.set(advisor._id.toString(), { count: 0, rank: 0 });
+    });
+
+    // Calculate current project counts and ranks for each advisor
+    const allProjects = await Project.find({ advisors: { $ne: [] } });
+    allProjects.forEach((project) => {
+      project.advisors.forEach((advisorId) => {
+        const stats = advisorStats.get(advisorId.toString());
+        if (stats) {
+          stats.count += 1;
+          if (project.suitableFor === "יחיד") {
+            stats.rank += 1;
+          } else if (project.suitableFor === "יחיד/זוג") {
+            stats.rank += 2;
+          } else if (project.suitableFor === "זוג") {
+            stats.rank += 3;
+          }
+        }
+      });
+    });
+
+    // Sort advisors by a weighted combination of project count and rank
+    const sortedAdvisors = Array.from(advisorStats.entries()).sort((a, b) => {
+      const aTotal = a[1].count * 1.5 + a[1].rank;
+      const bTotal = b[1].count * 1.5 + b[1].rank;
+      return aTotal - bTotal;
+    });
+
+    // Assign advisors to projects
+    for (const project of projects) {
+      if (project.advisors.length === 0) {
+        const advisorId = sortedAdvisors.shift()[0];
+        project.advisors.push(advisorId);
+        const stats = advisorStats.get(advisorId);
+        stats.count += 1;
+        if (project.suitableFor === "יחיד") {
+          stats.rank += 1;
+        } else if (project.suitableFor === "יחיד/זוג") {
+          stats.rank += 2;
+        } else if (project.suitableFor === "זוג") {
+          stats.rank += 3;
+        }
+        sortedAdvisors.push([advisorId, stats]);
+        sortedAdvisors.sort((a, b) => {
+          const aTotal = a[1].count * 1.5 + a[1].rank;
+          const bTotal = b[1].count * 1.5 + b[1].rank;
+          return aTotal - bTotal;
+        });
+      }
+    }
+
+    await Promise.all(projects.map((project) => project.save()));
+    res.status(200).send("Advisors assigned successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};

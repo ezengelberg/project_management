@@ -423,6 +423,23 @@ const OverviewProjects = () => {
       ),
   });
 
+  const handleAssignAdvisorsAutomatically = async () => {
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/assign-advisors-automatically`,
+        {},
+        { withCredentials: true }
+      );
+      message.success("המנחים הוקצו בהצלחה!");
+    } catch (error) {
+      console.error("Error assigning advisors automatically:", error);
+      message.error("שגיאה בהקצאת מנחים אוטומטית");
+    }
+  };
+
+  const handleAssignStudentsAutomatically = async () => {};
+  const handleAssignJudgesAutomatically = async () => {};
+
   const expandedRowRender = (record) => {
     const expandColumns = [
       {
@@ -1176,12 +1193,22 @@ const OverviewProjects = () => {
         </div>
       ),
       children: (
-        <Table
-          columns={columns.open}
-          dataSource={projects.filter((p) => !p.isTaken && !p.isFinished && !p.isTerminated)}
-          loading={loading}
-          rowKey="_id"
-        />
+        <>
+          <div className="upper-table-options">
+            <Button type="primary" onClick={handleAssignAdvisorsAutomatically}>
+              שיבוץ מנחים אוטומטי
+            </Button>
+            <Button type="primary" onClick={handleAssignStudentsAutomatically}>
+              שיבוץ סטודנטים אוטומטי
+            </Button>
+          </div>
+          <Table
+            columns={columns.open}
+            dataSource={projects.filter((p) => !p.isTaken && !p.isFinished && !p.isTerminated)}
+            loading={loading}
+            rowKey="_id"
+          />
+        </>
       ),
     },
     {
@@ -1222,10 +1249,15 @@ const OverviewProjects = () => {
       ),
       children: (
         <>
-          <Select value={takenFilter} onChange={setTakenFilter} style={{ marginBottom: 16, width: "200px" }}>
-            <Select.Option value="all">כל הפרויקטים</Select.Option>
-            <Select.Option value="missingJudges">פרויקטים שחסר שופטים</Select.Option>
-          </Select>
+          <div className="upper-table-options">
+            <Select value={takenFilter} onChange={setTakenFilter} style={{ width: "200px" }}>
+              <Select.Option value="all">כל הפרויקטים</Select.Option>
+              <Select.Option value="missingJudges">פרויקטים שחסר שופטים</Select.Option>
+            </Select>
+            <Button type="primary" onClick={handleAssignJudgesAutomatically}>
+              שיבוץ שופטים אוטומטי
+            </Button>
+          </div>
           <Table
             columns={columns.taken}
             dataSource={filteredTakenProjects}
