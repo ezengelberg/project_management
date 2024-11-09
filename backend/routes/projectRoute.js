@@ -23,6 +23,7 @@ import {
   deleteProject,
   restoreProject,
   assignAdvisorsAutomatically,
+  getActiveProjects,
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../middleware/auth.js";
 
@@ -31,6 +32,7 @@ const router = express.Router();
 router.get("/", getProjects);
 router.post("/create-project", ensureAuthenticated, isAdvisorOrCoordinator, createProject);
 router.get("/available-projects", ensureAuthenticated, getAvailableProjects);
+router.get("/get-active-projects", getActiveProjects);
 router.get("/no-student", getProjectsNoStudent);
 router.get("/get-project/:id", getProject);
 router.post("/add-candidate", ensureAuthenticated, addCandidateToProject);
