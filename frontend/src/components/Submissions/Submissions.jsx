@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Submissions.scss";
-import { FloatButton, Modal, DatePicker, Form, Input, Select, Table, Radio } from "antd";
+import { FloatButton, Modal, DatePicker, Form, Input, Select, Table, Radio, message } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
-const { RangePicker } = DatePicker;
 
 const Submissions = () => {
   const { Option } = Select;
@@ -46,20 +45,19 @@ const Submissions = () => {
   const handleOkAll = async (values) => {
     try {
       let name = "";
-      if (submissionType === "other") {
-        name = values.submissionName;
-      } else {
-        switch (submissionType) {
-          case "alphaReport":
-            name = "דוח אלפא";
-            break;
-          case "finalReport":
-            name = "דוח סופי";
-            break;
-          case "finalExam":
-            name = "מבחן סוף";
-            break;
-        }
+      switch (submissionType) {
+        case "alphaReport":
+          name = "דוח אלפא";
+          break;
+        case "finalReport":
+          name = "דוח סופי";
+          break;
+        case "finalExam":
+          name = "מבחן סוף";
+          break;
+        default: // other...
+          name = values.submissionName;
+          break;
       }
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create`,
@@ -71,6 +69,10 @@ const Submissions = () => {
           withCredentials: true
         }
       );
+      message.open({
+        type: "success",
+        content: "הגשה נפתחה בהצלחה"
+      });
     } catch (error) {
       console.error("Error creating submission:", error);
     } finally {
@@ -82,20 +84,19 @@ const Submissions = () => {
   const handleOkSpecific = async (values) => {
     try {
       let name = "";
-      if (submissionType === "other") {
-        name = values.submissionName;
-      } else {
-        switch (submissionType) {
-          case "alphaReport":
-            name = "דוח אלפא";
-            break;
-          case "finalReport":
-            name = "דוח סופי";
-            break;
-          case "finalExam":
-            name = "מבחן סוף";
-            break;
-        }
+      switch (submissionType) {
+        case "alphaReport":
+          name = "דוח אלפא";
+          break;
+        case "finalReport":
+          name = "דוח סופי";
+          break;
+        case "finalExam":
+          name = "מבחן סוף";
+          break;
+        default: // other...
+          name = values.submissionName;
+          break;
       }
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create-specific`,
@@ -108,6 +109,10 @@ const Submissions = () => {
           withCredentials: true
         }
       );
+      message.open({
+        type: "success",
+        content: "הגשה נפתחה בהצלחה"
+      });
     } catch (error) {
       console.error("Error creating submission:", error);
     } finally {
@@ -290,7 +295,7 @@ const Submissions = () => {
               }}
             />
           </Form.Item>
-          {submissionType == "other" && (
+          {submissionType === "other" && (
             <Form.Item
               label="שם ההגשה"
               name="submissionName"
