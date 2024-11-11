@@ -32,6 +32,8 @@ const OverviewProjects = () => {
   const [selectedFinalReportJudges, setSelectedFinalReportJudges] = useState([]);
   const [selectedExamJudges, setSelectedExamJudges] = useState([]);
   const [takenFilter, setTakenFilter] = useState("all");
+  const [years, setYears] = useState([]);
+  const [yearFilter, setYearFilter] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,6 +47,11 @@ const OverviewProjects = () => {
         const activeUsers = usersRes.data.filter((user) => !user.suspended);
         setProjects(projectsRes.data);
         setUsers(activeUsers);
+
+        const years = Array.from(new Set(projectsRes.data.map((project) => project.year))).sort((a, b) => b - a);
+        setYears(years);
+        const currentYearIndex = years.indexOf(new Date().getFullYear());
+        setYearFilter(currentYearIndex !== -1 ? years[currentYearIndex] : years[0]);
 
         // Filter users without projects
         const usersWithProject = new Set(
@@ -437,7 +444,6 @@ const OverviewProjects = () => {
     }
   };
 
-  const handleAssignStudentsAutomatically = async () => {};
   const handleAssignJudgesAutomatically = async () => {};
 
   const expandedRowRender = (record) => {
@@ -549,6 +555,27 @@ const OverviewProjects = () => {
       return p.alphaReportJudges.length < 3 || p.finalReportJudges.length < 3 || p.examJudges.length < 3;
     }
     return true;
+  });
+
+  const filteredOpenProjects = projects.filter((p) => {
+    if (p.isTaken || p.isFinished || p.isTerminated) return false;
+    if (yearFilter === "") return true;
+    if (yearFilter === "all") return true;
+    return p.year === yearFilter;
+  });
+
+  const filteredFinishedProjects = projects.filter((p) => {
+    if (!p.isFinished || p.isTerminated) return false;
+    if (yearFilter === "") return true;
+    if (yearFilter === "all") return true;
+    return p.year === yearFilter;
+  });
+
+  const filteredTerminatedProjects = projects.filter((p) => {
+    if (!p.isTerminated) return false;
+    if (yearFilter === "") return true;
+    if (yearFilter === "all") return true;
+    return p.year === yearFilter;
   });
 
   const columns = {
@@ -1195,19 +1222,19 @@ const OverviewProjects = () => {
       children: (
         <>
           <div className="upper-table-options">
+            <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px" }}>
+              <Select.Option value="all">כל השנים</Select.Option>
+              {years.map((year) => (
+                <Select.Option key={year} value={year}>
+                  {year}
+                </Select.Option>
+              ))}
+            </Select>
             <Button type="primary" onClick={handleAssignAdvisorsAutomatically}>
               שיבוץ מנחים אוטומטי
             </Button>
-            <Button type="primary" onClick={handleAssignStudentsAutomatically}>
-              שיבוץ סטודנטים אוטומטי
-            </Button>
           </div>
-          <Table
-            columns={columns.open}
-            dataSource={projects.filter((p) => !p.isTaken && !p.isFinished && !p.isTerminated)}
-            loading={loading}
-            rowKey="_id"
-          />
+          <Table columns={columns.open} dataSource={filteredOpenProjects} loading={loading} rowKey="_id" />
         </>
       ),
     },
@@ -1295,16 +1322,26 @@ const OverviewProjects = () => {
         </div>
       ),
       children: (
-        <Table
-          columns={columns.finished}
-          dataSource={projects.filter((p) => p.isFinished)}
-          loading={loading}
-          rowKey="_id"
-          expandable={{
-            expandedRowRender,
-            defaultExpandedRowKeys: [],
-          }}
-        />
+        <>
+          <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px", marginBottom: "10px" }}>
+            <Select.Option value="all">כל השנים</Select.Option>
+            {years.map((year) => (
+              <Select.Option key={year} value={year}>
+                {year}
+              </Select.Option>
+            ))}
+          </Select>
+          <Table
+            columns={columns.finished}
+            dataSource={filteredFinishedProjects}
+            loading={loading}
+            rowKey="_id"
+            expandable={{
+              expandedRowRender,
+              defaultExpandedRowKeys: [],
+            }}
+          />
+        </>
       ),
     },
     {
@@ -1329,12 +1366,17 @@ const OverviewProjects = () => {
         </div>
       ),
       children: (
-        <Table
-          columns={columns.terminated}
-          dataSource={projects.filter((p) => p.isTerminated)}
-          loading={loading}
-          rowKey="_id"
-        />
+        <>
+          <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px", marginBottom: "10px" }}>
+            <Select.Option value="all">כל השנים</Select.Option>
+            {years.map((year) => (
+              <Select.Option key={year} value={year}>
+                {year}
+              </Select.Option>
+            ))}
+          </Select>
+          <Table columns={columns.terminated} dataSource={filteredTerminatedProjects} loading={loading} rowKey="_id" />
+        </>
       ),
     },
   ];
