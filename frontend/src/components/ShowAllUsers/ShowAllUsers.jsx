@@ -22,8 +22,6 @@ const ShowAllUsers = () => {
   const [form] = Form.useForm();
   const [suspensionForm] = Form.useForm();
   const [componentDisabled, setComponentDisabled] = useState(true);
-  const [touched, setTouched] = useState({});
-  const [submitting, setSubmitting] = useState(false);
   const [isSuspending, setIsSuspending] = useState(false);
   const [suspensionDetails, setSuspensionDetails] = useState({});
   const [openSuspensionReason, setOpenSuspensionReason] = useState(false);
@@ -83,7 +81,6 @@ const ShowAllUsers = () => {
   useEffect(() => {
     if (isEditing) {
       form.setFieldsValue(editUserDetails);
-      setTouched({});
     }
   }, [editUserDetails]);
 
@@ -340,8 +337,6 @@ const ShowAllUsers = () => {
 
   const handleEdit = async (userId) => {
     try {
-      setSubmitting(true);
-
       const values = await form.validateFields();
 
       if (values.id.length !== 9) {
@@ -372,7 +367,6 @@ const ShowAllUsers = () => {
           setIsEditing(false);
           form.resetFields();
           setEditUserDetails({});
-          setTouched({});
           message.success("פרטי המשתמש עודכנו בהצלחה");
         }
       } catch (error) {
@@ -393,8 +387,6 @@ const ShowAllUsers = () => {
       }
     } catch (error) {
       message.error(error.message);
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -685,24 +677,10 @@ const ShowAllUsers = () => {
     }
   };
 
-  const handleFieldChange = (changedFields) => {
-    if (submitting) return; // Don't track changes during submission
-
-    const touchedFields = { ...touched };
-    changedFields.forEach((field) => {
-      const fieldName = Array.isArray(field.name) ? field.name[0] : field.name;
-      if (field.touched) {
-        touchedFields[fieldName] = true;
-      }
-    });
-    setTouched(touchedFields);
-  };
-
   const handleCancel = () => {
     setIsEditing(false);
     form.resetFields();
     setEditUserDetails({});
-    setTouched({});
   };
 
   const handleCancelSuspend = () => {
@@ -725,7 +703,7 @@ const ShowAllUsers = () => {
         title={`עריכת משתמש: ${editUserDetails.name}`}
         open={isEditing}
         onOk={() => handleEdit(editUserDetails.key)}
-        onCancel={() => handleCancel()}
+        onCancel={handleCancel}
         okText="שמור שינויים"
         cancelText="בטל"
         width={400}>
@@ -733,11 +711,11 @@ const ShowAllUsers = () => {
           <Switch onChange={() => setComponentDisabled((prev) => !prev)} style={{ margin: "10px 0" }} />
           <p>עריכת פרטים אישיים</p>
         </div>
-        <Form form={form} layout="vertical" initialValues={editUserDetails} onFieldsChange={handleFieldChange}>
+        <Form form={form} layout="vertical" initialValues={editUserDetails}>
           <Form.Item
             label="שם"
             name="name"
-            hasFeedback={!submitting && touched.name}
+            hasFeedback={true}
             rules={[
               { required: true, message: "חובה להזין שם" },
               { min: 2, message: "שם חייב להכיל לפחות 2 תווים" },
@@ -747,7 +725,7 @@ const ShowAllUsers = () => {
           <Form.Item
             label="אימייל"
             name="email"
-            hasFeedback={!submitting && touched.email}
+            hasFeedback={true}
             rules={[
               { required: true, message: "חובה להזין אימייל" },
               { type: "email", message: "אנא הכנס כתובת אימייל תקינה" },
@@ -757,32 +735,32 @@ const ShowAllUsers = () => {
           <Form.Item
             label="תעודת זהות"
             name="id"
-            hasFeedback={!submitting && touched.id}
+            hasFeedback={true}
             rules={[
               { required: true, message: "חובה להזין תעודת זהות" },
               { pattern: /^\d{9}$/, message: "תעודת זהות חייבת להכיל 9 ספרות" },
             ]}>
             <Input disabled={componentDisabled} />
           </Form.Item>
-          <Form.Item label="סטודנט" name="isStudent" hasFeedback={!submitting && touched.isStudent}>
+          <Form.Item label="סטודנט" name="isStudent" hasFeedback={true}>
             <Select>
               <Option value={true}>כן</Option>
               <Option value={false}>לא</Option>
             </Select>
           </Form.Item>
-          <Form.Item label="מנחה" name="isAdvisor" hasFeedback={!submitting && touched.isAdvisor}>
+          <Form.Item label="מנחה" name="isAdvisor" hasFeedback={true}>
             <Select>
               <Option value={true}>כן</Option>
               <Option value={false}>לא</Option>
             </Select>
           </Form.Item>
-          <Form.Item label="שופט" name="isJudge" hasFeedback={!submitting && touched.isJudge}>
+          <Form.Item label="שופט" name="isJudge" hasFeedback={true}>
             <Select>
               <Option value={true}>כן</Option>
               <Option value={false}>לא</Option>
             </Select>
           </Form.Item>
-          <Form.Item label="מנהל" name="isCoordinator" hasFeedback={!submitting && touched.isCoordinator}>
+          <Form.Item label="מנהל" name="isCoordinator" hasFeedback={true}>
             <Select>
               <Option value={true}>כן</Option>
               <Option value={false}>לא</Option>
