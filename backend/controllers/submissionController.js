@@ -19,8 +19,7 @@ export const createSubmission = async (req, res) => {
         const submission = new Submission({
           name: req.body.name,
           project: project._id,
-          closeDate: new Date(req.body.endDate),
-          openDate: new Date(req.body.startDate),
+          submissionDate: new Date(req.body.submissionDate),
           grades: [gradeByAdvisor]
         });
         await submission.save();
@@ -49,8 +48,7 @@ export const createSpecificSubmission = async (req, res) => {
         const submission = new Submission({
           name: req.body.name,
           project: project._id,
-          closeDate: new Date(req.body.endDate),
-          openDate: new Date(req.body.startDate),
+          submissionDate: new Date(req.body.submissionDate),
           grades: [gradeByAdvisor]
         });
         await submission.save();

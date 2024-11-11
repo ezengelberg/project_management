@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Submissions.scss";
-import { FloatButton, Modal, DatePicker, Form, Input, Select, Table } from "antd";
+import { FloatButton, Modal, DatePicker, Form, Input, Select, Table, Radio } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
 const { RangePicker } = DatePicker;
@@ -14,6 +14,7 @@ const Submissions = () => {
   const [specificSubmission, setSpecificSubmission] = useState(false);
   const [submissionData, setSubmissionData] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [submissionType, setSubmissionType] = useState(null);
 
   const fetchActiveProjects = async () => {
     try {
@@ -44,12 +45,27 @@ const Submissions = () => {
 
   const handleOkAll = async (values) => {
     try {
+      let name = "";
+      if (submissionType === "other") {
+        name = values.submissionName;
+      } else {
+        switch (submissionType) {
+          case "alphaReport":
+            name = "דוח אלפא";
+            break;
+          case "finalReport":
+            name = "דוח סופי";
+            break;
+          case "finalExam":
+            name = "מבחן סוף";
+            break;
+        }
+      }
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create`,
         {
-          name: values.submissionName,
-          startDate: values.submissionDate[0],
-          endDate: values.submissionDate[1]
+          name: name,
+          submissionDate: values.submissionDate
         },
         {
           withCredentials: true
@@ -65,12 +81,27 @@ const Submissions = () => {
 
   const handleOkSpecific = async (values) => {
     try {
+      let name = "";
+      if (submissionType === "other") {
+        name = values.submissionName;
+      } else {
+        switch (submissionType) {
+          case "alphaReport":
+            name = "דוח אלפא";
+            break;
+          case "finalReport":
+            name = "דוח סופי";
+            break;
+          case "finalExam":
+            name = "מבחן סוף";
+            break;
+        }
+      }
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create-specific`,
         {
-          name: values.submissionName,
-          startDate: values.submissionDate[0],
-          endDate: values.submissionDate[1],
+          name: name,
+          submissionDate: values.submissionDate,
           projects: values.projects
         },
         {
@@ -91,6 +122,8 @@ const Submissions = () => {
 
     formSpecific.resetFields();
     setSpecificSubmission(false);
+
+    setSubmissionType(null);
   };
 
   const onOkHandlerSpecific = () => {
@@ -216,6 +249,13 @@ const Submissions = () => {
     }
   ];
 
+  const submissionOptions = [
+    { label: "דוח אלפא", value: "alphaReport" },
+    { label: "דוח סופי", value: "finalReport" },
+    { label: "מבחן סוף", value: "finalExam" },
+    { label: "אחר", value: "other" }
+  ];
+
   return (
     <div>
       <Table
@@ -240,30 +280,41 @@ const Submissions = () => {
         onCancel={() => handleClose()}
         onOk={onOkHandlerAll}>
         <Form layout="vertical" form={formAll}>
-          <Form.Item
-            label="שם ההגשה"
-            name="submissionName"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה להזין שם ההגשה"
-              }
-            ]}>
-            <Input />
+          <Form.Item label="סוג הגשה" name="submissionType" hasFeedback>
+            <Radio.Group
+              optionType="button"
+              buttonStyle="solid"
+              options={submissionOptions}
+              onChange={(e) => {
+                setSubmissionType(e.target.value);
+              }}
+            />
           </Form.Item>
+          {submissionType == "other" && (
+            <Form.Item
+              label="שם ההגשה"
+              name="submissionName"
+              hasFeedback
+              rules={[
+                {
+                  required: submissionType === "other",
+                  message: "חובה להזין שם ההגשה"
+                }
+              ]}>
+              <Input />
+            </Form.Item>
+          )}
           <Form.Item
             label="תאריך הגשה"
             name="submissionDate"
             hasFeedback
             rules={[
               {
-                type: "array",
                 required: true,
                 message: "חובה להזין תאריך הגשה"
               }
             ]}>
-            <RangePicker
+            <DatePicker
               className="date-picker"
               locale={locale} // Add the Hebrew locale here
               direction="rtl"
@@ -283,18 +334,30 @@ const Submissions = () => {
         onOk={() => onOkHandlerSpecific()}
         onCancel={() => handleClose()}>
         <Form layout="vertical" form={formSpecific}>
-          <Form.Item
-            label="שם ההגשה"
-            name="submissionName"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה להזין שם ההגשה"
-              }
-            ]}>
-            <Input />
+          <Form.Item label="סוג הגשה" name="submissionType" hasFeedback>
+            <Radio.Group
+              optionType="button"
+              buttonStyle="solid"
+              options={submissionOptions}
+              onChange={(e) => {
+                setSubmissionType(e.target.value);
+              }}
+            />
           </Form.Item>
+          {submissionType === "other" && (
+            <Form.Item
+              label="שם ההגשה"
+              name="submissionName"
+              hasFeedback
+              rules={[
+                {
+                  required: submissionType === "other",
+                  message: "חובה להזין שם ההגשה"
+                }
+              ]}>
+              <Input />
+            </Form.Item>
+          )}
           <Form.Item
             label="תאריך הגשה"
             name="submissionDate"
@@ -306,7 +369,7 @@ const Submissions = () => {
                 message: "חובה להזין תאריך הגשה"
               }
             ]}>
-            <RangePicker
+            <DatePicker
               className="date-picker"
               locale={locale} // Add the Hebrew locale here
               direction="rtl"
