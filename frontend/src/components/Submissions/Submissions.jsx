@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Submissions.scss";
-import { FloatButton, Modal, DatePicker, Form, Input, Select, Table, Radio, message, Tooltip } from "antd";
+import { Modal, DatePicker, Form, Input, Select, Table, Radio, message, Tooltip, Button, InputNumber } from "antd";
 import { EditOutlined, DeleteOutlined, NodeExpandOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
 
@@ -10,9 +10,12 @@ const Submissions = () => {
   const [formAll] = Form.useForm();
   const [formJudges] = Form.useForm();
   const [formSpecific] = Form.useForm();
+  const [gradeForm] = Form.useForm();
   const [allSubmissions, setAllSubmissions] = useState(false);
   const [specificSubmission, setSpecificSubmission] = useState(false);
   const [copyJudges, setCopyJudges] = useState(false);
+  const [gradeFormOpen, setGradeFormOpen] = useState(false);
+  const [gradeToOverride, setGradeToOverride] = useState(null);
   const [submissionData, setSubmissionData] = useState([]);
   const [submissionNames, setSubmissionNames] = useState([]);
   const [submissionType, setSubmissionType] = useState(null);
@@ -34,7 +37,21 @@ const Submissions = () => {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all`, {
         withCredentials: true
       });
-      setSubmissionData(response.data);
+
+      // console.log(response.data);
+      const gradesData = response.data.map((submission) => {
+        submission.gradesDetailed = submission.gradesDetailed.map((grade) => {
+          // console.log(grade);
+          return {
+            ...grade,
+            grade: grade.overridden ? grade.overridden?.newGrade : grade.grade
+            // grade: grade.overridden !== null ? grade.overridden.grade : grade.grade,
+          };
+        });
+        return submission;
+      });
+      console.log(gradesData);
+      setSubmissionData(gradesData);
       const submissionNames = [...new Set(response.data.map((submission) => submission.name))];
       setSubmissionNames(submissionNames);
     } catch (error) {
@@ -68,6 +85,22 @@ const Submissions = () => {
     } finally {
       handleClose();
       fetchSubmissions();
+    }
+  };
+
+  const overrideGrade = async (values) => {
+    console.log(values);
+    console.log(gradeToOverride);
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/grade/update/${gradeToOverride.key}`,
+        {
+          grade: values.newGrade
+        },
+        { withCredentials: true }
+      );
+    } catch (error) {
+      console.error("Error overriding grade:", error);
     }
   };
 
@@ -151,6 +184,7 @@ const Submissions = () => {
   };
 
   const handleClose = () => {
+    console.log("close!");
     formAll.resetFields();
     setAllSubmissions(false);
 
@@ -161,6 +195,10 @@ const Submissions = () => {
     setCopyJudges(false);
 
     setSubmissionType(null);
+
+    gradeForm.resetFields();
+    setGradeFormOpen(false);
+    setGradeToOverride(null);
   };
 
   const onOkHandlerSpecific = () => {
@@ -189,6 +227,17 @@ const Submissions = () => {
       .validateFields()
       .then((values) => {
         handleJudgeCopy(values);
+      })
+      .catch((info) => {
+        console.log("Validate Failed:", info);
+      });
+  };
+
+  const onOkHandlerGrade = () => {
+    gradeForm
+      .validateFields()
+      .then((values) => {
+        overrideGrade(values);
       })
       .catch((info) => {
         console.log("Validate Failed:", info);
@@ -271,13 +320,34 @@ const Submissions = () => {
       title: "ציון",
       dataIndex: "grade",
       key: "grade",
-      render: (text) => <span>{text ? text : "לא הוזן"}</span>
+      render: (text) => {
+        console.log(text);
+        return <span>{text ? text : "לא הוזן"}</span>;
+      }
     },
     {
       title: "הערות",
       dataIndex: "comment",
       key: "comment",
       render: (text) => <span>{text ? text : "לא הוזן"}</span>
+    },
+    {
+      title: "פעולות",
+      key: "action",
+      render: (text, record) => (
+        <div className="submission-table-actions">
+          <Tooltip title="ערוך ציון">
+            <EditOutlined
+              className="submission-icon"
+              onClick={() => {
+                setGradeToOverride(record);
+                setGradeFormOpen(true);
+                gradeForm.setFieldsValue({ oldGrade: record?.grade ? record.grade : "לא הוזן" });
+              }}
+            />
+          </Tooltip>
+        </div>
+      )
     }
   ];
 
@@ -290,6 +360,17 @@ const Submissions = () => {
 
   return (
     <div>
+      <div className="action-buttons">
+        <Button type="primary" onClick={() => setAllSubmissions(true)}>
+          פתיחת הגשה חדשה
+        </Button>
+        <Button type="primary" onClick={() => setSpecificSubmission(true)}>
+          פתיחת הגשה לפרויקטים נבחרים
+        </Button>
+        <Button type="primary" onClick={() => setCopyJudges(true)}>
+          העתקת שופטים
+        </Button>
+      </div>
       <Table
         columns={column}
         dataSource={submissionData}
@@ -300,13 +381,33 @@ const Submissions = () => {
           rowExpandable: (record) => record.grades && record.grades.length > 0
         }}
       />
-      <FloatButton.Group className="submission-actions" type="primary" trigger="click">
-        <FloatButton shape="square" description="הגשה חדשה" onClick={() => setAllSubmissions(true)} />
-        <FloatButton shape="square" description="הגשה לפרוייקט יחיד" onClick={() => setSpecificSubmission(true)} />
-        <FloatButton shape="square" description="העתקת שופטים" onClick={() => setCopyJudges(true)} />
-      </FloatButton.Group>
       {/* <div className="float-button-actions">
       </div> */}
+      <Modal
+        title="שנה ציון"
+        open={gradeFormOpen}
+        okText="ערוך ציון"
+        cancelText="סגור"
+        onOk={() => onOkHandlerGrade()}
+        onCancel={() => handleClose()}>
+        <Form layout="vertical" form={gradeForm}>
+          <Form.Item label="ציון קודם" name="oldGrade">
+            <Input disabled />
+          </Form.Item>
+          <Form.Item
+            label="ציון חדש"
+            name="newGrade"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין ציון בין (0) ל (100)"
+              }
+            ]}>
+            <InputNumber className="input-field-override-grade" min={0} max={100} />
+          </Form.Item>
+        </Form>
+      </Modal>
       <Modal
         title="העתקת שופטים"
         open={copyJudges}

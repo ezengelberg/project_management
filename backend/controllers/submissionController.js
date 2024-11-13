@@ -82,11 +82,12 @@ export const getAllSubmissions = async (req, res) => {
               const gradeInfo = await Grade.findById(grade);
               const judge = await User.findById(gradeInfo.judge);
               return {
-                key: submission._id,
+                key: gradeInfo ? gradeInfo._id : null,
                 judge: gradeInfo ? gradeInfo.judge : null,
                 judgeName: judge ? judge.name : null,
                 grade: gradeInfo ? gradeInfo.grade : null,
-                comment: gradeInfo ? gradeInfo.comment : null
+                comment: gradeInfo ? gradeInfo.comment : null,
+                overridden: gradeInfo ? gradeInfo.overridden : null
               };
             })
           ),
