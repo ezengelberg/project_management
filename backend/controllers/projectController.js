@@ -580,6 +580,10 @@ export const assignAdvisorsAutomatically = async (req, res) => {
     const projects = await Project.find({ advisors: [] });
     const advisors = await User.find({ isAdvisor: true });
 
+    if (projects.length === 0) {
+      return res.status(304).send({ message: "All projects already have advisors" });
+    }
+
     // Create a map to store advisor project counts and ranks
     const advisorStats = new Map();
 

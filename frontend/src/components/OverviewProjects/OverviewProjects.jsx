@@ -431,6 +431,7 @@ const OverviewProjects = () => {
   });
 
   const handleAssignAdvisorsAutomatically = async () => {
+    setLoading(true);
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/assign-advisors-automatically`,
@@ -439,9 +440,14 @@ const OverviewProjects = () => {
       );
       message.success("המנחים הוקצו בהצלחה!");
     } catch (error) {
-      console.error("Error assigning advisors automatically:", error);
-      message.error("שגיאה בהקצאת מנחים אוטומטית");
+      if (error.response.status === 304) {
+        message.info("הוקצו כבר מנחים לכל הפרויקטים");
+      } else {
+        console.error("Error assigning advisors automatically:", error);
+        message.error("שגיאה בהקצאת מנחים אוטומטית");
+      }
     }
+    setLoading(false);
   };
 
   const handleAssignJudgesAutomatically = async () => {};
@@ -1230,7 +1236,7 @@ const OverviewProjects = () => {
                 </Select.Option>
               ))}
             </Select>
-            <Button type="primary" onClick={handleAssignAdvisorsAutomatically}>
+            <Button type="primary" onClick={handleAssignAdvisorsAutomatically} loading={loading}>
               שיבוץ מנחים אוטומטי
             </Button>
           </div>
@@ -1281,7 +1287,7 @@ const OverviewProjects = () => {
               <Select.Option value="all">כל הפרויקטים</Select.Option>
               <Select.Option value="missingJudges">פרויקטים שחסר שופטים</Select.Option>
             </Select>
-            <Button type="primary" onClick={handleAssignJudgesAutomatically}>
+            <Button type="primary" onClick={handleAssignJudgesAutomatically} loading={loading}>
               שיבוץ שופטים אוטומטי
             </Button>
           </div>
