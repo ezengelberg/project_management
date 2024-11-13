@@ -9,7 +9,8 @@ import {
   FundProjectionScreenOutlined,
   TeamOutlined,
   SettingOutlined,
-  FilePdfOutlined
+  FilePdfOutlined,
+  InfoCircleOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -20,14 +21,14 @@ const Sidebar = () => {
   const [openSubmenus, setOpenSubmenus] = useState({
     myProject: false,
     myProjects: false,
-    manageUsers: false
+    manageUsers: false,
   });
 
   useEffect(() => {
     const loadUser = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, {
-          withCredentials: true
+          withCredentials: true,
         });
         setUser(response.data);
         localStorage.setItem("user", JSON.stringify(response.data));
@@ -189,6 +190,14 @@ const Sidebar = () => {
               </div>
             </li>
           )}
+          <li>
+            <div
+              className={`sidebar-option ${isActive("/more-information") ? "active" : ""}`}
+              onClick={() => navigate("/more-information")}>
+              <InfoCircleOutlined />
+              <span>מידע נוסף</span>
+            </div>
+          </li>
           {user.isCoordinator && (
             <li>
               <div

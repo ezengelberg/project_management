@@ -17,6 +17,7 @@ import ProjectPage from "./components/ProjectPage/ProjectPage";
 import OverviewProjects from "./components/OverviewProjects/OverviewProjects";
 import SystemControl from "./components/SystemControl/SystemControl";
 import Submissions from "./components/Submissions/Submissions";
+import MoreInformation from "./components/MoreInformation/MoreInformation";
 
 function App() {
   return (
@@ -119,6 +120,14 @@ const MainLayout = () => {
                 }
               />
               <Route
+                path="/more-information"
+                element={
+                  <ProtectedRoute>
+                    <MoreInformation />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/system"
                 element={
                   <ProtectedRoute>
@@ -127,7 +136,6 @@ const MainLayout = () => {
                 }
               />
               {/* Development route */}
-              
             </Routes>
           </div>
         </div>
