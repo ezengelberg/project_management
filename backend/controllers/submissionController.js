@@ -7,11 +7,15 @@ export const createSubmission = async (req, res) => {
   console.log("Creating submission");
   console.log(req.body);
   try {
-    const projects = await Project.find({ isTerminated: false, isFinished: false });
+    const projects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
     await Promise.all(
       projects.map(async (project) => {
         let newGrade;
         let gradeByAdvisor;
+        const checkExist = await Submission.find({ project: project._id, name: req.body.name });
+        if (checkExist.length > 0) {
+          return; // Skip this project if submission already exists
+        }
         if (project.advisors.length > 0) {
           newGrade = new Grade({ judge: project.advisors[0]._id });
           gradeByAdvisor = await newGrade.save();
@@ -19,8 +23,7 @@ export const createSubmission = async (req, res) => {
         const submission = new Submission({
           name: req.body.name,
           project: project._id,
-          closeDate: new Date(req.body.endDate),
-          openDate: new Date(req.body.startDate),
+          submissionDate: new Date(req.body.submissionDate),
           grades: [gradeByAdvisor]
         });
         await submission.save();
@@ -49,8 +52,7 @@ export const createSpecificSubmission = async (req, res) => {
         const submission = new Submission({
           name: req.body.name,
           project: project._id,
-          closeDate: new Date(req.body.endDate),
-          openDate: new Date(req.body.startDate),
+          submissionDate: new Date(req.body.submissionDate),
           grades: [gradeByAdvisor]
         });
         await submission.save();
@@ -65,7 +67,10 @@ export const createSpecificSubmission = async (req, res) => {
 
 export const getAllSubmissions = async (req, res) => {
   try {
-    const submissions = await Submission.find();
+    const activeProjects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
+    const activeProjectIds = activeProjects.map((project) => project._id);
+
+    const submissions = await Submission.find({ project: { $in: activeProjectIds } });
     const submissionsWithDetails = await Promise.all(
       submissions.map(async (submission) => {
         const project = await Project.findById(submission.project);
@@ -90,6 +95,30 @@ export const getAllSubmissions = async (req, res) => {
       })
     );
     res.status(200).json(submissionsWithDetails);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const copyJudges = async (req, res) => {
+  try {
+    const activeProjects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
+    const activeProjectIds = activeProjects.map((project) => project._id);
+    const submissions = await Submission.find({ project: { $in: activeProjectIds }, name: req.body.sourceSubmission });
+    await Promise.all(
+      submissions.map(async (submission) => {
+        const project = await Project.findById(submission.project);
+        const newGrades = await Promise.all(
+          project.advisors.map(async (advisor) => {
+            const newGrade = new Grade({ judge: advisor });
+            return await newGrade.save();
+          })
+        );
+        submission.grades = newGrades;
+        await submission.save();
+      })
+    );
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });

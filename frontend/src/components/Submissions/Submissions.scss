@@ -1,12 +1,38 @@
+// .float-button-actions {
+//   display: flex;
+//   gap: 1rem;
 .submission-actions {
-  left: 10rem;
-  bottom: 10rem;
+  left: 5rem;
+  bottom: 5rem;
   button {
     width: 5rem;
     height: 5rem;
   }
 }
+// }
+
+.floatbutton-wrapper {
+  position: fixed;
+  display: flex;
+}
 
 .date-picker {
-    width: 100%;
+  width: 100%;
+}
+
+.submission-table-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  .submission-icon {
+    svg {
+      width: 2.5rem;
+      height: 2.5rem;
+      color: #1677ff;
+      transition: color 0.2s linear;
+      &:hover {
+        color: #0056b3;
+      }
+    }
+  }
 }

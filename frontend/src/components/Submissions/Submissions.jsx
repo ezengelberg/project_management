@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Submissions.scss";
-import { FloatButton, Modal, DatePicker, Form, Input, Select, Table } from "antd";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { FloatButton, Modal, DatePicker, Form, Input, Select, Table, Radio, message, Tooltip } from "antd";
+import { EditOutlined, DeleteOutlined, NodeExpandOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
-const { RangePicker } = DatePicker;
 
 const Submissions = () => {
   const { Option } = Select;
   const [formAll] = Form.useForm();
+  const [formJudges] = Form.useForm();
   const [formSpecific] = Form.useForm();
   const [allSubmissions, setAllSubmissions] = useState(false);
   const [specificSubmission, setSpecificSubmission] = useState(false);
+  const [copyJudges, setCopyJudges] = useState(false);
   const [submissionData, setSubmissionData] = useState([]);
+  const [submissionNames, setSubmissionNames] = useState([]);
+  const [submissionType, setSubmissionType] = useState(null);
   const [projects, setProjects] = useState([]);
 
   const fetchActiveProjects = async () => {
@@ -32,6 +35,8 @@ const Submissions = () => {
         withCredentials: true
       });
       setSubmissionData(response.data);
+      const submissionNames = [...new Set(response.data.map((submission) => submission.name))];
+      setSubmissionNames(submissionNames);
     } catch (error) {
       console.error("Error fetching submissions:", error);
     }
@@ -42,19 +47,61 @@ const Submissions = () => {
     fetchActiveProjects();
   }, []);
 
-  const handleOkAll = async (values) => {
+  const handleJudgeCopy = async (values) => {
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/submission/create`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/copy-judges`,
         {
-          name: values.submissionName,
-          startDate: values.submissionDate[0],
-          endDate: values.submissionDate[1]
+          sourceSubmission: values.sourceSubmission,
+          destinationSubmission: values.destinationSubmission
         },
         {
           withCredentials: true
         }
       );
+      message.open({
+        type: "success",
+        content: "העתקת השופטים הושלמה בהצלחה"
+      });
+    } catch (error) {
+      console.error("Error copying judges:", error);
+    } finally {
+      handleClose();
+      fetchSubmissions();
+    }
+  };
+
+  const handleOkAll = async (values) => {
+    try {
+      let name = "";
+      switch (submissionType) {
+        case "alphaReport":
+          name = "דוח אלפא";
+          break;
+        case "finalReport":
+          name = "דוח סופי";
+          break;
+        case "finalExam":
+          name = "מבחן סוף";
+          break;
+        default: // other...
+          name = values.submissionName;
+          break;
+      }
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/create`,
+        {
+          name: name,
+          submissionDate: values.submissionDate
+        },
+        {
+          withCredentials: true
+        }
+      );
+      message.open({
+        type: "success",
+        content: "הגשה נפתחה בהצלחה"
+      });
     } catch (error) {
       console.error("Error creating submission:", error);
     } finally {
@@ -65,18 +112,36 @@ const Submissions = () => {
 
   const handleOkSpecific = async (values) => {
     try {
+      let name = "";
+      switch (submissionType) {
+        case "alphaReport":
+          name = "דוח אלפא";
+          break;
+        case "finalReport":
+          name = "דוח סופי";
+          break;
+        case "finalExam":
+          name = "מבחן סוף";
+          break;
+        default: // other...
+          name = values.submissionName;
+          break;
+      }
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create-specific`,
         {
-          name: values.submissionName,
-          startDate: values.submissionDate[0],
-          endDate: values.submissionDate[1],
+          name: name,
+          submissionDate: values.submissionDate,
           projects: values.projects
         },
         {
           withCredentials: true
         }
       );
+      message.open({
+        type: "success",
+        content: "הגשה נפתחה בהצלחה"
+      });
     } catch (error) {
       console.error("Error creating submission:", error);
     } finally {
@@ -91,6 +156,11 @@ const Submissions = () => {
 
     formSpecific.resetFields();
     setSpecificSubmission(false);
+
+    formJudges.resetFields();
+    setCopyJudges(false);
+
+    setSubmissionType(null);
   };
 
   const onOkHandlerSpecific = () => {
@@ -114,7 +184,26 @@ const Submissions = () => {
       });
   };
 
+  const onOkHandlerJudges = () => {
+    formJudges
+      .validateFields()
+      .then((values) => {
+        handleJudgeCopy(values);
+      })
+      .catch((info) => {
+        console.log("Validate Failed:", info);
+      });
+  };
+
   const column = [
+    {
+      title: "פרויקט",
+      dataIndex: "projectName",
+      key: "project",
+      sorter: (a, b) => a.projectName.localeCompare(b.projectName),
+      defaultSortOrder: "ascend",
+      sortDirections: ["ascend", "descend"]
+    },
     {
       title: "שם ההגשה",
       dataIndex: "name",
@@ -137,10 +226,10 @@ const Submissions = () => {
       }
     },
     {
-      title: "תאריך פתיחת מטלה",
-      dataIndex: "openDate",
-      key: "openDate",
-      sorter: (a, b) => new Date(a.openDate) - new Date(b.openDate),
+      title: "תאריך הגשה",
+      dataIndex: "submissionDate",
+      key: "submissionDate",
+      sorter: (a, b) => new Date(a.submissionDate) - new Date(b.submissionDate),
       defaultSortOrder: "ascend",
       sortDirections: ["ascend", "descend"],
       render: (text) => (
@@ -155,42 +244,18 @@ const Submissions = () => {
           })}
         </span>
       )
-    },
-    {
-      title: "תאריך סגירת מטלה",
-      dataIndex: "closeDate",
-      key: "closeDate",
-      sorter: (a, b) => new Date(a.closeDate) - new Date(b.closeDate),
-      defaultSortOrder: "ascend",
-      sortDirections: ["ascend", "descend"],
-      render: (text) => (
-        <span>
-          {new Date(text).toLocaleString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false
-          })}
-        </span>
-      )
-    },
-    {
-      title: "פרויקט",
-      dataIndex: "projectName",
-      key: "project",
-      sorter: (a, b) => a.projectName.localeCompare(b.projectName),
-      defaultSortOrder: "ascend",
-      sortDirections: ["ascend", "descend"]
     },
     {
       title: "פעולות",
       key: "action",
       render: (text, record) => (
-        <div>
-          <EditOutlined />
-          <DeleteOutlined />
+        <div className="submission-table-actions">
+          <Tooltip title="ערוך פרטי הגשה">
+            <EditOutlined className="submission-icon" />
+          </Tooltip>
+          <Tooltip title="מחק הגשה">
+            <DeleteOutlined className="submission-icon" />
+          </Tooltip>
         </div>
       )
     }
@@ -216,6 +281,13 @@ const Submissions = () => {
     }
   ];
 
+  const submissionOptions = [
+    { label: "דוח אלפא", value: "alphaReport" },
+    { label: "דוח סופי", value: "finalReport" },
+    { label: "מבחן סוף", value: "finalExam" },
+    { label: "אחר", value: "other" }
+  ];
+
   return (
     <div>
       <Table
@@ -231,7 +303,56 @@ const Submissions = () => {
       <FloatButton.Group className="submission-actions" type="primary" trigger="click">
         <FloatButton shape="square" description="הגשה חדשה" onClick={() => setAllSubmissions(true)} />
         <FloatButton shape="square" description="הגשה לפרוייקט יחיד" onClick={() => setSpecificSubmission(true)} />
+        <FloatButton shape="square" description="העתקת שופטים" onClick={() => setCopyJudges(true)} />
       </FloatButton.Group>
+      {/* <div className="float-button-actions">
+      </div> */}
+      <Modal
+        title="העתקת שופטים"
+        open={copyJudges}
+        okText="העתק שופטים"
+        cancelText="סגור"
+        onOk={() => onOkHandlerJudges()}
+        onCancel={() => handleClose()}>
+        <Form layout="vertical" form={formJudges}>
+          <Form.Item
+            label="הגשת מקור"
+            name="sourceSubmission"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה לבחור הגשת מקור"
+              }
+            ]}>
+            <Select placeholder="בחר הגשת מקור">
+              {submissionNames.map((submission, index) => (
+                <Option key={index} value={submission.name}>
+                  {submission}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label="הגשת יעד"
+            name="destinationSubmission"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה לבחור הגשת יעד"
+              }
+            ]}>
+            <Select placeholder="בחר הגשת יעד">
+              {submissionNames.map((submission, index) => (
+                <Option key={index} value={submission.name}>
+                  {submission}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
       <Modal
         title="פתיחת הגשה חדשה לכולם"
         open={allSubmissions}
@@ -240,30 +361,41 @@ const Submissions = () => {
         onCancel={() => handleClose()}
         onOk={onOkHandlerAll}>
         <Form layout="vertical" form={formAll}>
-          <Form.Item
-            label="שם ההגשה"
-            name="submissionName"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה להזין שם ההגשה"
-              }
-            ]}>
-            <Input />
+          <Form.Item label="סוג הגשה" name="submissionType" hasFeedback>
+            <Radio.Group
+              optionType="button"
+              buttonStyle="solid"
+              options={submissionOptions}
+              onChange={(e) => {
+                setSubmissionType(e.target.value);
+              }}
+            />
           </Form.Item>
+          {submissionType === "other" && (
+            <Form.Item
+              label="שם ההגשה"
+              name="submissionName"
+              hasFeedback
+              rules={[
+                {
+                  required: submissionType === "other",
+                  message: "חובה להזין שם ההגשה"
+                }
+              ]}>
+              <Input />
+            </Form.Item>
+          )}
           <Form.Item
             label="תאריך הגשה"
             name="submissionDate"
             hasFeedback
             rules={[
               {
-                type: "array",
                 required: true,
                 message: "חובה להזין תאריך הגשה"
               }
             ]}>
-            <RangePicker
+            <DatePicker
               className="date-picker"
               locale={locale} // Add the Hebrew locale here
               direction="rtl"
@@ -283,18 +415,30 @@ const Submissions = () => {
         onOk={() => onOkHandlerSpecific()}
         onCancel={() => handleClose()}>
         <Form layout="vertical" form={formSpecific}>
-          <Form.Item
-            label="שם ההגשה"
-            name="submissionName"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה להזין שם ההגשה"
-              }
-            ]}>
-            <Input />
+          <Form.Item label="סוג הגשה" name="submissionType" hasFeedback>
+            <Radio.Group
+              optionType="button"
+              buttonStyle="solid"
+              options={submissionOptions}
+              onChange={(e) => {
+                setSubmissionType(e.target.value);
+              }}
+            />
           </Form.Item>
+          {submissionType === "other" && (
+            <Form.Item
+              label="שם ההגשה"
+              name="submissionName"
+              hasFeedback
+              rules={[
+                {
+                  required: submissionType === "other",
+                  message: "חובה להזין שם ההגשה"
+                }
+              ]}>
+              <Input />
+            </Form.Item>
+          )}
           <Form.Item
             label="תאריך הגשה"
             name="submissionDate"
@@ -306,7 +450,7 @@ const Submissions = () => {
                 message: "חובה להזין תאריך הגשה"
               }
             ]}>
-            <RangePicker
+            <DatePicker
               className="date-picker"
               locale={locale} // Add the Hebrew locale here
               direction="rtl"
