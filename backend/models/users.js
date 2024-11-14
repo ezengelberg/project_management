@@ -11,13 +11,15 @@ const userSchema = new mongoose.Schema({
   isCoordinator: { type: Boolean, required: true, default: false },
   isJudge: { type: Boolean, required: true, default: false },
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Project", required: false, default: [] }],
+  projectsLeft: { type: Boolean, required: true },
+  interests: { type: String, required: true },
   registerDate: { type: Date, required: true, default: Date.now },
   suspended: { type: Boolean, default: false },
   suspendedAt: { type: Date, default: null },
   suspendedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   suspendedReason: { type: String, default: null },
   suspensionRecords: { type: Array, required: true, default: [] },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
 const userModel = mongoose.model("User", userSchema);
