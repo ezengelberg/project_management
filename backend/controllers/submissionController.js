@@ -24,7 +24,7 @@ export const createSubmission = async (req, res) => {
           name: req.body.name,
           project: project._id,
           submissionDate: new Date(req.body.submissionDate),
-          grades: [gradeByAdvisor]
+          grades: [gradeByAdvisor],
         });
         await submission.save();
       })
@@ -53,7 +53,7 @@ export const createSpecificSubmission = async (req, res) => {
           name: req.body.name,
           project: project._id,
           submissionDate: new Date(req.body.submissionDate),
-          grades: [gradeByAdvisor]
+          grades: [gradeByAdvisor],
         });
         await submission.save();
       })
@@ -87,11 +87,11 @@ export const getAllSubmissions = async (req, res) => {
                 judgeName: judge ? judge.name : null,
                 grade: gradeInfo ? gradeInfo.grade : null,
                 comment: gradeInfo ? gradeInfo.comment : null,
-                overridden: gradeInfo ? gradeInfo.overridden : null
+                overridden: gradeInfo ? gradeInfo.overridden : null,
               };
             })
           ),
-          key: submission._id
+          key: submission._id,
         };
       })
     );
@@ -123,5 +123,45 @@ export const copyJudges = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const updateJudgesInSubmission = async (req, res) => {
+  try {
+    const { submissionID, alphaReportJudges, finalReportJudges, examJudges, specialSubmissionJudges } = req.body;
+    const submission = await Submission.findById(submissionID);
+    if (!submission) {
+      return res.status(404).send({ message: "Submission not found" });
+    }
+
+    // Validate judges
+    const validateJudges = async (judges) => {
+      const validJudges = [];
+      for (const judgeID of judges) {
+        const judge = await User.findById(judgeID);
+        if (!judge || !judge.isJudge) {
+          throw new Error(`Invalid judge ID: ${judgeID}`);
+        }
+        validJudges.push(judgeID);
+      }
+      return validJudges;
+    };
+
+    const validAlphaReportJudges = await validateJudges(alphaReportJudges);
+    const validFinalReportJudges = await validateJudges(finalReportJudges);
+    const validExamJudges = await validateJudges(examJudges);
+    const validSpecialSubmissionJudges = await validateJudges(specialSubmissionJudges);
+
+    submission.alphaReportGrades = validAlphaReportJudges.map((judgeID) => new Grade({ judge: judgeID })._id);
+    submission.finalReportGrades = validFinalReportJudges.map((judgeID) => new Grade({ judge: judgeID })._id);
+    submission.examGrades = validExamJudges.map((judgeID) => new Grade({ judge: judgeID })._id);
+    submission.specialSubmissionGrades = validSpecialSubmissionJudges.map(
+      (judgeID) => new Grade({ judge: judgeID })._id
+    );
+
+    await submission.save();
+    res.status(200).send({ message: "Judges updated successfully", submission });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };

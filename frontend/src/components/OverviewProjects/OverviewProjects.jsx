@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "./OverviewProjects.scss";
 import { useNavigate } from "react-router-dom";
 import { Tabs, Table, Modal, Select, Button, message, Tooltip, Input, Space, Divider } from "antd";
-import { DeleteOutlined, RollbackOutlined, SearchOutlined } from "@ant-design/icons";
+import { DeleteOutlined, RollbackOutlined, SearchOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import axios from "axios";
 import Highlighter from "react-highlight-words";
 
@@ -31,22 +31,28 @@ const OverviewProjects = () => {
   const [selectedAlphaReportJudges, setSelectedAlphaReportJudges] = useState([]);
   const [selectedFinalReportJudges, setSelectedFinalReportJudges] = useState([]);
   const [selectedExamJudges, setSelectedExamJudges] = useState([]);
+  const [selectedSpecialSubmissionJudges, setSelectedSpecialSubmissionJudges] = useState([]);
   const [takenFilter, setTakenFilter] = useState("all");
   const [years, setYears] = useState([]);
   const [yearFilter, setYearFilter] = useState("");
+  const [submissions, setSubmissions] = useState([]);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [selectedJudges, setSelectedJudges] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [projectsRes, usersRes] = await Promise.all([
+        const [projectsRes, usersRes, submissionsRes] = await Promise.all([
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project`, { withCredentials: true }),
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/all-users`, { withCredentials: true }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all`, { withCredentials: true }),
         ]);
 
         const activeUsers = usersRes.data.filter((user) => !user.suspended);
         setProjects(projectsRes.data);
         setUsers(activeUsers);
+        setSubmissions(submissionsRes.data);
 
         const years = Array.from(new Set(projectsRes.data.map((project) => project.year))).sort((a, b) => b - a);
         setYears(years);
@@ -227,44 +233,68 @@ const OverviewProjects = () => {
 
   const handleUpdateJudges = async () => {
     if (
-      selectedAlphaReportJudges.length === 0 &&
-      selectedFinalReportJudges.length === 0 &&
-      selectedExamJudges.length === 0
+      selectedAlphaReportJudges.length !== 3 ||
+      selectedFinalReportJudges.length !== 3 ||
+      selectedExamJudges.length !== 3 ||
+      selectedSpecialSubmissionJudges.length !== 3
     ) {
-      message.error("יש לבחור שופט אחד לפחות");
+      message.error("יש לבחור בדיוק 3 שופטים לכל סוג הגשה");
       return;
     }
     try {
       await axios.put(
-        `${process.env.REACT_APP_BACKEND_URL}/api/project/update-judges`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-judges`,
         {
-          projectID: selectedProject._id,
+          submissionID: selectedSubmission._id,
           alphaReportJudges: selectedAlphaReportJudges,
           finalReportJudges: selectedFinalReportJudges,
           examJudges: selectedExamJudges,
+          specialSubmissionJudges: selectedSpecialSubmissionJudges,
         },
         { withCredentials: true }
       );
 
       // Update local state
-      const updatedProjects = projects.map((project) => {
-        if (project._id === selectedProject._id) {
+      const updatedSubmissions = submissions.map((submission) => {
+        if (submission._id === selectedSubmission._id) {
           return {
-            ...project,
-            alphaReportJudges: selectedAlphaReportJudges,
-            finalReportJudges: selectedFinalReportJudges,
-            examJudges: selectedExamJudges,
+            ...submission,
+            alphaReportGrades: selectedAlphaReportJudges.map((judge) => ({
+              judge,
+              judgeName: users.find((u) => u._id === judge).name,
+              grade: null,
+              comment: null,
+            })),
+            finalReportGrades: selectedFinalReportJudges.map((judge) => ({
+              judge,
+              judgeName: users.find((u) => u._id === judge).name,
+              grade: null,
+              comment: null,
+            })),
+            examGrades: selectedExamJudges.map((judge) => ({
+              judge,
+              judgeName: users.find((u) => u._id === judge).name,
+              grade: null,
+              comment: null,
+            })),
+            specialSubmissionGrades: selectedSpecialSubmissionJudges.map((judge) => ({
+              judge,
+              judgeName: users.find((u) => u._id === judge).name,
+              grade: null,
+              comment: null,
+            })),
           };
         }
-        return project;
+        return submission;
       });
 
-      setProjects(updatedProjects);
+      setSubmissions(updatedSubmissions);
       setIsJudgesModalOpen(false);
       setSelectedAlphaReportJudges([]);
       setSelectedFinalReportJudges([]);
       setSelectedExamJudges([]);
-      setSelectedProject(null);
+      setSelectedSpecialSubmissionJudges([]);
+      setSelectedSubmission(null);
       message.success("השופטים עודכנו בהצלחה!");
     } catch (error) {
       console.error("Error updating judges:", error);
@@ -453,106 +483,103 @@ const OverviewProjects = () => {
   const handleAssignJudgesAutomatically = async () => {};
 
   const expandedRowRender = (record) => {
+    const projectSubmissions = submissions.filter((submission) => submission.project === record._id);
     const expandColumns = [
       {
-        title: "שופטים עבור דוח אלפה",
-        dataIndex: "alphaReportJudges",
-        key: "alphaReportJudges",
-        render: (alphaReportJudges) => (
-          <div className="judges-list">
-            {alphaReportJudges.length > 0
-              ? alphaReportJudges.map((judgeId) => {
-                  const judgeUser = users.find((u) => u._id === judgeId);
-                  return judgeUser ? (
-                    <React.Fragment key={judgeId}>
-                      <a onClick={() => navigate(`/profile/${judgeId}`)}>{judgeUser.name}</a>
-                      {alphaReportJudges.indexOf(judgeId) !== alphaReportJudges.length - 1 &&
-                        alphaReportJudges.length > 1 && <Divider type="vertical" style={{ borderColor: "black" }} />}
-                    </React.Fragment>
-                  ) : null;
-                })
-              : "לא משוייכים שופטים"}
+        title: "דוח אלפה",
+        dataIndex: "alphaReport",
+        key: "alphaReport",
+        render: (_, submission) => (
+          <div>
+            {submission.alphaReportGrades?.map((grade) => (
+              <div key={grade.judge} className="inner-table-order">
+                <p>
+                  <a onClick={() => navigate(`/profile/${grade.judge}`)}>{grade.judgeName}</a> -{" "}
+                  {grade.grade !== null ? grade.grade : "אין ציון"}
+                </p>
+              </div>
+            ))}
           </div>
         ),
-        width: "30%",
+        width: "22.5%",
       },
       {
-        title: "שופטים עבור דוח סופי",
-        dataIndex: "finalReportJudges",
-        key: "finalReportJudges",
-        render: (finalReportJudges) => (
-          <div className="judges-list">
-            {finalReportJudges.length > 0
-              ? finalReportJudges.map((judgeId) => {
-                  const judgeUser = users.find((u) => u._id === judgeId);
-                  return judgeUser ? (
-                    <React.Fragment key={judgeId}>
-                      <a onClick={() => navigate(`/profile/${judgeId}`)}>{judgeUser.name}</a>
-                      {finalReportJudges.indexOf(judgeId) !== finalReportJudges.length - 1 &&
-                        finalReportJudges.length > 1 && <Divider type="vertical" style={{ borderColor: "black" }} />}
-                    </React.Fragment>
-                  ) : null;
-                })
-              : "לא משוייכים שופטים"}
+        title: "דוח סופי",
+        dataIndex: "finalReport",
+        key: "finalReport",
+        render: (_, submission) => (
+          <div>
+            {submission.finalReportGrades?.map((grade) => (
+              <div key={grade.judge} className="inner-table-order">
+                <a onClick={() => navigate(`/profile/${grade.judge}`)}>{grade.judgeName}</a>
+              </div>
+            ))}
           </div>
         ),
-        width: "30%",
+        width: "22.5%",
       },
       {
-        title: "שופטים עבור מבחן",
-        dataIndex: "examJudges",
-        key: "examJudges",
-        render: (examJudges) => (
-          <div className="judges-list">
-            {examJudges.length > 0
-              ? examJudges.map((judgeId) => {
-                  const judgeUser = users.find((u) => u._id === judgeId);
-                  return judgeUser ? (
-                    <React.Fragment key={judgeId}>
-                      <a onClick={() => navigate(`/profile/${judgeId}`)}>{judgeUser.name}</a>
-                      {examJudges.indexOf(judgeId) !== examJudges.length - 1 && examJudges.length > 1 && (
-                        <Divider type="vertical" style={{ borderColor: "black" }} />
-                      )}
-                    </React.Fragment>
-                  ) : null;
-                })
-              : "לא משוייכים שופטים"}
+        title: "מבחן",
+        dataIndex: "exam",
+        key: "exam",
+        render: (_, submission) => (
+          <div>
+            {submission.examGrades?.map((grade) => (
+              <div key={grade.judge} className="inner-table-order">
+                <p>
+                  <a onClick={() => navigate(`/profile/${grade.judge}`)}>{grade.judgeName}</a>-{" "}
+                  {grade.grade !== null ? grade.grade : "אין ציון"}
+                </p>
+              </div>
+            ))}
           </div>
         ),
-        width: "30%",
+        width: "22.5%",
+      },
+      {
+        title: "הגשה מיוחדת",
+        dataIndex: "specialSubmission",
+        key: "specialSubmission",
+        render: (_, submission) => (
+          <div>
+            {submission.specialSubmissionGrades?.map((grade) => (
+              <div key={grade.judge} className="inner-table-order">
+                <p>
+                  <a onClick={() => navigate(`/profile/${grade.judge}`)}>{grade.judgeName}</a> -{" "}
+                  {grade.grade !== null ? grade.grade : "אין ציון"}
+                </p>
+              </div>
+            ))}
+          </div>
+        ),
+        width: "22.5%",
       },
       {
         title: "פעולות",
         key: "actions",
-        render: () =>
-          !record.isFinished && (
-            <div className="project-manage-actions">
-              <Button
-                onClick={() => {
-                  setSelectedProject(record);
-                  setIsJudgesModalOpen(true);
-                  setSelectedAlphaReportJudges(record.alphaReportJudges);
-                  setSelectedFinalReportJudges(record.finalReportJudges);
-                  setSelectedExamJudges(record.examJudges);
-                }}>
-                הוסף/עדכן שופטים
-              </Button>
-            </div>
-          ),
+        render: (_, submission) => (
+          <div className="project-manage-actions">
+            <Button
+              onClick={() => {
+                setSelectedProject(record);
+                setSelectedSubmission(submission);
+                setIsJudgesModalOpen(true);
+                setSelectedAlphaReportJudges(submission.alphaReportGrades?.map((grade) => grade.judge) || []);
+                setSelectedFinalReportJudges(submission.finalReportGrades?.map((grade) => grade.judge) || []);
+                setSelectedExamJudges(submission.examGrades?.map((grade) => grade.judge) || []);
+                setSelectedSpecialSubmissionJudges(
+                  submission.specialSubmissionGrades?.map((grade) => grade.judge) || []
+                );
+              }}>
+              הוסף/עדכן שופטים
+            </Button>
+          </div>
+        ),
         width: "10%",
       },
     ];
 
-    const expandDataSource = [
-      {
-        key: "1",
-        alphaReportJudges: record.alphaReportJudges,
-        finalReportJudges: record.finalReportJudges,
-        examJudges: record.examJudges,
-      },
-    ];
-
-    return <Table columns={expandColumns} dataSource={expandDataSource} pagination={false} bordered={true} />;
+    return <Table columns={expandColumns} dataSource={projectSubmissions} pagination={false} bordered={true} />;
   };
 
   const filteredTakenProjects = projects.filter((p) => {
@@ -1508,17 +1535,20 @@ const OverviewProjects = () => {
           setSelectedAlphaReportJudges([]);
           setSelectedFinalReportJudges([]);
           setSelectedExamJudges([]);
+          setSelectedSpecialSubmissionJudges([]);
+          setSelectedSubmission(null);
         }}
         okText="עדכן שופטים"
         okButtonProps={{
           disabled:
-            selectedAlphaReportJudges.length > 3 ||
-            selectedFinalReportJudges.length > 3 ||
-            selectedExamJudges.length > 3,
+            selectedAlphaReportJudges.length !== 3 ||
+            selectedFinalReportJudges.length !== 3 ||
+            selectedExamJudges.length !== 3 ||
+            selectedSpecialSubmissionJudges.length !== 3,
         }}
         cancelText="ביטול">
         <div className="modal-select-input">
-          <p>בחר עד 3 שופטים עבור דוח אלפה:</p>
+          <p>בחר בדיוק 3 שופטים לדוח אלפה:</p>
           <Select
             mode="multiple"
             value={selectedAlphaReportJudges}
@@ -1528,7 +1558,9 @@ const OverviewProjects = () => {
               value: user._id,
             }))}
           />
-          <p>בחר עד 3 שופטים עבור דוח סופי:</p>
+        </div>
+        <div className="modal-select-input">
+          <p>בחר בדיוק 3 שופטים לדוח סופי:</p>
           <Select
             mode="multiple"
             value={selectedFinalReportJudges}
@@ -1538,11 +1570,25 @@ const OverviewProjects = () => {
               value: user._id,
             }))}
           />
-          <p>בחר עד 3 שופטים עבור מבחן:</p>
+        </div>
+        <div className="modal-select-input">
+          <p>בחר בדיוק 3 שופטים למבחן:</p>
           <Select
             mode="multiple"
             value={selectedExamJudges}
             onChange={setSelectedExamJudges}
+            options={judges.map((user) => ({
+              label: user.name,
+              value: user._id,
+            }))}
+          />
+        </div>
+        <div className="modal-select-input">
+          <p>בחר בדיוק 3 שופטים להגשה מיוחדת:</p>
+          <Select
+            mode="multiple"
+            value={selectedSpecialSubmissionJudges}
+            onChange={setSelectedSpecialSubmissionJudges}
             options={judges.map((user) => ({
               label: user.name,
               value: user._id,

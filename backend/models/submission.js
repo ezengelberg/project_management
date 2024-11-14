@@ -6,7 +6,6 @@ const submissionSchema = new mongoose.Schema({
   name: { type: String, required: true },
   file: { type: String, required: false }, // needs an update
   submissionDate: { type: Date, required: true },
-  
 });
 
 const submissionModel = mongoose.model("Submission", submissionSchema);

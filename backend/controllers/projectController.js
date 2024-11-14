@@ -472,46 +472,46 @@ export const updateAdvisorInProject = async (req, res) => {
   }
 };
 
-export const updateJudgesInProject = async (req, res) => {
-  try {
-    const { projectID, alphaReportJudges, finalReportJudges, examJudges } = req.body;
-    const project = await Project.findById(projectID);
-    if (!project) {
-      return res.status(404).send({ message: "Project not found" });
-    }
-    const validAlphaReportJudges = [];
-    for (const judgeID of alphaReportJudges) {
-      const judge = await User.findById(judgeID);
-      if (!judge || !judge.isJudge) {
-        return res.status(400).send({ message: `Invalid judge ID: ${judgeID}` });
-      }
-      validAlphaReportJudges.push(judgeID);
-    }
-    const validFinalReportJudges = [];
-    for (const judgeID of finalReportJudges) {
-      const judge = await User.findById(judgeID);
-      if (!judge || !judge.isJudge) {
-        return res.status(400).send({ message: `Invalid judge ID: ${judgeID}` });
-      }
-      validFinalReportJudges.push(judgeID);
-    }
-    const validExamJudges = [];
-    for (const judgeID of examJudges) {
-      const judge = await User.findById(judgeID);
-      if (!judge || !judge.isJudge) {
-        return res.status(400).send({ message: `Invalid judge ID: ${judgeID}` });
-      }
-      validExamJudges.push(judgeID);
-    }
-    project.alphaReportJudges = validAlphaReportJudges;
-    project.finalReportJudges = validFinalReportJudges;
-    project.examJudges = validExamJudges;
-    await project.save();
-    res.status(200).send({ message: "Judges updated successfully", project });
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
-};
+// export const updateJudgesInProject = async (req, res) => {
+//   try {
+//     const { projectID, alphaReportJudges, finalReportJudges, examJudges } = req.body;
+//     const project = await Project.findById(projectID);
+//     if (!project) {
+//       return res.status(404).send({ message: "Project not found" });
+//     }
+//     const validAlphaReportJudges = [];
+//     for (const judgeID of alphaReportJudges) {
+//       const judge = await User.findById(judgeID);
+//       if (!judge || !judge.isJudge) {
+//         return res.status(400).send({ message: `Invalid judge ID: ${judgeID}` });
+//       }
+//       validAlphaReportJudges.push(judgeID);
+//     }
+//     const validFinalReportJudges = [];
+//     for (const judgeID of finalReportJudges) {
+//       const judge = await User.findById(judgeID);
+//       if (!judge || !judge.isJudge) {
+//         return res.status(400).send({ message: `Invalid judge ID: ${judgeID}` });
+//       }
+//       validFinalReportJudges.push(judgeID);
+//     }
+//     const validExamJudges = [];
+//     for (const judgeID of examJudges) {
+//       const judge = await User.findById(judgeID);
+//       if (!judge || !judge.isJudge) {
+//         return res.status(400).send({ message: `Invalid judge ID: ${judgeID}` });
+//       }
+//       validExamJudges.push(judgeID);
+//     }
+//     project.alphaReportJudges = validAlphaReportJudges;
+//     project.finalReportJudges = validFinalReportJudges;
+//     project.examJudges = validExamJudges;
+//     await project.save();
+//     res.status(200).send({ message: "Judges updated successfully", project });
+//   } catch (err) {
+//     res.status(500).send({ message: err.message });
+//   }
+// };
 
 export const terminateProject = async (req, res) => {
   try {
