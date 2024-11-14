@@ -95,6 +95,9 @@ export const updateFile = async (req, res) => {
       editedBy: { name: user.name, id: user.id },
     });
 
+    file.title = req.body.title;
+    file.description = req.body.description;
+
     const updatedFile = await file.save();
     res.status(200).send(updatedFile);
   } catch (err) {
