@@ -296,7 +296,7 @@ export const ensureFavoriteProject = async (req, res) => {
 
 export const editUserCoordinator = async (req, res) => {
   const { userId } = req.params;
-  const { name, email, id, isStudent, isAdvisor, isJudge, isCoordinator, interests, projectsLeft } = req.body;
+  const { name, email, id, isStudent, isAdvisor, isJudge, isCoordinator, interests } = req.body;
 
   try {
     const user = await User.findById(userId);
@@ -312,7 +312,6 @@ export const editUserCoordinator = async (req, res) => {
     if (isJudge !== undefined) user.isJudge = isJudge;
     if (isCoordinator !== undefined) user.isCoordinator = isCoordinator;
     if (interests !== undefined) user.interests = interests;
-    if (projectsLeft !== undefined) user.projectsLeft = projectsLeft;
     user.updatedAt = new Date();
 
     await user.save();
@@ -379,8 +378,19 @@ export const deleteSuspendedUser = async (req, res) => {
 
 export const getAdvisorsForUsersInfo = async (req, res) => {
   try {
-    const advisors = await User.find({ isAdvisor: true }).select("name email interests projectsLeft");
-    res.status(200).send(advisors);
+    const advisors = await User.find({ isAdvisor: true }).select("name email interests");
+    const projects = await Project.find();
+
+    const advisorsWithProjectsInfo = advisors.map((advisor) => {
+      const advisorProjects = projects.filter((project) => project.advisors.includes(advisor._id));
+      const projectsAvailable = advisorProjects.some((project) => !project.isTaken);
+      return {
+        ...advisor.toObject(),
+        projectsAvailable,
+      };
+    });
+
+    res.status(200).send(advisorsWithProjectsInfo);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

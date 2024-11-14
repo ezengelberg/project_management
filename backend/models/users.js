@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
   isCoordinator: { type: Boolean, required: true, default: false },
   isJudge: { type: Boolean, required: true, default: false },
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Project", required: false, default: [] }],
-  projectsLeft: { type: Boolean, required: true },
   interests: { type: String, default: "" },
   registerDate: { type: Date, required: true, default: Date.now },
   suspended: { type: Boolean, default: false },

@@ -140,11 +140,11 @@ const MoreInformation = () => {
     },
     {
       title: "האם נשארו פריקטים פנויים",
-      dataIndex: "projectsLeft",
-      key: "projectsLeft",
+      dataIndex: "projectsAvailable",
+      key: "projectsAvailable",
       width: "22.5%",
       editable: true,
-      render: (projectsLeft) => <p>{projectsLeft ? "כן" : "לא"}</p>,
+      render: (projectsAvailable) => <p>{projectsAvailable ? "כן" : "לא"}</p>,
     },
     currentUser.isCoordinator && {
       title: "פעולות",
