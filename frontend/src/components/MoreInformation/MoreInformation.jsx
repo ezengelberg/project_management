@@ -201,7 +201,7 @@ const MoreInformation = () => {
     <div className="info-container">
       <Form form={form} component={false} loading={loading}>
         <Table
-          style={{ width: "100%" }}
+          style={{ width: "100%", minHeight: "770px" }}
           components={{
             body: {
               cell: EditableCell,

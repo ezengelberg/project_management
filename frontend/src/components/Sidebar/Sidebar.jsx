@@ -195,7 +195,7 @@ const Sidebar = () => {
               className={`sidebar-option ${isActive("/more-information") ? "active" : ""}`}
               onClick={() => navigate("/more-information")}>
               <InfoCircleOutlined />
-              <span>מידע נוסף</span>
+              <span>מידע לסטודנט</span>
             </div>
           </li>
           {user.isCoordinator && (
