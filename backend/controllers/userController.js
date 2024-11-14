@@ -140,10 +140,12 @@ export const getAllUsers = async (req, res) => {
 export const getAdvisorUsers = async (req, res) => {
   try {
     const users = await User.find({ isAdvisor: true });
-    users.forEach((user) => {
-      delete user.password;
+    const usersWithoutPassword = users.map((user) => {
+      const userObj = user.toObject();
+      delete userObj.password;
+      return userObj;
     });
-    res.status(200).send(users);
+    res.status(200).send(usersWithoutPassword);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -166,8 +168,9 @@ export const getUsersNoProjects = async (req, res) => {
     for (const user of users) {
       const projects = await Project.find({ "students.student": user._id });
       if (projects.length === 0) {
-        delete user.password;
-        usersNoProjects.push(user);
+        const userObj = user.toObject();
+        delete userObj.password;
+        usersNoProjects.push(userObj);
       }
     }
     res.status(200).send({ usersNoProjects });
@@ -207,7 +210,6 @@ export const getUserName = async (req, res) => {
 
 export const getUser = async (req, res) => {
   const user = req.user;
-
   const userObj = user.toObject();
   delete userObj.password;
   res.status(200).json(userObj);
