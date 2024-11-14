@@ -19,6 +19,7 @@ import {
   changePassword,
   registerMultiple,
   checkUserHasProject,
+  getAdvisorsForUsersInfo,
 } from "../controllers/userController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -46,5 +47,6 @@ router.put("/suspend-user/:userId", ensureAuthenticated, isCoordinator, suspendU
 router.put("/unsuspend-user/:userId", ensureAuthenticated, isCoordinator, unsuspendUser);
 router.delete("/delete-suspended-user/:userId", ensureAuthenticated, isCoordinator, deleteSuspendedUser);
 router.get("/check-user-has-projects/:userId", ensureAuthenticated, checkUserHasProject);
+router.get("/advisors-for-users-info", ensureAuthenticated, getAdvisorsForUsersInfo);
 
 export default router;

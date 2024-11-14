@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
   isJudge: { type: Boolean, required: true, default: false },
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Project", required: false, default: [] }],
   projectsLeft: { type: Boolean, required: true },
-  interests: { type: String, required: true },
+  interests: { type: String, default: "" },
   registerDate: { type: Date, required: true, default: Date.now },
   suspended: { type: Boolean, default: false },
   suspendedAt: { type: Date, default: null },

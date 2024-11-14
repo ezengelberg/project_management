@@ -296,7 +296,7 @@ export const ensureFavoriteProject = async (req, res) => {
 
 export const editUserCoordinator = async (req, res) => {
   const { userId } = req.params;
-  const { name, email, id, isStudent, isAdvisor, isJudge, isCoordinator } = req.body;
+  const { name, email, id, isStudent, isAdvisor, isJudge, isCoordinator, interests, projectsLeft } = req.body;
 
   try {
     const user = await User.findById(userId);
@@ -311,6 +311,8 @@ export const editUserCoordinator = async (req, res) => {
     if (isAdvisor !== undefined) user.isAdvisor = isAdvisor;
     if (isJudge !== undefined) user.isJudge = isJudge;
     if (isCoordinator !== undefined) user.isCoordinator = isCoordinator;
+    if (interests !== undefined) user.interests = interests;
+    if (projectsLeft !== undefined) user.projectsLeft = projectsLeft;
     user.updatedAt = new Date();
 
     await user.save();
@@ -372,5 +374,14 @@ export const deleteSuspendedUser = async (req, res) => {
     res.status(200).send("User deleted successfully");
   } catch (err) {
     res.status(404).send("User not found");
+  }
+};
+
+export const getAdvisorsForUsersInfo = async (req, res) => {
+  try {
+    const advisors = await User.find({ isAdvisor: true }).select("name email interests projectsLeft");
+    res.status(200).send(advisors);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };

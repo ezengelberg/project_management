@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./MoreInformation.scss";
 import axios from "axios";
-import { Form, Input, InputNumber, Table, Typography, message, Tooltip } from "antd";
-import { EditOutlined } from "@ant-design/icons";
+import { Form, Input, InputNumber, Table, Typography, message, Tooltip, Select } from "antd";
+import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
 
 const MoreInformation = () => {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -12,31 +12,43 @@ const MoreInformation = () => {
   const [form] = Form.useForm();
   const [data, setData] = useState([]);
   const [editingKey, setEditingKey] = useState("");
+  const [loading, setLoading] = useState(false);
   const isEditing = (record) => record.key === editingKey;
 
   useEffect(() => {
     const fetchAdvisors = async () => {
+      setLoading(true);
       try {
-        const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/all-users`, {
+        const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/advisors-for-users-info`, {
           withCredentials: true,
         });
-        const users = res.data;
-        const advisors = users
-          .filter((user) => user.isAdvisor)
-          .map((advisor) => ({
-            ...advisor,
-            key: advisor.id, // Use a unique identifier for the key
-          }));
+
+        const advisors = res.data.map((advisor) => ({
+          ...advisor,
+          key: advisor._id,
+        }));
         setData(advisors);
+        setLoading(false);
       } catch (error) {
         console.error("Error occurred:", error);
+        setLoading(false);
       }
     };
     fetchAdvisors();
   }, []);
 
   const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
-    const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
+    const inputNode =
+      dataIndex === "projectsLeft" ? (
+        <Select>
+          <Select.Option value={true}>כן</Select.Option>
+          <Select.Option value={false}>לא</Select.Option>
+        </Select>
+      ) : inputType === "number" ? (
+        <InputNumber />
+      ) : (
+        <Input />
+      );
     return (
       <td {...restProps}>
         {editing ? (
@@ -77,13 +89,17 @@ const MoreInformation = () => {
       const index = newData.findIndex((item) => key === item.key);
       if (index > -1) {
         const item = newData[index];
-        newData.splice(index, 1, {
-          ...item,
-          ...row,
-        });
+        const updatedItem = { ...item, ...row };
+        newData.splice(index, 1, updatedItem);
         setData(newData);
         setEditingKey("");
         form.resetFields();
+
+        await axios.put(
+          `${process.env.REACT_APP_BACKEND_URL}/api/user/edit-user-coordinator/${item._id}`,
+          { projectsLeft: updatedItem.projectsLeft },
+          { withCredentials: true }
+        );
       } else {
         newData.push(row);
         setData(newData);
@@ -105,30 +121,30 @@ const MoreInformation = () => {
       title: "שם המנחה",
       dataIndex: "name",
       key: "name",
-      width: "20%",
+      width: "22.5%",
       render: (text) => <p>{text}</p>,
     },
     {
       title: "מייל",
       dataIndex: "email",
       key: "email",
-      width: "20%",
+      width: "22.5%",
       render: (text) => <a onClick={() => handleEmailClick(text)}>{text}</a>,
     },
     {
       title: "תחומי עניין",
       dataIndex: "interests",
       key: "interests",
-      width: "20%",
-      render: (text) => <p>{text}</p>,
+      width: "22.5%",
+      render: (interests) => <p>{interests ? interests : "אין תחום עניין"}</p>,
     },
     {
       title: "האם נשארו פריקטים פנויים",
-      dataIndex: "hasProjects",
-      key: "hasProjects",
-      width: "20%",
+      dataIndex: "projectsLeft",
+      key: "projectsLeft",
+      width: "22.5%",
       editable: true,
-      render: (text) => <p>{text}</p>,
+      render: (projectsLeft) => <p>{projectsLeft ? "כן" : "לא"}</p>,
     },
     currentUser.isCoordinator && {
       title: "פעולות",
@@ -143,9 +159,15 @@ const MoreInformation = () => {
               style={{
                 marginInlineEnd: 8,
               }}>
-              שמור שינויים
+              <Tooltip title="שמירה">
+                <SaveOutlined className="edit-icon" />
+              </Tooltip>
             </Typography.Link>
-            <a onClick={cancel}>בטל</a>
+            <a onClick={cancel}>
+              <Tooltip title="ביטול">
+                <StopOutlined className="edit-icon" />
+              </Tooltip>
+            </a>
           </span>
         ) : (
           <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)}>
@@ -155,6 +177,7 @@ const MoreInformation = () => {
           </Typography.Link>
         );
       },
+      width: "10%",
     },
   ].filter(Boolean);
 
@@ -176,7 +199,7 @@ const MoreInformation = () => {
 
   return (
     <div className="info-container">
-      <Form form={form} component={false}>
+      <Form form={form} component={false} loading={loading}>
         <Table
           style={{ width: "100%" }}
           components={{
