@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./MoreInformation.scss";
 import axios from "axios";
-import { Form, Input, InputNumber, Table, Typography, message, Tooltip, Select } from "antd";
+import { Form, Input, InputNumber, Table, Typography, message, Tooltip } from "antd";
 import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
 
 const MoreInformation = () => {
@@ -38,17 +38,7 @@ const MoreInformation = () => {
   }, []);
 
   const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
-    const inputNode =
-      dataIndex === "projectsLeft" ? (
-        <Select>
-          <Select.Option value={true}>כן</Select.Option>
-          <Select.Option value={false}>לא</Select.Option>
-        </Select>
-      ) : inputType === "number" ? (
-        <InputNumber />
-      ) : (
-        <Input />
-      );
+    const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
     return (
       <td {...restProps}>
         {editing ? (
@@ -97,7 +87,7 @@ const MoreInformation = () => {
 
         await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/api/user/edit-user-coordinator/${item._id}`,
-          { projectsLeft: updatedItem.projectsLeft },
+          { interests: updatedItem.interests },
           { withCredentials: true }
         );
       } else {
@@ -129,13 +119,18 @@ const MoreInformation = () => {
       dataIndex: "email",
       key: "email",
       width: "22.5%",
-      render: (text) => <a onClick={() => handleEmailClick(text)}>{text}</a>,
+      render: (text) => (
+        <Tooltip title="לחץ להעתקה">
+          <a onClick={() => handleEmailClick(text)}>{text}</a>
+        </Tooltip>
+      ),
     },
     {
       title: "תחומי עניין",
       dataIndex: "interests",
       key: "interests",
       width: "22.5%",
+      editable: true,
       render: (interests) => <p>{interests ? interests : "אין תחום עניין"}</p>,
     },
     {
@@ -143,7 +138,6 @@ const MoreInformation = () => {
       dataIndex: "projectsAvailable",
       key: "projectsAvailable",
       width: "22.5%",
-      editable: true,
       render: (projectsAvailable) => <p>{projectsAvailable ? "כן" : "לא"}</p>,
     },
     currentUser.isCoordinator && {

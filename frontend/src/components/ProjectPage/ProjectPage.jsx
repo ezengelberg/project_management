@@ -101,6 +101,7 @@ const ProjectPage = () => {
   const copyToClipboard = () => {
     const emails = advisors.map((advisor) => advisor.email).join(", ");
     navigator.clipboard.writeText(emails);
+    message.success("אימייל הועתק");
   };
 
   const Unsignup = async () => {

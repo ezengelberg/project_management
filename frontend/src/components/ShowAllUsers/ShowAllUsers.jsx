@@ -5,6 +5,7 @@ import { Space, Table, Tag, Avatar, Modal, Form, Input, Select, message, Tooltip
 import { EditOutlined, UserDeleteOutlined, UserAddOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
+import { handleMouseDown } from "../../utils/mouseDown";
 
 const ShowAllUsers = () => {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -174,7 +175,10 @@ const ShowAllUsers = () => {
       key: "name",
       ...getColumnSearchProps("name"),
       render: (text, record) => (
-        <a className="column-name" onClick={() => navigate(`/profile/${record.userId}`)}>
+        <a
+          className="column-name"
+          onClick={() => navigate(`/profile/${record.userId}`)}
+          onMouseDown={(e) => handleMouseDown(e, `/profile/${record.userId}`)}>
           <Avatar size="medium">
             {text[0].toUpperCase()}
             {text.split(" ")[1] ? text.split(" ")[1][0].toUpperCase() : ""}
@@ -228,7 +232,9 @@ const ShowAllUsers = () => {
           return "לא נבחר פרויקט";
         }
         return (
-          <a onClick={() => navigate(`/project/${record.projectId}`)}>
+          <a
+            onClick={() => navigate(`/project/${record.projectId}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/project/${record.projectId}`)}>
             {record.projectTitle.length > 50 ? `${record.projectTitle.slice(0, 50)}...` : record.projectTitle}
           </a>
         );
@@ -443,7 +449,10 @@ const ShowAllUsers = () => {
       key: "name",
       ...getColumnSearchProps("name"),
       render: (text, record) => (
-        <a className="column-name" onClick={() => navigate(`/profile/${record.userId}`)}>
+        <a
+          className="column-name"
+          onClick={() => navigate(`/profile/${record.userId}`)}
+          onMouseDown={(e) => handleMouseDown(e, `/profile/${record.userId}`)}>
           <Avatar size="medium">
             {text[0].toUpperCase()}
             {text.split(" ")[1] ? text.split(" ")[1][0].toUpperCase() : ""}
@@ -496,7 +505,13 @@ const ShowAllUsers = () => {
         if (!record.projectId) {
           return "לא נבחר פרויקט";
         }
-        return <a onClick={() => navigate(`/project/${record.projectId}`)}>{record.projectTitle}</a>;
+        return (
+          <a
+            onClick={() => navigate(`/project/${record.projectId}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/project/${record.projectId}`)}>
+            {record.projectTitle}
+          </a>
+        );
       },
       showSorterTooltip: {
         target: "full-header",

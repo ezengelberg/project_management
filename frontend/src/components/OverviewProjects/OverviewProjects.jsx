@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import "./OverviewProjects.scss";
 import { useNavigate } from "react-router-dom";
 import { Tabs, Table, Modal, Select, Button, message, Tooltip, Input, Space, Divider } from "antd";
-import { DeleteOutlined, RollbackOutlined, SearchOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { DeleteOutlined, RollbackOutlined, SearchOutlined } from "@ant-design/icons";
 import axios from "axios";
 import Highlighter from "react-highlight-words";
+import { handleMouseDown } from "../../utils/mouseDown";
 
 const OverviewProjects = () => {
   const navigate = useNavigate();
@@ -494,8 +495,12 @@ const OverviewProjects = () => {
             {submission.alphaReportGrades?.map((grade) => (
               <div key={grade.judge} className="inner-table-order">
                 <p>
-                  <a onClick={() => navigate(`/profile/${grade.judge}`)}>{grade.judgeName}</a> -{" "}
-                  {grade.grade !== null ? grade.grade : "אין ציון"}
+                  <a
+                    onClick={() => navigate(`/profile/${grade.judge}`)}
+                    onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
+                    {grade.judgeName}
+                  </a>{" "}
+                  - {grade.grade !== null ? grade.grade : "אין ציון"}
                 </p>
               </div>
             ))}
@@ -511,7 +516,11 @@ const OverviewProjects = () => {
           <div>
             {submission.finalReportGrades?.map((grade) => (
               <div key={grade.judge} className="inner-table-order">
-                <a onClick={() => navigate(`/profile/${grade.judge}`)}>{grade.judgeName}</a>
+                <a
+                  onClick={() => navigate(`/profile/${grade.judge}`)}
+                  onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
+                  {grade.judgeName}
+                </a>
               </div>
             ))}
           </div>
@@ -527,8 +536,12 @@ const OverviewProjects = () => {
             {submission.examGrades?.map((grade) => (
               <div key={grade.judge} className="inner-table-order">
                 <p>
-                  <a onClick={() => navigate(`/profile/${grade.judge}`)}>{grade.judgeName}</a>-{" "}
-                  {grade.grade !== null ? grade.grade : "אין ציון"}
+                  <a
+                    onClick={() => navigate(`/profile/${grade.judge}`)}
+                    onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
+                    {grade.judgeName}
+                  </a>
+                  - {grade.grade !== null ? grade.grade : "אין ציון"}
                 </p>
               </div>
             ))}
@@ -545,8 +558,12 @@ const OverviewProjects = () => {
             {submission.specialSubmissionGrades?.map((grade) => (
               <div key={grade.judge} className="inner-table-order">
                 <p>
-                  <a onClick={() => navigate(`/profile/${grade.judge}`)}>{grade.judgeName}</a> -{" "}
-                  {grade.grade !== null ? grade.grade : "אין ציון"}
+                  <a
+                    onClick={() => navigate(`/profile/${grade.judge}`)}
+                    onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
+                    {grade.judgeName}
+                  </a>{" "}
+                  - {grade.grade !== null ? grade.grade : "אין ציון"}
                 </p>
               </div>
             ))}
@@ -619,7 +636,9 @@ const OverviewProjects = () => {
         key: "title",
         ...getColumnSearchProps("title"),
         render: (text, record) => (
-          <a onClick={() => navigate(`/project/${record._id}`)}>
+          <a
+            onClick={() => navigate(`/project/${record._id}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/project/${record._id}`)}>
             <Highlighter
               highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
               searchWords={[searchText]}
@@ -644,7 +663,10 @@ const OverviewProjects = () => {
               ? advisors.map((advisor) => {
                   const advisorUser = users.find((u) => u._id === advisor);
                   return advisorUser ? (
-                    <a key={advisor} onClick={() => navigate(`/profile/${advisor}`)}>
+                    <a
+                      key={advisor}
+                      onClick={() => navigate(`/profile/${advisor}`)}
+                      onMouseDown={(e) => handleMouseDown(e, `/profile/${advisor}`)}>
                       <Highlighter
                         highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
                         searchWords={[searchText]}
@@ -676,7 +698,11 @@ const OverviewProjects = () => {
                   const studentUser = users.find((u) => u._id === student);
                   return studentUser ? (
                     <React.Fragment key={`student-${index}`}>
-                      <a onClick={() => navigate(`/profile/${student}`)}>{studentUser.name}</a>
+                      <a
+                        onClick={() => navigate(`/profile/${student}`)}
+                        onMouseDown={(e) => handleMouseDown(e, `/profile/${student}`)}>
+                        {studentUser.name}
+                      </a>
                       {index !== students.length - 1 && students.length > 1 && (
                         <Divider type="vertical" style={{ borderColor: "black" }} />
                       )}
@@ -787,7 +813,9 @@ const OverviewProjects = () => {
         key: "title",
         ...getColumnSearchProps("title"),
         render: (text, record) => (
-          <a onClick={() => navigate(`/project/${record._id}`)}>
+          <a
+            onClick={() => navigate(`/project/${record._id}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/project/${record._id}`)}>
             <Highlighter
               highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
               searchWords={[searchText]}
@@ -812,7 +840,10 @@ const OverviewProjects = () => {
               ? advisors.map((advisor) => {
                   const advisorUser = users.find((u) => u._id === advisor);
                   return advisorUser ? (
-                    <a key={advisor} onClick={() => navigate(`/profile/${advisor}`)}>
+                    <a
+                      key={advisor}
+                      onClick={() => navigate(`/profile/${advisor}`)}
+                      onMouseDown={(e) => handleMouseDown(e, `/profile/${advisor}`)}>
                       <Highlighter
                         highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
                         searchWords={[searchText]}
@@ -844,7 +875,11 @@ const OverviewProjects = () => {
                   const studentUser = users.find((u) => u._id === student);
                   return studentUser ? (
                     <React.Fragment key={`student-${index}`}>
-                      <a onClick={() => navigate(`/profile/${student}`)}>{studentUser.name}</a>
+                      <a
+                        onClick={() => navigate(`/profile/${student}`)}
+                        onMouseDown={(e) => handleMouseDown(e, `/profile/${student}`)}>
+                        {studentUser.name}
+                      </a>
                       {index !== students.length - 1 && students.length > 1 && (
                         <Divider type="vertical" style={{ borderColor: "black" }} />
                       )}
@@ -965,7 +1000,9 @@ const OverviewProjects = () => {
         key: "title",
         ...getColumnSearchProps("title"),
         render: (text, record) => (
-          <a onClick={() => navigate(`/project/${record._id}`)}>
+          <a
+            onClick={() => navigate(`/project/${record._id}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/project/${record._id}`)}>
             <Highlighter
               highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
               searchWords={[searchText]}
@@ -989,7 +1026,10 @@ const OverviewProjects = () => {
               ? advisors.map((advisor) => {
                   const advisorUser = users.find((u) => u._id === advisor);
                   return advisorUser ? (
-                    <a key={advisor} onClick={() => navigate(`/profile/${advisor}`)}>
+                    <a
+                      key={advisor}
+                      onClick={() => navigate(`/profile/${advisor}`)}
+                      onMouseDown={(e) => handleMouseDown(e, `/profile/${advisor}`)}>
                       {advisorUser.name}
                     </a>
                   ) : null;
@@ -1016,7 +1056,11 @@ const OverviewProjects = () => {
                   const studentUser = users.find((u) => u._id === student);
                   return studentUser ? (
                     <React.Fragment key={`student-${index}`}>
-                      <a onClick={() => navigate(`/profile/${student}`)}>{studentUser.name}</a>
+                      <a
+                        onClick={() => navigate(`/profile/${student}`)}
+                        onMouseDown={(e) => handleMouseDown(e, `/profile/${student}`)}>
+                        {studentUser.name}
+                      </a>
                       {index !== students.length - 1 && students.length > 1 && (
                         <Divider type="vertical" style={{ borderColor: "black" }} />
                       )}
@@ -1106,7 +1150,9 @@ const OverviewProjects = () => {
         key: "title",
         ...getColumnSearchProps("title"),
         render: (text, record) => (
-          <a onClick={() => navigate(`/project/${record._id}`)}>
+          <a
+            onClick={() => navigate(`/project/${record._id}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/project/${record._id}`)}>
             <Highlighter
               highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
               searchWords={[searchText]}
@@ -1130,7 +1176,10 @@ const OverviewProjects = () => {
               ? advisors.map((advisor) => {
                   const advisorUser = users.find((u) => u._id === advisor);
                   return advisorUser ? (
-                    <a key={advisor} onClick={() => navigate(`/profile/${advisor}`)}>
+                    <a
+                      key={advisor}
+                      onClick={() => navigate(`/profile/${advisor}`)}
+                      onMouseDown={(e) => handleMouseDown(e, `/profile/${advisor}`)}>
                       {advisorUser.name}
                     </a>
                   ) : null;
@@ -1157,7 +1206,11 @@ const OverviewProjects = () => {
                   const studentUser = users.find((u) => u._id === student);
                   return studentUser ? (
                     <React.Fragment key={`student-${index}`}>
-                      <a onClick={() => navigate(`/profile/${student}`)}>{studentUser.name}</a>
+                      <a
+                        onClick={() => navigate(`/profile/${student}`)}
+                        onMouseDown={(e) => handleMouseDown(e, `/profile/${student}`)}>
+                        {studentUser.name}
+                      </a>
                       {index !== terminationRecord.length - 1 && terminationRecord.length > 1 && (
                         <Divider type="vertical" style={{ borderColor: "black" }} />
                       )}

@@ -13,6 +13,7 @@ import {
   InfoCircleOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
+import { handleMouseDown } from "../../utils/mouseDown";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -64,7 +65,10 @@ const Sidebar = () => {
         </div>
         <ul>
           <li>
-            <div className={`sidebar-option ${isActive("/home") ? "active" : ""}`} onClick={() => navigate("/home")}>
+            <div
+              className={`sidebar-option ${isActive("/home") ? "active" : ""}`}
+              onClick={() => navigate("/home")}
+              onMouseDown={(e) => handleMouseDown(e, "/home")}>
               <HomeOutlined />
               <span>בית</span>
             </div>
@@ -73,7 +77,8 @@ const Sidebar = () => {
             <li>
               <div
                 className={`sidebar-option ${isActive("/projects") ? "active" : ""}`}
-                onClick={() => navigate("/projects")}>
+                onClick={() => navigate("/projects")}
+                onMouseDown={(e) => handleMouseDown(e, "/projects")}>
                 <ProjectOutlined />
                 <span>פרויקטים</span>
               </div>
@@ -82,14 +87,18 @@ const Sidebar = () => {
           <li>
             <div
               className={`sidebar-option ${isActive("/templates") ? "active" : ""}`}
-              onClick={() => navigate("/templates")}>
+              onClick={() => navigate("/templates")}
+              onMouseDown={(e) => handleMouseDown(e, "/templates")}>
               <FileSearchOutlined />
               <span> תבנית דוחות</span>
             </div>
           </li>
           {user.isStudent && (
             <li className={`${openSubmenus.myProject ? "open" : "closed"}`}>
-              <div className="sidebar-option" onClick={() => toggleSubmenu("myProject")}>
+              <div
+                className="sidebar-option"
+                onClick={() => toggleSubmenu("myProject")}
+                onMouseDown={(e) => handleMouseDown(e, "/my-project")}>
                 <ApartmentOutlined />
                 <span>הפרויקט שלי</span>
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -111,7 +120,10 @@ const Sidebar = () => {
           )}
           {user.isAdvisor && (
             <li className={`${openSubmenus.myProjects ? "open" : "closed"}`}>
-              <div className="sidebar-option" onClick={() => toggleSubmenu("myProjects")}>
+              <div
+                className="sidebar-option"
+                onClick={() => toggleSubmenu("myProjects")}
+                onMouseDown={(e) => handleMouseDown(e, "/create-project")}>
                 <FundProjectionScreenOutlined />
                 <span>פרויקטים שלי</span>
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -127,12 +139,14 @@ const Sidebar = () => {
                 <ul>
                   <li
                     className={`${isActive("/create-project") ? "active" : ""}`}
-                    onClick={() => navigate("/create-project")}>
+                    onClick={() => navigate("/create-project")}
+                    onMouseDown={(e) => handleMouseDown(e, "/create-project")}>
                     הזנת פרויקט
                   </li>
                   <li
                     className={`${isActive("/list-projects") ? "active" : ""}`}
-                    onClick={() => navigate("/list-projects")}>
+                    onClick={() => navigate("/list-projects")}
+                    onMouseDown={(e) => handleMouseDown(e, "/list-projects")}>
                     סטטוס פרויקטים
                   </li>
                   <li onClick={() => {}}>סטטוס הגשות</li>
@@ -144,7 +158,8 @@ const Sidebar = () => {
             <li>
               <div
                 className={`sidebar-option ${isActive("/overview-projects") ? "active" : ""}`}
-                onClick={() => navigate("/overview-projects")}>
+                onClick={() => navigate("/overview-projects")}
+                onMouseDown={(e) => handleMouseDown(e, "/overview-projects")}>
                 <FundProjectionScreenOutlined />
                 <span>ניהול פרויקטים</span>
               </div>
@@ -152,7 +167,10 @@ const Sidebar = () => {
           )}
           {user.isCoordinator && (
             <li className={`${openSubmenus.manageUsers ? "open" : "closed"}`}>
-              <div className="sidebar-option" onClick={() => toggleSubmenu("manageUsers")}>
+              <div
+                className="sidebar-option"
+                onClick={() => toggleSubmenu("manageUsers")}
+                onMouseDown={(e) => handleMouseDown(e, "/create-user")}>
                 <TeamOutlined />
                 <span>ניהול משתמשים</span>
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -168,12 +186,14 @@ const Sidebar = () => {
                 <ul>
                   <li
                     className={`${isActive("/create-user") ? "active" : ""}`}
-                    onClick={() => navigate("/create-user")}>
+                    onClick={() => navigate("/create-user")}
+                    onMouseDown={(e) => handleMouseDown(e, "/create-user")}>
                     יצירת משתמשים
                   </li>
                   <li
                     className={`${isActive("/display-users") ? "active" : ""}`}
-                    onClick={() => navigate("display-users")}>
+                    onClick={() => navigate("display-users")}
+                    onMouseDown={(e) => handleMouseDown(e, "/display-users")}>
                     הצגת משתמשים
                   </li>
                 </ul>
@@ -184,7 +204,8 @@ const Sidebar = () => {
             <li>
               <div
                 className={`sidebar-option ${isActive("/submissions") ? "active" : ""}`}
-                onClick={() => navigate("/submissions")}>
+                onClick={() => navigate("/submissions")}
+                onMouseDown={(e) => handleMouseDown(e, "/submissions")}>
                 <FilePdfOutlined />
                 <span>ניהול הגשות</span>
               </div>
@@ -193,7 +214,8 @@ const Sidebar = () => {
           <li>
             <div
               className={`sidebar-option ${isActive("/more-information") ? "active" : ""}`}
-              onClick={() => navigate("/more-information")}>
+              onClick={() => navigate("/more-information")}
+              onMouseDown={(e) => handleMouseDown(e, "/more-information")}>
               <InfoCircleOutlined />
               <span>מידע לסטודנט</span>
             </div>
@@ -202,7 +224,8 @@ const Sidebar = () => {
             <li>
               <div
                 className={`sidebar-option ${isActive("/system") ? "active" : ""}`}
-                onClick={() => navigate("/system")}>
+                onClick={() => navigate("/system")}
+                onMouseDown={(e) => handleMouseDown(e, "/system")}>
                 <SettingOutlined />
                 <span>ניהול מערכת</span>
               </div>

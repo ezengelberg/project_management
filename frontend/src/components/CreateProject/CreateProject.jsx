@@ -6,6 +6,7 @@ import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import { Switch, Button, Form, Input, InputNumber, Select, message, FloatButton } from "antd";
 import { Editor } from "primereact/editor";
 import DOMPurify from "dompurify";
+import { handleMouseDown } from "../../utils/mouseDown";
 
 const CreateProject = () => {
   const { Option } = Select;
@@ -395,6 +396,7 @@ const CreateProject = () => {
             type="primary"
             shape="square"
             onClick={() => navigate(`/project/${projectCreatedId}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/project/${projectCreatedId}`)}
             description={
               <div className="float-button-text">
                 <svg
