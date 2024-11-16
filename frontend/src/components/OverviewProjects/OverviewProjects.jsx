@@ -753,7 +753,7 @@ const OverviewProjects = () => {
               : "לא משוייך מנחה"}
           </div>
         ),
-        width: "7%",
+        width: "11%",
         sorter: (a, b) => {
           const advisorA = users.find((u) => u._id === a.advisors[0]);
           const advisorB = users.find((u) => u._id === b.advisors[0]);
@@ -808,7 +808,7 @@ const OverviewProjects = () => {
         title: "סוג",
         dataIndex: "type",
         key: "type",
-        width: "9%",
+        width: "13%",
         ...getColumnSearchProps("type"),
         sorter: (a, b) => a.type.localeCompare(b.type),
         sortDirections: ["descend", "ascend"],
@@ -824,22 +824,14 @@ const OverviewProjects = () => {
         sortDirections: ["descend", "ascend"],
       },
       {
-        title: "ציון דוח סופי",
-        dataIndex: "finalReportGrade",
-        key: "finalReportGrade",
+        title: "ציון דוח סופי ומבחן",
+        dataIndex: "finalReportAndExamGrade",
+        key: "finalReportAndExamGrade",
         width: "8%",
         render: (grade) => (grade ? grade.grade : "אין ציון"),
         sorter: (a, b) =>
-          (a.finalReportGrade ? a.finalReportGrade.grade : 0) - (b.finalReportGrade ? b.finalReportGrade.grade : 0),
-        sortDirections: ["descend", "ascend"],
-      },
-      {
-        title: "ציון מבחן",
-        dataIndex: "examGrade",
-        key: "examGrade",
-        width: "8%",
-        render: (grade) => (grade ? grade.grade : "אין ציון"),
-        sorter: (a, b) => (a.examGrade ? a.examGrade.grade : 0) - (b.examGrade ? b.examGrade.grade : 0),
+          (a.finalReportAndExamGrade ? a.finalReportAndExamGrade.grade : 0) -
+          (b.finalReportAndExamGrade ? b.finalReportAndExamGrade.grade : 0),
         sortDirections: ["descend", "ascend"],
       },
       {
