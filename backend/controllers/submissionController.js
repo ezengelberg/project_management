@@ -78,7 +78,7 @@ export const getAllSubmissions = async (req, res) => {
           ...submission._doc,
           projectName: project ? project.title : null,
           gradesDetailed: await Promise.all(
-            submission.grades.map(async (grade, index) => {
+            submission.grades.map(async (grade) => {
               const gradeInfo = await Grade.findById(grade);
               const judge = await User.findById(gradeInfo.judge);
               return {
@@ -128,8 +128,8 @@ export const copyJudges = async (req, res) => {
 
 export const updateJudgesInSubmission = async (req, res) => {
   try {
-    const { submissionID, alphaReportJudges, finalReportJudges, examJudges, specialSubmissionJudges } = req.body;
-    const submission = await Submission.findById(submissionID);
+    const { submissionID, judges } = req.body;
+    const submission = await Submission.findById(submissionID).populate("grades");
     if (!submission) {
       return res.status(404).send({ message: "Submission not found" });
     }
@@ -147,17 +147,39 @@ export const updateJudgesInSubmission = async (req, res) => {
       return validJudges;
     };
 
-    const validAlphaReportJudges = await validateJudges(alphaReportJudges);
-    const validFinalReportJudges = await validateJudges(finalReportJudges);
-    const validExamJudges = await validateJudges(examJudges);
-    const validSpecialSubmissionJudges = await validateJudges(specialSubmissionJudges);
+    const validJudges = await validateJudges(judges);
 
-    submission.alphaReportGrades = validAlphaReportJudges.map((judgeID) => new Grade({ judge: judgeID })._id);
-    submission.finalReportGrades = validFinalReportJudges.map((judgeID) => new Grade({ judge: judgeID })._id);
-    submission.examGrades = validExamJudges.map((judgeID) => new Grade({ judge: judgeID })._id);
-    submission.specialSubmissionGrades = validSpecialSubmissionJudges.map(
-      (judgeID) => new Grade({ judge: judgeID })._id
+    // Find judges to remove
+    const judgesToRemove = submission.grades.filter((grade) => !validJudges.includes(grade.judge.toString()));
+
+    // Remove grades associated with judges to remove
+    if (judgesToRemove.length !== 0) {
+      await Promise.all(
+        judgesToRemove.map(async (grade) => {
+          await Grade.findByIdAndDelete(grade._id);
+        })
+      );
+    }
+
+    // Filter out removed grades from submission
+    submission.grades = submission.grades.filter((grade) => !judgesToRemove.includes(grade));
+
+    // Find new judges to add
+    const newJudges = validJudges.filter(
+      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID)
     );
+
+    if (newJudges.length !== 0) {
+      // Add new grades for new judges
+      const newGrades = await Promise.all(
+        newJudges.map(async (judgeID) => {
+          const newGrade = new Grade({ judge: judgeID });
+          await newGrade.save();
+          return newGrade._id;
+        })
+      );
+      submission.grades = [...submission.grades, ...newGrades];
+    }
 
     await submission.save();
     res.status(200).send({ message: "Judges updated successfully", submission });

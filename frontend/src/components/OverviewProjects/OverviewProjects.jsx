@@ -29,16 +29,11 @@ const OverviewProjects = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
-  const [selectedAlphaReportJudges, setSelectedAlphaReportJudges] = useState([]);
-  const [selectedFinalReportJudges, setSelectedFinalReportJudges] = useState([]);
-  const [selectedExamJudges, setSelectedExamJudges] = useState([]);
-  const [selectedSpecialSubmissionJudges, setSelectedSpecialSubmissionJudges] = useState([]);
   const [takenFilter, setTakenFilter] = useState("all");
   const [years, setYears] = useState([]);
   const [yearFilter, setYearFilter] = useState("");
   const [submissions, setSubmissions] = useState([]);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
-  const [selectedJudges, setSelectedJudges] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,6 +49,7 @@ const OverviewProjects = () => {
         setProjects(projectsRes.data);
         setUsers(activeUsers);
         setSubmissions(submissionsRes.data);
+        console.log(submissionsRes.data);
 
         const years = Array.from(new Set(projectsRes.data.map((project) => project.year))).sort((a, b) => b - a);
         setYears(years);
@@ -233,52 +229,45 @@ const OverviewProjects = () => {
   };
 
   const handleUpdateJudges = async () => {
-    if (
-      selectedAlphaReportJudges.length !== 3 ||
-      selectedFinalReportJudges.length !== 3 ||
-      selectedExamJudges.length !== 3 ||
-      selectedSpecialSubmissionJudges.length !== 3
-    ) {
-      message.error("יש לבחור בדיוק 3 שופטים לכל סוג הגשה");
-      return;
-    }
     try {
-      await axios.put(
-        `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-judges`,
-        {
-          submissionID: selectedSubmission._id,
-          alphaReportJudges: selectedAlphaReportJudges,
-          finalReportJudges: selectedFinalReportJudges,
-          examJudges: selectedExamJudges,
-          specialSubmissionJudges: selectedSpecialSubmissionJudges,
-        },
-        { withCredentials: true }
+      const submissionsToUpdate = selectedSubmission.judges.filter((submission) => {
+        const existingSubmission = submissions.find((s) => s._id === submission._id);
+        if (!existingSubmission) return false;
+        const existingJudges = existingSubmission.gradesDetailed.map((grade) => grade.judge.toString());
+        return (
+          !submission.judges.every((judge) => existingJudges.includes(judge)) ||
+          existingJudges.length !== submission.judges.length
+        );
+      });
+
+      if (submissionsToUpdate.length === 0) {
+        message.info("לא בוצעו שינויים");
+        return;
+      }
+
+      await Promise.all(
+        submissionsToUpdate.map(async (submission) => {
+          if (submission.judges.length > 3) {
+            throw new Error("יש לבחור עד 3 שופטים לכל סוג הגשה");
+          }
+          await axios.put(
+            `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-judges`,
+            {
+              submissionID: submission._id,
+              judges: submission.judges,
+            },
+            { withCredentials: true }
+          );
+        })
       );
 
       // Update local state
       const updatedSubmissions = submissions.map((submission) => {
-        if (submission._id === selectedSubmission._id) {
+        const updatedSubmission = submissionsToUpdate.find((s) => s._id === submission._id);
+        if (updatedSubmission) {
           return {
             ...submission,
-            alphaReportGrades: selectedAlphaReportJudges.map((judge) => ({
-              judge,
-              judgeName: users.find((u) => u._id === judge).name,
-              grade: null,
-              comment: null,
-            })),
-            finalReportGrades: selectedFinalReportJudges.map((judge) => ({
-              judge,
-              judgeName: users.find((u) => u._id === judge).name,
-              grade: null,
-              comment: null,
-            })),
-            examGrades: selectedExamJudges.map((judge) => ({
-              judge,
-              judgeName: users.find((u) => u._id === judge).name,
-              grade: null,
-              comment: null,
-            })),
-            specialSubmissionGrades: selectedSpecialSubmissionJudges.map((judge) => ({
+            gradesDetailed: updatedSubmission.judges.map((judge) => ({
               judge,
               judgeName: users.find((u) => u._id === judge).name,
               grade: null,
@@ -291,10 +280,6 @@ const OverviewProjects = () => {
 
       setSubmissions(updatedSubmissions);
       setIsJudgesModalOpen(false);
-      setSelectedAlphaReportJudges([]);
-      setSelectedFinalReportJudges([]);
-      setSelectedExamJudges([]);
-      setSelectedSpecialSubmissionJudges([]);
       setSelectedSubmission(null);
       message.success("השופטים עודכנו בהצלחה!");
     } catch (error) {
@@ -485,118 +470,30 @@ const OverviewProjects = () => {
 
   const expandedRowRender = (record) => {
     const projectSubmissions = submissions.filter((submission) => submission.project === record._id);
-    const expandColumns = [
-      {
-        title: "דוח אלפה",
-        dataIndex: "alphaReport",
-        key: "alphaReport",
-        render: (_, submission) => (
-          <div>
-            {submission.alphaReportGrades?.map((grade) => (
-              <div key={grade.judge} className="inner-table-order">
-                <p>
-                  <a
-                    onClick={() => navigate(`/profile/${grade.judge}`)}
-                    onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
-                    {grade.judgeName}
-                  </a>{" "}
-                  - {grade.grade !== null ? grade.grade : "אין ציון"}
-                </p>
-              </div>
-            ))}
-          </div>
-        ),
-        width: "22.5%",
-      },
-      {
-        title: "דוח סופי",
-        dataIndex: "finalReport",
-        key: "finalReport",
-        render: (_, submission) => (
-          <div>
-            {submission.finalReportGrades?.map((grade) => (
-              <div key={grade.judge} className="inner-table-order">
+    const expandColumns = projectSubmissions.map((submission, index) => ({
+      title: submission.name,
+      dataIndex: `submission-${index}`,
+      key: `submission-${index}`,
+      render: () => (
+        <div key={submission._id} className="inner-table-order">
+          {submission.gradesDetailed?.map((grade) => (
+            <div key={grade.judge}>
+              <p>
                 <a
                   onClick={() => navigate(`/profile/${grade.judge}`)}
                   onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
                   {grade.judgeName}
-                </a>
-              </div>
-            ))}
-          </div>
-        ),
-        width: "22.5%",
-      },
-      {
-        title: "מבחן",
-        dataIndex: "exam",
-        key: "exam",
-        render: (_, submission) => (
-          <div>
-            {submission.examGrades?.map((grade) => (
-              <div key={grade.judge} className="inner-table-order">
-                <p>
-                  <a
-                    onClick={() => navigate(`/profile/${grade.judge}`)}
-                    onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
-                    {grade.judgeName}
-                  </a>
-                  - {grade.grade !== null ? grade.grade : "אין ציון"}
-                </p>
-              </div>
-            ))}
-          </div>
-        ),
-        width: "22.5%",
-      },
-      {
-        title: "הגשה מיוחדת",
-        dataIndex: "specialSubmission",
-        key: "specialSubmission",
-        render: (_, submission) => (
-          <div>
-            {submission.specialSubmissionGrades?.map((grade) => (
-              <div key={grade.judge} className="inner-table-order">
-                <p>
-                  <a
-                    onClick={() => navigate(`/profile/${grade.judge}`)}
-                    onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
-                    {grade.judgeName}
-                  </a>{" "}
-                  - {grade.grade !== null ? grade.grade : "אין ציון"}
-                </p>
-              </div>
-            ))}
-          </div>
-        ),
-        width: "22.5%",
-      },
-      {
-        title: "פעולות",
-        key: "actions",
-        render: (_, submission) => (
-          <div className="project-manage-actions">
-            <Button
-              onClick={() => {
-                setSelectedProject(record);
-                setSelectedSubmission(submission);
-                setIsJudgesModalOpen(true);
-                setSelectedAlphaReportJudges(submission.alphaReportGrades?.map((grade) => grade.judge) || []);
-                setSelectedFinalReportJudges(submission.finalReportGrades?.map((grade) => grade.judge) || []);
-                setSelectedExamJudges(submission.examGrades?.map((grade) => grade.judge) || []);
-                setSelectedSpecialSubmissionJudges(
-                  submission.specialSubmissionGrades?.map((grade) => grade.judge) || []
-                );
-              }}>
-              הוסף/עדכן שופטים
-            </Button>
-          </div>
-        ),
-        width: "10%",
-      },
-    ];
+                </a>{" "}
+                - {grade.grade !== null ? grade.grade : "אין ציון"}
+              </p>
+            </div>
+          ))}
+        </div>
+      ),
+      width: `${100 / projectSubmissions.length}%`,
+    }));
 
-    return <Table columns={expandColumns} dataSource={projectSubmissions} pagination={false} bordered={true} />;
+    return <Table columns={expandColumns} dataSource={[{ key: record._id }]} pagination={false} bordered={true} />;
   };
 
   const filteredTakenProjects = projects.filter((p) => {
@@ -952,11 +849,17 @@ const OverviewProjects = () => {
           <div className="project-manage-actions">
             <Button
               onClick={() => {
-                setSelectedProject(record);
+                const projectSubmissions = submissions.filter((submission) => submission.project === record._id);
+                setSelectedSubmission({
+                  project: record._id,
+                  projectName: record.title,
+                  judges: projectSubmissions.map((submission) => ({
+                    _id: submission._id,
+                    name: submission.name,
+                    judges: submission.gradesDetailed.map((grade) => grade.judge),
+                  })),
+                });
                 setIsJudgesModalOpen(true);
-                setSelectedAlphaReportJudges(record.alphaReportJudges);
-                setSelectedFinalReportJudges(record.finalReportJudges);
-                setSelectedExamJudges(record.examJudges);
               }}>
               הוסף/עדכן שופטים
             </Button>
@@ -1341,7 +1244,7 @@ const OverviewProjects = () => {
                   d="M241.752,219.573c-3.17,3.178-5.747,9.389-5.747,13.884v113.816h33.929V199.487 c0-4.487-2.569-5.552-5.747-2.374L241.752,219.573z"></path>
                 <path
                   fill="#000000"
-                  d="M291.418,169.834c-3.178,3.17-5.755,9.38-5.755,13.867v163.563h31.547V152.212 c0-4.487-2.577-5.56-5.755-2.382L291.418,169.834z"></path>
+                  d="M291.418,169.834c-3.178,3.17-5.755,9.38-5.755,13.867v163.563h31.547V152.212 c0-4.487-2.577-5.56-5.755-2.374L291.418,169.834z"></path>
                 <path
                   fill="#000000"
                   d="M193.078,268.239c0,0-1.512,1.52-3.381,3.39c-1.861,1.87-3.373,7.031-3.373,11.518v64.118h33.929 v-98.047c0-4.487-2.577-5.56-5.755-2.382L193.078,268.239z"></path>
@@ -1580,74 +1483,34 @@ const OverviewProjects = () => {
       {/* Update Judges Modal */}
       <Modal
         open={isJudgesModalOpen}
-        title={`עדכון שופטים לפרויקט: ${selectedProject?.title}`}
+        title={`עדכון שופטים לפרויקט: ${selectedSubmission?.projectName}`}
         onOk={handleUpdateJudges}
         onCancel={() => {
           setIsJudgesModalOpen(false);
-          setSelectedProject(null);
-          setSelectedAlphaReportJudges([]);
-          setSelectedFinalReportJudges([]);
-          setSelectedExamJudges([]);
-          setSelectedSpecialSubmissionJudges([]);
           setSelectedSubmission(null);
         }}
         okText="עדכן שופטים"
-        okButtonProps={{
-          disabled:
-            selectedAlphaReportJudges.length !== 3 ||
-            selectedFinalReportJudges.length !== 3 ||
-            selectedExamJudges.length !== 3 ||
-            selectedSpecialSubmissionJudges.length !== 3,
-        }}
+        okButtonProps={{ disabled: selectedSubmission?.judges.some((s) => s.judges.length > 3) }}
         cancelText="ביטול">
-        <div className="modal-select-input">
-          <p>בחר בדיוק 3 שופטים לדוח אלפה:</p>
-          <Select
-            mode="multiple"
-            value={selectedAlphaReportJudges}
-            onChange={setSelectedAlphaReportJudges}
-            options={judges.map((user) => ({
-              label: user.name,
-              value: user._id,
-            }))}
-          />
-        </div>
-        <div className="modal-select-input">
-          <p>בחר בדיוק 3 שופטים לדוח סופי:</p>
-          <Select
-            mode="multiple"
-            value={selectedFinalReportJudges}
-            onChange={setSelectedFinalReportJudges}
-            options={judges.map((user) => ({
-              label: user.name,
-              value: user._id,
-            }))}
-          />
-        </div>
-        <div className="modal-select-input">
-          <p>בחר בדיוק 3 שופטים למבחן:</p>
-          <Select
-            mode="multiple"
-            value={selectedExamJudges}
-            onChange={setSelectedExamJudges}
-            options={judges.map((user) => ({
-              label: user.name,
-              value: user._id,
-            }))}
-          />
-        </div>
-        <div className="modal-select-input">
-          <p>בחר בדיוק 3 שופטים להגשה מיוחדת:</p>
-          <Select
-            mode="multiple"
-            value={selectedSpecialSubmissionJudges}
-            onChange={setSelectedSpecialSubmissionJudges}
-            options={judges.map((user) => ({
-              label: user.name,
-              value: user._id,
-            }))}
-          />
-        </div>
+        {selectedSubmission?.judges.map((submission, index) => (
+          <div key={submission._id} className="modal-select-input">
+            <p>{`בחר עד 3 שופטים להגשה: ${submission.name}`}</p>
+            <Select
+              mode="multiple"
+              value={submission.judges}
+              onChange={(value) => {
+                const updatedJudges = selectedSubmission.judges.map((s) =>
+                  s._id === submission._id ? { ...s, judges: value } : s
+                );
+                setSelectedSubmission({ ...selectedSubmission, judges: updatedJudges });
+              }}
+              options={judges.map((user) => ({
+                label: user.name,
+                value: user._id,
+              }))}
+            />
+          </div>
+        ))}
       </Modal>
 
       {/* Terminate Project Modal */}

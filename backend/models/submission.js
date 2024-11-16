@@ -5,7 +5,7 @@ const submissionSchema = new mongoose.Schema({
   grades: [{ type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: [] }],
   name: { type: String, required: true },
   file: { type: String, required: false }, // needs an update
-  submissionDate: { type: Date, required: true },
+  submissionDate: { type: Date },
 });
 
 const submissionModel = mongoose.model("Submission", submissionSchema);
