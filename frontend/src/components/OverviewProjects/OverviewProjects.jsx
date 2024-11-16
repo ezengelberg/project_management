@@ -49,7 +49,6 @@ const OverviewProjects = () => {
         setProjects(projectsRes.data);
         setUsers(activeUsers);
         setSubmissions(submissionsRes.data);
-        console.log(submissionsRes.data);
 
         const years = Array.from(new Set(projectsRes.data.map((project) => project.year))).sort((a, b) => b - a);
         setYears(years);
