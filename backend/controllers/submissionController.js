@@ -63,7 +63,7 @@ export const createSpecificSubmission = async (req, res) => {
   }
 };
 
-export const getAllSubmissions = async (req, res) => {
+export const getAllProjectSubmissions = async (req, res) => {
   try {
     const activeProjects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
     const projectsList = await Promise.all(
@@ -95,6 +95,31 @@ export const getAllSubmissions = async (req, res) => {
           })
         );
         return {
+          projectid: project._id,
+          title: project.title,
+          submissions: submissionsWithGrades
+        };
+      })
+    );
+
+    const resolvedProjectsList = await Promise.all(projectsList);
+    res.status(200).json(resolvedProjectsList);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getAllSubmissions = async (req, res) => {
+  try {
+    const activeProjects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
+    const activeProjectIds = activeProjects.map((project) => project._id);
+
+    const submissions = await Submission.find({ project: { $in: activeProjectIds } });
+    const submissionsWithDetails = await Promise.all(
+      submissions.map(async (submission) => {
+        const project = await Project.findById(submission.project);
+        return {
           ...submission._doc,
           projectName: project ? project.title : null,
           gradesDetailed: await Promise.all(
@@ -107,18 +132,15 @@ export const getAllSubmissions = async (req, res) => {
                 judgeName: judge ? judge.name : null,
                 grade: gradeInfo ? gradeInfo.grade : null,
                 comment: gradeInfo ? gradeInfo.comment : null,
-                overridden: gradeInfo ? gradeInfo.overridden : null,
+                overridden: gradeInfo ? gradeInfo.overridden : null
               };
             })
           ),
-          key: submission._id,
+          key: submission._id
         };
       })
     );
-
-    const resolvedProjectsList = await Promise.all(projectsList);
-    console.log(resolvedProjectsList);
-    res.status(200).json(resolvedProjectsList);
+    res.status(200).json(submissionsWithDetails);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -134,8 +156,8 @@ export const getUserSubmissions = async (req, res) => {
         match: { judge: req.user._id },
         populate: {
           path: "judge",
-          select: "name email",
-        },
+          select: "name email"
+        }
       })
       .populate("project", "title description")
       .exec();
@@ -152,7 +174,7 @@ export const getUserSubmissions = async (req, res) => {
       grade: submission.grades[0]?.grade || null,
       comment: submission.grades[0]?.comment || "",
       overridden: submission.grades[0]?.overridden || null,
-      projectId: submission.project ? submission.project._id : null,
+      projectId: submission.project ? submission.project._id : null
     }));
 
     res.status(200).json(submissionsWithDetails);
@@ -171,8 +193,8 @@ export const getSubmission = async (req, res) => {
         match: { judge: req.user._id },
         populate: {
           path: "judge",
-          select: "name email",
-        },
+          select: "name email"
+        }
       })
       .exec();
 
@@ -186,7 +208,7 @@ export const getSubmission = async (req, res) => {
       submissionName: submission.name,
       submissionDate: submission.submissionDate,
       existingGrade: submission.grades[0]?.grade || null,
-      existingComment: submission.grades[0]?.comment || "",
+      existingComment: submission.grades[0]?.comment || ""
     };
 
     res.status(200).json(submissionData);

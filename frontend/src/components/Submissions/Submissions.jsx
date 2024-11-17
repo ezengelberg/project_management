@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Highlighter from "react-highlight-words";
+import { handleMouseDown } from "../../utils/mouseDown";
 import axios from "axios";
 import "./Submissions.scss";
 import {
@@ -15,12 +18,14 @@ import {
   InputNumber,
   Col,
   Row,
-  Badge
+  Badge,
+  Space
 } from "antd";
 import { EditOutlined, DeleteOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
 
 const Submissions = () => {
+  const navigate = useNavigate();
   const { Option } = Select;
   const [formAll] = Form.useForm();
   const [formJudges] = Form.useForm();
@@ -49,28 +54,20 @@ const Submissions = () => {
 
   const fetchSubmissions = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all`, {
-        withCredentials: true
-      });
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
+        {
+          withCredentials: true
+        }
+      );
 
       console.log(response.data);
-      // const gradesData = response.data.map((submission) => {
-      //   submission.gradesDetailed = submission.gradesDetailed.map((grade) => {
-      //     // console.log(grade);
-      //     return {
-      //       ...grade,
-      //       grade: grade.overridden ? grade.overridden?.newGrade : grade.grade
-      //       // grade: grade.overridden !== null ? grade.overridden.grade : grade.grade,
-      //     };
-      //   });
-      //   return submission;
-      // });
-      // console.log(gradesData);
       setSubmissionData(response.data);
       // const submissionNames = [...new Set(response.data.map((submission) => submission.name))];
       // setSubmissionNames(submissionNames);
     } catch (error) {
       console.error("Error fetching submissions:", error);
+      setSubmissionData([]);
     }
   };
 
@@ -124,7 +121,7 @@ const Submissions = () => {
       let name = "";
       switch (submissionType) {
         case "alphaReport":
-          name = "דוח אלפא";
+          name = "דוח אלפה";
           break;
         case "finalReport":
           name = "דוח סופי";
@@ -163,7 +160,7 @@ const Submissions = () => {
       let name = "";
       switch (submissionType) {
         case "alphaReport":
-          name = "דוח אלפא";
+          name = "דוח אלפה";
           break;
         case "finalReport":
           name = "דוח סופי";
@@ -259,141 +256,81 @@ const Submissions = () => {
       });
   };
 
-  const column = [
+  const columns = [
     {
-      title: "פרויקט",
+      title: "שם הפרוייקט",
       dataIndex: "title",
-      key: "project",
-      sorter: (a, b) => a.title.localeCompare(b.title),
+      key: "title",
+      sorter: (a, b) => {
+        // Safely handle undefined values in sorting
+        const titleA = (a.title || "").toString();
+        const titleB = (b.title || "").toString();
+        return titleA.localeCompare(titleB);
+      },
+      sortDirections: ["descend", "ascend"],
       defaultSortOrder: "ascend",
-      sortDirections: ["ascend", "descend"]
+      render: (text, record) => {
+        // Ensure text exists before rendering Highlighter
+        const title = record.title || "";
+        const displayText = title.length > 65 ? `${title.substring(0, 65)}...` : title;
+
+        return (
+          <a
+            onClick={() => navigate(`/project/${record.projectid}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/project/${record.projectid}`)}>
+            <Highlighter
+              highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+              searchWords={[]} // Add your search words array here if needed
+              autoEscape
+              textToHighlight={displayText}
+            />
+          </a>
+        );
+      }
     },
     {
       title: "הגשות",
-      dataIndex: "submissions",
       key: "submissions",
-      width: "80%",
-      render: (text) => {
-        text.map((submission) => {});
+      render: (_, record) => {
+        // Ensure submissions array exists
+        const submissions = record.submissions || [];
+        const colSpan = Math.floor(24 / (submissions.length + 1));
+
         return (
-          <Table
-            columns={[
-              {
-                title: "שם ההגשה",
-                dataIndex: "name",
-                key: "name"
-              },
-              {
-                title: "תאריך הגשה",
-                dataIndex: "submissionDate",
-                key: "submissionDate",
-                render: (date) => new Date(date).toLocaleString("he-IL")
-              },
-              {
-                title: "פעולות",
-                key: "actions",
-                render: (text, record) => (
-                  <div className="submission-table-actions">
-                    <Tooltip title="ערוך הגשה">
-                      <EditOutlined
-                        className="submission-icon"
-                        onClick={() => {
-                          // Handle edit submission
-                        }}
-                      />
-                    </Tooltip>
-                    <Tooltip title="מחק הגשה">
-                      <DeleteOutlined
-                        className="submission-icon"
-                        onClick={() => {
-                          // Handle delete submission
-                        }}
-                      />
-                    </Tooltip>
+          <Row gutter={[16, 16]} className="table-row">
+            {submissions.map((sub, index) => {
+              const grades = sub.grades || [];
+              const waitingCheck = grades.some((grade) => grade.grade === null);
+
+              return (
+                <Col key={index} span={colSpan} className="table-col">
+                  <div className="submission-title">{sub.name || ""}</div>
+                  <span className="submission-date-time">
+                    {sub.submissionDate
+                      ? new Date(sub.submissionDate).toLocaleString("he-IL", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric"
+                        })
+                      : ""}
+                  </span>
+                  <div className="table-col-info">
+                    <Badge color={sub.submitted ? "green" : "orange"} text={sub.submitted ? "הוגש" : "מחכה להגשה"} />
+                    <div>{waitingCheck && sub.submitted && <Badge color="blue" text="מחכה לבדיקה" />}</div>
                   </div>
-                )
-              }
-            ]}
-            dataSource={text}
-            pagination={false}
-          />
+                </Col>
+              );
+            })}
+          </Row>
         );
       }
     }
-    // {
-    //   title: "פרויקט",
-    //   dataIndex: "projectName",
-    //   key: "project",
-    //   sorter: (a, b) => a.projectName.localeCompare(b.projectName),
-    //   defaultSortOrder: "ascend",
-    //   sortDirections: ["ascend", "descend"]
-    // },
-    // {
-    //   title: "ציון משוקלל",
-    //   dataIndex: "gradesDetailed",
-    //   key: "gradesDetailed",
-    //   render: (text) => {
-    //     const grades = text.map((grade) => grade.grade);
-    //     if (grades.includes(null)) {
-    //       return <span>מחכה לבדיקה</span>;
-    //     }
-    //     const sum = grades.reduce((acc, grade) => acc + grade, 0);
-    //     return <span>{grades.length > 0 ? sum / grades.length : "לא הוזן"}</span>;
-    //   }
-    // },
-    // {
-    //   title: "הגשות",
-    //   dataIndex: "gradesDetailed",
-    //   key: "gradesDetailed",
-    //   render: (text) => {
-
-    //   }
-    // }
   ];
 
-  // const subColumns = [
-  //   {
-  //     title: "שם השופט",
-  //     dataIndex: "judgeName",
-  //     key: "judgeName"
-  //   },
-  //   {
-  //     title: "ציון",
-  //     dataIndex: "grade",
-  //     key: "grade",
-  //     render: (text) => {
-  //       console.log(text);
-  //       return <span>{text ? text : "לא הוזן"}</span>;
-  //     }
-  //   },
-  //   {
-  //     title: "הערות",
-  //     dataIndex: "comment",
-  //     key: "comment",
-  //     render: (text) => <span>{text ? text : "לא הוזן"}</span>
-  //   },
-  //   {
-  //     title: "פעולות",
-  //     key: "action",
-  //     render: (text, record) => (
-  //       <div className="submission-table-actions">
-  //         <Tooltip title="ערוך ציון">
-  //           <EditOutlined
-  //             className="submission-icon"
-  //             onClick={() => {
-  //               setGradeToOverride(record);
-  //               setGradeFormOpen(true);
-  //               gradeForm.setFieldsValue({ oldGrade: record?.grade ? record.grade : "לא הוזן" });
-  //             }}
-  //           />
-  //         </Tooltip>
-  //       </div>
-  //     )
-  //   }
-  // ];
-
   const submissionOptions = [
-    { label: "דוח אלפא", value: "alphaReport" },
+    { label: "דוח אלפה", value: "alphaReport" },
     { label: "דוח סופי", value: "finalReport" },
     { label: "מבחן סוף", value: "finalExam" },
     { label: "אחר", value: "other" }
@@ -412,7 +349,7 @@ const Submissions = () => {
           העתקת שופטים
         </Button>
       </div>
-      {submissionData.map((submission) => {
+      {/* {submissionData.map((submission) => {
         const colSpan = Math.floor(24 / (submission.submissions.length + 1)); // Calculate column span based on number of submissions
         return (
           <Row gutter={[16, 16]} className="table-row">
@@ -433,9 +370,9 @@ const Submissions = () => {
             })}
           </Row>
         );
-      })}
+      })} */}
       <Table
-        columns={column}
+        columns={columns}
         dataSource={submissionData}
         // expandable={{
         //   expandedRowRender: (record) => (
