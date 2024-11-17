@@ -102,6 +102,42 @@ export const getAllSubmissions = async (req, res) => {
   }
 };
 
+export const getUserSubmissions = async (req, res) => {
+  try {
+    // First find all grades where the user is the judge
+    const submissions = await Submission.find()
+      .populate({
+        path: "grades",
+        match: { judge: req.user._id },
+        populate: {
+          path: "judge",
+          select: "name email",
+        },
+      })
+      .populate("project", "title description")
+      .exec();
+
+    // Filter submissions to only include ones where the user has grades
+    const filteredSubmissions = submissions.filter((submission) => submission.grades && submission.grades.length > 0);
+
+    // Map to the required format
+    const submissionsWithDetails = filteredSubmissions.map((submission) => ({
+      projectName: submission.project ? submission.project.title : null,
+      submissionName: submission.name,
+      submissionDate: submission.submissionDate,
+      grade: submission.grades[0]?.grade || null,
+      comment: submission.grades[0]?.comment || "",
+      overridden: submission.grades[0]?.overridden || null,
+      projectId: submission.project ? submission.project._id : null,
+    }));
+
+    res.status(200).json(submissionsWithDetails);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 export const copyJudges = async (req, res) => {
   try {
     const activeProjects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });

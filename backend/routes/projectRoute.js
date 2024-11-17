@@ -18,7 +18,6 @@ import {
   addStudentToProject,
   updateStudentsInProject,
   updateAdvisorInProject,
-  // updateJudgesInProject,
   terminateProject,
   deleteProject,
   restoreProject,
@@ -48,7 +47,6 @@ router.post("/add-advisor", ensureAuthenticated, isCoordinator, addAdvisorToProj
 router.post("/add-student", ensureAuthenticated, isCoordinator, addStudentToProject);
 router.put("/update-students", ensureAuthenticated, isCoordinator, updateStudentsInProject);
 router.put("/update-advisor", ensureAuthenticated, isCoordinator, updateAdvisorInProject);
-// router.put("/update-judges", ensureAuthenticated, isCoordinator, updateJudgesInProject);
 router.put("/terminate-project", ensureAuthenticated, isCoordinator, terminateProject);
 router.delete("/delete-project/:id", ensureAuthenticated, isCoordinator, deleteProject);
 router.put("/restore-project/:id", ensureAuthenticated, isCoordinator, restoreProject);

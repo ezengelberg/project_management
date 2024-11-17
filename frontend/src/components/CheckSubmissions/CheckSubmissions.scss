@@ -1,0 +1,32 @@
+.check-submissions-container {
+  width: 70%;
+  margin: 0 auto;
+
+  .submission-list {
+    font-size: 1.5rem;
+
+    .submission-meta {
+      .project-name {
+        font-size: 1.8rem;
+      }
+      .ant-list-item-meta-description {
+        font-size: 1.5rem;
+      }
+    }
+    .submission-details {
+      display: flex;
+      align-items: center;
+      gap: 5rem;
+
+      .icon {
+        font-size: 2rem;
+        cursor: pointer;
+        transition: 0.2s all ease-in-out;
+
+        &:hover {
+          color: #1890ff;
+        }
+      }
+    }
+  }
+}

@@ -18,6 +18,8 @@ import OverviewProjects from "./components/OverviewProjects/OverviewProjects";
 import SystemControl from "./components/SystemControl/SystemControl";
 import Submissions from "./components/Submissions/Submissions";
 import MoreInformation from "./components/MoreInformation/MoreInformation";
+import CheckSubmissions from "./components/CheckSubmissions/CheckSubmissions";
+import GradeProject from "./components/GradeProject/GradeProject";
 
 function App() {
   return (
@@ -116,6 +118,22 @@ const MainLayout = () => {
                 element={
                   <ProtectedRoute>
                     <Submissions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/check-submissions"
+                element={
+                  <ProtectedRoute>
+                    <CheckSubmissions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/grade-project/:projectId"
+                element={
+                  <ProtectedRoute>
+                    <GradeProject />
                   </ProtectedRoute>
                 }
               />

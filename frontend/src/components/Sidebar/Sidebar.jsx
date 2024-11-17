@@ -11,6 +11,7 @@ import {
   SettingOutlined,
   FilePdfOutlined,
   InfoCircleOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -208,6 +209,17 @@ const Sidebar = () => {
                 onMouseDown={(e) => handleMouseDown(e, "/submissions")}>
                 <FilePdfOutlined />
                 <span>ניהול הגשות</span>
+              </div>
+            </li>
+          )}
+          {user.isJudge && (
+            <li>
+              <div
+                className={`sidebar-option ${isActive("/check-submissions") ? "active" : ""}`}
+                onClick={() => navigate("/check-submissions")}
+                onMouseDown={(e) => handleMouseDown(e, "/check-submissions")}>
+                <CheckCircleOutlined />
+                <span>בדיקת הגשות</span>
               </div>
             </li>
           )}
