@@ -46,3 +46,26 @@
 .input-field-override-grade {
   width: 100%;
 }
+
+.table-row {
+  display: flex;
+
+  border: 1px solid #ccc;
+  padding: 1rem;
+  .table-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    .submission-title {
+      font-size: 1.5rem;
+      margin: 0 2rem 0.5rem;
+      font-weight: 500;
+    }
+
+    .table-col-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+  }
+}
