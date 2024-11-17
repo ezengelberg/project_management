@@ -1,8 +1,23 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Submissions.scss";
-import { Modal, DatePicker, Form, Input, Select, Table, Radio, message, Tooltip, Button, InputNumber } from "antd";
-import { EditOutlined, DeleteOutlined, NodeExpandOutlined } from "@ant-design/icons";
+import {
+  Modal,
+  DatePicker,
+  Form,
+  Input,
+  Select,
+  Table,
+  Radio,
+  message,
+  Tooltip,
+  Button,
+  InputNumber,
+  Col,
+  Row,
+  Badge
+} from "antd";
+import { EditOutlined, DeleteOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
 
 const Submissions = () => {
@@ -38,22 +53,22 @@ const Submissions = () => {
         withCredentials: true
       });
 
-      // console.log(response.data);
-      const gradesData = response.data.map((submission) => {
-        submission.gradesDetailed = submission.gradesDetailed.map((grade) => {
-          // console.log(grade);
-          return {
-            ...grade,
-            grade: grade.overridden ? grade.overridden?.newGrade : grade.grade
-            // grade: grade.overridden !== null ? grade.overridden.grade : grade.grade,
-          };
-        });
-        return submission;
-      });
-      console.log(gradesData);
-      setSubmissionData(gradesData);
-      const submissionNames = [...new Set(response.data.map((submission) => submission.name))];
-      setSubmissionNames(submissionNames);
+      console.log(response.data);
+      // const gradesData = response.data.map((submission) => {
+      //   submission.gradesDetailed = submission.gradesDetailed.map((grade) => {
+      //     // console.log(grade);
+      //     return {
+      //       ...grade,
+      //       grade: grade.overridden ? grade.overridden?.newGrade : grade.grade
+      //       // grade: grade.overridden !== null ? grade.overridden.grade : grade.grade,
+      //     };
+      //   });
+      //   return submission;
+      // });
+      // console.log(gradesData);
+      setSubmissionData(response.data);
+      // const submissionNames = [...new Set(response.data.map((submission) => submission.name))];
+      // setSubmissionNames(submissionNames);
     } catch (error) {
       console.error("Error fetching submissions:", error);
     }
@@ -247,109 +262,135 @@ const Submissions = () => {
   const column = [
     {
       title: "פרויקט",
-      dataIndex: "projectName",
+      dataIndex: "title",
       key: "project",
-      sorter: (a, b) => a.projectName.localeCompare(b.projectName),
+      sorter: (a, b) => a.title.localeCompare(b.title),
       defaultSortOrder: "ascend",
       sortDirections: ["ascend", "descend"]
     },
     {
-      title: "שם ההגשה",
-      dataIndex: "name",
-      key: "name",
-      sorter: (a, b) => a.name.localeCompare(b.name),
-      defaultSortOrder: "ascend",
-      sortDirections: ["ascend", "descend"]
-    },
-    {
-      title: "ציון משוקלל",
-      dataIndex: "gradesDetailed",
-      key: "gradesDetailed",
+      title: "הגשות",
+      dataIndex: "submissions",
+      key: "submissions",
+      width: "80%",
       render: (text) => {
-        const grades = text.map((grade) => grade.grade);
-        if (grades.includes(null)) {
-          return <span>מחכה לבדיקה</span>;
-        }
-        const sum = grades.reduce((acc, grade) => acc + grade, 0);
-        return <span>{grades.length > 0 ? sum / grades.length : "לא הוזן"}</span>;
+        text.map((submission) => {});
+        return (
+          <Table
+            columns={[
+              {
+                title: "שם ההגשה",
+                dataIndex: "name",
+                key: "name"
+              },
+              {
+                title: "תאריך הגשה",
+                dataIndex: "submissionDate",
+                key: "submissionDate",
+                render: (date) => new Date(date).toLocaleString("he-IL")
+              },
+              {
+                title: "פעולות",
+                key: "actions",
+                render: (text, record) => (
+                  <div className="submission-table-actions">
+                    <Tooltip title="ערוך הגשה">
+                      <EditOutlined
+                        className="submission-icon"
+                        onClick={() => {
+                          // Handle edit submission
+                        }}
+                      />
+                    </Tooltip>
+                    <Tooltip title="מחק הגשה">
+                      <DeleteOutlined
+                        className="submission-icon"
+                        onClick={() => {
+                          // Handle delete submission
+                        }}
+                      />
+                    </Tooltip>
+                  </div>
+                )
+              }
+            ]}
+            dataSource={text}
+            pagination={false}
+          />
+        );
       }
-    },
-    {
-      title: "תאריך הגשה",
-      dataIndex: "submissionDate",
-      key: "submissionDate",
-      sorter: (a, b) => new Date(a.submissionDate) - new Date(b.submissionDate),
-      defaultSortOrder: "ascend",
-      sortDirections: ["ascend", "descend"],
-      render: (text) => (
-        <span>
-          {new Date(text).toLocaleString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false
-          })}
-        </span>
-      )
-    },
-    {
-      title: "פעולות",
-      key: "action",
-      render: (text, record) => (
-        <div className="submission-table-actions">
-          <Tooltip title="ערוך פרטי הגשה">
-            <EditOutlined className="submission-icon" />
-          </Tooltip>
-          <Tooltip title="מחק הגשה">
-            <DeleteOutlined className="submission-icon" />
-          </Tooltip>
-        </div>
-      )
     }
+    // {
+    //   title: "פרויקט",
+    //   dataIndex: "projectName",
+    //   key: "project",
+    //   sorter: (a, b) => a.projectName.localeCompare(b.projectName),
+    //   defaultSortOrder: "ascend",
+    //   sortDirections: ["ascend", "descend"]
+    // },
+    // {
+    //   title: "ציון משוקלל",
+    //   dataIndex: "gradesDetailed",
+    //   key: "gradesDetailed",
+    //   render: (text) => {
+    //     const grades = text.map((grade) => grade.grade);
+    //     if (grades.includes(null)) {
+    //       return <span>מחכה לבדיקה</span>;
+    //     }
+    //     const sum = grades.reduce((acc, grade) => acc + grade, 0);
+    //     return <span>{grades.length > 0 ? sum / grades.length : "לא הוזן"}</span>;
+    //   }
+    // },
+    // {
+    //   title: "הגשות",
+    //   dataIndex: "gradesDetailed",
+    //   key: "gradesDetailed",
+    //   render: (text) => {
+
+    //   }
+    // }
   ];
 
-  const subColumns = [
-    {
-      title: "שם השופט",
-      dataIndex: "judgeName",
-      key: "judgeName"
-    },
-    {
-      title: "ציון",
-      dataIndex: "grade",
-      key: "grade",
-      render: (text) => {
-        console.log(text);
-        return <span>{text ? text : "לא הוזן"}</span>;
-      }
-    },
-    {
-      title: "הערות",
-      dataIndex: "comment",
-      key: "comment",
-      render: (text) => <span>{text ? text : "לא הוזן"}</span>
-    },
-    {
-      title: "פעולות",
-      key: "action",
-      render: (text, record) => (
-        <div className="submission-table-actions">
-          <Tooltip title="ערוך ציון">
-            <EditOutlined
-              className="submission-icon"
-              onClick={() => {
-                setGradeToOverride(record);
-                setGradeFormOpen(true);
-                gradeForm.setFieldsValue({ oldGrade: record?.grade ? record.grade : "לא הוזן" });
-              }}
-            />
-          </Tooltip>
-        </div>
-      )
-    }
-  ];
+  // const subColumns = [
+  //   {
+  //     title: "שם השופט",
+  //     dataIndex: "judgeName",
+  //     key: "judgeName"
+  //   },
+  //   {
+  //     title: "ציון",
+  //     dataIndex: "grade",
+  //     key: "grade",
+  //     render: (text) => {
+  //       console.log(text);
+  //       return <span>{text ? text : "לא הוזן"}</span>;
+  //     }
+  //   },
+  //   {
+  //     title: "הערות",
+  //     dataIndex: "comment",
+  //     key: "comment",
+  //     render: (text) => <span>{text ? text : "לא הוזן"}</span>
+  //   },
+  //   {
+  //     title: "פעולות",
+  //     key: "action",
+  //     render: (text, record) => (
+  //       <div className="submission-table-actions">
+  //         <Tooltip title="ערוך ציון">
+  //           <EditOutlined
+  //             className="submission-icon"
+  //             onClick={() => {
+  //               setGradeToOverride(record);
+  //               setGradeFormOpen(true);
+  //               gradeForm.setFieldsValue({ oldGrade: record?.grade ? record.grade : "לא הוזן" });
+  //             }}
+  //           />
+  //         </Tooltip>
+  //       </div>
+  //     )
+  //   }
+  // ];
 
   const submissionOptions = [
     { label: "דוח אלפא", value: "alphaReport" },
@@ -371,15 +412,37 @@ const Submissions = () => {
           העתקת שופטים
         </Button>
       </div>
+      {submissionData.map((submission) => {
+        const colSpan = Math.floor(24 / (submission.submissions.length + 1)); // Calculate column span based on number of submissions
+        return (
+          <Row gutter={[16, 16]} className="table-row">
+            <Col span={colSpan} className="table-col">
+              {submission.title}
+            </Col>
+            {submission.submissions.map((sub, index) => {
+              const waitingCheck = sub.grades.some((grade) => grade.grade === null);
+              return (
+                <Col key={index} className="table-col" span={colSpan}>
+                  <div className="table-col-info">
+                    <div className="submission-title">{sub.name}</div>
+                    <Badge color={sub.submitted ? "green" : "orange"} text={sub.submitted ? "הוגש" : "מחכה להגשה"} />
+                    {waitingCheck && sub.submitted && <Badge color="blue" text="מחכה לבדיקה" />}
+                  </div>
+                </Col>
+              );
+            })}
+          </Row>
+        );
+      })}
       <Table
         columns={column}
         dataSource={submissionData}
-        expandable={{
-          expandedRowRender: (record) => (
-            <Table columns={subColumns} dataSource={record.gradesDetailed} pagination={false} />
-          ),
-          rowExpandable: (record) => record.grades && record.grades.length > 0
-        }}
+        // expandable={{
+        //   expandedRowRender: (record) => (
+        //     <Table columns={subColumns} dataSource={record.gradesDetailed} pagination={false} />
+        //   ),
+        //   rowExpandable: (record) => record.grades && record.grades.length > 0
+        // }}
       />
       {/* <div className="float-button-actions">
       </div> */}
@@ -516,16 +579,17 @@ const Submissions = () => {
         onOk={() => onOkHandlerSpecific()}
         onCancel={() => handleClose()}>
         <Form layout="vertical" form={formSpecific}>
+          {/* סוג הגשה */}
           <Form.Item label="סוג הגשה" name="submissionType" hasFeedback>
             <Radio.Group
               optionType="button"
               buttonStyle="solid"
               options={submissionOptions}
-              onChange={(e) => {
-                setSubmissionType(e.target.value);
-              }}
+              onChange={(e) => setSubmissionType(e.target.value)}
             />
           </Form.Item>
+
+          {/* שם ההגשה */}
           {submissionType === "other" && (
             <Form.Item
               label="שם ההגשה"
@@ -533,34 +597,36 @@ const Submissions = () => {
               hasFeedback
               rules={[
                 {
-                  required: submissionType === "other",
+                  required: true,
                   message: "חובה להזין שם ההגשה"
                 }
               ]}>
               <Input />
             </Form.Item>
           )}
+
+          {/* תאריך הגשה */}
           <Form.Item
             label="תאריך הגשה"
             name="submissionDate"
             hasFeedback
             rules={[
               {
-                type: "array",
+                type: "object", // Corrected the type from "array" to "object"
                 required: true,
                 message: "חובה להזין תאריך הגשה"
               }
             ]}>
             <DatePicker
               className="date-picker"
-              locale={locale} // Add the Hebrew locale here
+              locale={locale}
               direction="rtl"
-              showTime={{
-                format: "HH:mm"
-              }}
+              showTime={{ format: "HH:mm" }}
               format="DD-MM-YYYY HH:mm"
             />
           </Form.Item>
+
+          {/* פרוייקטים */}
           <Form.Item
             label="פרוייקטים"
             name="projects"
@@ -573,9 +639,9 @@ const Submissions = () => {
             ]}>
             <Select mode="multiple" placeholder="בחר פרוייקטים">
               {projects.map((project) => (
-                <Option key={project._id} value={project._id}>
+                <Select.Option key={project._id} value={project._id}>
                   {project.title}
-                </Option>
+                </Select.Option>
               ))}
             </Select>
           </Form.Item>

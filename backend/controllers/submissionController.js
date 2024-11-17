@@ -4,8 +4,6 @@ import User from "../models/users.js";
 import Grade from "../models/grades.js";
 
 export const createSubmission = async (req, res) => {
-  console.log("Creating submission");
-  console.log(req.body);
   try {
     const projects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
     await Promise.all(
@@ -24,7 +22,7 @@ export const createSubmission = async (req, res) => {
           name: req.body.name,
           project: project._id,
           submissionDate: new Date(req.body.submissionDate),
-          grades: [gradeByAdvisor],
+          grades: [gradeByAdvisor]
         });
         await submission.save();
       })
@@ -53,7 +51,7 @@ export const createSpecificSubmission = async (req, res) => {
           name: req.body.name,
           project: project._id,
           submissionDate: new Date(req.body.submissionDate),
-          grades: [gradeByAdvisor],
+          grades: [gradeByAdvisor]
         });
         await submission.save();
       })
@@ -68,12 +66,34 @@ export const createSpecificSubmission = async (req, res) => {
 export const getAllSubmissions = async (req, res) => {
   try {
     const activeProjects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
-    const activeProjectIds = activeProjects.map((project) => project._id);
-
-    const submissions = await Submission.find({ project: { $in: activeProjectIds } });
-    const submissionsWithDetails = await Promise.all(
-      submissions.map(async (submission) => {
-        const project = await Project.findById(submission.project);
+    const projectsList = await Promise.all(
+      activeProjects.map(async (project) => {
+        const submissions = await Submission.find({ project: project._id });
+        const submissionsWithGrades = await Promise.all(
+          submissions.map(async (submission) => {
+            const grades = await Promise.all(
+              submission.grades.map(async (gradeId) => {
+                const grade = await Grade.findById(gradeId);
+                const judge = await User.findById(grade.judge);
+                return {
+                  gradeid: grade._id,
+                  judge: grade.judge,
+                  judgeName: judge ? judge.name : null,
+                  grade: grade.grade,
+                  comment: grade.comment,
+                  overridden: grade.overridden
+                };
+              })
+            );
+            return {
+              submissionid: submission._id,
+              name: submission.name,
+              submissionDate: submission.submissionDate,
+              grades: grades,
+              submitted: submission.file ? true : false
+            };
+          })
+        );
         return {
           ...submission._doc,
           projectName: project ? project.title : null,
@@ -95,7 +115,10 @@ export const getAllSubmissions = async (req, res) => {
         };
       })
     );
-    res.status(200).json(submissionsWithDetails);
+
+    const resolvedProjectsList = await Promise.all(projectsList);
+    console.log(resolvedProjectsList);
+    res.status(200).json(resolvedProjectsList);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
