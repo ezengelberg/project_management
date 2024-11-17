@@ -37,7 +37,7 @@ const GradeProject = () => {
   const onFinish = async (values) => {
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/grades/add-grade`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/grade/add-grade`,
         {
           submissionId: submissionId,
           ...values,
@@ -59,23 +59,15 @@ const GradeProject = () => {
   };
 
   return (
-    <div>
+    <div className="grade-project-container">
       {loading ? (
         <Spin />
       ) : (
-        <div className="grade-project-container">
-          <h1>דירוג פרויקט: {project?.projectName}</h1>
-          <Form
-            form={form}
-            name="gradeProject"
-            layout="vertical"
-            labelCol={{
-              span: 4,
-            }}
-            wrapperCol={{
-              span: 16,
-            }}
-            onFinish={onFinish}>
+        <div className="grade-project-form">
+          <h2>
+            שפטית פרויקט: <span style={{ textDecoration: "underline" }}>{project?.projectName}</span>
+          </h2>
+          <Form form={form} name="gradeProject" layout="vertical" onFinish={onFinish}>
             <Form.Item
               label="כתבו משפט על איכות הסרטון"
               name="videoQuality"

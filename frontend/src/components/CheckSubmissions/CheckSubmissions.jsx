@@ -23,7 +23,6 @@ const CheckSubmissions = () => {
         });
 
         setSubmissions(response.data);
-        console.log(response.data);
         setInitLoading(false);
       } catch (error) {
         console.log(error);
@@ -52,7 +51,7 @@ const CheckSubmissions = () => {
                 key="list-grade"
                 onClick={() => navigate(`/grade-project/${item.key}`)}
                 onMouseDown={(e) => handleMouseDown(e, `/grade-project/${item.key}`)}>
-                דרג
+                שפיטה
               </a>,
               <a key="list-more">פרטים נוספים</a>,
             ]}>
@@ -80,13 +79,13 @@ const CheckSubmissions = () => {
                   item.overridden ? (
                     <div className="grade">
                       <span>ציון:</span>
-                      <span style={{ textDecoration: "line-through" }}>{item.grade}</span>
-                      <span>{item.overridden.newGrade}</span>
+                      <p style={{ textDecoration: "line-through" }}>{item.grade}</p>
+                      <p>{item.overridden.newGrade}</p>
                     </div>
                   ) : (
                     <div className="grade">
-                      <span>ציון:</span>
-                      <span>{item.grade}</span>
+                      <span>ציון: </span>
+                      <p>{item.grade}</p>
                     </div>
                   )
                 ) : (

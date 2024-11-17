@@ -4,7 +4,9 @@ import Submission from "../models/submission.js";
 
 // Add new grade
 export const addGrade = async (req, res) => {
-  const { submissionId, grade, comment } = req.body;
+  const { submissionId, grade, videoQuality, workQuality, writingQuality, commits, journalActive } = req.body;
+
+  console.log("Received data:", req.body); // Add this line to log the received data
 
   if (!grade) {
     return res.status(400).json({ message: "חייב להזין ציון" });
@@ -29,7 +31,11 @@ export const addGrade = async (req, res) => {
       const existingGrade = submission.grades[0];
       await Grade.findByIdAndUpdate(existingGrade._id, {
         grade,
-        comment,
+        videoQuality,
+        workQuality,
+        writingQuality,
+        commits,
+        journalActive,
         updatedAt: Date.now(),
       });
       return res.status(200).json({ message: "הציון עודכן בהצלחה" });
@@ -38,7 +44,11 @@ export const addGrade = async (req, res) => {
     // Create new grade
     const newGrade = new Grade({
       grade,
-      comment,
+      videoQuality,
+      workQuality,
+      writingQuality,
+      commits,
+      journalActive,
       judge: req.user._id,
     });
 
@@ -50,7 +60,7 @@ export const addGrade = async (req, res) => {
 
     res.status(200).json({ message: "הציון נשמר בהצלחה" });
   } catch (error) {
-    console.log(error);
+    console.log("Error saving grade:", error); // Add this line to log the error
     res.status(500).json({ message: "שגיאה בשמירת הציון" });
   }
 };
