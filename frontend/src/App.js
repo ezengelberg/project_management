@@ -130,7 +130,7 @@ const MainLayout = () => {
                 }
               />
               <Route
-                path="/grade-project/:projectId"
+                path="/grade-project/:submissionId"
                 element={
                   <ProtectedRoute>
                     <GradeProject />

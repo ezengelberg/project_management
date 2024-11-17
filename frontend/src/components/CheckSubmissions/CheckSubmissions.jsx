@@ -50,8 +50,8 @@ const CheckSubmissions = () => {
             actions={[
               <a
                 key="list-grade"
-                onClick={() => navigate(`grade-project/${item.projectId}`)}
-                onMouseDown={(e) => handleMouseDown(e, `grade-project/${item.projectId}`)}>
+                onClick={() => navigate(`/grade-project/${item.key}`)}
+                onMouseDown={(e) => handleMouseDown(e, `/grade-project/${item.key}`)}>
                 דרג
               </a>,
               <a key="list-more">פרטים נוספים</a>,

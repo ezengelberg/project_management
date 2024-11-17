@@ -122,6 +122,7 @@ export const getUserSubmissions = async (req, res) => {
 
     // Map to the required format
     const submissionsWithDetails = filteredSubmissions.map((submission) => ({
+      key: submission._id,
       projectName: submission.project ? submission.project.title : null,
       submissionName: submission.name,
       submissionDate: submission.submissionDate,
@@ -132,6 +133,40 @@ export const getUserSubmissions = async (req, res) => {
     }));
 
     res.status(200).json(submissionsWithDetails);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getSubmission = async (req, res) => {
+  try {
+    const submission = await Submission.findById(req.params.id)
+      .populate("project", "title")
+      .populate({
+        path: "grades",
+        match: { judge: req.user._id },
+        populate: {
+          path: "judge",
+          select: "name email",
+        },
+      })
+      .exec();
+
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    const submissionData = {
+      projectId: submission.project._id,
+      projectName: submission.project.title,
+      submissionName: submission.name,
+      submissionDate: submission.submissionDate,
+      existingGrade: submission.grades[0]?.grade || null,
+      existingComment: submission.grades[0]?.comment || "",
+    };
+
+    res.status(200).json(submissionData);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });

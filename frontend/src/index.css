@@ -184,6 +184,14 @@ hr {
   right: 3.5%;
 }
 
+.ant-spin {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+}
+
 @media (max-width: 640px) {
   html {
     font-size: 8px;
