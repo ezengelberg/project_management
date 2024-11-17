@@ -2,17 +2,21 @@ import mongoose from "mongoose";
 
 const gradeSchema = new mongoose.Schema(
   {
-    grade: { type: Number, default: null },
-    judge: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // the judge that gave the grade
-    comment: { type: String, required: false, default: "" }, // the comment the judge gave
+    grade: { type: String, default: null },
+    judge: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    videoQuality: { type: String, required: true }, // Fix typo here
+    workQuality: { type: String, required: true },
+    writingQuality: { type: String, required: true },
+    commits: { type: Number, required: true },
+    journalActive: { type: String, required: true },
     overridden: {
       type: {
-        by: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // the coordinator that overriden the grade
-        comment: { type: String, required: true }, // the comment the coordinator
-        newGrade: { type: Number, required: true }, // the new grade the coordinator
+        by: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        comment: { type: String, required: true },
+        newGrade: { type: String, required: true },
       },
       required: false,
-    }, // if the grade was overriden by the coordinator
+    },
   },
   { timestamps: true }
 );
