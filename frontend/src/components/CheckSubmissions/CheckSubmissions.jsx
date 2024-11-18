@@ -49,8 +49,8 @@ const CheckSubmissions = () => {
             actions={[
               <a
                 key="list-grade"
-                onClick={() => navigate(`/grade-project/${item.key}`)}
-                onMouseDown={(e) => handleMouseDown(e, `/grade-project/${item.key}`)}>
+                onClick={() => navigate(`/grade-submission/${item.key}`)}
+                onMouseDown={(e) => handleMouseDown(e, `/grade-submission/${item.key}`)}>
                 שפיטה
               </a>,
               <a key="list-more">פרטים נוספים</a>,

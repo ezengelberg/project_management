@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
-import "./GradeProject.scss";
+import "./GradeSubmission.scss";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Button, Form, Input, Select, Space, message, Spin } from "antd";
 
-const GradeProject = () => {
+const GradeSubmission = () => {
   const [form] = Form.useForm();
   const { Option } = Select;
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : {};
+  });
   const { submissionId } = useParams();
   const [project, setProject] = useState({});
   const [loading, setLoading] = useState(false);
@@ -101,15 +105,31 @@ const GradeProject = () => {
               ]}>
               <Input.TextArea rows={4} />
             </Form.Item>
-            <Form.Item label="למנחה בלבד - כמה קומיטים היו בגיט?" name="commits">
-              <Input type="number" />
-            </Form.Item>
-            <Form.Item label="למנחה בלבד - האם היומן פעיל?" name="journalActive">
-              <Select>
-                <Option value="yes">כן</Option>
-                <Option value="no">לא</Option>
-              </Select>
-            </Form.Item>
+            {project?.advisorId === user._id && (
+              <>
+                <Form.Item
+                  label="כמה קומיטים היו בגיט"
+                  name="commits"
+                  rules={[
+                    {
+                      required: true,
+                      message: "נא להזין מספר קומיטים",
+                    },
+                    {
+                      validator: (_, value) =>
+                        value > -1 ? Promise.resolve() : Promise.reject("המספר חייב להיות חיובי"),
+                    },
+                  ]}>
+                  <Input type="number" />
+                </Form.Item>
+                <Form.Item label="האם היומן פעיל" name="journalActive">
+                  <Select>
+                    <Option value="yes">כן</Option>
+                    <Option value="no">לא</Option>
+                  </Select>
+                </Form.Item>
+              </>
+            )}
             <Form.Item
               label="ציון לפרויקט"
               name="grade"
@@ -154,4 +174,4 @@ const GradeProject = () => {
   );
 };
 
-export default GradeProject;
+export default GradeSubmission;

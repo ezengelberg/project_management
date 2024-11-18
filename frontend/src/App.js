@@ -19,7 +19,7 @@ import SystemControl from "./components/SystemControl/SystemControl";
 import Submissions from "./components/Submissions/Submissions";
 import MoreInformation from "./components/MoreInformation/MoreInformation";
 import CheckSubmissions from "./components/CheckSubmissions/CheckSubmissions";
-import GradeProject from "./components/GradeProject/GradeProject";
+import GradeSubmission from "./components/GradeSubmission/GradeSubmission";
 
 function App() {
   return (
@@ -130,10 +130,10 @@ const MainLayout = () => {
                 }
               />
               <Route
-                path="/grade-project/:submissionId"
+                path="/grade-submission/:submissionId"
                 element={
                   <ProtectedRoute>
-                    <GradeProject />
+                    <GradeSubmission />
                   </ProtectedRoute>
                 }
               />
