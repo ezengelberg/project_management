@@ -79,4 +79,13 @@
   p {
     margin: 0;
   }
+
+  .overview-grade {
+    display: flex;
+    gap: 1rem;
+
+    p {
+      direction: ltr;
+    }
+  }
 }

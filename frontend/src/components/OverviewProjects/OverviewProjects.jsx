@@ -477,14 +477,14 @@ const OverviewProjects = () => {
         <div key={submission._id} className="inner-table-order">
           {submission.gradesDetailed?.map((grade) => (
             <div key={grade.judge}>
-              <p>
+              <div className="overview-grade">
                 <a
                   onClick={() => navigate(`/profile/${grade.judge}`)}
                   onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
                   {grade.judgeName}
                 </a>{" "}
-                - {grade.grade !== null ? grade.grade : "אין ציון"}
-              </p>
+                - {grade.grade !== null ? <p>{grade.grade}</p> : "אין ציון"}
+              </div>
             </div>
           ))}
         </div>
@@ -813,25 +813,24 @@ const OverviewProjects = () => {
         sortDirections: ["descend", "ascend"],
       },
       {
-        title: "ציון דוח אלפה",
-        dataIndex: "alphaReportGrade",
-        key: "alphaReportGrade",
-        width: "8%",
-        render: (grade) => (grade ? grade.grade : "אין ציון"),
-        sorter: (a, b) =>
-          (a.alphaReportGrade ? a.alphaReportGrade.grade : 0) - (b.alphaReportGrade ? b.alphaReportGrade.grade : 0),
-        sortDirections: ["descend", "ascend"],
-      },
-      {
-        title: "ציון דוח סופי ומבחן",
-        dataIndex: "finalReportAndExamGrade",
-        key: "finalReportAndExamGrade",
-        width: "8%",
-        render: (grade) => (grade ? grade.grade : "אין ציון"),
-        sorter: (a, b) =>
-          (a.finalReportAndExamGrade ? a.finalReportAndExamGrade.grade : 0) -
-          (b.finalReportAndExamGrade ? b.finalReportAndExamGrade.grade : 0),
-        sortDirections: ["descend", "ascend"],
+        title: "ציונים",
+        dataIndex: "grades",
+        key: "grades",
+        render: (_, record) => {
+          const projectSubmissions = submissions.filter((submission) => submission.project === record._id);
+          return (
+            <div>
+              {projectSubmissions.map((submission) => (
+                <div key={submission._id} className="inner-table-order">
+                  <p>
+                    {submission.name} - {submission.finalGrade ? submission.finalGrade : "לא שוכלל ציון"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          );
+        },
+        width: "16%",
       },
       {
         title: "פעולות",
@@ -931,7 +930,7 @@ const OverviewProjects = () => {
               : "לא משוייך מנחה"}
           </div>
         ),
-        width: "10%",
+        width: "15%",
         sorter: (a, b) => {
           const advisorA = users.find((u) => u._id === a.advisors[0]);
           const advisorB = users.find((u) => u._id === b.advisors[0]);
@@ -986,37 +985,30 @@ const OverviewProjects = () => {
         title: "סוג",
         dataIndex: "type",
         key: "type",
-        width: "10%",
+        width: "15%",
         ...getColumnSearchProps("type"),
         sorter: (a, b) => a.type.localeCompare(b.type),
         sortDirections: ["descend", "ascend"],
       },
       {
-        title: "ציון דוח אלפה",
-        dataIndex: "alphaReportGrade",
-        key: "alphaReportGrade",
-        render: (grade) => (grade ? grade.grade : "אין ציון"),
-        width: "10%",
-        sorter: (a, b) => a.alphaReportGrade - b.alphaReportGrade,
-        sortDirections: ["descend", "ascend"],
-      },
-      {
-        title: "ציון דוח סופי",
-        dataIndex: "finalReportGrade",
-        key: "finalReportGrade",
-        render: (grade) => (grade ? grade.grade : "אין ציון"),
-        width: "10%",
-        sorter: (a, b) => a.finalReportGrade - b.finalReportGrade,
-        sortDirections: ["descend", "ascend"],
-      },
-      {
-        title: "ציון סופי",
-        dataIndex: "finalGrade",
-        key: "finalGrade",
-        render: (grades) => (grades ? grades.finalGrade : "אין ציון"),
-        width: "10%",
-        sorter: (a, b) => a.grades.finalGrade - b.grades.finalGrade,
-        sortDirections: ["descend", "ascend"],
+        title: "ציונים",
+        dataIndex: "grades",
+        key: "grades",
+        render: (_, record) => {
+          const projectSubmissions = submissions.filter((submission) => submission.project === record._id);
+          return (
+            <div>
+              {projectSubmissions.map((submission) => (
+                <div key={submission._id} className="inner-table-order">
+                  <p>
+                    {submission.name} - {submission.finalGrade ? submission.finalGrade : "לא שוכלל ציון"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          );
+        },
+        width: "20%",
       },
       {
         title: "פעולות",
