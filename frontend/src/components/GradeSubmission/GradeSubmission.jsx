@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import "./GradeSubmission.scss";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Button, Form, Input, Select, Space, message, Spin } from "antd";
 
 const GradeSubmission = () => {
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const { Option } = Select;
   const [user, setUser] = useState(() => {
@@ -52,6 +53,7 @@ const GradeSubmission = () => {
       );
       message.success("הציון נשמר בהצלחה");
       form.resetFields();
+      navigate("/check-submissions");
     } catch (error) {
       console.error("Error submitting grade:", error);
       message.error("שגיאה בשמירת הציון");

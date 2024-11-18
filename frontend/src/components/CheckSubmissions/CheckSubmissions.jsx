@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./CheckSubmissions.scss";
 import axios from "axios";
-import { Tooltip, List, Skeleton } from "antd";
+import { Tooltip, List, Skeleton, Modal } from "antd";
 import { useNavigate } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { DownloadOutlined } from "@ant-design/icons";
@@ -14,6 +14,8 @@ const CheckSubmissions = () => {
   });
   const [initLoading, setInitLoading] = useState(true);
   const [submissions, setSubmissions] = useState([]);
+  const [moreDetailsModal, setMoreDetailsModal] = useState(false);
+  const [submissionDetails, setSubmissionDetails] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,6 +32,24 @@ const CheckSubmissions = () => {
     };
     fetchData();
   }, []);
+
+  const getSumbissionDetails = async (submissionId) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-submission-details/${submissionId}`,
+        {
+          withCredentials: true,
+        }
+      );
+      setSubmissionDetails(response.data);
+      console.log(response.data);
+      setMoreDetailsModal(true);
+    } catch (error) {
+      console.log(error);
+      setSubmissionDetails({});
+      setMoreDetailsModal(false);
+    }
+  };
 
   return (
     <div className="check-submissions-container">
@@ -53,7 +73,13 @@ const CheckSubmissions = () => {
                 onMouseDown={(e) => handleMouseDown(e, `/grade-submission/${item.key}`)}>
                 שפיטה
               </a>,
-              <a key="list-more">פרטים נוספים</a>,
+              <a
+                key="list-more"
+                onClick={() => {
+                  getSumbissionDetails(item.key);
+                }}>
+                פרטים נוספים
+              </a>,
             ]}>
             <Skeleton title={false} loading={item.loading} active>
               <List.Item.Meta
@@ -65,7 +91,7 @@ const CheckSubmissions = () => {
                       <a
                         onClick={() => navigate(`/project/${item.projectId}`)}
                         onMouseDown={(e) => handleMouseDown(e, `/project/${item.projectId}`)}>
-                        {item.projectName}
+                        {item.projectName.length > 55 ? item.projectName.slice(0, 55) + "..." : item.projectName}
                       </a>
                       )
                     </span>
@@ -99,6 +125,43 @@ const CheckSubmissions = () => {
           </List.Item>
         )}
       />
+      <Modal
+        title="פרטי שפיטה"
+        open={moreDetailsModal}
+        onCancel={() => {
+          setMoreDetailsModal(false);
+          setSubmissionDetails({});
+        }}
+        cancelText="סגור"
+        okButtonProps={{ style: { display: "none" } }}>
+        <div className="details-title">
+          <h3>{submissionDetails.projectName}</h3>
+          <p>{submissionDetails.submissionName}</p>
+        </div>
+        <div className="details-grade">
+          <span>ציון שניתן על ידך:</span> <p>{submissionDetails.grade ? submissionDetails.grade : "לא ניתן ציון"}</p>
+        </div>
+        <p>
+          <strong>איכות הוידאו:</strong> {submissionDetails.videoQuality}
+        </p>
+        <p>
+          <strong>איכות העבודה:</strong> {submissionDetails.workQuality}
+        </p>
+        <p>
+          <strong>איכות הכתיבה:</strong> {submissionDetails.writingQuality}
+        </p>
+        {submissionDetails.commits && (
+          <p>
+            <strong>מספר הקומיטים:</strong> {submissionDetails.commits}
+          </p>
+        )}
+        {submissionDetails.journalActive && (
+          <p>
+            <strong>האם היומן פעיל:</strong>{" "}
+            {submissionDetails.journalActive === "yes" ? "כן" : submissionDetails.journalActive === "no" ? "לא" : ""}
+          </p>
+        )}
+      </Modal>
     </div>
   );
 };

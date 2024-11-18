@@ -307,3 +307,40 @@ export const updateJudgesInSubmission = async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 };
+
+export const getSubmissionDetails = async (req, res) => {
+  try {
+    const submission = await Submission.findById(req.params.id)
+      .populate("project", "title")
+      .populate({
+        path: "grades",
+        match: { judge: req.user._id },
+        populate: { path: "judge", select: "name email" },
+      })
+      .exec();
+
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    const grade = submission.grades[0];
+
+    const submissionDetails = {
+      submissionName: submission.name,
+      projectName: submission.project.title,
+      judgeName: grade.judge.name,
+      grade: grade.grade,
+      videoQuality: grade.videoQuality,
+      workQuality: grade.workQuality,
+      writingQuality: grade.writingQuality,
+      journalActive: grade.journalActive,
+      commits: grade.commits,
+      overridden: grade.overridden,
+    };
+
+    res.status(200).json(submissionDetails);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
