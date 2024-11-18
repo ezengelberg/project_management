@@ -337,6 +337,7 @@ export const getSubmissionDetails = async (req, res) => {
       journalActive: grade.journalActive,
       commits: grade.commits,
       overridden: grade.overridden,
+      updatedAt: grade.updatedAt,
     };
 
     res.status(200).json(submissionDetails);

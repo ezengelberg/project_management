@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from "react";
 import "./CheckSubmissions.scss";
 import axios from "axios";
-import { Tooltip, List, Skeleton, Modal } from "antd";
+import { Tooltip, List, Skeleton, Modal, Tabs } from "antd";
 import { useNavigate } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { DownloadOutlined } from "@ant-design/icons";
 
 const CheckSubmissions = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : {};
-  });
   const [initLoading, setInitLoading] = useState(true);
   const [submissions, setSubmissions] = useState([]);
   const [moreDetailsModal, setMoreDetailsModal] = useState(false);
@@ -42,7 +38,6 @@ const CheckSubmissions = () => {
         }
       );
       setSubmissionDetails(response.data);
-      console.log(response.data);
       setMoreDetailsModal(true);
     } catch (error) {
       console.log(error);
@@ -51,58 +46,114 @@ const CheckSubmissions = () => {
     }
   };
 
-  return (
-    <div className="check-submissions-container">
-      <List
-        className="submission-list"
-        loading={initLoading}
-        itemLayout="horizontal"
-        pagination={{
-          onChange: (page) => {
-            console.log(page);
-          },
-          pageSize: 10,
-        }}
-        dataSource={submissions}
-        renderItem={(item) => (
-          <List.Item
-            actions={[
-              <a
-                key="list-grade"
-                onClick={() => navigate(`/grade-submission/${item.key}`)}
-                onMouseDown={(e) => handleMouseDown(e, `/grade-submission/${item.key}`)}>
-                שפיטה
-              </a>,
-              <a
-                key="list-more"
-                onClick={() => {
-                  getSumbissionDetails(item.key);
-                }}>
-                פרטים נוספים
-              </a>,
-            ]}>
-            <Skeleton title={false} loading={item.loading} active>
-              <List.Item.Meta
-                className="submission-meta"
-                title={
-                  <div className="project-name">
-                    <span>
-                      {item.submissionName} - (
-                      <a
-                        onClick={() => navigate(`/project/${item.projectId}`)}
-                        onMouseDown={(e) => handleMouseDown(e, `/project/${item.projectId}`)}>
-                        {item.projectName.length > 55 ? item.projectName.slice(0, 55) + "..." : item.projectName}
-                      </a>
-                      )
-                    </span>
-                  </div>
-                }
-                description="פה יהיה שם הקובץ"
-              />
+  const waitingForGrade = submissions.filter((submission) => submission.grade === null);
+  const gradedSubmissions = submissions
+    .filter((submission) => submission.grade !== null)
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
-              <div className="submission-details">
-                {item.grade !== null ? (
-                  item.overridden ? (
+  const items = [
+    {
+      key: "1",
+      label: "מחכה לשפיטה",
+      children: (
+        <List
+          className="submission-list"
+          loading={initLoading}
+          itemLayout="horizontal"
+          pagination={{
+            pageSize: 10,
+          }}
+          dataSource={waitingForGrade}
+          renderItem={(item) => (
+            <List.Item
+              actions={[
+                <a
+                  key="list-grade"
+                  onClick={() => navigate(`/grade-submission/${item.key}`)}
+                  onMouseDown={(e) => handleMouseDown(e, `/grade-submission/${item.key}`)}>
+                  שפיטה
+                </a>,
+                <a
+                  key="list-more"
+                  onClick={() => {
+                    getSumbissionDetails(item.key);
+                  }}>
+                  פרטים נוספים
+                </a>,
+              ]}>
+              <Skeleton title={false} loading={item.loading} active>
+                <List.Item.Meta
+                  className="submission-meta"
+                  title={
+                    <div className="project-name">
+                      <span>
+                        {item.submissionName} - (
+                        <a
+                          onClick={() => navigate(`/project/${item.projectId}`)}
+                          onMouseDown={(e) => handleMouseDown(e, `/project/${item.projectId}`)}>
+                          {item.projectName.length > 55 ? item.projectName.slice(0, 55) + "..." : item.projectName}
+                        </a>
+                        )
+                      </span>
+                    </div>
+                  }
+                  description="פה יהיה שם הקובץ"
+                />
+                <div className="submission-details">
+                  <span>לא ניתן ציון</span>
+                  <Tooltip title="הורד קובץ">
+                    <DownloadOutlined className="icon" />
+                  </Tooltip>
+                </div>
+              </Skeleton>
+            </List.Item>
+          )}
+        />
+      ),
+    },
+    {
+      key: "2",
+      label: "נשפט",
+      children: (
+        <List
+          className="submission-list"
+          loading={initLoading}
+          itemLayout="horizontal"
+          pagination={{
+            pageSize: 10,
+          }}
+          dataSource={gradedSubmissions}
+          renderItem={(item) => (
+            <List.Item
+              actions={[
+                <a
+                  key="list-more"
+                  onClick={() => {
+                    getSumbissionDetails(item.key);
+                  }}>
+                  פרטים נוספים
+                </a>,
+              ]}>
+              <Skeleton title={false} loading={item.loading} active>
+                <List.Item.Meta
+                  className="submission-meta"
+                  title={
+                    <div className="project-name">
+                      <span>
+                        {item.submissionName} - (
+                        <a
+                          onClick={() => navigate(`/project/${item.projectId}`)}
+                          onMouseDown={(e) => handleMouseDown(e, `/project/${item.projectId}`)}>
+                          {item.projectName.length > 55 ? item.projectName.slice(0, 55) + "..." : item.projectName}
+                        </a>
+                        )
+                      </span>
+                    </div>
+                  }
+                  description="פה יהיה שם הקובץ"
+                />
+                <div className="submission-details">
+                  {item.overridden ? (
                     <div className="grade">
                       <span>ציון:</span>
                       <p style={{ textDecoration: "line-through" }}>{item.grade}</p>
@@ -113,18 +164,22 @@ const CheckSubmissions = () => {
                       <span>ציון: </span>
                       <p>{item.grade}</p>
                     </div>
-                  )
-                ) : (
-                  <span>לא ניתן ציון</span>
-                )}
-                <Tooltip title="הורד קובץ">
-                  <DownloadOutlined className="icon" />
-                </Tooltip>
-              </div>
-            </Skeleton>
-          </List.Item>
-        )}
-      />
+                  )}
+                  <Tooltip title="הורד קובץ">
+                    <DownloadOutlined className="icon" />
+                  </Tooltip>
+                </div>
+              </Skeleton>
+            </List.Item>
+          )}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <div className="check-submissions-container">
+      <Tabs defaultActiveKey="1" items={items} />
       <Modal
         title="פרטי שפיטה"
         open={moreDetailsModal}
@@ -136,7 +191,7 @@ const CheckSubmissions = () => {
         okButtonProps={{ style: { display: "none" } }}>
         <div className="details-title">
           <h3>{submissionDetails.projectName}</h3>
-          <p>{submissionDetails.submissionName}</p>
+          <p>הגשה - {submissionDetails.submissionName}</p>
         </div>
         <div className="details-grade">
           <span>ציון שניתן על ידך:</span> <p>{submissionDetails.grade ? submissionDetails.grade : "לא ניתן ציון"}</p>
@@ -161,6 +216,16 @@ const CheckSubmissions = () => {
             {submissionDetails.journalActive === "yes" ? "כן" : submissionDetails.journalActive === "no" ? "לא" : ""}
           </p>
         )}
+        <p>
+          <strong>תאריך שפיטה:</strong>{" "}
+          {new Date(submissionDetails.updatedAt).toLocaleString("he-IL", {
+            hour: "2-digit",
+            minute: "2-digit",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          })}
+        </p>
       </Modal>
     </div>
   );
