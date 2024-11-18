@@ -120,6 +120,9 @@ const Submissions = () => {
     try {
       let name = "";
       switch (submissionType) {
+        case "proposalReport":
+          name = "דוח הצעה";
+          break;
         case "alphaReport":
           name = "דוח אלפה";
           break;
@@ -159,6 +162,9 @@ const Submissions = () => {
     try {
       let name = "";
       switch (submissionType) {
+        case "proposalReport":
+          name = "דוח הצעה";
+          break;
         case "alphaReport":
           name = "דוח אלפה";
           break;
@@ -330,9 +336,10 @@ const Submissions = () => {
   ];
 
   const submissionOptions = [
-    { label: "דוח אלפה", value: "alphaReport" },
-    { label: "דוח סופי", value: "finalReport" },
-    { label: "מבחן סוף", value: "finalExam" },
+    { label: "דוח הצעה", value: "proposalReport", isGraded: false, isReviewed: false },
+    { label: "דוח אלפה", value: "alphaReport", isGraded: true, isReviewed: true },
+    { label: "דוח סופי", value: "finalReport", isGraded: false, isReviewed: true },
+    { label: "מבחן סוף", value: "finalExam", isGraded: true, isReviewed: false },
     { label: "אחר", value: "other" }
   ];
 
