@@ -63,8 +63,10 @@ const Submissions = () => {
 
       console.log(response.data);
       setSubmissionData(response.data);
-      // const submissionNames = [...new Set(response.data.map((submission) => submission.name))];
-      // setSubmissionNames(submissionNames);
+      const submissionNames = [
+        ...new Set(response.data.flatMap((submission) => submission.submissions.map((sub) => sub.name)))
+      ];
+      setSubmissionNames(submissionNames);
     } catch (error) {
       console.error("Error fetching submissions:", error);
       setSubmissionData([]);

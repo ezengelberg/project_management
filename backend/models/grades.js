@@ -4,19 +4,19 @@ const gradeSchema = new mongoose.Schema(
   {
     grade: { type: String, default: null },
     judge: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    videoQuality: { type: String, required: true }, // Fix typo here
-    workQuality: { type: String, required: true },
-    writingQuality: { type: String, required: true },
-    commits: { type: Number, required: true },
-    journalActive: { type: String, required: true },
+    videoQuality: { type: String, default: null },
+    workQuality: { type: String, default: null },
+    writingQuality: { type: String, default: null },
+    journalActive: { type: String, default: null },
+    commits: { type: Number, default: null },
     overridden: {
       type: {
         by: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         comment: { type: String, required: true },
-        newGrade: { type: String, required: true },
+        newGrade: { type: String, required: true }
       },
-      required: false,
-    },
+      required: false
+    }
   },
   { timestamps: true }
 );

@@ -76,6 +76,7 @@ export const getAllProjectSubmissions = async (req, res) => {
                 const grade = await Grade.findById(gradeId);
                 const judge = await User.findById(grade.judge);
                 return {
+                  key: grade._id,
                   gradeid: grade._id,
                   judge: grade.judge,
                   judgeName: judge ? judge.name : null,
@@ -86,6 +87,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               })
             );
             return {
+              key: submission._id,
               submissionid: submission._id,
               name: submission.name,
               submissionDate: submission.submissionDate,
@@ -95,6 +97,7 @@ export const getAllProjectSubmissions = async (req, res) => {
           })
         );
         return {
+          key: project._id,
           projectid: project._id,
           title: project.title,
           submissions: submissionsWithGrades
