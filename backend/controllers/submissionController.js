@@ -22,7 +22,7 @@ export const createSubmission = async (req, res) => {
           name: req.body.name,
           project: project._id,
           submissionDate: new Date(req.body.submissionDate),
-          grades: [gradeByAdvisor]
+          grades: [gradeByAdvisor],
         });
         await submission.save();
       })
@@ -51,7 +51,7 @@ export const createSpecificSubmission = async (req, res) => {
           name: req.body.name,
           project: project._id,
           submissionDate: new Date(req.body.submissionDate),
-          grades: [gradeByAdvisor]
+          grades: [gradeByAdvisor],
         });
         await submission.save();
       })
@@ -82,7 +82,7 @@ export const getAllProjectSubmissions = async (req, res) => {
                   judgeName: judge ? judge.name : null,
                   grade: grade.grade,
                   comment: grade.comment,
-                  overridden: grade.overridden
+                  overridden: grade.overridden,
                 };
               })
             );
@@ -92,7 +92,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               name: submission.name,
               submissionDate: submission.submissionDate,
               grades: grades,
-              submitted: submission.file ? true : false
+              submitted: submission.file ? true : false,
             };
           })
         );
@@ -100,7 +100,7 @@ export const getAllProjectSubmissions = async (req, res) => {
           key: project._id,
           projectid: project._id,
           title: project.title,
-          submissions: submissionsWithGrades
+          submissions: submissionsWithGrades,
         };
       })
     );
@@ -135,11 +135,11 @@ export const getAllSubmissions = async (req, res) => {
                 judgeName: judge ? judge.name : null,
                 grade: gradeInfo ? gradeInfo.grade : null,
                 comment: gradeInfo ? gradeInfo.comment : null,
-                overridden: gradeInfo ? gradeInfo.overridden : null
+                overridden: gradeInfo ? gradeInfo.overridden : null,
               };
             })
           ),
-          key: submission._id
+          key: submission._id,
         };
       })
     );
@@ -159,8 +159,8 @@ export const getUserSubmissions = async (req, res) => {
         match: { judge: req.user._id },
         populate: {
           path: "judge",
-          select: "name email"
-        }
+          select: "name email",
+        },
       })
       .populate("project", "title description")
       .exec();
@@ -177,7 +177,7 @@ export const getUserSubmissions = async (req, res) => {
       grade: submission.grades[0]?.grade || null,
       comment: submission.grades[0]?.comment || "",
       overridden: submission.grades[0]?.overridden || null,
-      projectId: submission.project ? submission.project._id : null
+      projectId: submission.project ? submission.project._id : null,
     }));
 
     res.status(200).json(submissionsWithDetails);
@@ -190,14 +190,14 @@ export const getUserSubmissions = async (req, res) => {
 export const getSubmission = async (req, res) => {
   try {
     const submission = await Submission.findById(req.params.id)
-      .populate("project", "title")
+      .populate("project", "title advisors")
       .populate({
         path: "grades",
         match: { judge: req.user._id },
         populate: {
           path: "judge",
-          select: "name email"
-        }
+          select: "name email",
+        },
       })
       .exec();
 
@@ -208,10 +208,11 @@ export const getSubmission = async (req, res) => {
     const submissionData = {
       projectId: submission.project._id,
       projectName: submission.project.title,
+      advisorId: submission.project.advisors[0]._id,
       submissionName: submission.name,
       submissionDate: submission.submissionDate,
       existingGrade: submission.grades[0]?.grade || null,
-      existingComment: submission.grades[0]?.comment || ""
+      existingComment: submission.grades[0]?.comment || "",
     };
 
     res.status(200).json(submissionData);
