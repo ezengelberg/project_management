@@ -1,5 +1,6 @@
 import User from "../models/users.js";
 import Project from "../models/projects.js";
+import Submission from "../models/submission.js";
 import bcrypt from "bcryptjs";
 import passport from "passport";
 import mongoose from "mongoose";
@@ -308,8 +309,20 @@ export const editUserCoordinator = async (req, res) => {
     if (email !== undefined) user.email = email;
     if (id !== undefined) user.id = id;
     if (isStudent !== undefined) user.isStudent = isStudent;
-    if (isAdvisor !== undefined) user.isAdvisor = isAdvisor;
-    if (isJudge !== undefined) user.isJudge = isJudge;
+    if (isAdvisor !== undefined && isAdvisor !== user.isAdvisor) {
+      const advisorProjects = await Project.find({ advisors: userId });
+      if (advisorProjects.length > 0) {
+        throw new Error("Cannot change advisor role while user has associated projects");
+      }
+      user.isAdvisor = isAdvisor;
+    }
+    if (isJudge !== undefined && isJudge !== user.isJudge) {
+      const judgeSubmissions = await Submission.find({ grades: { $elemMatch: { judge: userId } } });
+      if (judgeSubmissions.length > 0) {
+        throw new Error("Cannot change judge role while user has associated submissions");
+      }
+      user.isJudge = isJudge;
+    }
     if (isCoordinator !== undefined) user.isCoordinator = isCoordinator;
     if (interests !== undefined) user.interests = interests;
     user.updatedAt = new Date();
@@ -317,7 +330,13 @@ export const editUserCoordinator = async (req, res) => {
     await user.save();
     res.status(200).send("User updated successfully");
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    if (err.message.includes("Cannot change advisor role")) {
+      res.status(403).send({ message: "Cannot change advisor role while user has associated projects" });
+    } else if (err.message.includes("Cannot change judge role")) {
+      res.status(403).send({ message: "Cannot change judge role while user has associated submissions" });
+    } else {
+      res.status(500).send({ message: err.message });
+    }
   }
 };
 

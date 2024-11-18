@@ -386,7 +386,16 @@ const ShowAllUsers = () => {
             throw new Error(errorMessage);
           }
         } else if (error.response?.status === 404) {
-          throw new Error("משתמש לא נמצא");
+          throw new Error("שגיאה בעדכון פרטי המשתמש");
+        } else if (error.response?.status === 403) {
+          const errorMessage = error.response?.data?.message || "שגיאה בעדכון פרטי המשתמש";
+          if (errorMessage.includes("projects")) {
+            throw new Error("המשתמש משוייך לפרויקט ולכן לא ניתן לשנות את התפקיד שלו");
+          } else if (errorMessage.includes("submissions")) {
+            throw new Error("המשתמש משוייך להגשות ולכן לא ניתן לשנות את התפקיד שלו");
+          } else {
+            throw new Error(errorMessage);
+          }
         } else {
           throw new Error(error.response?.data?.message || "שגיאה בעדכון פרטי המשתמש");
         }
