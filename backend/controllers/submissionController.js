@@ -106,7 +106,8 @@ export const getAllProjectSubmissions = async (req, res) => {
     );
 
     const resolvedProjectsList = await Promise.all(projectsList);
-    res.status(200).json(resolvedProjectsList);
+
+    res.status(200).json(resolvedProjectsList.filter((project) => project.submissions.length > 0));
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });

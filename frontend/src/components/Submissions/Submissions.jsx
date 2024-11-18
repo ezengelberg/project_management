@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
+import { Statistic } from "antd";
 import { handleMouseDown } from "../../utils/mouseDown";
 import axios from "axios";
 import "./Submissions.scss";
@@ -40,6 +41,7 @@ const Submissions = () => {
   const [submissionNames, setSubmissionNames] = useState([]);
   const [submissionType, setSubmissionType] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [submissionInfo, setSubmissionInfo] = useState(null);
 
   const fetchActiveProjects = async () => {
     try {
@@ -311,7 +313,11 @@ const Submissions = () => {
               const waitingCheck = grades.some((grade) => grade.grade === null);
 
               return (
-                <Col key={index} span={colSpan} className="table-col">
+                <Col
+                  key={index}
+                  span={colSpan}
+                  className="table-col"
+                  onClick={() => setSubmissionInfo({ project: record, submission: sub })}>
                   <div className="submission-title">{sub.name || ""}</div>
                   <span className="submission-date-time">
                     {sub.submissionDate
@@ -343,6 +349,43 @@ const Submissions = () => {
     { label: "דוח סופי", value: "finalReport", isGraded: false, isReviewed: true },
     { label: "מבחן סוף", value: "finalExam", isGraded: true, isReviewed: false },
     { label: "אחר", value: "other" }
+  ];
+
+  const gradeColumns = [
+    {
+      title: "שופט",
+      dataIndex: "judgeName",
+      key: "judgeName"
+    },
+    {
+      title: "ציון",
+      dataIndex: "grade",
+      key: "grade",
+      render: (text, record) => (
+        <Space>
+          {record.grade !== null ? record.grade : "טרם נבדק"}
+          {record.grade !== null && (
+            <EditOutlined
+              onClick={(e) => {
+                e.stopPropagation();
+                setGradeToOverride(record);
+                setGradeFormOpen(true);
+                gradeForm.setFieldsValue({
+                  oldGrade: record.grade,
+                  newGrade: record.grade
+                });
+              }}
+            />
+          )}
+        </Space>
+      )
+    },
+    {
+      title: "הערות",
+      dataIndex: "comments",
+      key: "comments",
+      render: (text) => text || "אין הערות"
+    }
   ];
 
   return (
@@ -392,6 +435,110 @@ const Submissions = () => {
       />
       {/* <div className="float-button-actions">
       </div> */}
+      <Modal
+        title="פרטי הגשה"
+        open={submissionInfo !== null}
+        onCancel={() => setSubmissionInfo(null)}
+        footer={[
+          <Button key="close" onClick={() => setSubmissionInfo(null)}>
+            סגור
+          </Button>
+        ]}
+        width={800}>
+        {submissionInfo && (
+          <div className="submission-info-modal">
+            <div className="submission-header">
+              <h2>{submissionInfo.project.title}</h2>
+              <Badge
+                status={submissionInfo.submission.submitted ? "success" : "warning"}
+                text={submissionInfo.submission.submitted ? "הוגש" : "ממתין להגשה"}
+              />
+            </div>
+
+            <div className="submission-details">
+              <Row gutter={[16, 16]}>
+                <Col span={12}>
+                  <div className="detail-item">
+                    <strong>סוג הגשה:</strong> {submissionInfo.submission.name}
+                  </div>
+                  <div className="detail-item">
+                    <strong>תאריך הגשה:</strong>{" "}
+                    {new Date(submissionInfo.submission.submissionDate).toLocaleString("he-IL")}
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <div className="detail-item">
+                    <strong>סטטוס הגשה:</strong> {submissionInfo.submission.submitted ? "הוגש" : "ממתין להגשה"}
+                  </div>
+                  <div className="detail-item">
+                    <strong>סטטוס בדיקה:</strong>{" "}
+                    {submissionInfo.submission.submitted &&
+                    submissionInfo.submission.grades.some((grade) => grade.grade === null)
+                      ? "ממתין לבדיקה"
+                      : submissionInfo.submission.submitted
+                      ? "נבדק"
+                      : "לא הוגש"}
+                  </div>
+                </Col>
+              </Row>
+            </div>
+
+            <div className="submission-grades">
+              <h3>ציונים ומשובים</h3>
+              <Table
+                columns={gradeColumns}
+                dataSource={submissionInfo.submission.grades.map((grade, index) => ({
+                  key: grade._id || index,
+                  judgeName: grade.judgeName,
+                  grade: grade.grade,
+                  comments: grade.comments
+                }))}
+                pagination={false}
+              />
+            </div>
+
+            {submissionInfo.submission.grades.length > 0 && (
+              <div className="grade-summary">
+                <h3>סיכום ציונים</h3>
+                <Row gutter={[16, 16]}>
+                  <Col span={8}>
+                    <Statistic
+                      title="ממוצע"
+                      value={
+                        submissionInfo.submission.grades
+                          .filter((grade) => grade.grade !== null)
+                          .reduce((acc, curr) => acc + curr.grade, 0) /
+                        submissionInfo.submission.grades.filter((grade) => grade.grade !== null).length
+                      }
+                      precision={1}
+                    />
+                  </Col>
+                  <Col span={8}>
+                    <Statistic
+                      title="ציון מקסימלי"
+                      value={Math.max(
+                        ...submissionInfo.submission.grades
+                          .filter((grade) => grade.grade !== null)
+                          .map((grade) => grade.grade)
+                      )}
+                    />
+                  </Col>
+                  <Col span={8}>
+                    <Statistic
+                      title="ציון מינימלי"
+                      value={Math.min(
+                        ...submissionInfo.submission.grades
+                          .filter((grade) => grade.grade !== null)
+                          .map((grade) => grade.grade)
+                      )}
+                    />
+                  </Col>
+                </Row>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
       <Modal
         title="שנה ציון"
         open={gradeFormOpen}
