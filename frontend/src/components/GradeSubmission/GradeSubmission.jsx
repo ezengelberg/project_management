@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import "./GradeProject.scss";
+import "./GradeSubmission.scss";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Button, Form, Input, Select, Space, message, Spin } from "antd";
 
-const GradeProject = () => {
+const GradeSubmission = () => {
   const [form] = Form.useForm();
   const { Option } = Select;
   const { submissionId } = useParams();
@@ -154,4 +154,4 @@ const GradeProject = () => {
   );
 };
 
-export default GradeProject;
+export default GradeSubmission;
