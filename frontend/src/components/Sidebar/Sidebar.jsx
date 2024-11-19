@@ -12,6 +12,7 @@ import {
   FilePdfOutlined,
   InfoCircleOutlined,
   CheckCircleOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -24,6 +25,7 @@ const Sidebar = () => {
     myProject: false,
     myProjects: false,
     manageUsers: false,
+    manageProjects: false,
   });
 
   useEffect(() => {
@@ -155,14 +157,39 @@ const Sidebar = () => {
               </div>
             </li>
           )}
+
           {user.isCoordinator && (
-            <li>
+            <li className={`sidebar-drop-menu ${openSubmenus.manageProjects ? "open" : "closed"}`}>
               <div
-                className={`sidebar-option ${isActive("/overview-projects") ? "active" : ""}`}
-                onClick={() => navigate("/overview-projects")}
+                className="sidebar-option"
+                onClick={() => toggleSubmenu("manageProjects")}
                 onMouseDown={(e) => handleMouseDown(e, "/overview-projects")}>
-                <FundProjectionScreenOutlined />
+                <BarChartOutlined />
                 <span>ניהול פרויקטים</span>
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
+                    stroke="#0C0310"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+              <div className={`sidebar-drop-menu ${openSubmenus.manageProjects ? "open" : "closed"}`}>
+                <ul>
+                  <li
+                    className={`${isActive("/overview-projects") ? "active" : ""}`}
+                    onClick={() => navigate("/overview-projects")}
+                    onMouseDown={(e) => handleMouseDown(e, "/overview-projects")}>
+                    ניהול פרויקטים
+                  </li>
+                  <li
+                    className={`sidebar-option ${isActive("/submissions") ? "active" : ""}`}
+                    onClick={() => navigate("/submissions")}
+                    onMouseDown={(e) => handleMouseDown(e, "/submissions")}>
+                    ניהול הגשות
+                  </li>
+                </ul>
               </div>
             </li>
           )}
@@ -198,17 +225,6 @@ const Sidebar = () => {
                     הצגת משתמשים
                   </li>
                 </ul>
-              </div>
-            </li>
-          )}
-          {user.isCoordinator && (
-            <li>
-              <div
-                className={`sidebar-option ${isActive("/submissions") ? "active" : ""}`}
-                onClick={() => navigate("/submissions")}
-                onMouseDown={(e) => handleMouseDown(e, "/submissions")}>
-                <FilePdfOutlined />
-                <span>ניהול הגשות</span>
               </div>
             </li>
           )}
