@@ -181,7 +181,7 @@ const Sidebar = () => {
                     className={`${isActive("/overview-projects") ? "active" : ""}`}
                     onClick={() => navigate("/overview-projects")}
                     onMouseDown={(e) => handleMouseDown(e, "/overview-projects")}>
-                    ניהול פרויקטים
+                    רשימת פרויקטים
                   </li>
                   <li
                     className={`sidebar-option ${isActive("/submissions") ? "active" : ""}`}
