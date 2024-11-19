@@ -23,6 +23,8 @@ export const createSubmission = async (req, res) => {
           project: project._id,
           submissionDate: new Date(req.body.submissionDate),
           grades: [gradeByAdvisor],
+          isGraded: req.body.isGraded,
+          isReviewed: req.body.isReviewed
         });
         await submission.save();
       })
@@ -51,7 +53,7 @@ export const createSpecificSubmission = async (req, res) => {
           name: req.body.name,
           project: project._id,
           submissionDate: new Date(req.body.submissionDate),
-          grades: [gradeByAdvisor],
+          grades: [gradeByAdvisor]
         });
         await submission.save();
       })
@@ -82,7 +84,7 @@ export const getAllProjectSubmissions = async (req, res) => {
                   judgeName: judge ? judge.name : null,
                   grade: grade.grade,
                   comment: grade.comment,
-                  overridden: grade.overridden,
+                  overridden: grade.overridden
                 };
               })
             );
@@ -92,7 +94,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               name: submission.name,
               submissionDate: submission.submissionDate,
               grades: grades,
-              submitted: submission.file ? true : false,
+              submitted: submission.file ? true : false
             };
           })
         );
@@ -100,12 +102,16 @@ export const getAllProjectSubmissions = async (req, res) => {
           key: project._id,
           projectid: project._id,
           title: project.title,
-          submissions: submissionsWithGrades,
+          submissions: submissionsWithGrades
         };
       })
     );
 
-    const resolvedProjectsList = await Promise.all(projectsList);
+    let resolvedProjectsList = await Promise.all(projectsList);
+    resolvedProjectsList = resolvedProjectsList.map((project) => {
+      project.submissions = project.submissions.sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate));
+      return project;
+    });
 
     res.status(200).json(resolvedProjectsList.filter((project) => project.submissions.length > 0));
   } catch (error) {
@@ -136,11 +142,11 @@ export const getAllSubmissions = async (req, res) => {
                 judgeName: judge ? judge.name : null,
                 grade: gradeInfo ? gradeInfo.grade : null,
                 comment: gradeInfo ? gradeInfo.comment : null,
-                overridden: gradeInfo ? gradeInfo.overridden : null,
+                overridden: gradeInfo ? gradeInfo.overridden : null
               };
             })
           ),
-          key: submission._id,
+          key: submission._id
         };
       })
     );
@@ -160,8 +166,8 @@ export const getUserSubmissions = async (req, res) => {
         match: { judge: req.user._id },
         populate: {
           path: "judge",
-          select: "name email",
-        },
+          select: "name email"
+        }
       })
       .populate("project", "title description")
       .exec();
@@ -178,7 +184,7 @@ export const getUserSubmissions = async (req, res) => {
       grade: submission.grades[0]?.grade || null,
       comment: submission.grades[0]?.comment || "",
       overridden: submission.grades[0]?.overridden || null,
-      projectId: submission.project ? submission.project._id : null,
+      projectId: submission.project ? submission.project._id : null
     }));
 
     res.status(200).json(submissionsWithDetails);
@@ -197,8 +203,8 @@ export const getSubmission = async (req, res) => {
         match: { judge: req.user._id },
         populate: {
           path: "judge",
-          select: "name email",
-        },
+          select: "name email"
+        }
       })
       .exec();
 
@@ -213,7 +219,7 @@ export const getSubmission = async (req, res) => {
       submissionName: submission.name,
       submissionDate: submission.submissionDate,
       existingGrade: submission.grades[0]?.grade || null,
-      existingComment: submission.grades[0]?.comment || "",
+      existingComment: submission.grades[0]?.comment || ""
     };
 
     res.status(200).json(submissionData);
@@ -316,7 +322,7 @@ export const getSubmissionDetails = async (req, res) => {
       .populate({
         path: "grades",
         match: { judge: req.user._id },
-        populate: { path: "judge", select: "name email" },
+        populate: { path: "judge", select: "name email" }
       })
       .exec();
 
@@ -337,7 +343,7 @@ export const getSubmissionDetails = async (req, res) => {
       journalActive: grade.journalActive,
       commits: grade.commits,
       overridden: grade.overridden,
-      updatedAt: grade.updatedAt,
+      updatedAt: grade.updatedAt
     };
 
     res.status(200).json(submissionDetails);
