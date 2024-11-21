@@ -105,8 +105,6 @@ const Submissions = () => {
   };
 
   const overrideGrade = async (values) => {
-    console.log(values);
-    console.log(gradeToOverride);
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/update/${gradeToOverride.key}`,
@@ -237,7 +235,6 @@ const Submissions = () => {
   };
 
   const handleClose = () => {
-    console.log("close!");
     formAll.resetFields();
     setAllSubmissions(false);
 
