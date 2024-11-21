@@ -71,7 +71,6 @@ const Templates = () => {
       setFileList([]);
       clearForm();
 
-      // Fetch updated files
       const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, {
         withCredentials: true
       });

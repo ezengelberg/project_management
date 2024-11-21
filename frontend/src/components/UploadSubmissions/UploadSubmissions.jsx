@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Badge, Table, Tooltip, Modal, Upload, message, Button } from "antd";
 import { UploadOutlined, DeleteOutlined, InboxOutlined } from "@ant-design/icons";
+
 import axios from "axios";
 import "./UploadSubmissions.scss";
 
@@ -59,13 +60,11 @@ const UploadSubmissions = () => {
 
   const fetchPendingSubmissions = async () => {
     try {
-      console.log("fetching");
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-student-submissions`, {
         withCredentials: true
       });
 
       setSubmissions(response.data);
-      console.log(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -92,28 +91,33 @@ const UploadSubmissions = () => {
 
     try {
       // Send POST request to upload the file
-      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=submissions`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          "X-Filename-Encoding": "url"
-        },
-        withCredentials: true
-      });
-
-      console.log("response sent?");
-
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=submissions`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "X-Filename-Encoding": "url"
+          },
+          withCredentials: true
+        }
+      );
       // Show success message and reset file
-      message.success("הקובץ הועלה בהצלחה");
+      const uploadedFile = response.data.files[0]._id;
+
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-file/${currentSubmission._id}`,
+        {
+          file: uploadedFile
+        },
+        { withCredentials: true }
+      );
+
+      const submissionsUpdated = submissions.map((submission) =>
+        submission._id === currentSubmission._id ? { ...submission, file: uploadedFile } : submission
+      );
+      setSubmissions(submissionsUpdated);
       setFile(null); // Clear the selected file
-
-      // Optionally, fetch the updated list of files
-      const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=submissions`, {
-        withCredentials: true
-      });
-
-      console.log("Updated files:", updatedFiles.data);
-      // You can set the updated files to a state if needed
-      // setTemplateFiles(updatedFiles.data);
     } catch (error) {
       console.error("Error occurred:", error);
       if (error.response?.status === 500 || error.response?.status === 409) {
@@ -141,11 +145,18 @@ const UploadSubmissions = () => {
         const isPastDue = submissionDate < new Date();
         const isDateClose = submissionDate - new Date() < 2 * 24 * 60 * 60 * 1000;
         return (
-          <Tooltip title={`${isPastDue ? "תאריך ההגשה עבר, ההגשה באיחור" : isDateClose ? "תאריך הגשה מתקרב" : ""}`}>
+          <Tooltip
+            title={`${
+              !record.file && isPastDue
+                ? "תאריך ההגשה עבר, ההגשה באיחור"
+                : !record.file && isDateClose
+                ? "תאריך הגשה מתקרב"
+                : ""
+            }`}>
             <span
               style={{
-                color: isPastDue ? "red" : isDateClose ? "#f58623" : "inherit",
-                fontWeight: isPastDue || isDateClose ? "bold" : "normal"
+                color: !record.file && isPastDue ? "red" : !record.file && isDateClose ? "#f58623" : "inherit",
+                fontWeight: !record.file && (isPastDue || isDateClose) ? "bold" : "normal"
               }}>
               {submissionDate.toLocaleString("he-IL", {
                 hour: "2-digit",
@@ -164,7 +175,6 @@ const UploadSubmissions = () => {
       dataIndex: "submissionStatus",
       key: "submissionStatus",
       render: (_, record) => {
-        console.log(record);
         return (
           <span>{record.file ? <Badge color="green" text="הוגש" /> : <Badge color="orange" text="לא הוגש" />}</span>
         );
@@ -179,13 +189,16 @@ const UploadSubmissions = () => {
       title: "פעולות",
       key: "action",
       render: (text, record) => (
-        <span className="action-items">
-          <a>
-            <UploadOutlined className="edit-icon" onClick={() => showUploadModal(record)} />
-          </a>
-          <a>
-            <DeleteOutlined className="edit-icon" />
-          </a>
+        <span>
+          {!record.file ? (
+            <a>
+              <UploadOutlined className="edit-icon" onClick={() => showUploadModal(record)} />
+            </a>
+          ) : (
+            <a>
+              <DeleteOutlined className="edit-icon" />
+            </a>
+          )}
         </span>
       )
     }
@@ -195,7 +208,7 @@ const UploadSubmissions = () => {
     <div>
       <Modal
         title={`הגשת מטלה - ${currentSubmission?.name}`}
-        visible={isModalVisible}
+        open={isModalVisible}
         onCancel={closeModal}
         footer={[
           <Button key="ok" type="primary" onClick={closeModal}>

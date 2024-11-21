@@ -18,8 +18,6 @@ export const getFiles = async (req, res) => {
 };
 
 export const createFile = async (req, res) => {
-  console.log("Creating file...");
-
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ message: "No files uploaded" });
   }
