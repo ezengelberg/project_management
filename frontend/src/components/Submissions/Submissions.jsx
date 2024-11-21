@@ -161,6 +161,7 @@ const Submissions = () => {
         {
           name: name,
           submissionDate: values.submissionDate,
+          submissionInfo: values.submissionInfo,
           isGraded: isGraded,
           isReviewed: isReviewed
         },
@@ -223,6 +224,7 @@ const Submissions = () => {
         {
           name: name,
           submissionDate: values.submissionDate,
+          submissionInfo: values.submissionInfo,
           projects: values.projects,
           isGraded: isGraded,
           isReviewed: isReviewed
@@ -244,20 +246,28 @@ const Submissions = () => {
   };
 
   const handleClose = () => {
-    formAll.resetFields();
-    setAllSubmissions(false);
+    if (allSubmissions) {
+      formAll.resetFields();
+      setAllSubmissions(false);
+    }
 
-    formSpecific.resetFields();
-    setSpecificSubmission(false);
+    if (specificSubmission) {
+      formSpecific.resetFields();
+      setSpecificSubmission(false);
+    }
 
-    formJudges.resetFields();
-    setCopyJudges(false);
+    if (copyJudges) {
+      formJudges.resetFields();
+      setCopyJudges(false);
+    }
+
+    if (gradeFormOpen) {
+      gradeForm.resetFields();
+      setGradeFormOpen(false);
+      setGradeToOverride(null);
+    }
 
     setSubmissionType(null);
-
-    gradeForm.resetFields();
-    setGradeFormOpen(false);
-    setGradeToOverride(null);
   };
 
   const onOkHandlerSpecific = () => {

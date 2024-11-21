@@ -25,7 +25,7 @@ const Templates = () => {
     const fetchPrivileges = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, {
-          withCredentials: true,
+          withCredentials: true
         });
         setPrivileges(response.data);
       } catch (error) {
@@ -36,7 +36,7 @@ const Templates = () => {
     const fetchTemplateFiles = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, {
-          withCredentials: true,
+          withCredentials: true
         });
         setTemplateFiles(response.data);
       } catch (error) {
@@ -63,9 +63,9 @@ const Templates = () => {
       await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          "X-Filename-Encoding": "url",
+          "X-Filename-Encoding": "url"
         },
-        withCredentials: true,
+        withCredentials: true
       });
       message.success("הקובץ הועלה בהצלחה");
       setFileList([]);
@@ -73,7 +73,7 @@ const Templates = () => {
 
       // Fetch updated files
       const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, {
-        withCredentials: true,
+        withCredentials: true
       });
       setTemplateFiles(updatedFiles.data);
     } catch (error) {
@@ -117,7 +117,7 @@ const Templates = () => {
       setFileList((prevList) => [...prevList, file]);
       return false;
     },
-    fileList,
+    fileList
   };
 
   const setEditing = (fileId) => {
@@ -141,7 +141,7 @@ const Templates = () => {
           title: editTitle,
           description: editDescription,
           oldTitle: oldFile.title,
-          oldDescription: oldFile.description,
+          oldDescription: oldFile.description
         },
         { withCredentials: true }
       );
@@ -149,7 +149,7 @@ const Templates = () => {
 
       // Refresh updated files based on dynamic destination
       const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, {
-        withCredentials: true,
+        withCredentials: true
       });
       setTemplateFiles(updatedFiles.data);
     } catch (error) {
@@ -163,7 +163,7 @@ const Templates = () => {
   const handleDelete = async (fileId) => {
     try {
       await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete/${fileId}?destination=templates`, {
-        withCredentials: true,
+        withCredentials: true
       });
       message.success("קובץ נמחק בהצלחה");
     } catch (error) {

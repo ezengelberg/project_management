@@ -18,9 +18,12 @@ export const getFiles = async (req, res) => {
 };
 
 export const createFile = async (req, res) => {
+  console.log("Creating file...");
+
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ message: "No files uploaded" });
   }
+
   try {
     const user = await User.findOne({ _id: req.user._id });
     if (!user) {
@@ -28,49 +31,76 @@ export const createFile = async (req, res) => {
     }
 
     const savedFiles = [];
+
     for (const file of req.files) {
-      const decodedFilename =
+      let decodedFilename =
         req.headers["x-filename-encoding"] === "url" ? decodeURIComponent(file.originalname) : file.originalname;
 
-      // Check for duplicate filename
+      // Generate a unique filename if a duplicate exists
+      const destinationPath = path.join(process.cwd(), `uploads/${req.body.destination}`);
+      const generateUniqueFilename = (filename) => {
+        const ext = path.extname(filename);
+        const base = path.basename(filename, ext);
+        let counter = 1;
+        let newFilename = `${base}-${counter}${ext}`;
+
+        while (fs.existsSync(path.join(destinationPath, newFilename))) {
+          counter++;
+          newFilename = `${base}-${counter}${ext}`;
+        }
+
+        return newFilename;
+      };
+
       const existingFile = await Upload.findOne({ filename: decodedFilename, destination: req.body.destination });
       if (existingFile) {
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-        throw new Error("A file with this name already exists");
+        decodedFilename = generateUniqueFilename(decodedFilename);
       }
 
       try {
+        // Save file metadata to the database
         const newFile = new Upload({
-          title: req.body.title ? req.body.title : decodedFilename,
+          title: req.body.title || decodedFilename,
           filename: decodedFilename,
           description: req.body.description,
           user: req.user._id,
-          destination: req.body.destination,
+          destination: req.body.destination
         });
+
         await newFile.save();
 
-        // Rename file on server to decoded filename
-        fs.renameSync(file.path, path.join(path.dirname(file.path), decodedFilename));
+        // Rename the file on the server
+        fs.renameSync(file.path, path.join(destinationPath, decodedFilename));
         savedFiles.push(newFile);
       } catch (error) {
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+        // Remove the uploaded file in case of an error
+        fs.unlinkSync(file.path);
         console.error("File save error:", error.message);
         throw error;
       }
     }
 
+    // Send response with saved files
     res.status(201).json({
       message: "Files uploaded and saved successfully",
-      files: savedFiles,
+      files: savedFiles
     });
-  } catch (err) {
-    console.error("Error in createFile:", err);
+  } catch (error) {
+    console.error("Error in createFile:", error.message);
+
+    // Clean up uploaded files on error
     if (req.files) {
       req.files.forEach((file) => {
-        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+        try {
+          fs.unlinkSync(file.path);
+        } catch (err) {
+          console.warn("Error cleaning up file:", file.path, err.message);
+        }
       });
     }
-    res.status(err.message === "A file with this name already exists" ? 409 : 500).json({ message: err.message });
+
+    const statusCode = error.message === "A file with this name already exists" ? 409 : 500;
+    res.status(statusCode).json({ message: error.message });
   }
 };
 
@@ -92,7 +122,7 @@ export const updateFile = async (req, res) => {
       oldDescription: req.body.oldDescription,
       newDescription: req.body.description,
       editDate: new Date(),
-      editedBy: { name: user.name, id: user.id },
+      editedBy: { name: user.name, id: user.id }
     });
 
     file.title = req.body.title;

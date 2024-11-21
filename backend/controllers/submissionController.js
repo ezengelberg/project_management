@@ -24,7 +24,8 @@ export const createSubmission = async (req, res) => {
           submissionDate: new Date(req.body.submissionDate),
           grades: [gradeByAdvisor],
           isGraded: req.body.isGraded,
-          isReviewed: req.body.isReviewed
+          isReviewed: req.body.isReviewed,
+          submissionInfo: req.body.submissionInfo
         });
         await submission.save();
       })
@@ -54,6 +55,7 @@ export const createSpecificSubmission = async (req, res) => {
           name: req.body.name,
           project: project._id,
           submissionDate: new Date(req.body.submissionDate),
+          submissionInfo: req.body.submissionInfo,
           grades: [gradeByAdvisor]
         });
         await submission.save();
@@ -180,6 +182,7 @@ export const getStudentSubmissions = async (req, res) => {
         project: submission.project,
         submissionName: submission.name,
         submissionDate: submission.submissionDate,
+        submissionInfo: submission.submissionInfo,
         file: submission.file
       }))
       .sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate));
