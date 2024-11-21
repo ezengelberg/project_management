@@ -38,6 +38,7 @@ export const createSubmission = async (req, res) => {
 
 export const createSpecificSubmission = async (req, res) => {
   try {
+    console.log("Creating specific submissions");
     await Promise.all(
       req.body.projects.map(async (projectId) => {
         const project = await Project.findById(projectId);
@@ -58,6 +59,7 @@ export const createSpecificSubmission = async (req, res) => {
         await submission.save();
       })
     );
+    console.log("Submissions created successfully");
     res.status(201).json({ message: "Submissions created successfully" });
   } catch (error) {
     console.log(error);
@@ -83,8 +85,12 @@ export const getAllProjectSubmissions = async (req, res) => {
                   judge: grade.judge,
                   judgeName: judge ? judge.name : null,
                   grade: grade.grade,
-                  comment: grade.comment,
                   overridden: grade.overridden,
+                  videoQuality: grade.videoQuality,
+                  workQuality: grade.workQuality,
+                  writingQuality: grade.writingQuality,
+                  journalActive: grade.journalActive,
+                  commits: grade.commits,
                 };
               })
             );
@@ -95,6 +101,8 @@ export const getAllProjectSubmissions = async (req, res) => {
               submissionDate: submission.submissionDate,
               grades: grades,
               submitted: submission.file ? true : false,
+              isGraded: submission.isGraded,
+              isReviewed: submission.isReviewed,
             };
           })
         );
@@ -155,6 +163,30 @@ export const getAllSubmissions = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getStudentSubmissions = async (req, res) => {
+  try {
+    const project = await Project.findOne({ students: { $elemMatch: { student: req.user._id } } });
+    if (!project) {
+      return res.status(200).json({ message: "No project found" });
+    }
+    const submissions = await Submission.find({ project: project._id });
+    const submissionsWithDetails = submissions
+      .map((submission) => ({
+        ...submission._doc,
+        key: submission._id,
+        project: submission.project,
+        submissionName: submission.name,
+        submissionDate: submission.submissionDate,
+        file: submission.file,
+      }))
+      .sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate));
+
+    res.status(200).json(submissionsWithDetails);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };
 
@@ -221,13 +253,7 @@ export const getSubmission = async (req, res) => {
       submissionName: submission.name,
       submissionDate: submission.submissionDate,
       existingGrade: submission.grades[0]?.grade || null,
-      existingComment: {
-        videoQuality: submission.grades[0]?.videoQuality || "",
-        workQuality: submission.grades[0]?.workQuality || "",
-        writingQuality: submission.grades[0]?.writingQuality || "",
-        commits: submission.grades[0]?.commits || null,
-        journalActive: submission.grades[0]?.journalActive || "",
-      },
+      existingComment: submission.grades[0]?.comment || "",
     };
 
     res.status(200).json(submissionData);

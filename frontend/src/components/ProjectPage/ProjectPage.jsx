@@ -12,7 +12,7 @@ const ProjectPage = () => {
   const [page, setPage] = useState({
     Information: true,
     Grades: false,
-    Other: false,
+    Other: false
   });
   const [advisors, setAdvisors] = useState([]);
   const [isCandidate, setIsCandidate] = useState(false);
@@ -29,7 +29,7 @@ const ProjectPage = () => {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/project/check-if-candidate/${projectID}`,
           {
-            withCredentials: true,
+            withCredentials: true
           }
         );
         setIsCandidate(response.data.isCandidate);
@@ -44,7 +44,7 @@ const ProjectPage = () => {
           const advisors = [];
           for (const advisor of projectData.advisors) {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${advisor}`, {
-              withCredentials: true,
+              withCredentials: true
             });
             advisors.push(response.data);
           }
@@ -65,7 +65,7 @@ const ProjectPage = () => {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${user._id}`,
           {
-            withCredentials: true,
+            withCredentials: true
           }
         );
         setHasProject(response.data.hasProject);
@@ -88,7 +88,7 @@ const ProjectPage = () => {
     const fetchProjectData = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-project/${projectID}`, {
-          withCredentials: true,
+          withCredentials: true
         });
         setProjectData(response.data);
       } catch (error) {
@@ -109,10 +109,10 @@ const ProjectPage = () => {
       setIsLoading(true);
       message.open({
         type: "loading",
-        content: "מבצע הסרת הרשמה מהפרויקט...",
+        content: "מבצע הסרת הרשמה מהפרויקט..."
       });
       const response = await axios.get(`/api/user/get-user`, {
-        withCredentials: true,
+        withCredentials: true
       });
       const userID = response.data._id;
       await axios.post(
@@ -125,7 +125,7 @@ const ProjectPage = () => {
         message.open({
           type: "success",
           content: "הוסר הרשמה מהפרויקט",
-          duration: 2,
+          duration: 2
         });
       }, 500);
     } catch (error) {
@@ -143,7 +143,7 @@ const ProjectPage = () => {
       setIsLoading(true);
       message.open({
         type: "loading",
-        content: "מבצע הרשמה לפרויקט...",
+        content: "מבצע הרשמה לפרויקט..."
       });
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/add-candidate`,
@@ -155,7 +155,7 @@ const ProjectPage = () => {
         message.open({
           type: "success",
           content: "נרשם בהצלחה",
-          duration: 2,
+          duration: 2
         });
       }, 500);
     } catch (error) {
@@ -164,7 +164,7 @@ const ProjectPage = () => {
         message.open({
           type: "error",
           content: error.response.data.message,
-          duration: 2,
+          duration: 2
         });
       }, 500);
     } finally {
@@ -242,7 +242,7 @@ const ProjectPage = () => {
               ))}
             </div>
           </div>
-          {!hasProject && !(user.isCoordinator || user.isAdvisor || user.isJudge) ? (
+          {(!hasProject && !(user.isCoordinator || user.isAdvisor || user.isJudge)) || user.isStudent ? (
             isCandidate ? (
               <div className="project-unsignup-button" onClick={() => Unsignup()}>
                 {isLoading ? (

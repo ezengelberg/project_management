@@ -27,6 +27,7 @@ import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
 
 const Submissions = () => {
   const navigate = useNavigate();
+  const { TextArea } = Input;
   const { Option } = Select;
   const [formAll] = Form.useForm();
   const [formJudges] = Form.useForm();
@@ -105,8 +106,6 @@ const Submissions = () => {
   };
 
   const overrideGrade = async (values) => {
-    console.log(values);
-    console.log(gradeToOverride);
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/update/${gradeToOverride.key}`,
@@ -125,7 +124,6 @@ const Submissions = () => {
       let name = "";
       let isGraded = false;
       let isReviewed = false;
-
       switch (submissionType) {
         case "proposalReport":
           name = "דוח הצעה";
@@ -148,11 +146,16 @@ const Submissions = () => {
           isReviewed = submissionOptions.find((option) => option.value === "finalExam").isReviewed;
           break;
         default: // other...
-          name = values.submissionName;
-          isGraded = values.submissionChecklist.includes("isGraded");
-          isReviewed = values.submissionChecklist.includes("isReviewed");
+          name = values.submissionName || "ללא שם";
+          isGraded = Array.isArray(values.submissionChecklist)
+            ? values.submissionChecklist.includes("isGraded")
+            : false;
+          isReviewed = Array.isArray(values.submissionChecklist)
+            ? values.submissionChecklist.includes("isReviewed")
+            : false;
           break;
       }
+      console.log(isReviewed, isGraded);
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create`,
         {
@@ -205,9 +208,13 @@ const Submissions = () => {
           isReviewed = submissionOptions.find((option) => option.value === "finalExam").isReviewed;
           break;
         default: // other...
-          name = values.submissionName;
-          isGraded = values.submissionChecklist.includes("isGraded");
-          isReviewed = values.submissionChecklist.includes("isReviewed");
+          name = values.submissionName || "ללא שם";
+          isGraded = Array.isArray(values.submissionChecklist)
+            ? values.submissionChecklist.includes("isGraded")
+            : false;
+          isReviewed = Array.isArray(values.submissionChecklist)
+            ? values.submissionChecklist.includes("isReviewed")
+            : false;
           break;
       }
 
@@ -237,7 +244,6 @@ const Submissions = () => {
   };
 
   const handleClose = () => {
-    console.log("close!");
     formAll.resetFields();
     setAllSubmissions(false);
 
@@ -432,40 +438,7 @@ const Submissions = () => {
           העתקת שופטים
         </Button>
       </div>
-      {/* {submissionData.map((submission) => {
-        const colSpan = Math.floor(24 / (submission.submissions.length + 1)); // Calculate column span based on number of submissions
-        return (
-          <Row gutter={[16, 16]} className="table-row">
-            <Col span={colSpan} className="table-col">
-              {submission.title}
-            </Col>
-            {submission.submissions.map((sub, index) => {
-              const waitingCheck = sub.grades.some((grade) => grade.grade === null);
-              return (
-                <Col key={index} className="table-col" span={colSpan}>
-                  <div className="table-col-info">
-                    <div className="submission-title">{sub.name}</div>
-                    <Badge color={sub.submitted ? "green" : "orange"} text={sub.submitted ? "הוגש" : "מחכה להגשה"} />
-                    {waitingCheck && sub.submitted && <Badge color="blue" text="מחכה לבדיקה" />}
-                  </div>
-                </Col>
-              );
-            })}
-          </Row>
-        );
-      })} */}
-      <Table
-        columns={columns}
-        dataSource={submissionData}
-        // expandable={{
-        //   expandedRowRender: (record) => (
-        //     <Table columns={subColumns} dataSource={record.gradesDetailed} pagination={false} />
-        //   ),
-        //   rowExpandable: (record) => record.grades && record.grades.length > 0
-        // }}
-      />
-      {/* <div className="float-button-actions">
-      </div> */}
+      <Table columns={columns} dataSource={submissionData} />
       <Modal
         title="פרטי הגשה"
         open={submissionInfo !== null}
@@ -693,6 +666,11 @@ const Submissions = () => {
               format="DD-MM-YYYY HH:mm"
             />
           </Form.Item>
+
+          <Form.Item label="פרטים נוספים" name="submissionInfo">
+            <TextArea rows={4} />
+          </Form.Item>
+
           {submissionType === "other" && (
             <Form.Item name="submissionChecklist">
               <Checkbox.Group>
@@ -756,6 +734,10 @@ const Submissions = () => {
               showTime={{ format: "HH:mm" }}
               format="DD-MM-YYYY HH:mm"
             />
+          </Form.Item>
+
+          <Form.Item label="פרטים נוספים" name="submissionInfo">
+            <TextArea rows={4} />
           </Form.Item>
 
           {/* פרוייקטים */}

@@ -8,6 +8,7 @@ import {
   getSubmission,
   getAllProjectSubmissions,
   getSubmissionDetails,
+  getStudentSubmissions,
 } from "../controllers/submissionController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -21,5 +22,6 @@ router.put("/update-judges", ensureAuthenticated, isCoordinator, updateJudgesInS
 router.get("/get-judge-submissions", ensureAuthenticated, getJudgeSubmissions);
 router.get("/get-submission/:id", ensureAuthenticated, getSubmission);
 router.get("/get-submission-details/:id", ensureAuthenticated, getSubmissionDetails);
+router.get("/get-student-submissions", ensureAuthenticated, getStudentSubmissions);
 
 export default router;

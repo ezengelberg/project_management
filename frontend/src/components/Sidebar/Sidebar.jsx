@@ -12,7 +12,7 @@ import {
   FilePdfOutlined,
   InfoCircleOutlined,
   CheckCircleOutlined,
-  BarChartOutlined,
+  BarChartOutlined
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -25,14 +25,14 @@ const Sidebar = () => {
     myProject: false,
     myProjects: false,
     manageUsers: false,
-    manageProjects: false,
+    manageProjects: false
   });
 
   useEffect(() => {
     const loadUser = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, {
-          withCredentials: true,
+          withCredentials: true
         });
         setUser(response.data);
         localStorage.setItem("user", JSON.stringify(response.data));
@@ -116,7 +116,12 @@ const Sidebar = () => {
               <div className={`sidebar-drop-menu`}>
                 <ul>
                   <li className={`${isActive("/my-project") ? "active" : ""}`}>הפרויקט שלי</li>
-                  <li>הגשות</li>
+                  <li
+                    className={`${isActive("/my-submissions") ? "active" : ""}`}
+                    onClick={() => navigate("/my-submissions")}
+                    onMouseDown={(e) => handleMouseDown(e, "/my-submissions")}>
+                    הגשות
+                  </li>
                 </ul>
               </div>
             </li>
