@@ -38,6 +38,7 @@ export const createSubmission = async (req, res) => {
 
 export const createSpecificSubmission = async (req, res) => {
   try {
+    console.log("Creating specific submissions");
     await Promise.all(
       req.body.projects.map(async (projectId) => {
         const project = await Project.findById(projectId);
@@ -58,6 +59,7 @@ export const createSpecificSubmission = async (req, res) => {
         await submission.save();
       })
     );
+    console.log("Submissions created successfully");
     res.status(201).json({ message: "Submissions created successfully" });
   } catch (error) {
     console.log(error);
@@ -166,17 +168,23 @@ export const getAllSubmissions = async (req, res) => {
 
 export const getStudentSubmissions = async (req, res) => {
   try {
-    const project = await Project.findOne({ students: { $in: [req.user._id] } });
+    const project = await Project.findOne({ students: { $elemMatch: { student: req.user._id } } });
+    if (!project) {
+      return res.status(200).json({ message: "No project found" });
+    }
     const submissions = await Submission.find({ project: project._id });
-    const submissionsWithDetails = await Promise.all(
-      submissions.map(async (submission) => {
-        return {
-          key: submission._id,
-          submissionName: submission.name,
-          
-        };
-      })
-    );
+    const submissionsWithDetails = submissions
+      .map((submission) => ({
+        ...submission._doc,
+        key: submission._id,
+        project: submission.project,
+        submissionName: submission.name,
+        submissionDate: submission.submissionDate,
+        file: submission.file
+      }))
+      .sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate));
+
+    res.status(200).json(submissionsWithDetails);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

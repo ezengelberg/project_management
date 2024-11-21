@@ -20,6 +20,7 @@ import Submissions from "./components/Submissions/Submissions";
 import MoreInformation from "./components/MoreInformation/MoreInformation";
 import CheckSubmissions from "./components/CheckSubmissions/CheckSubmissions";
 import GradeSubmission from "./components/GradeSubmission/GradeSubmission";
+import UploadSubmissions from "./components/UploadSubmissions/UploadSubmissions";
 
 function App() {
   return (
@@ -73,6 +74,16 @@ const MainLayout = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/my-submissions"
+                element={
+                  <ProtectedRoute>
+                    <UploadSubmissions />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Development routes */}
               <Route
                 path="/create-project"
                 element={
