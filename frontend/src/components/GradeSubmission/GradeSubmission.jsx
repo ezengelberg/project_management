@@ -15,6 +15,7 @@ const GradeSubmission = () => {
   const { submissionId } = useParams();
   const [project, setProject] = useState({});
   const [loading, setLoading] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
   const letterGrades = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E", "F"];
 
   useEffect(() => {
@@ -28,13 +29,23 @@ const GradeSubmission = () => {
           }
         );
         setProject(response.data);
+        if (response.data.existingGrade) {
+          setIsEdit(true);
+          form.setFieldsValue({
+            grade: response.data.existingGrade,
+            videoQuality: response.data.existingComment.videoQuality,
+            workQuality: response.data.existingComment.workQuality,
+            writingQuality: response.data.existingComment.writingQuality,
+            commits: response.data.existingComment.commits,
+            journalActive: response.data.existingComment.journalActive,
+          });
+        }
         setLoading(false);
       } catch (error) {
         console.error("Error fetching project data:", error);
         message.error("שגיאה בטעינת נתוני הפרויקט");
         setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchProjectData();
@@ -125,7 +136,15 @@ const GradeSubmission = () => {
                   ]}>
                   <Input type="number" />
                 </Form.Item>
-                <Form.Item label="האם היומן פעיל" name="journalActive">
+                <Form.Item
+                  label="האם היומן פעיל"
+                  name="journalActive"
+                  rules={[
+                    {
+                      required: true,
+                      message: "נא לבחור תשובה",
+                    },
+                  ]}>
                   <Select>
                     <Option value="yes">כן</Option>
                     <Option value="no">לא</Option>

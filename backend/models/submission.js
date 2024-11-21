@@ -9,6 +9,7 @@ const submissionSchema = new mongoose.Schema({
   submissionDate: { type: Date },
   isReviewed: { type: Boolean, default: false },
   isGraded: { type: Boolean, default: false },
+  editable: { type: Boolean, default: true },
   submissionInfo: { type: String, default: "" }
 });
 

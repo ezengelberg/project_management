@@ -9,14 +9,8 @@ const defaultLetters = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+",
 export const addGrade = async (req, res) => {
   const { submissionId, grade, videoQuality, workQuality, writingQuality, commits, journalActive } = req.body;
 
-  const numericValueDoc = await NumericValue.findOne({ letter: grade });
-  const numericGrade = numericValueDoc ? numericValueDoc.value : null;
-
   if (!grade) {
     return res.status(400).json({ message: "חייב להזין ציון" });
-  }
-  if (numericGrade === null) {
-    return res.status(400).json({ message: "הציון חייב להיות בין (0) ל-(100)" });
   }
 
   try {
@@ -35,7 +29,6 @@ export const addGrade = async (req, res) => {
       const existingGrade = submission.grades[0];
       await Grade.findByIdAndUpdate(existingGrade._id, {
         grade,
-        numericGrade,
         videoQuality,
         workQuality,
         writingQuality,
@@ -49,7 +42,6 @@ export const addGrade = async (req, res) => {
     // Create new grade
     const newGrade = new Grade({
       grade,
-      numericGrade,
       videoQuality,
       workQuality,
       writingQuality,
@@ -167,5 +159,31 @@ export const getGradeBySubmission = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "שגיאה בטעינת הציון" });
+  }
+};
+
+export const endJudgingPeriod = async (req, res) => {
+  try {
+    const submissions = await Submission.find().populate("grades");
+
+    for (const submission of submissions) {
+      submission.editable = false;
+      for (const grade of submission.grades) {
+        if (grade.numericGrade === null && grade.grade) {
+          const numericValueDoc = await NumericValue.findOne({ letter: grade.grade });
+          if (!numericValueDoc) {
+            return res.status(400).json({ message: `Missing numeric value for grade ${grade.grade}` });
+          }
+          grade.numericGrade = numericValueDoc.value;
+          await grade.save();
+        }
+      }
+      await submission.save();
+    }
+
+    res.status(200).json({ message: "Judging period ended and numeric values attached successfully" });
+  } catch (error) {
+    console.log("Error ending judging period:", error);
+    res.status(500).json({ message: "Error ending judging period" });
   }
 };
