@@ -23,6 +23,8 @@ export const createSubmission = async (req, res) => {
           project: project._id,
           submissionDate: new Date(req.body.submissionDate),
           grades: [gradeByAdvisor],
+          isGraded: req.body.isGraded,
+          isReviewed: req.body.isReviewed,
         });
         await submission.save();
       })
@@ -105,7 +107,11 @@ export const getAllProjectSubmissions = async (req, res) => {
       })
     );
 
-    const resolvedProjectsList = await Promise.all(projectsList);
+    let resolvedProjectsList = await Promise.all(projectsList);
+    resolvedProjectsList = resolvedProjectsList.map((project) => {
+      project.submissions = project.submissions.sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate));
+      return project;
+    });
 
     res.status(200).json(resolvedProjectsList.filter((project) => project.submissions.length > 0));
   } catch (error) {

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
-import { Statistic } from "antd";
 import { handleMouseDown } from "../../utils/mouseDown";
 import axios from "axios";
 import "./Submissions.scss";
@@ -14,7 +13,8 @@ import {
   Table,
   Radio,
   message,
-  Tooltip,
+  Statistic,
+  Checkbox,
   Button,
   InputNumber,
   Col,
@@ -123,28 +123,43 @@ const Submissions = () => {
   const handleOkAll = async (values) => {
     try {
       let name = "";
+      let isGraded = false;
+      let isReviewed = false;
+
       switch (submissionType) {
         case "proposalReport":
           name = "דוח הצעה";
+          isGraded = submissionOptions.find((option) => option.value === "proposalReport").isGraded;
+          isReviewed = submissionOptions.find((option) => option.value === "proposalReport").isReviewed;
           break;
         case "alphaReport":
           name = "דוח אלפה";
+          isGraded = submissionOptions.find((option) => option.value === "alphaReport").isGraded;
+          isReviewed = submissionOptions.find((option) => option.value === "alphaReport").isReviewed;
           break;
         case "finalReport":
           name = "דוח סופי";
+          isGraded = submissionOptions.find((option) => option.value === "finalReport").isGraded;
+          isReviewed = submissionOptions.find((option) => option.value === "finalReport").isReviewed;
           break;
         case "finalExam":
           name = "מבחן סוף";
+          isGraded = submissionOptions.find((option) => option.value === "finalExam").isGraded;
+          isReviewed = submissionOptions.find((option) => option.value === "finalExam").isReviewed;
           break;
         default: // other...
           name = values.submissionName;
+          isGraded = values.submissionChecklist.includes("isGraded");
+          isReviewed = values.submissionChecklist.includes("isReviewed");
           break;
       }
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create`,
         {
           name: name,
-          submissionDate: values.submissionDate
+          submissionDate: values.submissionDate,
+          isGraded: isGraded,
+          isReviewed: isReviewed
         },
         {
           withCredentials: true
@@ -165,29 +180,45 @@ const Submissions = () => {
   const handleOkSpecific = async (values) => {
     try {
       let name = "";
+      let isGraded = false;
+      let isReviewed = false;
+
       switch (submissionType) {
         case "proposalReport":
           name = "דוח הצעה";
+          isGraded = submissionOptions.find((option) => option.value === "proposalReport").isGraded;
+          isReviewed = submissionOptions.find((option) => option.value === "proposalReport").isReviewed;
           break;
         case "alphaReport":
           name = "דוח אלפה";
+          isGraded = submissionOptions.find((option) => option.value === "alphaReport").isGraded;
+          isReviewed = submissionOptions.find((option) => option.value === "alphaReport").isReviewed;
           break;
         case "finalReport":
           name = "דוח סופי";
+          isGraded = submissionOptions.find((option) => option.value === "finalReport").isGraded;
+          isReviewed = submissionOptions.find((option) => option.value === "finalReport").isReviewed;
           break;
         case "finalExam":
           name = "מבחן סוף";
+          isGraded = submissionOptions.find((option) => option.value === "finalExam").isGraded;
+          isReviewed = submissionOptions.find((option) => option.value === "finalExam").isReviewed;
           break;
         default: // other...
           name = values.submissionName;
+          isGraded = values.submissionChecklist.includes("isGraded");
+          isReviewed = values.submissionChecklist.includes("isReviewed");
           break;
       }
+
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create-specific`,
         {
           name: name,
           submissionDate: values.submissionDate,
-          projects: values.projects
+          projects: values.projects,
+          isGraded: isGraded,
+          isReviewed: isReviewed
         },
         {
           withCredentials: true
@@ -662,6 +693,14 @@ const Submissions = () => {
               format="DD-MM-YYYY HH:mm"
             />
           </Form.Item>
+          {submissionType === "other" && (
+            <Form.Item name="submissionChecklist">
+              <Checkbox.Group>
+                <Checkbox value="isGraded">מתן ציון</Checkbox>
+                <Checkbox value="isReviewed">מתן משוב</Checkbox>
+              </Checkbox.Group>
+            </Form.Item>
+          )}
         </Form>
       </Modal>
       <Modal
@@ -738,6 +777,15 @@ const Submissions = () => {
               ))}
             </Select>
           </Form.Item>
+
+          {submissionType === "other" && (
+            <Form.Item>
+              <Checkbox.Group>
+                <Checkbox value="isGraded">מתן ציון</Checkbox>
+                <Checkbox value="isReviewed">מתן משוב</Checkbox>
+              </Checkbox.Group>
+            </Form.Item>
+          )}
         </Form>
       </Modal>
     </div>
