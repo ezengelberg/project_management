@@ -8,7 +8,8 @@ const submissionSchema = new mongoose.Schema({
   file: { type: String, required: false }, // needs an update
   submissionDate: { type: Date },
   isReviewed: { type: Boolean, default: false },
-  isGraded: { type: Boolean, default: false }
+  isGraded: { type: Boolean, default: false },
+  editable: { type: Boolean, default: true },
 });
 
 const submissionModel = mongoose.model("Submission", submissionSchema);

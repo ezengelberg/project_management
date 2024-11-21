@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./SystemControl.scss";
 import { Button, Switch, Form, Input, InputNumber, Table, Typography, message, Tooltip } from "antd";
-import { CloseCircleOutlined, EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
+import { CloseCircleOutlined, EditOutlined, SaveOutlined, StopOutlined, CheckCircleOutlined } from "@ant-design/icons";
 
 const SystemControl = () => {
   const [createProject, setCreateProject] = useState(true);
@@ -102,6 +102,24 @@ const SystemControl = () => {
     }
   };
 
+  const endJudgingPeriod = async () => {
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/grade/end-judging-period`,
+        {},
+        { withCredentials: true }
+      );
+      message.success("תקופת השיפוט הסתיימה בהצלחה");
+    } catch (error) {
+      console.error("Error ending judging period:", error);
+      if (error.response.status === 400) {
+        message.error(`חסר ערך נומרי עבור הציון ${error.response.data.grade}`);
+      } else {
+        message.error("שגיאה בסיום תקופת השיפוט");
+      }
+    }
+  };
+
   const columns = [
     ...Object.keys(letterToNumber).map((letter) => ({
       title: <p style={{ direction: "ltr", margin: "0", textAlign: "right" }}>{letter}</p>,
@@ -194,6 +212,9 @@ const SystemControl = () => {
             <Button shape="circle" type="primary" icon={<CloseCircleOutlined />}></Button>
           </Tooltip>
         </div>
+        <Tooltip title="סיים תקופת שיפוט">
+          <Button type="primary" icon={<CheckCircleOutlined />} onClick={endJudgingPeriod}></Button>
+        </Tooltip>
       </div>
       <Form form={form} component={false} loading={loading}>
         <Table

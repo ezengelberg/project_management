@@ -186,6 +186,7 @@ export const getJudgeSubmissions = async (req, res) => {
       comment: submission.grades[0]?.comment || "",
       overridden: submission.grades[0]?.overridden || null,
       projectId: submission.project ? submission.project._id : null,
+      editable: submission.editable,
     }));
 
     res.status(200).json(submissionsWithDetails);
@@ -220,7 +221,13 @@ export const getSubmission = async (req, res) => {
       submissionName: submission.name,
       submissionDate: submission.submissionDate,
       existingGrade: submission.grades[0]?.grade || null,
-      existingComment: submission.grades[0]?.comment || "",
+      existingComment: {
+        videoQuality: submission.grades[0]?.videoQuality || "",
+        workQuality: submission.grades[0]?.workQuality || "",
+        writingQuality: submission.grades[0]?.writingQuality || "",
+        commits: submission.grades[0]?.commits || null,
+        journalActive: submission.grades[0]?.journalActive || "",
+      },
     };
 
     res.status(200).json(submissionData);

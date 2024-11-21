@@ -47,8 +47,11 @@ const CheckSubmissions = () => {
   };
 
   const waitingForGrade = submissions.filter((submission) => submission.grade === null);
+  const gradedAndEditable = submissions
+    .filter((submission) => submission.grade !== null && submission.editable)
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
   const gradedSubmissions = submissions
-    .filter((submission) => submission.grade !== null)
+    .filter((submission) => submission.grade !== null && !submission.editable)
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
   const items = [
@@ -113,6 +116,76 @@ const CheckSubmissions = () => {
     },
     {
       key: "2",
+      label: "ניתנים לשינוי",
+      children: (
+        <List
+          className="submission-list"
+          loading={initLoading}
+          itemLayout="horizontal"
+          pagination={{
+            pageSize: 10,
+          }}
+          dataSource={gradedAndEditable}
+          renderItem={(item) => (
+            <List.Item
+              actions={[
+                <a
+                  key="list-grade"
+                  onClick={() => navigate(`/grade-submission/${item.key}?edit=true`)}
+                  onMouseDown={(e) => handleMouseDown(e, `/grade-submission/${item.key}?edit=true`)}>
+                  עריכה
+                </a>,
+                <a
+                  key="list-more"
+                  onClick={() => {
+                    getSumbissionDetails(item.key);
+                  }}>
+                  פרטים נוספים
+                </a>,
+              ]}>
+              <Skeleton title={false} loading={item.loading} active>
+                <List.Item.Meta
+                  className="submission-meta"
+                  title={
+                    <div className="project-name">
+                      <span>
+                        {item.submissionName} - (
+                        <a
+                          onClick={() => navigate(`/project/${item.projectId}`)}
+                          onMouseDown={(e) => handleMouseDown(e, `/project/${item.projectId}`)}>
+                          {item.projectName.length > 55 ? item.projectName.slice(0, 55) + "..." : item.projectName}
+                        </a>
+                        )
+                      </span>
+                    </div>
+                  }
+                  description="פה יהיה שם הקובץ"
+                />
+                <div className="submission-details">
+                  {item.overridden ? (
+                    <div className="grade">
+                      <span>ציון:</span>
+                      <p style={{ textDecoration: "line-through" }}>{item.grade}</p>
+                      <p>{item.overridden.newGrade}</p>
+                    </div>
+                  ) : (
+                    <div className="grade">
+                      <span>ציון: </span>
+                      <p>{item.grade}</p>
+                    </div>
+                  )}
+                  <Tooltip title="הורד קובץ">
+                    <DownloadOutlined className="icon" />
+                  </Tooltip>
+                </div>
+              </Skeleton>
+            </List.Item>
+          )}
+        />
+      ),
+    },
+    {
+      key: "3",
       label: "נשפט",
       children: (
         <List
