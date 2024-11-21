@@ -15,6 +15,7 @@ const GradeSubmission = () => {
   const { submissionId } = useParams();
   const [project, setProject] = useState({});
   const [loading, setLoading] = useState(false);
+  const letterGrades = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E", "F"];
 
   useEffect(() => {
     setLoading(true);
@@ -142,20 +143,11 @@ const GradeSubmission = () => {
                 },
               ]}>
               <Select>
-                <Option value="A+">A+</Option>
-                <Option value="A">A</Option>
-                <Option value="A-">A-</Option>
-                <Option value="B+">B+</Option>
-                <Option value="B">B</Option>
-                <Option value="B-">B-</Option>
-                <Option value="C+">C+</Option>
-                <Option value="C">C</Option>
-                <Option value="C-">C-</Option>
-                <Option value="D+">D+</Option>
-                <Option value="D">D</Option>
-                <Option value="D-">D-</Option>
-                <Option value="E">E</Option>
-                <Option value="F">F</Option>
+                {letterGrades.map((grade) => (
+                  <Option key={grade} value={grade}>
+                    <p style={{ direction: "ltr", margin: "0", textAlign: "right" }}>{grade}</p>
+                  </Option>
+                ))}
               </Select>
             </Form.Item>
 

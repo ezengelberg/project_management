@@ -137,6 +137,7 @@ export const getAllSubmissions = async (req, res) => {
                 grade: gradeInfo ? gradeInfo.grade : null,
                 comment: gradeInfo ? gradeInfo.comment : null,
                 overridden: gradeInfo ? gradeInfo.overridden : null,
+                numericGrade: gradeInfo ? gradeInfo.numericGrade : null,
               };
             })
           ),
@@ -338,6 +339,7 @@ export const getSubmissionDetails = async (req, res) => {
       commits: grade.commits,
       overridden: grade.overridden,
       updatedAt: grade.updatedAt,
+      numericValue: grade.numericGrade,
     };
 
     res.status(200).json(submissionDetails);

@@ -1,17 +1,21 @@
 import mongoose from "mongoose";
 import Grade from "../models/grades.js";
 import Submission from "../models/submission.js";
+import NumericValue from "../models/numericValues.js";
+
+const defaultLetters = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E", "F"];
 
 // Add new grade
 export const addGrade = async (req, res) => {
   const { submissionId, grade, videoQuality, workQuality, writingQuality, commits, journalActive } = req.body;
 
-  console.log("Received data:", req.body); // Add this line to log the received data
+  const numericValueDoc = await NumericValue.findOne({ letter: grade });
+  const numericGrade = numericValueDoc ? numericValueDoc.value : null;
 
   if (!grade) {
     return res.status(400).json({ message: "חייב להזין ציון" });
   }
-  if (grade < 0 || grade > 100) {
+  if (numericGrade === null) {
     return res.status(400).json({ message: "הציון חייב להיות בין (0) ל-(100)" });
   }
 
@@ -31,6 +35,7 @@ export const addGrade = async (req, res) => {
       const existingGrade = submission.grades[0];
       await Grade.findByIdAndUpdate(existingGrade._id, {
         grade,
+        numericGrade,
         videoQuality,
         workQuality,
         writingQuality,
@@ -44,6 +49,7 @@ export const addGrade = async (req, res) => {
     // Create new grade
     const newGrade = new Grade({
       grade,
+      numericGrade,
       videoQuality,
       workQuality,
       writingQuality,
@@ -60,8 +66,43 @@ export const addGrade = async (req, res) => {
 
     res.status(200).json({ message: "הציון נשמר בהצלחה" });
   } catch (error) {
-    console.log("Error saving grade:", error); // Add this line to log the error
+    console.log("Error saving grade:", error);
     res.status(500).json({ message: "שגיאה בשמירת הציון" });
+  }
+};
+
+// Update numeric values for grades
+export const updateNumericValues = async (req, res) => {
+  const { updatedValues } = req.body;
+
+  try {
+    for (const [letter, value] of Object.entries(updatedValues)) {
+      await NumericValue.findOneAndUpdate({ letter }, { value }, { upsert: true, new: true });
+    }
+    const updatedNumericValues = await NumericValue.find({});
+    const letterToNumber = defaultLetters.reduce((acc, letter) => {
+      acc[letter] = updatedNumericValues.find((nv) => nv.letter === letter)?.value || null;
+      return acc;
+    }, {});
+    res.status(200).json({ message: "Numeric values updated successfully", letterToNumber });
+  } catch (error) {
+    console.log("Error updating numeric values:", error);
+    res.status(500).json({ message: "Error updating numeric values" });
+  }
+};
+
+export const getNumericValues = async (req, res) => {
+  try {
+    const numericValues = await NumericValue.find({});
+    const letterToNumber = defaultLetters.reduce((acc, letter) => {
+      acc[letter] = numericValues.find((nv) => nv.letter === letter)?.value || null;
+      return acc;
+    }, {});
+    console.log("Getting numeric values:", letterToNumber);
+    res.status(200).json(letterToNumber);
+  } catch (error) {
+    console.log("Error getting numeric values:", error);
+    res.status(500).json({ message: "Error getting numeric values" });
   }
 };
 
@@ -69,11 +110,13 @@ export const addGrade = async (req, res) => {
 export const updateGrade = async (req, res) => {
   const { grade, comment } = req.body;
   const { id } = req.params;
+  const numericValueDoc = await NumericValue.findOne({ letter: grade });
+  const numericGrade = numericValueDoc ? numericValueDoc.value : null;
 
   if (!grade) {
     return res.status(400).json({ message: "חייב להזין ציון" });
   }
-  if (grade < 0 || grade > 100) {
+  if (numericGrade === null) {
     return res.status(400).json({ message: "הציון חייב להיות בין (0) ל-(100)" });
   }
 
@@ -87,6 +130,7 @@ export const updateGrade = async (req, res) => {
     gradeToUpdate.overridden = {
       by: req.user._id,
       newGrade: grade,
+      numericGrade,
       comment: comment || "הציון התעדכן על ידי הרכז",
     };
 

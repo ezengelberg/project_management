@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import "./SystemControl.scss";
 import { Button, Switch, Form, Input, InputNumber, Table, Typography, message, Tooltip } from "antd";
 import { CloseCircleOutlined, EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
@@ -8,9 +9,44 @@ const SystemControl = () => {
   const [registerToProjects, setRegisterToProjects] = useState(true);
   const [manageStudents, setManageStudents] = useState(true);
   const [form] = Form.useForm();
-  const [data, setData] = useState([]);
   const [editingKey, setEditingKey] = useState("");
   const [loading, setLoading] = useState(false);
+  const [letterToNumber, setLetterToNumber] = useState({
+    "A+": null,
+    A: null,
+    "A-": null,
+    "B+": null,
+    B: null,
+    "B-": null,
+    "C+": null,
+    C: null,
+    "C-": null,
+    "D+": null,
+    D: null,
+    "D-": null,
+    E: null,
+    F: null,
+  });
+
+  useEffect(() => {
+    setLoading(true);
+    const fetchGrades = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/grade/get-numeric-values`, {
+          withCredentials: true,
+        });
+        setLetterToNumber(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching grades:", error);
+        message.error("שגיאה בטעינת הציונים");
+        setLoading(false);
+      }
+    };
+
+    fetchGrades();
+  }, []);
+
   const isEditing = (record) => record.key === editingKey;
 
   const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
@@ -38,9 +74,9 @@ const SystemControl = () => {
     );
   };
 
-  const edit = (record) => {
-    form.setFieldsValue({ ...record });
-    setEditingKey(record.key);
+  const edit = () => {
+    form.setFieldsValue({ ...letterToNumber });
+    setEditingKey("letterToNumber");
   };
 
   const cancel = () => {
@@ -48,35 +84,43 @@ const SystemControl = () => {
     form.resetFields();
   };
 
-  const save = async (key) => {
+  const save = async () => {
     try {
       const row = await form.validateFields();
-      const newData = [...data];
-      const index = newData.findIndex((item) => key === item.key);
-      if (index > -1) {
-        const item = newData[index];
-        const updatedItem = { ...item, ...row };
-        newData.splice(index, 1, updatedItem);
-        setData(newData);
-        setEditingKey("");
-        form.resetFields();
-      }
-    } catch (errInfo) {
-      console.log("Validate Failed:", errInfo);
+      setLetterToNumber(row);
+      setEditingKey("");
+
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/grade/update-numeric-values`,
+        { updatedValues: row },
+        { withCredentials: true }
+      );
+      message.success("הציון עודכן בהצלחה");
+    } catch (error) {
+      console.error("Error updating grade:", error);
+      message.error("שגיאה בעדכון הציון");
     }
   };
 
   const columns = [
+    ...Object.keys(letterToNumber).map((letter) => ({
+      title: <p style={{ direction: "ltr", margin: "0", textAlign: "right" }}>{letter}</p>,
+      dataIndex: letter,
+      key: letter,
+      editable: true,
+      render: (text) => (text !== null ? text : ""),
+      width: `${95 / Object.keys(letterToNumber).length}%`,
+    })),
     {
       title: "פעולות",
       dataIndex: "actions",
       key: "actions",
-      render: (_, record) => {
-        const editable = isEditing(record);
+      render: () => {
+        const editable = isEditing({ key: "letterToNumber" });
         return editable ? (
           <span>
             <Typography.Link
-              onClick={() => save(record.key)}
+              onClick={save}
               style={{
                 marginInlineEnd: 8,
               }}>
@@ -91,14 +135,14 @@ const SystemControl = () => {
             </a>
           </span>
         ) : (
-          <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)}>
+          <Typography.Link onClick={edit}>
             <Tooltip title="עריכה">
               <EditOutlined className="edit-icon" />
             </Tooltip>
           </Typography.Link>
         );
       },
-      width: "10%",
+      width: "5%",
     },
   ];
 
@@ -108,12 +152,11 @@ const SystemControl = () => {
     }
     return {
       ...col,
-      onCell: (record) => ({
-        record,
-        inputType: "text",
+      onCell: () => ({
+        inputType: "number",
         dataIndex: col.dataIndex,
         title: col.title,
-        editing: isEditing(record),
+        editing: isEditing({ key: "letterToNumber" }),
       }),
     };
   });
@@ -161,12 +204,10 @@ const SystemControl = () => {
             },
           }}
           bordered
-          dataSource={data}
+          dataSource={[{ key: "letterToNumber", ...letterToNumber }]}
           columns={mergedColumns}
           rowClassName="editable-row"
-          pagination={{
-            onChange: cancel,
-          }}
+          pagination={false}
         />
       </Form>
     </div>
