@@ -4,7 +4,7 @@ import {
   createSpecificSubmission,
   getAllSubmissions,
   updateJudgesInSubmission,
-  getUserSubmissions,
+  getJudgeSubmissions,
   getSubmission,
   getAllProjectSubmissions,
   getSubmissionDetails,
@@ -18,7 +18,7 @@ router.post("/create-specific", ensureAuthenticated, isCoordinator, createSpecif
 router.get("/get-all", ensureAuthenticated, isCoordinator, getAllSubmissions);
 router.get("/get-all-project-submissions", ensureAuthenticated, isCoordinator, getAllProjectSubmissions);
 router.put("/update-judges", ensureAuthenticated, isCoordinator, updateJudgesInSubmission);
-router.get("/get-user-submissions", ensureAuthenticated, getUserSubmissions);
+router.get("/get-judge-submissions", ensureAuthenticated, getJudgeSubmissions);
 router.get("/get-submission/:id", ensureAuthenticated, getSubmission);
 router.get("/get-submission-details/:id", ensureAuthenticated, getSubmissionDetails);
 

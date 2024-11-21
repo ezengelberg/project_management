@@ -16,7 +16,7 @@ const CheckSubmissions = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-user-submissions`, {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-judge-submissions`, {
           withCredentials: true,
         });
 

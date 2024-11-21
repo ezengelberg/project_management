@@ -158,7 +158,7 @@ export const getAllSubmissions = async (req, res) => {
   }
 };
 
-export const getUserSubmissions = async (req, res) => {
+export const getJudgeSubmissions = async (req, res) => {
   try {
     // First find all grades where the user is the judge
     const submissions = await Submission.find()
