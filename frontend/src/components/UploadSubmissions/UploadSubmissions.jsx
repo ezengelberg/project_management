@@ -12,6 +12,7 @@ const UploadSubmissions = () => {
   const [fileList, setFileList] = useState([]);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
   const [currentSubmission, setCurrentSubmission] = useState(null);
 
   const showUploadModal = (sub) => {
@@ -23,6 +24,11 @@ const UploadSubmissions = () => {
     setIsModalVisible(false);
     setFile(null); // Clear the file state when closing the modal
     setFileList([]); // Clear the file list
+  };
+
+  const showConfirmModal = (sub) => {
+    setCurrentSubmission(sub);
+    setIsConfirmModalVisible(true);
   };
 
   const { Dragger } = Upload;
@@ -55,6 +61,32 @@ const UploadSubmissions = () => {
     onChange: (info) => {
       const { fileList: newFileList } = info;
       setFileList(newFileList); // Update file list
+    }
+  };
+
+  const confirmDeleteSubmission = async () => {
+    try {
+      // Send POST request to delete the file & remove its' schema reference
+      await axios.delete(
+        `${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete/${currentSubmission.file}?destination=submissions`,
+        { withCredentials: true }
+      );
+      // POST request to remove file form submission schema
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-file/${currentSubmission._id}`,
+        {
+          file: null
+        },
+        { withCredentials: true }
+      );
+      const submissionsUpdated = submissions.map((submission) =>
+        submission._id === currentSubmission._id ? { ...submission, file: null } : submission
+      );
+      setSubmissions(submissionsUpdated);
+      message.info(`הגשה עבור ${currentSubmission.name} נמחקה בהצלחה`);
+      setIsConfirmModalVisible(false);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -118,6 +150,8 @@ const UploadSubmissions = () => {
       );
       setSubmissions(submissionsUpdated);
       setFile(null); // Clear the selected file
+      closeModal(); // Close the modal
+      message.success(`הגשה עבור ${currentSubmission.name} הועלתה בהצלחה`);
     } catch (error) {
       console.error("Error occurred:", error);
       if (error.response?.status === 500 || error.response?.status === 409) {
@@ -196,7 +230,7 @@ const UploadSubmissions = () => {
             </a>
           ) : (
             <a>
-              <DeleteOutlined className="edit-icon" />
+              <DeleteOutlined className="edit-icon" onClick={() => showConfirmModal(record)} />
             </a>
           )}
         </span>
@@ -206,6 +240,21 @@ const UploadSubmissions = () => {
 
   return (
     <div>
+      <Modal
+        title={`מחיקת הגשה עבור ${currentSubmission?.name}`}
+        open={isConfirmModalVisible}
+        width="20%"
+        footer={null}>
+        <p>האם אתה בטוח שברצונך למחוק את ההגשה?</p>
+        <div className="confirm-modal">
+          <Button type="primary" onClick={() => confirmDeleteSubmission()}>
+            כן
+          </Button>
+          <Button type="default" onClick={() => setIsConfirmModalVisible(false)}>
+            לא
+          </Button>
+        </div>
+      </Modal>
       <Modal
         title={`הגשת מטלה - ${currentSubmission?.name}`}
         open={isModalVisible}

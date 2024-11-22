@@ -362,10 +362,14 @@ export const updateSubmissionFile = async (req, res) => {
       submission[key] = req.body[key];
     });
     submission.uploadDate = new Date();
+    submission.uploadedBy = req.user._id;
 
     await submission.save();
     res.status(200).json({ message: "Submission updated successfully", submission });
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const getSubmissionDetails = async (req, res) => {
