@@ -376,7 +376,6 @@ export const updateSubmissionFile = async (req, res) => {
 };
 
 export const updateSubmissionInformation = async (req, res) => {
-  console.log(req.body);
   try {
     const submissions = await Submission.find({ name: req.body.submissionName });
     const activeProjects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
@@ -385,8 +384,6 @@ export const updateSubmissionInformation = async (req, res) => {
     await Promise.all(
       submissions.map(async (submission) => {
         if (activeProjectIds.includes(submission.project.toString())) {
-          // Ensure submission.project is compared as a string
-          console.log("true");
           Object.keys(req.body).forEach((key) => {
             submission[key] = req.body[key];
           });

@@ -277,8 +277,13 @@ const UploadSubmissions = () => {
         width="50%">
         <div className="submission-modal">
           {currentSubmission?.submissionInfo && (
-            <div>
+            <div className="submission-info">
               <b>הנחיות</b>: {currentSubmission.submissionInfo}
+              {new Date(currentSubmission.submissionDate) < new Date() && (
+                <div className="submission-late">
+                  <b>שימו לב - ההגשה נשלחת באיחור</b>
+                </div>
+              )}
             </div>
           )}
           <Dragger {...props}>
