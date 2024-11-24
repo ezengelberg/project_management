@@ -483,7 +483,7 @@ const OverviewProjects = () => {
                   onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
                   {grade.judgeName}
                 </a>{" "}
-                - {grade.grade !== null ? <p>{grade.grade}</p> : "אין ציון"}{" "}
+                - {grade.grade !== undefined ? <p>{grade.grade}</p> : "אין ציון"}{" "}
                 {grade.numericGrade && `(${grade.numericGrade})`}
               </div>
             </div>
