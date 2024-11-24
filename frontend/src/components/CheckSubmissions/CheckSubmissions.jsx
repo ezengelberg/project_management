@@ -21,7 +21,6 @@ const CheckSubmissions = () => {
         });
 
         setSubmissions(response.data);
-        console.log(response.data);
         setInitLoading(false);
       } catch (error) {
         console.log(error);
