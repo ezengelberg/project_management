@@ -143,7 +143,6 @@ const SystemControl = () => {
 
   const endJudgingPeriodForSubmission = async (submissionName) => {
     const group = submissionGroups[submissionName];
-    console.log(group);
     const ungradedSubmissions = group.filter(
       (submission) =>
         submission.gradesDetailed.length === 0 ||

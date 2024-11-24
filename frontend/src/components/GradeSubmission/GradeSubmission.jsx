@@ -86,89 +86,95 @@ const GradeSubmission = () => {
             שפטית פרויקט: <span style={{ textDecoration: "underline" }}>{project?.projectName}</span>
           </h2>
           <Form form={form} name="gradeProject" layout="vertical" onFinish={onFinish}>
-            <Form.Item
-              label="כתבו משפט על איכות הסרטון"
-              name="videoQuality"
-              rules={[
-                {
-                  required: true,
-                  message: "נא להזין תשובה",
-                },
-              ]}>
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="כתבו פסקה על איכות העבודה שנעשתה"
-              name="workQuality"
-              rules={[
-                {
-                  required: true,
-                  message: "נא להזין תשובה",
-                },
-              ]}>
-              <Input.TextArea rows={4} />
-            </Form.Item>
-            <Form.Item
-              label="כתבו משפט או יותר על איכות הכתיבה"
-              name="writingQuality"
-              rules={[
-                {
-                  required: true,
-                  message: "נא להזין תשובה",
-                },
-              ]}>
-              <Input.TextArea rows={4} />
-            </Form.Item>
-            {project?.advisorId === user._id && (
+            {project?.isReviewed && (
               <>
                 <Form.Item
-                  label="כמה קומיטים היו בגיט"
-                  name="commits"
+                  label="כתבו משפט על איכות הסרטון"
+                  name="videoQuality"
                   rules={[
                     {
                       required: true,
-                      message: "נא להזין מספר קומיטים",
-                    },
-                    {
-                      validator: (_, value) =>
-                        value > -1 ? Promise.resolve() : Promise.reject("המספר חייב להיות חיובי"),
+                      message: "נא להזין תשובה",
                     },
                   ]}>
-                  <Input type="number" />
+                  <Input />
                 </Form.Item>
                 <Form.Item
-                  label="האם היומן פעיל"
-                  name="journalActive"
+                  label="כתבו פסקה על איכות העבודה שנעשתה"
+                  name="workQuality"
                   rules={[
                     {
                       required: true,
-                      message: "נא לבחור תשובה",
+                      message: "נא להזין תשובה",
                     },
                   ]}>
-                  <Select>
-                    <Option value="yes">כן</Option>
-                    <Option value="no">לא</Option>
-                  </Select>
+                  <Input.TextArea rows={4} />
                 </Form.Item>
+                <Form.Item
+                  label="כתבו משפט או יותר על איכות הכתיבה"
+                  name="writingQuality"
+                  rules={[
+                    {
+                      required: true,
+                      message: "נא להזין תשובה",
+                    },
+                  ]}>
+                  <Input.TextArea rows={4} />
+                </Form.Item>
+                {project?.advisorId === user._id && (
+                  <>
+                    <Form.Item
+                      label="כמה קומיטים היו בגיט"
+                      name="commits"
+                      rules={[
+                        {
+                          required: true,
+                          message: "נא להזין מספר קומיטים",
+                        },
+                        {
+                          validator: (_, value) =>
+                            value > -1 ? Promise.resolve() : Promise.reject("המספר חייב להיות חיובי"),
+                        },
+                      ]}>
+                      <Input type="number" />
+                    </Form.Item>
+                    <Form.Item
+                      label="האם היומן פעיל"
+                      name="journalActive"
+                      rules={[
+                        {
+                          required: true,
+                          message: "נא לבחור תשובה",
+                        },
+                      ]}>
+                      <Select>
+                        <Option value="yes">כן</Option>
+                        <Option value="no">לא</Option>
+                      </Select>
+                    </Form.Item>
+                  </>
+                )}
               </>
             )}
-            <Form.Item
-              label="ציון לפרויקט"
-              name="grade"
-              rules={[
-                {
-                  required: true,
-                  message: "נא להזין ציון",
-                },
-              ]}>
-              <Select>
-                {letterGrades.map((grade) => (
-                  <Option key={grade} value={grade}>
-                    <p style={{ direction: "ltr", margin: "0", textAlign: "right" }}>{grade}</p>
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
+            {project?.isGraded && (
+              <Form.Item
+                label="ציון לפרויקט"
+                name="grade"
+                rules={[
+                  {
+                    required: true,
+                    message: "נא להזין ציון",
+                  },
+                ]}>
+                <Select>
+                  {letterGrades.map((grade) => (
+                    <Option key={grade} value={grade}>
+                      <p style={{ direction: "ltr", margin: "0", textAlign: "right" }}>{grade}</p>
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            )}
 
             <Form.Item>
               <Space>

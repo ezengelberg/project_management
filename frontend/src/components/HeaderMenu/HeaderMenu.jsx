@@ -31,7 +31,7 @@ const HeaderMenu = () => {
     <div className="header-container">
       <div className="site-upper-header-right">
         <img src={collegeLogo} alt="collage logo" className="collage-logo" onClick={() => navigate("/home")} />
-        <h1>מערכת ניהול פרויקטים</h1>
+        <h1>מערכת לניהול פרויקטים</h1>
       </div>
       <div className="site-upper-header-left">
         <Tooltip title="פרופיל">
