@@ -66,7 +66,9 @@ const SystemControl = () => {
         }, {});
         const filteredGroups = Object.keys(groups).reduce((acc, submissionName) => {
           const group = groups[submissionName];
-          const allGraded = group.every((submission) =>
+          const checkForGraded = group.every((submission) => submission.isGraded);
+          // const checkForReviewed = group.every((submission) => submission.isReviewed);
+          const allGraded = checkForGraded.every((submission) =>
             submission.gradesDetailed.every((grade) => grade.numericGrade !== undefined && grade.numericGrade !== null)
           );
           if (!allGraded) {
