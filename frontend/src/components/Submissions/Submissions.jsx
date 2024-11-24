@@ -358,7 +358,9 @@ const Submissions = () => {
             {submissions.map((sub, index) => {
               const grades = sub.grades || [];
               const waitingCheck = grades.some((grade) => grade.grade === null);
-
+              const isLate = new Date(sub.submissionDate) < new Date(sub.uploadDate);
+              console.log(sub.uploadDate);
+              console.log(isLate);
               return (
                 <Col
                   key={index}
@@ -378,7 +380,10 @@ const Submissions = () => {
                       : ""}
                   </span>
                   <div className="table-col-info">
-                    <Badge color={sub.submitted ? "green" : "orange"} text={sub.submitted ? "הוגש" : "מחכה להגשה"} />
+                    <Badge
+                      color={sub.submitted ? "green" : "orange"}
+                      text={sub.submitted ? `הוגש${isLate ? " באיחור" : ""}` : "מחכה להגשה"}
+                    />
                     <div>{waitingCheck && sub.submitted && <Badge color="blue" text="מחכה לבדיקה" />}</div>
                   </div>
                 </Col>
