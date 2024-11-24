@@ -375,6 +375,34 @@ export const updateSubmissionFile = async (req, res) => {
   }
 };
 
+export const updateSubmissionInformation = async (req, res) => {
+  console.log(req.body);
+  try {
+    const submissions = await Submission.find({ name: req.body.submissionName });
+    const activeProjects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
+    const activeProjectIds = activeProjects.map((project) => project._id.toString()); // Convert ObjectIds to strings
+
+    await Promise.all(
+      submissions.map(async (submission) => {
+        if (activeProjectIds.includes(submission.project.toString())) {
+          // Ensure submission.project is compared as a string
+          console.log("true");
+          Object.keys(req.body).forEach((key) => {
+            submission[key] = req.body[key];
+          });
+          await submission.save();
+        }
+      })
+    );
+
+    console.log("Submissions updated successfully");
+    res.status(200).json({ message: "Submissions updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 export const getSubmissionDetails = async (req, res) => {
   try {
     const submission = await Submission.findById(req.params.id)
