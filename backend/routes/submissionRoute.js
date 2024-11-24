@@ -9,7 +9,7 @@ import {
   getAllProjectSubmissions,
   getSubmissionDetails,
   getStudentSubmissions,
-  updateSubmissionFile
+  updateSubmissionFile,
 } from "../controllers/submissionController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 

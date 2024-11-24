@@ -27,6 +27,8 @@ const SystemControl = () => {
     E: null,
     F: null,
   });
+  const [submissions, setSubmissions] = useState([]);
+  const [submissionGroups, setSubmissionGroups] = useState({});
 
   useEffect(() => {
     setLoading(true);
@@ -45,6 +47,43 @@ const SystemControl = () => {
     };
 
     fetchGrades();
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    const fetchSubmissions = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all`, {
+          withCredentials: true,
+        });
+        setSubmissions(response.data);
+        const groups = response.data.reduce((acc, submission) => {
+          if (!acc[submission.name]) {
+            acc[submission.name] = [];
+          }
+          acc[submission.name].push(submission);
+          return acc;
+        }, {});
+        const filteredGroups = Object.keys(groups).reduce((acc, submissionName) => {
+          const group = groups[submissionName];
+          const allGraded = group.every((submission) =>
+            submission.gradesDetailed.every((grade) => grade.numericGrade !== undefined && grade.numericGrade !== null)
+          );
+          if (!allGraded) {
+            acc[submissionName] = group;
+          }
+          return acc;
+        }, {});
+        setSubmissionGroups(filteredGroups);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching submissions:", error);
+        message.error("שגיאה בטעינת ההגשות");
+        setLoading(false);
+      }
+    };
+
+    fetchSubmissions();
   }, []);
 
   const isEditing = (record) => record.key === editingKey;
@@ -102,14 +141,41 @@ const SystemControl = () => {
     }
   };
 
-  const endJudgingPeriod = async () => {
+  const endJudgingPeriodForSubmission = async (submissionName) => {
+    const group = submissionGroups[submissionName];
+    console.log(group);
+    const ungradedSubmissions = group.filter(
+      (submission) =>
+        submission.gradesDetailed.length === 0 ||
+        submission.gradesDetailed.some((grade) => grade.grade === null || grade.grade === undefined)
+    );
+
+    if (ungradedSubmissions.length > 0) {
+      message.error("יש עדיין הגשות ללא ציון");
+      setSubmissionGroups((prevGroups) => ({
+        ...prevGroups,
+        [submissionName]: prevGroups[submissionName].map((submission) => ({
+          ...submission,
+          checked: true,
+        })),
+      }));
+      return;
+    }
+
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/end-judging-period`,
-        {},
+        { submissionName },
         { withCredentials: true }
       );
       message.success("תקופת השיפוט הסתיימה בהצלחה");
+      setSubmissionGroups((prevGroups) => ({
+        ...prevGroups,
+        [submissionName]: prevGroups[submissionName].map((submission) => ({
+          ...submission,
+          checked: false,
+        })),
+      }));
     } catch (error) {
       console.error("Error ending judging period:", error);
       if (error.response.status === 400) {
@@ -117,6 +183,13 @@ const SystemControl = () => {
       } else {
         message.error("שגיאה בסיום תקופת השיפוט");
       }
+      setSubmissionGroups((prevGroups) => ({
+        ...prevGroups,
+        [submissionName]: prevGroups[submissionName].map((submission) => ({
+          ...submission,
+          checked: true,
+        })),
+      }));
     }
   };
 
@@ -186,18 +259,18 @@ const SystemControl = () => {
         <div className="box switches">
           <h3 className="box-title">סוויטצ'ים להדלקה \ כיבוי מהירים</h3>
           <div className="switch">
-            <label className="switch-label">הזנת פרוייקטים חדשים</label>
+            <label className="switch-label">הזנת פרויקטים חדשים</label>
             <Switch checked={createProject} />
           </div>
           <Tooltip title="רישום של הסטודנטים עצמם לפרוייקט">
             <div className="switch">
-              <label className="switch-label">רישום לפרוייקטים</label>
+              <label className="switch-label">רישום לפרויקטים</label>
               <Switch checked={registerToProjects} />
             </div>
           </Tooltip>
           <Tooltip title="אישור, דחיה והסרה של סטודנטים מפרויקט">
             <div className="switch">
-              <label className="switch-label">ניהול סטודנטים בפרוייקט</label>
+              <label className="switch-label">ניהול סטודנטים בפרויקט</label>
               <Switch checked={manageStudents} />
             </div>
           </Tooltip>
@@ -207,14 +280,24 @@ const SystemControl = () => {
           </div>
         </div>
         <div className="box finish-projects">
-          <h3 className="box-title">סיים פרוייקטים</h3>
+          <h3 className="box-title">סיים פרויקטים</h3>
           <Tooltip title="סיים את כל הפרוייקטים">
-            <Button shape="circle" type="primary" icon={<CloseCircleOutlined />}></Button>
+            <Button className="end-projects" shape="circle" type="primary" icon={<CloseCircleOutlined />}></Button>
           </Tooltip>
         </div>
-        <Tooltip title="סיים תקופת שיפוט">
-          <Button type="primary" icon={<CheckCircleOutlined />} onClick={endJudgingPeriod}></Button>
-        </Tooltip>
+        <div className="box finish-judging-period">
+          <h3 className="box-title">סיום תקופת שיפוט</h3>
+          {Object.keys(submissionGroups).map((submissionName) => (
+            <div key={submissionName} className="switch">
+              <label className="switch-label">סיים תקופת שיפוט עבור {submissionName}</label>
+              <Switch
+                defaultChecked
+                onChange={() => endJudgingPeriodForSubmission(submissionName)}
+                checked={submissionGroups[submissionName].every((submission) => submission.checked !== false)}
+              />
+            </div>
+          ))}
+        </div>
       </div>
       <Form form={form} component={false} loading={loading}>
         <Table

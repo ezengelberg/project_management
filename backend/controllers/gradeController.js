@@ -163,8 +163,9 @@ export const getGradeBySubmission = async (req, res) => {
 };
 
 export const endJudgingPeriod = async (req, res) => {
+  const { submissionName } = req.body;
   try {
-    const submissions = await Submission.find().populate("grades");
+    const submissions = await Submission.find({ name: submissionName }).populate("grades");
 
     for (const submission of submissions) {
       submission.editable = false;
