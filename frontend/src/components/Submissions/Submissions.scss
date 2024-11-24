@@ -43,6 +43,10 @@
   margin-bottom: 1rem;
 }
 
+.action-buttons .action-button-end {
+  margin-right: auto; /* Push the button to the opposite end */
+}
+
 .input-field-override-grade {
   width: 100%;
 }

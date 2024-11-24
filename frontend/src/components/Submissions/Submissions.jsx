@@ -485,11 +485,11 @@ const Submissions = () => {
         <Button type="primary" onClick={() => setSpecificSubmission(true)}>
           פתיחת הגשה לפרויקטים נבחרים
         </Button>
-        <Button type="primary" onClick={() => setEditSubmissions(true)}>
-          עריכת פרטי הגשה
-        </Button>
         <Button type="primary" onClick={() => setCopyJudges(true)}>
           העתקת שופטים
+        </Button>
+        <Button type="primary" className="action-button-end" onClick={() => setEditSubmissions(true)}>
+          עריכת פרטי הגשה
         </Button>
       </div>
       <Table columns={columns} dataSource={submissionData} />
