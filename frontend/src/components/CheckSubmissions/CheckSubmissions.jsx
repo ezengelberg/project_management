@@ -19,7 +19,6 @@ const CheckSubmissions = () => {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-judge-submissions`, {
           withCredentials: true,
         });
-
         setSubmissions(response.data);
         setInitLoading(false);
       } catch (error) {
@@ -46,13 +45,55 @@ const CheckSubmissions = () => {
     }
   };
 
-  const waitingForGrade = submissions.filter((submission) => submission.grade === null);
+  const waitingForGrade = submissions.filter(
+    (submission) =>
+      submission.grade === null && submission.videoQuality === null && (submission.isReviewed || submission.isGraded)
+  );
   const gradedAndEditable = submissions
-    .filter((submission) => submission.grade !== null && submission.editable)
+    .filter((submission) => (submission.grade !== null || submission.videoQuality !== null) && submission.editable)
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
   const gradedSubmissions = submissions
-    .filter((submission) => submission.grade !== null && !submission.editable)
+    .filter((submission) => (submission.grade !== null || submission.videoQuality !== null) && !submission.editable)
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+  const renderSubmissionDetails = (item) => {
+    if (item.isReviewed && !item.isGraded) {
+      return (
+        <>
+          {item.videoQuality ? (
+            <span>ניתן משוב</span>
+          ) : (
+            <span>
+              <strong>לא ניתן משוב</strong>
+            </span>
+          )}
+          <Tooltip title="הורד קובץ">
+            <DownloadOutlined className="icon" />
+          </Tooltip>
+        </>
+      );
+    } else if (!item.isReviewed && !item.isGraded) {
+      return <span>הגשה זאת היא ללא שפיטה</span>;
+    } else {
+      return (
+        <>
+          <div className="grade">
+            {item.grade ? (
+              <span>ציון: </span>
+            ) : (
+              <span>
+                <strong>לא ניתן ציון</strong>
+              </span>
+            )}
+            <p>{item.grade}</p>
+          </div>
+          <Tooltip title="הורד קובץ">
+            <DownloadOutlined className="icon" />
+          </Tooltip>
+        </>
+      );
+    }
+  };
 
   const items = [
     {
@@ -69,21 +110,18 @@ const CheckSubmissions = () => {
           dataSource={waitingForGrade}
           renderItem={(item) => (
             <List.Item
-              actions={[
-                <a
-                  key="list-grade"
-                  onClick={() => navigate(`/grade-submission/${item.key}`)}
-                  onMouseDown={(e) => handleMouseDown(e, `/grade-submission/${item.key}`)}>
-                  שפיטה
-                </a>,
-                <a
-                  key="list-more"
-                  onClick={() => {
-                    getSumbissionDetails(item.key);
-                  }}>
-                  פרטים נוספים
-                </a>,
-              ]}>
+              actions={
+                !item.isReviewed && !item.isGraded
+                  ? []
+                  : [
+                      <a
+                        key="list-grade"
+                        onClick={() => navigate(`/grade-submission/${item.key}`)}
+                        onMouseDown={(e) => handleMouseDown(e, `/grade-submission/${item.key}`)}>
+                        שפיטה
+                      </a>,
+                    ]
+              }>
               <Skeleton title={false} loading={item.loading} active>
                 <List.Item.Meta
                   className="submission-meta"
@@ -102,12 +140,7 @@ const CheckSubmissions = () => {
                   }
                   description="פה יהיה שם הקובץ"
                 />
-                <div className="submission-details">
-                  <span>לא ניתן ציון</span>
-                  <Tooltip title="הורד קובץ">
-                    <DownloadOutlined className="icon" />
-                  </Tooltip>
-                </div>
+                <div className="submission-details">{renderSubmissionDetails(item)}</div>
               </Skeleton>
             </List.Item>
           )}
@@ -161,23 +194,7 @@ const CheckSubmissions = () => {
                   }
                   description="פה יהיה שם הקובץ"
                 />
-                <div className="submission-details">
-                  {item.overridden ? (
-                    <div className="grade">
-                      <span>ציון:</span>
-                      <p style={{ textDecoration: "line-through" }}>{item.grade}</p>
-                      <p>{item.overridden.newGrade}</p>
-                    </div>
-                  ) : (
-                    <div className="grade">
-                      <span>ציון: </span>
-                      <p>{item.grade}</p>
-                    </div>
-                  )}
-                  <Tooltip title="הורד קובץ">
-                    <DownloadOutlined className="icon" />
-                  </Tooltip>
-                </div>
+                <div className="submission-details">{renderSubmissionDetails(item)}</div>
               </Skeleton>
             </List.Item>
           )}
@@ -225,23 +242,7 @@ const CheckSubmissions = () => {
                   }
                   description="פה יהיה שם הקובץ"
                 />
-                <div className="submission-details">
-                  {item.overridden ? (
-                    <div className="grade">
-                      <span>ציון:</span>
-                      <p style={{ textDecoration: "line-through" }}>{item.grade}</p>
-                      <p>{item.overridden.newGrade}</p>
-                    </div>
-                  ) : (
-                    <div className="grade">
-                      <span>ציון: </span>
-                      <p>{item.grade}</p>
-                    </div>
-                  )}
-                  <Tooltip title="הורד קובץ">
-                    <DownloadOutlined className="icon" />
-                  </Tooltip>
-                </div>
+                <div className="submission-details">{renderSubmissionDetails(item)}</div>
               </Skeleton>
             </List.Item>
           )}
@@ -267,27 +268,40 @@ const CheckSubmissions = () => {
           <p>הגשה - {submissionDetails.submissionName}</p>
         </div>
         <div className="details-grade">
-          <span>ציון שניתן על ידך:</span> <p>{submissionDetails.grade ? submissionDetails.grade : "לא ניתן ציון"}</p>
+          {submissionDetails.isGraded && (
+            <>
+              <span>ציון שניתן על ידך:</span>{" "}
+              <p>{submissionDetails.grade ? submissionDetails.grade : "לא ניתן ציון"}</p>
+            </>
+          )}
         </div>
-        <p>
-          <strong>איכות הוידאו:</strong> {submissionDetails.videoQuality}
-        </p>
-        <p>
-          <strong>איכות העבודה:</strong> {submissionDetails.workQuality}
-        </p>
-        <p>
-          <strong>איכות הכתיבה:</strong> {submissionDetails.writingQuality}
-        </p>
-        {submissionDetails.commits && (
-          <p>
-            <strong>מספר הקומיטים:</strong> {submissionDetails.commits}
-          </p>
-        )}
-        {submissionDetails.journalActive && (
-          <p>
-            <strong>האם היומן פעיל:</strong>{" "}
-            {submissionDetails.journalActive === "yes" ? "כן" : submissionDetails.journalActive === "no" ? "לא" : ""}
-          </p>
+        {submissionDetails.isReviewed && (
+          <>
+            <p>
+              <strong>איכות הוידאו:</strong> {submissionDetails.videoQuality}
+            </p>
+            <p>
+              <strong>איכות העבודה:</strong> {submissionDetails.workQuality}
+            </p>
+            <p>
+              <strong>איכות הכתיבה:</strong> {submissionDetails.writingQuality}
+            </p>
+            {submissionDetails.commits && (
+              <p>
+                <strong>מספר הקומיטים:</strong> {submissionDetails.commits}
+              </p>
+            )}
+            {submissionDetails.journalActive && (
+              <p>
+                <strong>האם היומן פעיל:</strong>{" "}
+                {submissionDetails.journalActive === "yes"
+                  ? "כן"
+                  : submissionDetails.journalActive === "no"
+                  ? "לא"
+                  : ""}
+              </p>
+            )}
+          </>
         )}
         <p>
           <strong>תאריך שפיטה:</strong>{" "}

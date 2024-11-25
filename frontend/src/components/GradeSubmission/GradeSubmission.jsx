@@ -63,7 +63,11 @@ const GradeSubmission = () => {
           withCredentials: true,
         }
       );
-      message.success("הציון נשמר בהצלחה");
+      if (values.isGraded) {
+        message.success("הציון נשמר בהצלחה");
+      } else {
+        message.success("המשוב נשמר בהצלחה");
+      }
       form.resetFields();
       navigate("/check-submissions");
     } catch (error) {
@@ -178,9 +182,15 @@ const GradeSubmission = () => {
 
             <Form.Item>
               <Space>
-                <Button type="primary" htmlType="submit">
-                  שמור ציון
-                </Button>
+                {project?.isGraded ? (
+                  <Button type="primary" htmlType="submit">
+                    שמור ציון
+                  </Button>
+                ) : (
+                  <Button type="primary" htmlType="submit">
+                    שמור משוב
+                  </Button>
+                )}
                 <Button htmlType="button" onClick={onReset}>
                   נקה טופס
                 </Button>

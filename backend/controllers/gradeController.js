@@ -7,9 +7,19 @@ const defaultLetters = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+",
 
 // Add new grade
 export const addGrade = async (req, res) => {
-  const { submissionId, grade, videoQuality, workQuality, writingQuality, commits, journalActive } = req.body;
+  const {
+    submissionId,
+    grade,
+    videoQuality,
+    workQuality,
+    writingQuality,
+    commits,
+    journalActive,
+    isGraded,
+    isReviewed,
+  } = req.body;
 
-  if (!grade) {
+  if (!grade && isGraded) {
     return res.status(400).json({ message: "חייב להזין ציון" });
   }
 
@@ -90,7 +100,6 @@ export const getNumericValues = async (req, res) => {
       acc[letter] = numericValues.find((nv) => nv.letter === letter)?.value || null;
       return acc;
     }, {});
-    console.log("Getting numeric values:", letterToNumber);
     res.status(200).json(letterToNumber);
   } catch (error) {
     console.log("Error getting numeric values:", error);

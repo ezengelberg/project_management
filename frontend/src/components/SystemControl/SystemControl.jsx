@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./SystemControl.scss";
 import { Button, Switch, Form, Input, InputNumber, Table, Typography, message, Tooltip } from "antd";
-import { CloseCircleOutlined, EditOutlined, SaveOutlined, StopOutlined, CheckCircleOutlined } from "@ant-design/icons";
+import { CloseCircleOutlined, EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
 
 const SystemControl = () => {
   const [createProject, setCreateProject] = useState(true);
@@ -66,12 +66,11 @@ const SystemControl = () => {
         }, {});
         const filteredGroups = Object.keys(groups).reduce((acc, submissionName) => {
           const group = groups[submissionName];
-          const checkForGraded = group.every((submission) => submission.isGraded);
-          // const checkForReviewed = group.every((submission) => submission.isReviewed);
-          const allGraded = checkForGraded.every((submission) =>
+          const checkForGraded = group.filter((submission) => submission.isGraded || submission.isReviewed);
+          const allGroups = checkForGraded.every((submission) =>
             submission.gradesDetailed.every((grade) => grade.numericGrade !== undefined && grade.numericGrade !== null)
           );
-          if (!allGraded) {
+          if (!allGroups) {
             acc[submissionName] = group;
           }
           return acc;
@@ -147,12 +146,32 @@ const SystemControl = () => {
     const group = submissionGroups[submissionName];
     const ungradedSubmissions = group.filter(
       (submission) =>
-        submission.gradesDetailed.length === 0 ||
-        submission.gradesDetailed.some((grade) => grade.grade === null || grade.grade === undefined)
+        submission.isGraded === true &&
+        (submission.gradesDetailed.length === 0 ||
+          submission.gradesDetailed.some((grade) => grade.grade === null || grade.grade === undefined))
+    );
+
+    const unreviewedSubmissions = group.filter(
+      (submission) =>
+        submission.isReviewed === true &&
+        (submission.gradesDetailed.length === 0 ||
+          submission.gradesDetailed.some((grade) => grade.vidoeQuality === undefined || grade.vidoeQuality === null))
     );
 
     if (ungradedSubmissions.length > 0) {
       message.error("יש עדיין הגשות ללא ציון");
+      setSubmissionGroups((prevGroups) => ({
+        ...prevGroups,
+        [submissionName]: prevGroups[submissionName].map((submission) => ({
+          ...submission,
+          checked: true,
+        })),
+      }));
+      return;
+    }
+
+    if (unreviewedSubmissions.length > 0) {
+      message.error("יש עדיין הגשות ללא ביקורת");
       setSubmissionGroups((prevGroups) => ({
         ...prevGroups,
         [submissionName]: prevGroups[submissionName].map((submission) => ({
