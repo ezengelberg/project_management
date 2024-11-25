@@ -37,6 +37,7 @@ const UploadSubmissions = () => {
     name: "file",
     multiple: false,
     accept: ".pdf",
+    listType: "picture",
     fileList, // Bind the fileList state
     beforeUpload: (file) => {
       if (file.name.length > 50) {
@@ -56,12 +57,12 @@ const UploadSubmissions = () => {
     onRemove: () => {
       setFile(null); // Clear the selected file
       setFileList([]); // Clear the file list
-      message.info("הקובץ הוסר בהצלחה");
+      message.info("הקובץ הוסר");
     },
     onChange: (info) => {
       const { fileList: newFileList } = info;
       setFileList(newFileList); // Update file list
-    },
+    }
   };
 
   const confirmDeleteSubmission = async () => {
@@ -75,7 +76,7 @@ const UploadSubmissions = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-file/${currentSubmission._id}`,
         {
-          file: null,
+          file: null
         },
         { withCredentials: true }
       );
@@ -93,7 +94,7 @@ const UploadSubmissions = () => {
   const fetchPendingSubmissions = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-student-submissions`, {
-        withCredentials: true,
+        withCredentials: true
       });
       const data = response.data || [];
       if (!Array.isArray(data)) {
@@ -133,9 +134,9 @@ const UploadSubmissions = () => {
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            "X-Filename-Encoding": "url",
+            "X-Filename-Encoding": "url"
           },
-          withCredentials: true,
+          withCredentials: true
         }
       );
       // Show success message and reset file
@@ -144,7 +145,7 @@ const UploadSubmissions = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-file/${currentSubmission._id}`,
         {
-          file: uploadedFile,
+          file: uploadedFile
         },
         { withCredentials: true }
       );
@@ -172,7 +173,7 @@ const UploadSubmissions = () => {
     {
       title: "שם ההגשה",
       dataIndex: "submissionName",
-      key: "submissionName",
+      key: "submissionName"
     },
     {
       title: "תאריך הגשה",
@@ -194,19 +195,19 @@ const UploadSubmissions = () => {
             <span
               style={{
                 color: !record.file && isPastDue ? "red" : !record.file && isDateClose ? "#f58623" : "inherit",
-                fontWeight: !record.file && (isPastDue || isDateClose) ? "bold" : "normal",
+                fontWeight: !record.file && (isPastDue || isDateClose) ? "bold" : "normal"
               }}>
               {submissionDate.toLocaleString("he-IL", {
                 hour: "2-digit",
                 minute: "2-digit",
                 day: "2-digit",
                 month: "2-digit",
-                year: "numeric",
+                year: "numeric"
               })}
             </span>
           </Tooltip>
         );
-      },
+      }
     },
     {
       title: "סטטוס הגשה",
@@ -223,7 +224,7 @@ const UploadSubmissions = () => {
             )}
           </span>
         );
-      },
+      }
     },
     {
       title: "הנחיות",
@@ -231,7 +232,7 @@ const UploadSubmissions = () => {
       key: "info",
       render: (text) => {
         return <Tooltip title={text}>{text.length > 25 ? `${text.slice(0, 25)}...` : text}</Tooltip>;
-      },
+      }
     },
     {
       title: "פעולות",
@@ -248,8 +249,8 @@ const UploadSubmissions = () => {
             </a>
           )}
         </span>
-      ),
-    },
+      )
+    }
   ];
 
   return (
@@ -257,28 +258,23 @@ const UploadSubmissions = () => {
       <Modal
         title={`מחיקת הגשה עבור ${currentSubmission?.name}`}
         open={isConfirmModalVisible}
-        width="20%"
-        footer={null}>
-        <p>האם אתה בטוח שברצונך למחוק את ההגשה?</p>
-        <div className="confirm-modal">
-          <Button type="primary" onClick={() => confirmDeleteSubmission()}>
-            כן
-          </Button>
-          <Button type="default" onClick={() => setIsConfirmModalVisible(false)}>
-            לא
-          </Button>
-        </div>
+        width="15%"
+        okText="אשר מחיקה"
+        okButtonProps={{ danger: true }}
+        cancelText="סגור"
+        onOk={() => confirmDeleteSubmission()}
+        onCancel={() => setIsConfirmModalVisible(false)}>
+        האם אתה בטוח שברצונך למחוק את ההגשה?
       </Modal>
       <Modal
         title={`הגשת מטלה - ${currentSubmission?.name}`}
         open={isModalVisible}
         onCancel={closeModal}
-        footer={[
-          <Button key="ok" type="primary" onClick={closeModal}>
-            סגור
-          </Button>,
-        ]}
-        width="50%">
+        onOk={handleUpload}
+        okText="העלה הגשה"
+        cancelText="ביטול"
+        okButtonProps={{ disabled: !file }}
+        width="30%">
         <div className="submission-modal">
           {currentSubmission?.submissionInfo && (
             <div className="submission-info">
@@ -299,11 +295,6 @@ const UploadSubmissions = () => {
               עבור פרויקטים בזוגות רק על אחד השותפים להגיש את הנדרש. שימו לב שיש להגיש בקובץ PDF בלבד
             </p>
           </Dragger>
-          {file && (
-            <Button type="primary" onClick={handleUpload} loading={uploading}>
-              {uploading ? "מעלה" : "התחל העלאה"}
-            </Button>
-          )}
         </div>
       </Modal>
       <Table dataSource={submissions} columns={columns} />
