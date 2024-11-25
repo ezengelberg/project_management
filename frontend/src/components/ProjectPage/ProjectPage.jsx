@@ -242,7 +242,7 @@ const ProjectPage = () => {
               ))}
             </div>
           </div>
-          {(!hasProject && !(user.isCoordinator || user.isAdvisor || user.isJudge)) || user.isStudent ? (
+          {!hasProject && user.isStudent ? (
             isCandidate ? (
               <div className="project-unsignup-button" onClick={() => Unsignup()}>
                 {isLoading ? (
