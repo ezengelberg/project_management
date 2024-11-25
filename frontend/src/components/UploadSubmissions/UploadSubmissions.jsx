@@ -238,22 +238,19 @@ const UploadSubmissions = () => {
       title: "פעולות",
       key: "action",
       render: (text, record) => (
-        console.log(record.submissionDate),
-        (
-          <span>
-            {!record.file ? (
-              <a>
-                <UploadOutlined className="edit-icon" onClick={() => showUploadModal(record)} />
-              </a>
-            ) : new Date(record.submissionDate) > new Date() ? (
-              <a>
-                <DeleteOutlined className="edit-icon" onClick={() => showConfirmModal(record)} />
-              </a>
-            ) : (
-              "תאריך הגשה עבר"
-            )}
-          </span>
-        )
+        <span>
+          {!record.file ? (
+            <a>
+              <UploadOutlined className="edit-icon" onClick={() => showUploadModal(record)} />
+            </a>
+          ) : new Date(record.submissionDate) > new Date() ? (
+            <a>
+              <DeleteOutlined className="edit-icon" onClick={() => showConfirmModal(record)} />
+            </a>
+          ) : (
+            "תאריך הגשה עבר"
+          )}
+        </span>
       )
     }
   ];
