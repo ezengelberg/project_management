@@ -824,7 +824,7 @@ const OverviewProjects = () => {
               {projectSubmissions.map((submission) => (
                 <div key={submission._id} className="inner-table-order">
                   <p>
-                    {submission.name} - {submission.finalGrade ? submission.finalGrade : "לא שוכלל ציון"}
+                    {submission.name} - {submission.finalGrade ? submission.finalGrade : "לא שוקלל ציון"}
                   </p>
                 </div>
               ))}
@@ -1002,7 +1002,7 @@ const OverviewProjects = () => {
               {projectSubmissions.map((submission) => (
                 <div key={submission._id} className="inner-table-order">
                   <p>
-                    {submission.name} - {submission.finalGrade ? submission.finalGrade : "לא שוכלל ציון"}
+                    {submission.name} - {submission.finalGrade ? submission.finalGrade : "לא שוקלל ציון"}
                   </p>
                 </div>
               ))}
