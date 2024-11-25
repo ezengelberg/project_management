@@ -75,3 +75,25 @@
     justify-content: center;
   }
 }
+
+.submission-info-modal {
+  .submission-header {
+    h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+  }
+
+  .submission-details {
+    display: flex;
+    gap: 1rem;
+    .detail-item {
+      display: flex;
+      gap: 1rem;
+      .detail-item-header {
+        font-size: 1.5rem;
+        font-weight: 500;
+      }
+    }
+  }
+}

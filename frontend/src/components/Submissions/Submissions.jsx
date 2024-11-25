@@ -67,7 +67,13 @@ const Submissions = () => {
         }
       );
 
-      console.log(response.data);
+      response.data.map((project) => {
+        project.submissions.map((submission) => {
+          submission.isLate = new Date(submission.submissionDate) < new Date(submission.uploadDate);
+          return submission;
+        });
+        return project;
+      });
       setSubmissionData(response.data);
       const submissionNames = [
         ...new Set(response.data.flatMap((submission) => submission.submissions.map((sub) => sub.name)))
@@ -396,7 +402,6 @@ const Submissions = () => {
             {submissions.map((sub, index) => {
               const grades = sub.grades || [];
               const waitingCheck = grades.some((grade) => grade.grade === null);
-              const isLate = new Date(sub.submissionDate) < new Date(sub.uploadDate);
               return (
                 <Col
                   key={index}
@@ -418,7 +423,7 @@ const Submissions = () => {
                   <div className="table-col-info">
                     <Badge
                       color={sub.submitted ? "green" : "orange"}
-                      text={sub.submitted ? `הוגש${isLate ? " באיחור" : ""}` : "מחכה להגשה"}
+                      text={sub.submitted ? `הוגש${sub.isLate ? " באיחור" : ""}` : "מחכה להגשה"}
                     />
                     <div>{waitingCheck && sub.submitted && <Badge color="blue" text="מחכה לבדיקה" />}</div>
                   </div>
@@ -494,14 +499,14 @@ const Submissions = () => {
       </div>
       <Table columns={columns} dataSource={submissionData} />
       <Modal
-        title="פרטי הגשה"
+        title={`פרטי ההגשה עבור: ${submissionInfo?.project.title} - ${submissionInfo?.submission.name}`}
         open={submissionInfo !== null}
         onCancel={() => setSubmissionInfo(null)}
-        footer={[
-          <Button key="close" onClick={() => setSubmissionInfo(null)}>
+        footer={
+          <Button type="primary" key="back" onClick={() => setSubmissionInfo(null)}>
             סגור
           </Button>
-        ]}
+        }
         width={800}>
         {submissionInfo && (
           <div className="submission-info-modal">
@@ -509,36 +514,55 @@ const Submissions = () => {
               <h2>{submissionInfo.project.title}</h2>
               <Badge
                 status={submissionInfo.submission.submitted ? "success" : "warning"}
-                text={submissionInfo.submission.submitted ? "הוגש" : "ממתין להגשה"}
+                text={
+                  submissionInfo.submission.submitted
+                    ? `הוגש${submissionInfo.submission.isLate ? " באיחור" : ""}`
+                    : "ממתין להגשה"
+                }
               />
             </div>
-
             <div className="submission-details">
-              <Row gutter={[16, 16]}>
-                <Col span={12}>
-                  <div className="detail-item">
-                    <strong>סוג הגשה:</strong> {submissionInfo.submission.name}
-                  </div>
-                  <div className="detail-item">
-                    <strong>תאריך הגשה:</strong>{" "}
-                    {new Date(submissionInfo.submission.submissionDate).toLocaleString("he-IL")}
-                  </div>
-                </Col>
-                <Col span={12}>
-                  <div className="detail-item">
-                    <strong>סטטוס הגשה:</strong> {submissionInfo.submission.submitted ? "הוגש" : "ממתין להגשה"}
-                  </div>
-                  <div className="detail-item">
-                    <strong>סטטוס בדיקה:</strong>{" "}
-                    {submissionInfo.submission.submitted &&
-                    submissionInfo.submission.grades.some((grade) => grade.grade === null)
-                      ? "ממתין לבדיקה"
-                      : submissionInfo.submission.submitted
-                      ? "נבדק"
-                      : "לא הוגש"}
-                  </div>
-                </Col>
-              </Row>
+              <div className="detail-item">
+                <div className="detail-item-header">שם ההגשה:</div>
+                <div className="detail-item-content">{submissionInfo.submission.name}</div>
+              </div>
+              <div className="detail-item">
+                <div className="detail-item-header">סטטוס בדיקה:</div>
+                <div className="detail-item-content">
+                  {submissionInfo.submission.submitted &&
+                  submissionInfo.submission.grades.some((grade) => (grade.grade = null))
+                    ? "ממתין לבדיקה"
+                    : submissionInfo.submission.submitted
+                    ? "נבדק"
+                    : "לא הוגש"}
+                </div>
+              </div>
+              <div className="detail-item">
+                <div className="detail-item-header">תאריך הגשה סופי:</div>
+                <div className="detail-item-content">
+                  {new Date(submissionInfo.submission.submissionDate).toLocaleString("he-IL", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric"
+                  })}
+                </div>
+              </div>
+              <div className="detail-item">
+                <div className="detail-item-header">תאריך הגשה:</div>
+                <div className="detail-item-content">
+                  {submissionInfo.submission.uploadDate
+                    ? new Date(submissionInfo.submission?.uploadDate).toLocaleString("he-IL", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric"
+                      })
+                    : "ממתין להגשה"}
+                </div>
+              </div>
             </div>
 
             <div className="submission-grades">
@@ -555,7 +579,7 @@ const Submissions = () => {
               />
             </div>
 
-            {submissionInfo.submission.grades.length > 0 && (
+            {/* {submissionInfo.submission.grades.length > 0 && (
               <div className="grade-summary">
                 <h3>סיכום ציונים</h3>
                 <Row gutter={[16, 16]}>
@@ -593,7 +617,7 @@ const Submissions = () => {
                   </Col>
                 </Row>
               </div>
-            )}
+            )} */}
           </div>
         )}
       </Modal>
