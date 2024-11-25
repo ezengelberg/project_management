@@ -238,17 +238,22 @@ const UploadSubmissions = () => {
       title: "פעולות",
       key: "action",
       render: (text, record) => (
-        <span>
-          {!record.file ? (
-            <a>
-              <UploadOutlined className="edit-icon" onClick={() => showUploadModal(record)} />
-            </a>
-          ) : (
-            <a>
-              <DeleteOutlined className="edit-icon" onClick={() => showConfirmModal(record)} />
-            </a>
-          )}
-        </span>
+        console.log(record.submissionDate),
+        (
+          <span>
+            {!record.file ? (
+              <a>
+                <UploadOutlined className="edit-icon" onClick={() => showUploadModal(record)} />
+              </a>
+            ) : new Date(record.submissionDate) > new Date() ? (
+              <a>
+                <DeleteOutlined className="edit-icon" onClick={() => showConfirmModal(record)} />
+              </a>
+            ) : (
+              "תאריך הגשה עבר"
+            )}
+          </span>
+        )
       )
     }
   ];
@@ -283,7 +288,10 @@ const UploadSubmissions = () => {
           )}
           {new Date(currentSubmission?.submissionDate) < new Date() && (
             <div className="submission-late">
-              <b>שימו לב - ההגשה נשלחת באיחור</b>
+              <b>
+                שימו לב - ההגשה נשלחת באיחור
+                <br /> לא יהיה ניתן לבצע שינויים לאחר ההגשה
+              </b>
             </div>
           )}
           <Dragger {...props}>
