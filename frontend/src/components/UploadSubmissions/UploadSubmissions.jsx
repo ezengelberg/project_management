@@ -61,7 +61,7 @@ const UploadSubmissions = () => {
     onChange: (info) => {
       const { fileList: newFileList } = info;
       setFileList(newFileList); // Update file list
-    }
+    },
   };
 
   const confirmDeleteSubmission = async () => {
@@ -75,7 +75,7 @@ const UploadSubmissions = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-file/${currentSubmission._id}`,
         {
-          file: null
+          file: null,
         },
         { withCredentials: true }
       );
@@ -93,12 +93,16 @@ const UploadSubmissions = () => {
   const fetchPendingSubmissions = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-student-submissions`, {
-        withCredentials: true
+        withCredentials: true,
       });
-
-      setSubmissions(response.data);
+      const data = response.data || [];
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid data format");
+      }
+      setSubmissions(data);
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching submissions:", error);
+      setSubmissions([]);
     }
   };
 
@@ -129,9 +133,9 @@ const UploadSubmissions = () => {
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            "X-Filename-Encoding": "url"
+            "X-Filename-Encoding": "url",
           },
-          withCredentials: true
+          withCredentials: true,
         }
       );
       // Show success message and reset file
@@ -140,7 +144,7 @@ const UploadSubmissions = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-file/${currentSubmission._id}`,
         {
-          file: uploadedFile
+          file: uploadedFile,
         },
         { withCredentials: true }
       );
@@ -168,7 +172,7 @@ const UploadSubmissions = () => {
     {
       title: "שם ההגשה",
       dataIndex: "submissionName",
-      key: "submissionName"
+      key: "submissionName",
     },
     {
       title: "תאריך הגשה",
@@ -190,19 +194,19 @@ const UploadSubmissions = () => {
             <span
               style={{
                 color: !record.file && isPastDue ? "red" : !record.file && isDateClose ? "#f58623" : "inherit",
-                fontWeight: !record.file && (isPastDue || isDateClose) ? "bold" : "normal"
+                fontWeight: !record.file && (isPastDue || isDateClose) ? "bold" : "normal",
               }}>
               {submissionDate.toLocaleString("he-IL", {
                 hour: "2-digit",
                 minute: "2-digit",
                 day: "2-digit",
                 month: "2-digit",
-                year: "numeric"
+                year: "numeric",
               })}
             </span>
           </Tooltip>
         );
-      }
+      },
     },
     {
       title: "סטטוס הגשה",
@@ -212,12 +216,12 @@ const UploadSubmissions = () => {
         return (
           <span>{record.file ? <Badge color="green" text="הוגש" /> : <Badge color="orange" text="לא הוגש" />}</span>
         );
-      }
+      },
     },
     {
       title: "הערות",
       dataIndex: "submissionInfo",
-      key: "info"
+      key: "info",
     },
     {
       title: "פעולות",
@@ -234,8 +238,8 @@ const UploadSubmissions = () => {
             </a>
           )}
         </span>
-      )
-    }
+      ),
+    },
   ];
 
   return (
@@ -262,7 +266,7 @@ const UploadSubmissions = () => {
         footer={[
           <Button key="ok" type="primary" onClick={closeModal}>
             סגור
-          </Button>
+          </Button>,
         ]}
         width="50%">
         <div className="submission-modal">
