@@ -84,6 +84,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
                   <div className="advisor-name">{advisor}</div>
                 </div>
               ))}
+              {advisors.length === 0 && <div className="project-advisor no-advisor">ללא מנחה זמין</div>}
             </div>
             <div className="more-info" onClick={() => navigate(`/project/${props._id}`)}>
               <Tooltip title="לפירוט מלא + הרשמה">[ למידע נוסף ורישום ]</Tooltip>

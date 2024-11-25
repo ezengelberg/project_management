@@ -116,6 +116,9 @@
                 cursor: pointer;
                 transition: background-color 0.2s linear;
               }
+              .no-advisor {
+                background-color: rgba(255, 22, 22, 0.8);
+              }
             }
             .more-info {
               width: fit-content;
