@@ -14,14 +14,12 @@ import {
   Table,
   Radio,
   message,
-  Statistic,
   Checkbox,
   Button,
   InputNumber,
-  Col,
-  Row,
   Badge,
-  Space
+  Space,
+  Divider,
 } from "antd";
 import { EditOutlined, DeleteOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
@@ -50,7 +48,7 @@ const Submissions = () => {
   const fetchActiveProjects = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-active-projects`, {
-        withCredentials: true
+        withCredentials: true,
       });
       setProjects(response.data);
     } catch (error) {
@@ -63,7 +61,7 @@ const Submissions = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
 
@@ -76,7 +74,7 @@ const Submissions = () => {
       });
       setSubmissionData(response.data);
       const submissionNames = [
-        ...new Set(response.data.flatMap((submission) => submission.submissions.map((sub) => sub.name)))
+        ...new Set(response.data.flatMap((submission) => submission.submissions.map((sub) => sub.name))),
       ];
       setSubmissionNames(submissionNames);
     } catch (error) {
@@ -96,15 +94,15 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/copy-judges`,
         {
           sourceSubmission: values.sourceSubmission,
-          destinationSubmission: values.destinationSubmission
+          destinationSubmission: values.destinationSubmission,
         },
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
       message.open({
         type: "success",
-        content: "העתקת השופטים הושלמה בהצלחה"
+        content: "העתקת השופטים הושלמה בהצלחה",
       });
     } catch (error) {
       console.error("Error copying judges:", error);
@@ -119,7 +117,7 @@ const Submissions = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/update/${gradeToOverride.key}`,
         {
-          grade: values.newGrade
+          grade: values.newGrade,
         },
         { withCredentials: true }
       );
@@ -172,15 +170,15 @@ const Submissions = () => {
           submissionDate: values.submissionDate,
           submissionInfo: values.submissionInfo,
           isGraded: isGraded,
-          isReviewed: isReviewed
+          isReviewed: isReviewed,
         },
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
       message.open({
         type: "success",
-        content: "הגשה נפתחה בהצלחה"
+        content: "הגשה נפתחה בהצלחה",
       });
     } catch (error) {
       console.error("Error creating submission:", error);
@@ -199,15 +197,15 @@ const Submissions = () => {
         {
           submissionName: values.submissionName,
           submissionDate: values.submissionDate,
-          submissionInfo: values.submissionInfo
+          submissionInfo: values.submissionInfo,
         },
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
       message.open({
         type: "success",
-        content: "הגשה עודכנה בהצלחה"
+        content: "הגשה עודכנה בהצלחה",
       });
     } catch (error) {
       console.error("Error updating submission:", error);
@@ -260,15 +258,15 @@ const Submissions = () => {
           submissionInfo: values.submissionInfo,
           projects: values.projects,
           isGraded: isGraded,
-          isReviewed: isReviewed
+          isReviewed: isReviewed,
         },
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
       message.open({
         type: "success",
-        content: "הגשה נפתחה בהצלחה"
+        content: "הגשה נפתחה בהצלחה",
       });
     } catch (error) {
       console.error("Error creating submission:", error);
@@ -387,7 +385,8 @@ const Submissions = () => {
             />
           </a>
         );
-      }
+      },
+      width: "25%",
     },
     {
       title: "הגשות",
@@ -395,45 +394,48 @@ const Submissions = () => {
       render: (_, record) => {
         // Ensure submissions array exists
         const submissions = record.submissions || [];
-        const colSpan = Math.floor(24 / (submissions.length + 1));
-
         return (
-          <Row gutter={[16, 16]} className="table-row">
+          <div className="table-row">
             {submissions.map((sub, index) => {
               const grades = sub.grades || [];
               const waitingCheck = grades.some((grade) => grade.grade === null);
               return (
-                <Col
-                  key={index}
-                  span={colSpan}
-                  className="table-col"
-                  onClick={() => setSubmissionInfo({ project: record, submission: sub })}>
-                  <div className="submission-title">{sub.name || ""}</div>
-                  <span className="submission-date-time">
-                    {sub.submissionDate
-                      ? new Date(sub.submissionDate).toLocaleString("he-IL", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric"
-                        })
-                      : ""}
-                  </span>
-                  <div className="table-col-info">
-                    <Badge
-                      color={sub.submitted ? "green" : "orange"}
-                      text={sub.submitted ? `הוגש${sub.isLate ? " באיחור" : ""}` : "מחכה להגשה"}
-                    />
-                    <div>{waitingCheck && sub.submitted && <Badge color="blue" text="מחכה לבדיקה" />}</div>
+                <div className="table-col-div" key={index}>
+                  <div className="table-col" onClick={() => setSubmissionInfo({ project: record, submission: sub })}>
+                    <div className="submission-title">
+                      {(sub.name.length > 25 ? `${sub.name.substring(0, 25)}...` : sub.name) || ""}
+                    </div>
+                    <span className="submission-date-time">
+                      <strong>הגשה עד:</strong>{" "}
+                      {sub.submissionDate
+                        ? new Date(sub.submissionDate).toLocaleString("he-IL", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })
+                        : ""}
+                    </span>
+                    <div className="table-col-info">
+                      <Badge
+                        color={sub.submitted ? "green" : "orange"}
+                        text={sub.submitted ? `הוגש${sub.isLate ? " באיחור" : ""}` : "מחכה להגשה"}
+                      />
+                      <div>{waitingCheck && sub.submitted && <Badge color="blue" text="מחכה לבדיקה" />}</div>
+                    </div>
                   </div>
-                </Col>
+                  {index !== submissions.length - 1 && submissions.length > 1 && (
+                    <Divider type="vertical" style={{ height: "100%" }} />
+                  )}
+                </div>
               );
             })}
-          </Row>
+          </div>
         );
-      }
-    }
+      },
+      width: "75%",
+    },
   ];
 
   const submissionOptions = [
@@ -441,14 +443,14 @@ const Submissions = () => {
     { label: "דוח אלפה", value: "alphaReport", isGraded: true, isReviewed: true },
     { label: "דוח סופי", value: "finalReport", isGraded: false, isReviewed: true },
     { label: "מבחן סוף", value: "finalExam", isGraded: true, isReviewed: false },
-    { label: "אחר", value: "other" }
+    { label: "אחר", value: "other" },
   ];
 
   const gradeColumns = [
     {
       title: "שופט",
       dataIndex: "judgeName",
-      key: "judgeName"
+      key: "judgeName",
     },
     {
       title: "ציון",
@@ -465,20 +467,20 @@ const Submissions = () => {
                 setGradeFormOpen(true);
                 gradeForm.setFieldsValue({
                   oldGrade: record.grade,
-                  newGrade: record.grade
+                  newGrade: record.grade,
                 });
               }}
             />
           )}
         </Space>
-      )
+      ),
     },
     {
       title: "הערות",
       dataIndex: "comments",
       key: "comments",
-      render: (text) => text || "אין הערות"
-    }
+      render: (text) => text || "אין הערות",
+    },
   ];
 
   return (
@@ -545,7 +547,7 @@ const Submissions = () => {
                     minute: "2-digit",
                     day: "2-digit",
                     month: "2-digit",
-                    year: "numeric"
+                    year: "numeric",
                   })}
                 </div>
               </div>
@@ -558,7 +560,7 @@ const Submissions = () => {
                         minute: "2-digit",
                         day: "2-digit",
                         month: "2-digit",
-                        year: "numeric"
+                        year: "numeric",
                       })
                     : "ממתין להגשה"}
                 </div>
@@ -573,7 +575,7 @@ const Submissions = () => {
                   key: grade._id || index,
                   judgeName: grade.judgeName,
                   grade: grade.grade,
-                  comments: grade.comments
+                  comments: grade.comments,
                 }))}
                 pagination={false}
               />
@@ -639,8 +641,8 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה להזין ציון בין (0) ל (100)"
-              }
+                message: "חובה להזין ציון בין (0) ל (100)",
+              },
             ]}>
             <InputNumber className="input-field-override-grade" min={0} max={100} />
           </Form.Item>
@@ -661,8 +663,8 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה לבחור הגשת מקור"
-              }
+                message: "חובה לבחור הגשת מקור",
+              },
             ]}>
             <Select placeholder="בחר הגשת מקור">
               {submissionNames.map((submission, index) => (
@@ -679,7 +681,7 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה להזין תאריך הגשה"
+                message: "חובה להזין תאריך הגשה",
               },
               {
                 validator: (_, value) => {
@@ -692,15 +694,15 @@ const Submissions = () => {
                     return Promise.reject(new Error("לא ניתן לבחור תאריך ושעה שעברו"));
                   }
                   return Promise.resolve();
-                }
-              }
+                },
+              },
             ]}>
             <DatePicker
               className="date-picker"
               locale={locale} // Add the Hebrew locale here
               direction="rtl"
               showTime={{
-                format: "HH:mm"
+                format: "HH:mm",
               }}
               format="DD-MM-YYYY HH:mm"
             />
@@ -725,8 +727,8 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה לבחור הגשת מקור"
-              }
+                message: "חובה לבחור הגשת מקור",
+              },
             ]}>
             <Select placeholder="בחר הגשת מקור">
               {submissionNames.map((submission, index) => (
@@ -743,8 +745,8 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה לבחור הגשת יעד"
-              }
+                message: "חובה לבחור הגשת יעד",
+              },
             ]}>
             <Select placeholder="בחר הגשת יעד">
               {submissionNames.map((submission, index) => (
@@ -782,8 +784,8 @@ const Submissions = () => {
               rules={[
                 {
                   required: submissionType === "other",
-                  message: "חובה להזין שם ההגשה"
-                }
+                  message: "חובה להזין שם ההגשה",
+                },
               ]}>
               <Input />
             </Form.Item>
@@ -795,15 +797,15 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה להזין תאריך הגשה"
-              }
+                message: "חובה להזין תאריך הגשה",
+              },
             ]}>
             <DatePicker
               className="date-picker"
               locale={locale} // Add the Hebrew locale here
               direction="rtl"
               showTime={{
-                format: "HH:mm"
+                format: "HH:mm",
               }}
               format="DD-MM-YYYY HH:mm"
             />
@@ -850,8 +852,8 @@ const Submissions = () => {
               rules={[
                 {
                   required: true,
-                  message: "חובה להזין שם ההגשה"
-                }
+                  message: "חובה להזין שם ההגשה",
+                },
               ]}>
               <Input />
             </Form.Item>
@@ -866,8 +868,8 @@ const Submissions = () => {
               {
                 type: "object", // Corrected the type from "array" to "object"
                 required: true,
-                message: "חובה להזין תאריך הגשה"
-              }
+                message: "חובה להזין תאריך הגשה",
+              },
             ]}>
             <DatePicker
               className="date-picker"
@@ -890,8 +892,8 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה לבחור פרוייקטים"
-              }
+                message: "חובה לבחור פרוייקטים",
+              },
             ]}>
             <Select mode="multiple" placeholder="בחר פרוייקטים">
               {projects.map((project) => (
