@@ -18,13 +18,20 @@ const ProjectPage = () => {
   const [isCandidate, setIsCandidate] = useState(false);
   const [hasProject, setHasProject] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : {};
+  });
 
   useEffect(() => {
     const checkIfUserCandidate = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/check-if-candidate/${projectID}`, {
-          withCredentials: true
-        });
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/project/check-if-candidate/${projectID}`,
+          {
+            withCredentials: true
+          }
+        );
         setIsCandidate(response.data.isCandidate);
       } catch (error) {
         console.error("Error occurred:", error);
@@ -55,9 +62,12 @@ const ProjectPage = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     const hasProject = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${user._id}`, {
-          withCredentials: true
-        });
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${user._id}`,
+          {
+            withCredentials: true
+          }
+        );
         setHasProject(response.data.hasProject);
       } catch (error) {
         console.error("Error occurred:", error);
@@ -91,6 +101,7 @@ const ProjectPage = () => {
   const copyToClipboard = () => {
     const emails = advisors.map((advisor) => advisor.email).join(", ");
     navigator.clipboard.writeText(emails);
+    message.success("אימייל הועתק");
   };
 
   const Unsignup = async () => {
@@ -231,7 +242,7 @@ const ProjectPage = () => {
               ))}
             </div>
           </div>
-          {!hasProject ? (
+          {!hasProject && user.isStudent ? (
             isCandidate ? (
               <div className="project-unsignup-button" onClick={() => Unsignup()}>
                 {isLoading ? (

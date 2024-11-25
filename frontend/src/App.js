@@ -14,7 +14,13 @@ import CreateUser from "./components/CreateUser/CreateUser";
 import ShowAllUsers from "./components/ShowAllUsers/ShowAllUsers";
 import HeaderMenu from "./components/HeaderMenu/HeaderMenu";
 import ProjectPage from "./components/ProjectPage/ProjectPage";
-import ProjectsManagement from "./components/ProjectsManagement/ProjectsManagement";
+import OverviewProjects from "./components/OverviewProjects/OverviewProjects";
+import SystemControl from "./components/SystemControl/SystemControl";
+import Submissions from "./components/Submissions/Submissions";
+import MoreInformation from "./components/MoreInformation/MoreInformation";
+import CheckSubmissions from "./components/CheckSubmissions/CheckSubmissions";
+import GradeSubmission from "./components/GradeSubmission/GradeSubmission";
+import UploadSubmissions from "./components/UploadSubmissions/UploadSubmissions";
 
 function App() {
   return (
@@ -69,6 +75,16 @@ const MainLayout = () => {
                 }
               />
               <Route
+                path="/my-submissions"
+                element={
+                  <ProtectedRoute>
+                    <UploadSubmissions />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Development routes */}
+              <Route
                 path="/create-project"
                 element={
                   <ProtectedRoute>
@@ -101,10 +117,50 @@ const MainLayout = () => {
                 }
               />
               <Route
-                path="/projects-managment"
+                path="/overview-projects"
                 element={
                   <ProtectedRoute>
-                    <ProjectsManagement />
+                    <OverviewProjects />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/submissions"
+                element={
+                  <ProtectedRoute>
+                    <Submissions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/check-submissions"
+                element={
+                  <ProtectedRoute>
+                    <CheckSubmissions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/grade-submission/:submissionId"
+                element={
+                  <ProtectedRoute>
+                    <GradeSubmission />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/more-information"
+                element={
+                  <ProtectedRoute>
+                    <MoreInformation />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/system"
+                element={
+                  <ProtectedRoute>
+                    <SystemControl />
                   </ProtectedRoute>
                 }
               />

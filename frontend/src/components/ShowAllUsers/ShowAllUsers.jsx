@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./ShowAllUsers.scss";
 import axios from "axios";
-import { Space, Table, Tag, Spin, Avatar, Modal, Form, Input, Select, message, Tooltip, Switch, Button } from "antd";
+import { Space, Table, Tag, Avatar, Modal, Form, Input, Select, message, Tooltip, Switch, Button } from "antd";
 import { EditOutlined, UserDeleteOutlined, UserAddOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
+import { handleMouseDown } from "../../utils/mouseDown";
 
 const ShowAllUsers = () => {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -22,8 +23,6 @@ const ShowAllUsers = () => {
   const [form] = Form.useForm();
   const [suspensionForm] = Form.useForm();
   const [componentDisabled, setComponentDisabled] = useState(true);
-  const [touched, setTouched] = useState({});
-  const [submitting, setSubmitting] = useState(false);
   const [isSuspending, setIsSuspending] = useState(false);
   const [suspensionDetails, setSuspensionDetails] = useState({});
   const [openSuspensionReason, setOpenSuspensionReason] = useState(false);
@@ -83,7 +82,6 @@ const ShowAllUsers = () => {
   useEffect(() => {
     if (isEditing) {
       form.setFieldsValue(editUserDetails);
-      setTouched({});
     }
   }, [editUserDetails]);
 
@@ -166,6 +164,7 @@ const ShowAllUsers = () => {
     email: user.email,
     isStudent: user.isStudent,
     isAdvisor: user.isAdvisor,
+    isJudge: user.isJudge,
     isCoordinator: user.isCoordinator,
   }));
 
@@ -176,7 +175,10 @@ const ShowAllUsers = () => {
       key: "name",
       ...getColumnSearchProps("name"),
       render: (text, record) => (
-        <a className="column-name" onClick={() => navigate(`/profile/${record.userId}`)}>
+        <a
+          className="column-name"
+          onClick={() => navigate(`/profile/${record.userId}`)}
+          onMouseDown={(e) => handleMouseDown(e, `/profile/${record.userId}`)}>
           <Avatar size="medium">
             {text[0].toUpperCase()}
             {text.split(" ")[1] ? text.split(" ")[1][0].toUpperCase() : ""}
@@ -229,7 +231,13 @@ const ShowAllUsers = () => {
         if (!record.projectId) {
           return "לא נבחר פרויקט";
         }
-        return <a onClick={() => navigate(`/project/${record.projectId}`)}>{record.projectTitle}</a>;
+        return (
+          <a
+            onClick={() => navigate(`/project/${record.projectId}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/project/${record.projectId}`)}>
+            {record.projectTitle.length > 50 ? `${record.projectTitle.slice(0, 50)}...` : record.projectTitle}
+          </a>
+        );
       },
       showSorterTooltip: {
         target: "full-header",
@@ -246,6 +254,7 @@ const ShowAllUsers = () => {
         }
         return record.projectId === null;
       },
+      width: "20%",
     },
     {
       title: "תפקיד",
@@ -254,12 +263,14 @@ const ShowAllUsers = () => {
         <Space>
           {record.isStudent && <Tag color="blue">סטודנט</Tag>}
           {record.isAdvisor && <Tag color="green">מנחה</Tag>}
+          {record.isJudge && <Tag color="orange">שופט</Tag>}
           {record.isCoordinator && <Tag color="purple">מנהל</Tag>}
         </Space>
       ),
       filters: [
         { text: "סטודנט", value: "סטודנט" },
         { text: "מנחה", value: "מנחה" },
+        { text: "שופט", value: "שופט" },
         { text: "מנהל", value: "מנהל" },
       ],
       onFilter: (value, record) => {
@@ -267,12 +278,14 @@ const ShowAllUsers = () => {
           return record.isStudent;
         } else if (value === "מנחה") {
           return record.isAdvisor;
+        } else if (value === "שופט") {
+          return record.isJudge;
         } else if (value === "מנהל") {
           return record.isCoordinator;
         }
         return false;
       },
-      width: "12%",
+      width: "15%",
     },
     {
       title: "אימייל",
@@ -301,6 +314,7 @@ const ShowAllUsers = () => {
                 id: record.userId,
                 isStudent: record.isStudent,
                 isAdvisor: record.isAdvisor,
+                isJudge: record.isJudge,
                 isCoordinator: record.isCoordinator,
               });
             }}>
@@ -329,8 +343,6 @@ const ShowAllUsers = () => {
 
   const handleEdit = async (userId) => {
     try {
-      setSubmitting(true);
-
       const values = await form.validateFields();
 
       if (values.id.length !== 9) {
@@ -343,6 +355,7 @@ const ShowAllUsers = () => {
         id: values.id,
         isStudent: values.isStudent,
         isAdvisor: values.isAdvisor,
+        isJudge: values.isJudge,
         isCoordinator: values.isCoordinator,
       };
 
@@ -360,7 +373,6 @@ const ShowAllUsers = () => {
           setIsEditing(false);
           form.resetFields();
           setEditUserDetails({});
-          setTouched({});
           message.success("פרטי המשתמש עודכנו בהצלחה");
         }
       } catch (error) {
@@ -374,15 +386,22 @@ const ShowAllUsers = () => {
             throw new Error(errorMessage);
           }
         } else if (error.response?.status === 404) {
-          throw new Error("משתמש לא נמצא");
+          throw new Error("שגיאה בעדכון פרטי המשתמש");
+        } else if (error.response?.status === 403) {
+          const errorMessage = error.response?.data?.message || "שגיאה בעדכון פרטי המשתמש";
+          if (errorMessage.includes("projects")) {
+            throw new Error("המשתמש משוייך לפרויקט ולכן לא ניתן לשנות את התפקיד שלו");
+          } else if (errorMessage.includes("submissions")) {
+            throw new Error("המשתמש משוייך להגשות ולכן לא ניתן לשנות את התפקיד שלו");
+          } else {
+            throw new Error(errorMessage);
+          }
         } else {
           throw new Error(error.response?.data?.message || "שגיאה בעדכון פרטי המשתמש");
         }
       }
     } catch (error) {
       message.error(error.message);
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -439,7 +458,10 @@ const ShowAllUsers = () => {
       key: "name",
       ...getColumnSearchProps("name"),
       render: (text, record) => (
-        <a className="column-name" onClick={() => navigate(`/profile/${record.userId}`)}>
+        <a
+          className="column-name"
+          onClick={() => navigate(`/profile/${record.userId}`)}
+          onMouseDown={(e) => handleMouseDown(e, `/profile/${record.userId}`)}>
           <Avatar size="medium">
             {text[0].toUpperCase()}
             {text.split(" ")[1] ? text.split(" ")[1][0].toUpperCase() : ""}
@@ -492,7 +514,13 @@ const ShowAllUsers = () => {
         if (!record.projectId) {
           return "לא נבחר פרויקט";
         }
-        return <a onClick={() => navigate(`/project/${record.projectId}`)}>{record.projectTitle}</a>;
+        return (
+          <a
+            onClick={() => navigate(`/project/${record.projectId}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/project/${record.projectId}`)}>
+            {record.projectTitle}
+          </a>
+        );
       },
       showSorterTooltip: {
         target: "full-header",
@@ -673,24 +701,10 @@ const ShowAllUsers = () => {
     }
   };
 
-  const handleFieldChange = (changedFields) => {
-    if (submitting) return; // Don't track changes during submission
-
-    const touchedFields = { ...touched };
-    changedFields.forEach((field) => {
-      const fieldName = Array.isArray(field.name) ? field.name[0] : field.name;
-      if (field.touched) {
-        touchedFields[fieldName] = true;
-      }
-    });
-    setTouched(touchedFields);
-  };
-
   const handleCancel = () => {
     setIsEditing(false);
     form.resetFields();
     setEditUserDetails({});
-    setTouched({});
   };
 
   const handleCancelSuspend = () => {
@@ -703,19 +717,17 @@ const ShowAllUsers = () => {
     <div>
       <div className="active-users">
         <h2>משתמשים רשומים</h2>
-        {loading && <Spin />}
-        <Table columns={columns} dataSource={dataSource} style={{ minHeight: "770px" }} />
+        <Table columns={columns} dataSource={dataSource} style={{ minHeight: "770px" }} loading={loading} />
       </div>
       <div className="deleted-users">
         <h2>משתמשים מושעים</h2>
-        {loading && <Spin />}
-        <Table columns={suspendedColumns} dataSource={suspendedDataSource} />
+        <Table columns={suspendedColumns} dataSource={suspendedDataSource} loading={loading} />
       </div>
       <Modal
         title={`עריכת משתמש: ${editUserDetails.name}`}
         open={isEditing}
         onOk={() => handleEdit(editUserDetails.key)}
-        onCancel={() => handleCancel()}
+        onCancel={handleCancel}
         okText="שמור שינויים"
         cancelText="בטל"
         width={400}>
@@ -723,11 +735,11 @@ const ShowAllUsers = () => {
           <Switch onChange={() => setComponentDisabled((prev) => !prev)} style={{ margin: "10px 0" }} />
           <p>עריכת פרטים אישיים</p>
         </div>
-        <Form form={form} layout="vertical" initialValues={editUserDetails} onFieldsChange={handleFieldChange}>
+        <Form form={form} layout="vertical" initialValues={editUserDetails}>
           <Form.Item
             label="שם"
             name="name"
-            hasFeedback={!submitting && touched.name}
+            hasFeedback={true}
             rules={[
               { required: true, message: "חובה להזין שם" },
               { min: 2, message: "שם חייב להכיל לפחות 2 תווים" },
@@ -737,7 +749,7 @@ const ShowAllUsers = () => {
           <Form.Item
             label="אימייל"
             name="email"
-            hasFeedback={!submitting && touched.email}
+            hasFeedback={true}
             rules={[
               { required: true, message: "חובה להזין אימייל" },
               { type: "email", message: "אנא הכנס כתובת אימייל תקינה" },
@@ -747,26 +759,32 @@ const ShowAllUsers = () => {
           <Form.Item
             label="תעודת זהות"
             name="id"
-            hasFeedback={!submitting && touched.id}
+            hasFeedback={true}
             rules={[
               { required: true, message: "חובה להזין תעודת זהות" },
               { pattern: /^\d{9}$/, message: "תעודת זהות חייבת להכיל 9 ספרות" },
             ]}>
             <Input disabled={componentDisabled} />
           </Form.Item>
-          <Form.Item label="סטודנט" name="isStudent" hasFeedback={!submitting && touched.isStudent}>
+          <Form.Item label="סטודנט" name="isStudent" hasFeedback={true}>
             <Select>
               <Option value={true}>כן</Option>
               <Option value={false}>לא</Option>
             </Select>
           </Form.Item>
-          <Form.Item label="מנחה" name="isAdvisor" hasFeedback={!submitting && touched.isAdvisor}>
+          <Form.Item label="מנחה" name="isAdvisor" hasFeedback={true}>
             <Select>
               <Option value={true}>כן</Option>
               <Option value={false}>לא</Option>
             </Select>
           </Form.Item>
-          <Form.Item label="מנהל" name="isCoordinator" hasFeedback={!submitting && touched.isCoordinator}>
+          <Form.Item label="שופט" name="isJudge" hasFeedback={true}>
+            <Select>
+              <Option value={true}>כן</Option>
+              <Option value={false}>לא</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item label="מנהל" name="isCoordinator" hasFeedback={true}>
             <Select>
               <Option value={true}>כן</Option>
               <Option value={false}>לא</Option>

@@ -16,6 +16,13 @@ import {
   getSelfProjects,
   addAdvisorToProject,
   addStudentToProject,
+  updateStudentsInProject,
+  updateAdvisorInProject,
+  terminateProject,
+  deleteProject,
+  restoreProject,
+  assignAdvisorsAutomatically,
+  getActiveProjects,
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../middleware/auth.js";
 
@@ -24,6 +31,7 @@ const router = express.Router();
 router.get("/", getProjects);
 router.post("/create-project", ensureAuthenticated, isAdvisorOrCoordinator, createProject);
 router.get("/available-projects", ensureAuthenticated, getAvailableProjects);
+router.get("/get-active-projects", getActiveProjects);
 router.get("/no-student", getProjectsNoStudent);
 router.get("/get-project/:id", getProject);
 router.post("/add-candidate", ensureAuthenticated, addCandidateToProject);
@@ -37,5 +45,11 @@ router.get("/status", getProjectsStatus);
 router.put("/edit-project/:id", ensureAuthenticated, isAdvisorOrCoordinator, updateProject);
 router.post("/add-advisor", ensureAuthenticated, isCoordinator, addAdvisorToProject);
 router.post("/add-student", ensureAuthenticated, isCoordinator, addStudentToProject);
+router.put("/update-students", ensureAuthenticated, isCoordinator, updateStudentsInProject);
+router.put("/update-advisor", ensureAuthenticated, isCoordinator, updateAdvisorInProject);
+router.put("/terminate-project", ensureAuthenticated, isCoordinator, terminateProject);
+router.delete("/delete-project/:id", ensureAuthenticated, isCoordinator, deleteProject);
+router.put("/restore-project/:id", ensureAuthenticated, isCoordinator, restoreProject);
+router.post("/assign-advisors-automatically", ensureAuthenticated, isCoordinator, assignAdvisorsAutomatically);
 
 export default router;

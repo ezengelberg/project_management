@@ -1,12 +1,13 @@
 import User from "../models/users.js";
 import Project from "../models/projects.js";
+import Submission from "../models/submission.js";
 import bcrypt from "bcryptjs";
 import passport from "passport";
 import mongoose from "mongoose";
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, id, password, isStudent, isAdvisor, isCoordinator } = req.body;
+    const { name, email, id, password, isStudent, isAdvisor, isJudge, isCoordinator } = req.body;
     const userByEmail = await User.findOne({ email: email });
     if (userByEmail) {
       return res.status(400).send("Email already in use");
@@ -24,10 +25,57 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
       registerDate: new Date(),
       suspensionRecords: [],
+      isStudent: isStudent || false,
+      isAdvisor: isAdvisor || false,
+      isJudge: isJudge || false,
+      isCoordinator: isCoordinator || false,
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
     res.status(201).send("User registered successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const registerMultiple = async (req, res) => {
+  try {
+    console.log("Registering multiple users");
+    const users = req.body;
+    const existingUsers = [];
+    for (const user of users) {
+      console.log("printing user");
+      const { name, email, id, role } = user;
+      delete user.key;
+      delete user.role;
+      console.log(user);
+      const userByEmail = await User.findOne({ email: email });
+      if (userByEmail) {
+        existingUsers.push(user);
+        continue;
+      }
+      console.log("email not found");
+      const userById = await User.findOne({ id: id });
+      if (userById) {
+        existingUsers.push(user);
+        continue;
+      }
+      console.log("id not found");
+      console.log(role);
+      const newUser = new User({
+        ...user,
+        firstLogin: true,
+        password: await bcrypt.hash(id, 10),
+        registerDate: new Date(),
+        suspensionRecords: [],
+        isStudent: role.includes("isStudent"),
+        isAdvisor: role.includes("isAdvisor"),
+        isJudge: role.includes("isJudge"),
+        isCoordinator: role.includes("isCoordinator"),
+      });
+      await newUser.save();
+    }
+    res.status(201).send({ message: "Users registered successfully", existingUsers });
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -93,12 +141,24 @@ export const getAllUsers = async (req, res) => {
 export const getAdvisorUsers = async (req, res) => {
   try {
     const users = await User.find({ isAdvisor: true });
-    users.forEach((user) => {
-      delete user.password;
+    const usersWithoutPassword = users.map((user) => {
+      const userObj = user.toObject();
+      delete userObj.password;
+      return userObj;
     });
-    res.status(200).send(users);
+    res.status(200).send(usersWithoutPassword);
   } catch (err) {
     res.status(500).send({ message: err.message });
+  }
+};
+
+export const checkUserHasProject = async (req, res) => {
+  const user = req.user;
+  const projects = await Project.find({ "students.student": user._id });
+  if (projects.length > 0) {
+    res.status(200).send({ hasProject: true });
+  } else {
+    res.status(200).send({ hasProject: false });
   }
 };
 
@@ -109,8 +169,9 @@ export const getUsersNoProjects = async (req, res) => {
     for (const user of users) {
       const projects = await Project.find({ "students.student": user._id });
       if (projects.length === 0) {
-        delete user.password;
-        usersNoProjects.push(user);
+        const userObj = user.toObject();
+        delete userObj.password;
+        usersNoProjects.push(userObj);
       }
     }
     res.status(200).send({ usersNoProjects });
@@ -150,7 +211,6 @@ export const getUserName = async (req, res) => {
 
 export const getUser = async (req, res) => {
   const user = req.user;
-
   const userObj = user.toObject();
   delete userObj.password;
   res.status(200).json(userObj);
@@ -237,7 +297,7 @@ export const ensureFavoriteProject = async (req, res) => {
 
 export const editUserCoordinator = async (req, res) => {
   const { userId } = req.params;
-  const { name, email, id, isStudent, isAdvisor, isCoordinator } = req.body;
+  const { name, email, id, isStudent, isAdvisor, isJudge, isCoordinator, interests } = req.body;
 
   try {
     const user = await User.findById(userId);
@@ -249,14 +309,34 @@ export const editUserCoordinator = async (req, res) => {
     if (email !== undefined) user.email = email;
     if (id !== undefined) user.id = id;
     if (isStudent !== undefined) user.isStudent = isStudent;
-    if (isAdvisor !== undefined) user.isAdvisor = isAdvisor;
+    if (isAdvisor !== undefined && isAdvisor !== user.isAdvisor) {
+      const advisorProjects = await Project.find({ advisors: userId });
+      if (advisorProjects.length > 0) {
+        throw new Error("Cannot change advisor role while user has associated projects");
+      }
+      user.isAdvisor = isAdvisor;
+    }
+    if (isJudge !== undefined && isJudge !== user.isJudge) {
+      const judgeSubmissions = await Submission.find({ grades: { $elemMatch: { judge: userId } } });
+      if (judgeSubmissions.length > 0) {
+        throw new Error("Cannot change judge role while user has associated submissions");
+      }
+      user.isJudge = isJudge;
+    }
     if (isCoordinator !== undefined) user.isCoordinator = isCoordinator;
+    if (interests !== undefined) user.interests = interests;
     user.updatedAt = new Date();
 
     await user.save();
     res.status(200).send("User updated successfully");
   } catch (err) {
-    res.status(500).send({ message: err.message });
+    if (err.message.includes("Cannot change advisor role")) {
+      res.status(403).send({ message: "Cannot change advisor role while user has associated projects" });
+    } else if (err.message.includes("Cannot change judge role")) {
+      res.status(403).send({ message: "Cannot change judge role while user has associated submissions" });
+    } else {
+      res.status(500).send({ message: err.message });
+    }
   }
 };
 
@@ -315,20 +395,21 @@ export const deleteSuspendedUser = async (req, res) => {
   }
 };
 
-export const checkUserHasProject = async (req, res) => {
-  console.log("checking if has project");
-  console.log(req.params);
-  const { userId } = req.params;
+export const getAdvisorsForUsersInfo = async (req, res) => {
   try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-    const projects = await Project.find({ "students.student": user._id });
-    if (projects.length === 0) {
-      return res.status(200).send({ hasProject: false });
-    }
-    return res.status(200).send({ hasProject: true });
+    const advisors = await User.find({ isAdvisor: true }).select("name email interests");
+    const projects = await Project.find();
+
+    const advisorsWithProjectsInfo = advisors.map((advisor) => {
+      const advisorProjects = projects.filter((project) => project.advisors.includes(advisor._id));
+      const projectsAvailable = advisorProjects.some((project) => !project.isTaken);
+      return {
+        ...advisor.toObject(),
+        projectsAvailable,
+      };
+    });
+
+    res.status(200).send(advisorsWithProjectsInfo);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

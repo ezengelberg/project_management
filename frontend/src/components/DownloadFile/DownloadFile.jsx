@@ -1,21 +1,32 @@
 import React, { useState, useEffect } from "react";
 import "./DownloadFile.scss";
-import { DownloadOutlined, DeleteOutlined, FileOutlined, EditOutlined, EllipsisOutlined } from "@ant-design/icons";
-import { Tooltip, Modal, Card, message } from "antd";
+import {
+  DownloadOutlined,
+  DeleteOutlined,
+  FileOutlined,
+  EditOutlined,
+  EllipsisOutlined,
+  HistoryOutlined,
+} from "@ant-design/icons";
+import { Tooltip, Modal, Card, message, Divider, Descriptions } from "antd";
 import axios from "axios";
 import { processContent } from "../../utils/htmlProcessor";
 
-const DownloadFile = ({ file, onEdit, onDelete }) => {
+const DownloadFile = ({ file, onEdit, onDelete, destination }) => {
   const [isDescriptionModalVisible, setIsDescriptionModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [user, setUser] = useState({});
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
+  const [showHistory, SetShowHistory] = useState(false);
+  const [editRecord, setEditRecord] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, {
+          withCredentials: true,
+        });
         setUser(response.data);
         setPrivileges({
           isStudent: response.data.isStudent,
@@ -32,10 +43,13 @@ const DownloadFile = ({ file, onEdit, onDelete }) => {
 
   const handleDownload = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates/download/${file._id}`, {
-        responseType: "blob",
-        withCredentials: true,
-      });
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/uploads/download/${file._id}?destination=${destination}`,
+        {
+          responseType: "blob",
+          withCredentials: true,
+        }
+      );
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
@@ -91,6 +105,66 @@ const DownloadFile = ({ file, onEdit, onDelete }) => {
     );
   };
 
+  const items = editRecord.flatMap((record, index) => {
+    const itemList = [
+      {
+        key: `${index}-title`,
+        label: `כותרת`,
+        children: (
+          <div className="edited-title-modal-item">
+            <div>
+              <strong>ישנה:</strong> {record.oldTitle}
+            </div>
+            <div>
+              <strong>חדשה:</strong> {record.newTitle}
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: `${index}-description`,
+        label: `תיאור`,
+        children: (
+          <>
+            <div className="edited-description-modal-item">
+              <strong>ישן:</strong>
+              <div dangerouslySetInnerHTML={{ __html: processContent(record.oldDescription) }} />
+            </div>
+            <div className="edited-description-modal-item">
+              <strong>חדש:</strong>
+              <div dangerouslySetInnerHTML={{ __html: processContent(record.newDescription) }} />
+            </div>
+          </>
+        ),
+      },
+      {
+        key: `${index}-editInfo`,
+        label: `פרטי עריכה`,
+        children: (
+          <>
+            <div>
+              <strong>תאריך עריכה:</strong> {new Date(record.editDate).toLocaleString("he-IL")}
+            </div>
+            <div>
+              <strong>נערך על ידי:</strong> {record.editedBy.name} (ת.ז: {record.editedBy.id})
+            </div>
+          </>
+        ),
+      },
+    ];
+
+    if (index < editRecord.length - 1) {
+      itemList.push({
+        key: `${index}-divider`,
+        label: "",
+        children: <Divider />,
+        span: 3,
+      });
+    }
+
+    return itemList;
+  });
+
   return (
     <div>
       <Card
@@ -104,6 +178,18 @@ const DownloadFile = ({ file, onEdit, onDelete }) => {
           (privileges.isCoordinator || user._id === file.user) && (
             <Tooltip title="עריכה">
               <EditOutlined key="edit" className="action-icon" onClick={handleEdit} spin={isEditing} />
+            </Tooltip>
+          ),
+          (privileges.isCoordinator || user._id === file.user) && (
+            <Tooltip title="היסטוריה">
+              <HistoryOutlined
+                key="history"
+                className="action-icon"
+                onClick={() => {
+                  SetShowHistory(true);
+                  setEditRecord(file.editRecord);
+                }}
+              />
             </Tooltip>
           ),
           <Tooltip title="הורדה">
@@ -139,6 +225,36 @@ const DownloadFile = ({ file, onEdit, onDelete }) => {
         onCancel={() => setIsDescriptionModalVisible(false)}
         footer={null}>
         <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: processContent(file.description) }} />
+      </Modal>
+
+      <Modal
+        className="edit-record-modal"
+        title="היסטורית עריכות"
+        open={showHistory}
+        onCancel={() => SetShowHistory(false)}
+        footer={null}>
+        {/* {file.editRecord.map((record) => (
+          <div key={record.editDate} className="edit-record">
+            <div className="edit-record-title">
+              <span>כותרת:</span>
+              <span>{record.newTitle}</span>
+            </div>
+            <div className="edit-record-description">
+              <span>תיאור:</span>
+              <span>{record.newDescription}</span>
+            </div>
+            <div className="edit-record-date">
+              <span>תאריך:</span>
+              <span>{new Date(record.editDate).toLocaleDateString("he-IL")}</span>
+            </div>
+            <div className="edit-record-edited-by">
+              <span>ערך על ידי:</span>
+              <span>{record.editedBy.name}</span>
+            </div>
+            <Divider variant="dotted" style={{ borderColor: "#7cb305" }} />
+          </div>
+        ))} */}
+        <Descriptions bordered items={items} />
       </Modal>
     </div>
   );

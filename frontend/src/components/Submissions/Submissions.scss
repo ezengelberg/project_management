@@ -1,0 +1,147 @@
+// .float-button-actions {
+//   display: flex;
+//   gap: 1rem;
+.submission-actions {
+  left: 5rem;
+  bottom: 5rem;
+  button {
+    width: 5rem;
+    height: 5rem;
+  }
+}
+// }
+
+.floatbutton-wrapper {
+  position: fixed;
+  display: flex;
+}
+
+.date-picker {
+  width: 100%;
+}
+
+.submission-table-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  .submission-icon {
+    svg {
+      width: 2.5rem;
+      height: 2.5rem;
+      color: #1677ff;
+      transition: color 0.2s linear;
+      &:hover {
+        color: #0056b3;
+      }
+    }
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.action-buttons .action-button-end {
+  margin-right: auto; /* Push the button to the opposite end */
+}
+
+.input-field-override-grade {
+  width: 100%;
+}
+
+.table-row {
+  display: flex;
+  gap: 2rem;
+
+  .table-col-div {
+    display: flex;
+
+    .table-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 1rem;
+      cursor: pointer;
+      border-radius: 0.5rem;
+      transition: background-color 0.2s linear;
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+
+      .submission-title {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+      }
+      .table-col-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+.submission-info-modal {
+  // .submission-info-edit {
+  //   position: absolute;
+  //   left: 2rem;
+  // }
+  .submission-header {
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      h2 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+      }
+      .edit-icon {
+        font-size: 2rem;
+      }
+    }
+  }
+
+  // .submission-details {
+  //   display: flex;
+  //   gap: 1rem;
+  //   .detail-item {
+  //     display: flex;
+  //     gap: 1rem;
+  //     .detail-item-header {
+  //       font-size: 1.5rem;
+  //       font-weight: 500;
+  //     }
+  //   }
+  // }
+
+  .submission-details {
+    display: table;
+    width: 100%;
+
+    .detail-item {
+      display: table-row;
+
+      .detail-item-header,
+      .detail-item-content {
+        display: table-cell;
+        padding: 8px 16px;
+        vertical-align: middle;
+      }
+
+      .detail-item-header {
+        font-weight: bold;
+        width: 30%;
+        text-align: right;
+        opacity: 0.7;
+      }
+
+      .detail-item-content {
+        width: 70%;
+        text-align: right;
+      }
+    }
+  }
+}

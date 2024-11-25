@@ -17,13 +17,16 @@ import {
   unsuspendUser,
   deleteSuspendedUser,
   changePassword,
-  checkUserHasProject
+  registerMultiple,
+  checkUserHasProject,
+  getAdvisorsForUsersInfo,
 } from "../controllers/userController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
 const router = express.Router();
 
 router.post("/register", registerUser);
+router.post("/register-multiple", registerMultiple);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);
 router.post("/toggle-favorite", ensureAuthenticated, toggleFavoriteProject);
@@ -44,5 +47,6 @@ router.put("/suspend-user/:userId", ensureAuthenticated, isCoordinator, suspendU
 router.put("/unsuspend-user/:userId", ensureAuthenticated, isCoordinator, unsuspendUser);
 router.delete("/delete-suspended-user/:userId", ensureAuthenticated, isCoordinator, deleteSuspendedUser);
 router.get("/check-user-has-projects/:userId", ensureAuthenticated, checkUserHasProject);
+router.get("/advisors-for-users-info", ensureAuthenticated, getAdvisorsForUsersInfo);
 
 export default router;

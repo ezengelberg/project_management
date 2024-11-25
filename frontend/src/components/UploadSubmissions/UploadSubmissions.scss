@@ -1,0 +1,18 @@
+.action-items {
+  display: flex;
+  gap: 1rem;
+}
+
+.submission-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  .submission-info {
+    font-size: 1.7rem;
+    margin-bottom: -0.7rem;
+  }
+  .submission-late {
+    color: red;
+    font-size: 1.7rem;
+  }
+}

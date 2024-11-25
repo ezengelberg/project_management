@@ -6,6 +6,7 @@ import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import { Switch, Button, Form, Input, InputNumber, Select, message, FloatButton } from "antd";
 import { Editor } from "primereact/editor";
 import DOMPurify from "dompurify";
+import { handleMouseDown } from "../../utils/mouseDown";
 
 const CreateProject = () => {
   const { Option } = Select;
@@ -15,7 +16,6 @@ const CreateProject = () => {
   const [currentUser, setCurrentUser] = useState({});
   const [studentsNoProject, setStudentsNoProject] = useState([]);
   const [isOtherType, setIsOtherType] = useState(false);
-  const [studentInitiative, setStudentInitiative] = useState(false);
   const [projectCreated, setProjectCreated] = useState(false);
   const [projectCreatedId, setProjectCreatedId] = useState("");
   const [form] = Form.useForm();
@@ -25,7 +25,9 @@ const CreateProject = () => {
     // Fetch data from the API
     const fetchPrivileges = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, {
+          withCredentials: true,
+        });
         setPrivileges(response.data);
       } catch (error) {
         console.error("Error occurred:", error.response.data.message);
@@ -34,7 +36,9 @@ const CreateProject = () => {
 
     const getAdvisorUsers = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/advisor-users`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/advisor-users`, {
+          withCredentials: true,
+        });
         setAdvisorUsers(response.data);
       } catch (error) {
         console.error("Error occurred:", error.response.data.message);
@@ -43,7 +47,9 @@ const CreateProject = () => {
 
     const getCurrentUser = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, {
+          withCredentials: true,
+        });
         setCurrentUser(response.data);
       } catch (error) {
         console.error("Error occurred:", error.response.data.message);
@@ -52,7 +58,9 @@ const CreateProject = () => {
 
     const getUsersNoProjects = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects`, {
+          withCredentials: true,
+        });
         const onlyStudents = response.data.usersNoProjects.filter(
           (user) => user.isStudent === true && user.isAdvisor === false && user.isCoordinator === false
         );
@@ -70,7 +78,6 @@ const CreateProject = () => {
 
   const handleTypeChange = (value) => {
     setIsOtherType(value === "אחר");
-    setStudentInitiative(value === "יוזמת סטודנט");
     if (value !== "אחר") {
       form.setFieldValue("customType", undefined);
     }
@@ -153,9 +160,13 @@ const CreateProject = () => {
     delete finalValues.customType;
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/project/create-project`, finalValues, {
-        withCredentials: true,
-      });
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/create-project`,
+        finalValues,
+        {
+          withCredentials: true,
+        }
+      );
       message.success("הפרויקט נוצר בהצלחה");
       setProjectCreated(true);
       setProjectCreatedId(response.data.project._id);
@@ -174,7 +185,6 @@ const CreateProject = () => {
   const onReset = () => {
     form.resetFields();
     setIsOtherType(false);
-    setStudentInitiative(false);
     setProjectCreated(false);
   };
 
@@ -218,7 +228,7 @@ const CreateProject = () => {
               message: "חובה להזין תיאור לפרויקט",
             },
           ]}>
-          <Editor style={{ height: "320px" }} onTextChange={handleEditorChange} />
+          <Editor style={{ height: "320px", wordBreak: "break-word" }} onTextChange={handleEditorChange} />
         </Form.Item>
 
         <Form.Item
@@ -249,7 +259,7 @@ const CreateProject = () => {
           <Select placeholder="בחר יחיד/זוג/שניהם">
             <Option value="יחיד">יחיד</Option>
             <Option value="זוג">זוג</Option>
-            <Option value="יחיד \ זוג">יחיד \ זוג</Option>
+            <Option value="יחיד / זוג">יחיד / זוג</Option>
           </Select>
         </Form.Item>
 
@@ -274,21 +284,19 @@ const CreateProject = () => {
           </Select>
         </Form.Item>
 
-        {studentInitiative && (
-          <Form.Item
-            className="create-project-form-item"
-            label="מייל גורם חיצוני"
-            name="externalEmail"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה להזין מייל גורם חיצוני",
-              },
-            ]}>
-            <Input type="email" placeholder="הזן מייל גורם חיצוני" />
-          </Form.Item>
-        )}
+        <Form.Item
+          className="create-project-form-item"
+          label="מייל גורם חיצוני"
+          name="externalEmail"
+          hasFeedback
+          rules={[
+            {
+              type: "email",
+              message: "נא להזין כתובת מייל תקינה",
+            },
+          ]}>
+          <Input type="email" placeholder="הזן מייל גורם חיצוני" />
+        </Form.Item>
 
         {isOtherType && (
           <Form.Item
@@ -317,20 +325,6 @@ const CreateProject = () => {
           ]}>
           <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
         </Form.Item>
-
-        {privileges.isCoordinator && (
-          <Form.Item
-            className="create-project-form-item"
-            label="מאושר"
-            name="isApproved"
-            rules={[
-              {
-                required: false,
-              },
-            ]}>
-            <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
-          </Form.Item>
-        )}
 
         {privileges.isCoordinator ? (
           <Form.Item
@@ -402,6 +396,7 @@ const CreateProject = () => {
             type="primary"
             shape="square"
             onClick={() => navigate(`/project/${projectCreatedId}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/project/${projectCreatedId}`)}
             description={
               <div className="float-button-text">
                 <svg

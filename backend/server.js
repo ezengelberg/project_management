@@ -11,7 +11,9 @@ import MongoStore from "connect-mongo";
 
 import userRoute from "./routes/userRoute.js";
 import projectRoute from "./routes/projectRoute.js";
-import templateFilesRoute from "./routes/templateFilesRoute.js";
+import uploadsRoute from "./routes/uploadsRoute.js";
+import submissionRoute from "./routes/submissionRoute.js";
+import gradeRoute from "./routes/gradeRoute.js";
 
 // Load environment variables and allows to use .env file
 dotenv.config();
@@ -19,37 +21,56 @@ dotenv.config();
 const app = express();
 const server_port = process.env.SERVER_PORT || 3000;
 
+// Allow cross-origin requests
+const corsOptions = {
+  origin: true, // Allow all origins for Development purposes only
+  credentials: true // Allow cookies and credentials
+};
+
+app.use(cors(corsOptions));
+// Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true })); // Middleware to parse URL-encoded bodies
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET, // Set a strong secret in .env
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI, collectionName: "sessions" }),
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      collectionName: "sessions",
+      ttl: 24 * 60 * 60, // Session TTL (1 day)
+      autoRemove: "native" // Enable automatic removal
+    }),
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
       secure: false, // Set to true if using HTTPS
-    },
+      httpOnly: true,
+      sameSite: "none" // Required for cross-origin cookies
+    }
   })
 );
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Allow cross-origin requests
-const corsOptions = {
-  origin: true, // Allow all origins for Development purposes only
-  credentials: true, // Allow cookies and credentials
-};
-
-app.use(cors(corsOptions));
-
-// Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
-app.use(bodyParser.json());
+app.use((req, res, next) => {
+  console.log("Session Middleware:", {
+    sessionID: req.sessionID,
+    session: req.session,
+    isAuthenticated: req.isAuthenticated(),
+    user: req.user
+  });
+  next();
+});
 
 app.use("/api/user", userRoute);
 app.use("/api/project", projectRoute);
-app.use("/api/file-templates", templateFilesRoute);
-app.use("/templateFiles", express.static("templateFiles"));
+app.use("/api/submission", submissionRoute);
+app.use("/api/grade", gradeRoute);
+app.use("/api/uploads", uploadsRoute);
+app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
 app.get("/", (req, res) => {
   res.send("Hello World! Nothing to see here yet!");

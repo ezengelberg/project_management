@@ -17,7 +17,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
           const advisors = [];
           for (const advisor of props.advisors) {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-name/${advisor}`, {
-              withCredentials: true,
+              withCredentials: true
             });
             advisors.push(response.data.name);
           }
@@ -39,7 +39,9 @@ const ProjectBox = ({ markFavorite, ...props }) => {
         </svg>
         <div className="project-info">
           <div className="project-header">
-            <h3 className="project-title">{props.title}</h3>
+            <h3 className="project-title">
+              {props.title.length > 60 ? props.title.substring(0, 60) + "..." : props.title}
+            </h3>
             {props.isFavorite ? (
               <Tooltip title="הסר ממועדפים">
                 <StarFilled className="favorite-star star-marked" onClick={() => markFavorite()} />
@@ -63,10 +65,15 @@ const ProjectBox = ({ markFavorite, ...props }) => {
             <Tooltip title="סוג פרויקט">
               <div className="project-badge project-type">{props.type}</div>
             </Tooltip>
+            {props.continues && (
+              <Tooltip title=" פרויקט ממשיך">
+                <div className="project-badge project-continues">פרויקט ממשיך</div>
+              </Tooltip>
+            )}
           </div>
           <div
             className="project-description rich-text-content"
-            dangerouslySetInnerHTML={{ __html: processContent(props.description, 300) }}
+            dangerouslySetInnerHTML={{ __html: processContent(props.description, 750) }}
           />
 
           <div className="project-actions">
@@ -77,6 +84,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
                   <div className="advisor-name">{advisor}</div>
                 </div>
               ))}
+              {advisors.length === 0 && <div className="project-advisor no-advisor">ללא מנחה זמין</div>}
             </div>
             <div className="more-info" onClick={() => navigate(`/project/${props._id}`)}>
               <Tooltip title="לפירוט מלא + הרשמה">[ למידע נוסף ורישום ]</Tooltip>

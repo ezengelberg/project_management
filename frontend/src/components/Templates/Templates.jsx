@@ -3,7 +3,7 @@ import "./Templates.scss";
 import axios from "axios";
 import DownloadFile from "../DownloadFile/DownloadFile";
 import { InboxOutlined } from "@ant-design/icons";
-import { Button, message, Upload, Input, Modal } from "antd";
+import { Button, message, Upload, Input, Modal, Spin } from "antd";
 import { Editor } from "primereact/editor";
 
 const Templates = () => {
@@ -17,12 +17,16 @@ const Templates = () => {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [currentFile, setCurrentFile] = useState({});
+  const [loading, setLoading] = useState(false);
   const { Dragger } = Upload;
 
   useEffect(() => {
+    setLoading(true);
     const fetchPrivileges = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, {
+          withCredentials: true
+        });
         setPrivileges(response.data);
       } catch (error) {
         console.error("Error occurred:", error);
@@ -31,7 +35,9 @@ const Templates = () => {
 
     const fetchTemplateFiles = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, {
+          withCredentials: true
+        });
         setTemplateFiles(response.data);
       } catch (error) {
         console.error("Error fetching template files:", error);
@@ -40,38 +46,44 @@ const Templates = () => {
 
     fetchPrivileges();
     fetchTemplateFiles();
+    setLoading(false);
   }, []);
 
   const handleUpload = async () => {
     const formData = new FormData();
     fileList.forEach((file) => {
-      // Encode the filename to handle non-English characters
-      const encodedFilename = encodeURIComponent(file.name);
-      formData.append("files", file, encodedFilename);
+      formData.append("files", file, encodeURIComponent(file.name));
     });
     formData.append("title", title);
     formData.append("description", description);
+    formData.append("destination", "templates"); // Set destination for dynamic pathing
     setUploading(true);
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, formData, {
-        headers: { "Content-Type": "multipart/form-data", "X-Filename-Encoding": "url" },
-        withCredentials: true,
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "X-Filename-Encoding": "url"
+        },
+        withCredentials: true
       });
-      setFileList([]);
       message.success("הקובץ הועלה בהצלחה");
-      // Refresh the template files list after successful upload
-      const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, { withCredentials: true });
+      setFileList([]);
+      clearForm();
+
+      const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, {
+        withCredentials: true
+      });
       setTemplateFiles(updatedFiles.data);
     } catch (error) {
       console.error("Error occurred:", error);
-      if (error.response.status === 500) {
+      if (error.response?.status === 500 || error.response?.status === 409) {
         message.error("קובץ עם שם זה כבר קיים");
+      } else {
+        message.error("העלאת הקובץ נכשלה");
       }
-      message.error("העלאת הקובץ נכשלה");
     } finally {
       setUploading(false);
-      clearForm();
     }
   };
 
@@ -86,11 +98,11 @@ const Templates = () => {
       setFileList(newFileList);
     },
     beforeUpload: (file, fileListNew) => {
-      // Check if file with same name already exists
       if (file.name.length > 50) {
         message.error(`שם קובץ יכול להכיל עד 50 תווים (רווח גם נחשב כתו)`);
         return Upload.LIST_IGNORE;
       }
+      // Check if file with same name already exists in the list of uploaded files
       const isDuplicate = fileList.some((existingFile) => existingFile.name === file.name);
       if (isDuplicate) {
         message.error(`קובץ "${file.name}" כבר קיים`);
@@ -104,7 +116,7 @@ const Templates = () => {
       setFileList((prevList) => [...prevList, file]);
       return false;
     },
-    fileList,
+    fileList
   };
 
   const setEditing = (fileId) => {
@@ -121,27 +133,37 @@ const Templates = () => {
 
   const handleEdit = async (fileId) => {
     try {
-      const response = await axios.put(
-        `/api/file-templates/update/${fileId}`,
+      const oldFile = templateFiles.find((file) => file._id === fileId);
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/uploads/update/${fileId}?destination=templates`,
         {
           title: editTitle,
           description: editDescription,
+          oldTitle: oldFile.title,
+          oldDescription: oldFile.description
         },
         { withCredentials: true }
       );
       message.success("קובץ עודכן בהצלחה");
+
+      // Refresh updated files based on dynamic destination
+      const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, {
+        withCredentials: true
+      });
+      setTemplateFiles(updatedFiles.data);
     } catch (error) {
       console.error("Error updating file:", error);
+      message.error("שגיאה בעדכון הקובץ");
     } finally {
       setIsEditing(false);
-      const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/file-templates`, { withCredentials: true });
-      setTemplateFiles(updatedFiles.data);
     }
   };
 
   const handleDelete = async (fileId) => {
     try {
-      await axios.delete(`/api/file-templates/delete/${fileId}`, { withCredentials: true });
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete/${fileId}?destination=templates`, {
+        withCredentials: true
+      });
       message.success("קובץ נמחק בהצלחה");
     } catch (error) {
       console.error("Error deleting file:", error);
@@ -166,51 +188,64 @@ const Templates = () => {
 
   return (
     <div>
-      {privileges.isCoordinator && (
-        <div className="upload-container">
-          <Dragger {...props}>
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">לחצו או גררו כדי להעלות קבצים</p>
-            <p className="ant-upload-hint">
-              ניתן להעלות עד 10 קבצים בו זמנית (הזנת כותרת/תיאור ישוייכו לכל הקבצים אם הועלאו ביחד)
-            </p>
-          </Dragger>
-          <hr />
-          <div className="form-input-group template-input-group">
-            <label htmlFor="title">כותרת</label>
-            <Input
-              type="text"
-              id="title"
-              placeholder="כותרת לקובץ (אם לא הוכנס שם הקובץ יהיה גם הכותרת)"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
+      {loading ? (
+        <Spin className="template-loading" size="large" />
+      ) : (
+        <>
+          {privileges.isCoordinator && (
+            <div className="upload-container">
+              <Dragger {...props}>
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">לחצו או גררו כדי להעלות קבצים</p>
+                <p className="ant-upload-hint">
+                  ניתן להעלות עד 10 קבצים בו זמנית (הזנת כותרת/תיאור ישוייכו לכל הקבצים אם הועלאו ביחד)
+                </p>
+              </Dragger>
+              <hr />
+              <div className="form-input-group template-input-group">
+                <label htmlFor="title">כותרת</label>
+                <Input
+                  type="text"
+                  id="title"
+                  placeholder="כותרת לקובץ (אם לא הוכנס שם הקובץ יהיה גם הכותרת)"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+              <div className="form-input-group template-input-group">
+                <Editor
+                  placeholder="תיאור לקובץ"
+                  value={description}
+                  onTextChange={handleEditorChange}
+                  style={{ height: "320px", wordBreak: "break-word" }}
+                />
+              </div>
+              <Button
+                type="primary"
+                onClick={handleUpload}
+                disabled={fileList.length === 0}
+                loading={uploading}
+                style={{ marginTop: 16 }}>
+                {uploading ? "מעלה" : "התחל העלאה"}
+              </Button>
+            </div>
+          )}
+          <div className="template-content">
+            {templateFiles.map((file) => (
+              <DownloadFile
+                key={file._id}
+                file={file}
+                destination={"templates"}
+                onDelete={handleDelete}
+                onEdit={() => setEditing(file._id)}
+              />
+            ))}
           </div>
-          <div className="form-input-group template-input-group">
-            <Editor
-              placeholder="תיאור לקובץ"
-              value={description}
-              onTextChange={handleEditorChange}
-              style={{ height: "320px" }}
-            />
-          </div>
-          <Button
-            type="primary"
-            onClick={handleUpload}
-            disabled={fileList.length === 0}
-            loading={uploading}
-            style={{ marginTop: 16 }}>
-            {uploading ? "מעלה" : "התחל העלאה"}
-          </Button>
-        </div>
+        </>
       )}
-      <div className="template-content">
-        {templateFiles.map((file) => (
-          <DownloadFile key={file._id} file={file} onDelete={handleDelete} onEdit={() => setEditing(file._id)} />
-        ))}
-      </div>
+
       <Modal
         className="edit-modal"
         title="תיאור הקובץ"
@@ -235,7 +270,7 @@ const Templates = () => {
             placeholder="תיאור לקובץ"
             value={editDescription}
             onTextChange={handleEditEditorChange}
-            style={{ height: "320px" }}
+            style={{ height: "320px", wordBreak: "break-word" }}
           />
         </div>
       </Modal>

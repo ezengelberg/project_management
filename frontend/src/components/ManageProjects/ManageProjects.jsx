@@ -21,7 +21,6 @@ const ManageProjects = () => {
   const [editProjectData, setEditProjectData] = useState({});
   const [isOtherType, setIsOtherType] = useState(false);
   const [studentInitiative, setStudentInitiative] = useState(false);
-  const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const [studentsNoProject, setStudentsNoProject] = useState([]);
 
   const getUsersNoProjects = async () => {
@@ -30,17 +29,6 @@ const ManageProjects = () => {
         withCredentials: true
       });
       setStudentsNoProject(response.data.usersNoProjects);
-    } catch (error) {
-      console.error("Error occurred:", error.response.data.message);
-    }
-  };
-
-  const fetchPrivileges = async () => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, {
-        withCredentials: true
-      });
-      setPrivileges(response.data);
     } catch (error) {
       console.error("Error occurred:", error.response.data.message);
     }
@@ -118,7 +106,6 @@ const ManageProjects = () => {
   useEffect(() => {
     console.log("Fetching data...");
     fetchData();
-    fetchPrivileges();
     getUsersNoProjects();
   }, []);
 
@@ -180,20 +167,6 @@ const ManageProjects = () => {
 
   const approveStudent = (record) => async () => {
     try {
-      const intialResponse = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${record.candidateInfo._id}`,
-        {
-          withCredentials: true
-        }
-      );
-      if (intialResponse.data.hasProject) {
-        message.open({
-          type: "error",
-          content: "לסטודנט כבר יש פרויקט",
-          duration: 2
-        });
-        return;
-      }
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/approve-candidate`,
         {
@@ -230,7 +203,11 @@ const ManageProjects = () => {
         })
       );
     } catch (error) {
-      console.error("Error occurred:", error);
+      message.open({
+        type: "error",
+        content: error.response.data.message,
+        duration: 2
+      });
     }
   };
 
@@ -384,7 +361,7 @@ const ManageProjects = () => {
       );
       message.open({
         type: "success",
-        content: `הפרוייקט ${response.data.project.title} עודכן בהצלחה`,
+        content: `הפרויקט ${response.data.project.title} עודכן בהצלחה`,
         duration: 2
       });
       const projectUpdate = projects.map((project) => {
@@ -484,7 +461,7 @@ const ManageProjects = () => {
                 message: "חובה להזין תיאור לפרויקט"
               }
             ]}>
-            <Editor style={{ height: "320px" }} onTextChange={handleEditorChange} />
+            <Editor style={{ height: "320px", wordBreak: "break-word" }} onTextChange={handleEditorChange} />
           </Form.Item>
           <Form.Item
             className="create-project-form-item"

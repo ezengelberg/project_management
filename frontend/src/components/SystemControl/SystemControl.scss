@@ -1,0 +1,92 @@
+.system {
+  font-size: 1.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .system-title {
+    margin-bottom: 2rem;
+  }
+  .control-options {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2rem;
+    .box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 20rem;
+      border: 1px solid #ccc;
+      border-radius: 2rem;
+      box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
+      padding: 3rem;
+
+      .end-projects {
+        margin: auto;
+      }
+
+      .box-title {
+        margin: 0 0 1.5rem;
+      }
+    }
+    .switches {
+      width: fit-content;
+      .switch {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        margin-bottom: 1rem;
+        .switch-label {
+          width: 17rem;
+        }
+      }
+    }
+    .finish-projects > Button {
+      width: 9rem;
+      height: 9rem;
+      background-color: #ff4d4f;
+      transition: background-color 0.2s linear;
+      &:hover {
+        background-color: #fd3e41;
+        animation: tilt-n-move-shaking 0.15s infinite;
+      }
+      svg {
+        width: 5rem;
+        height: 5rem;
+      }
+    }
+  }
+  .edit-icon {
+    font-size: 2.5rem;
+  }
+
+  .finish-judging-period {
+    .switch {
+      width: 100%;
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+}
+
+@keyframes tilt-n-move-shaking {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(5px, 5px) rotate(5deg);
+  }
+  50% {
+    transform: translate(0, 0) rotate(0eg);
+  }
+  75% {
+    transform: translate(-5px, 5px) rotate(-5deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
