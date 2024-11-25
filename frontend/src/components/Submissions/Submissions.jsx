@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
 import axios from "axios";
+import dayjs from "dayjs";
 import "./Submissions.scss";
 import {
   Modal,
@@ -31,10 +32,12 @@ const Submissions = () => {
   const { Option } = Select;
   const [formAll] = Form.useForm();
   const [formJudges] = Form.useForm();
+  const [editSubmission] = Form.useForm();
   const [formSpecific] = Form.useForm();
   const [gradeForm] = Form.useForm();
   const [allSubmissions, setAllSubmissions] = useState(false);
   const [specificSubmission, setSpecificSubmission] = useState(false);
+  const [editSubmissions, setEditSubmissions] = useState(false);
   const [copyJudges, setCopyJudges] = useState(false);
   const [gradeFormOpen, setGradeFormOpen] = useState(false);
   const [gradeToOverride, setGradeToOverride] = useState(null);
@@ -181,6 +184,30 @@ const Submissions = () => {
     }
   };
 
+  const handleOkEdit = async (values) => {
+    console.log(values);
+    console.log("sending edit request");
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-information`,
+        {
+          submissionName: values.submissionName,
+          submissionDate: values.submissionDate,
+          submissionInfo: values.submissionInfo
+        },
+        {
+          withCredentials: true
+        }
+      );
+      message.open({
+        type: "success",
+        content: "הגשה עודכנה בהצלחה"
+      });
+    } catch (error) {
+      console.error("Error updating submission:", error);
+    }
+  };
+
   const handleOkSpecific = async (values) => {
     try {
       let name = "";
@@ -313,6 +340,17 @@ const Submissions = () => {
       });
   };
 
+  const onOkHandlerEdit = () => {
+    editSubmission
+      .validateFields()
+      .then((values) => {
+        handleOkEdit(values);
+      })
+      .catch((info) => {
+        console.log("Validate Failed:", info);
+      });
+  };
+
   const columns = [
     {
       title: "שם הפרוייקט",
@@ -358,7 +396,7 @@ const Submissions = () => {
             {submissions.map((sub, index) => {
               const grades = sub.grades || [];
               const waitingCheck = grades.some((grade) => grade.grade === null);
-
+              const isLate = new Date(sub.submissionDate) < new Date(sub.uploadDate);
               return (
                 <Col
                   key={index}
@@ -378,7 +416,10 @@ const Submissions = () => {
                       : ""}
                   </span>
                   <div className="table-col-info">
-                    <Badge color={sub.submitted ? "green" : "orange"} text={sub.submitted ? "הוגש" : "מחכה להגשה"} />
+                    <Badge
+                      color={sub.submitted ? "green" : "orange"}
+                      text={sub.submitted ? `הוגש${isLate ? " באיחור" : ""}` : "מחכה להגשה"}
+                    />
                     <div>{waitingCheck && sub.submitted && <Badge color="blue" text="מחכה לבדיקה" />}</div>
                   </div>
                 </Col>
@@ -446,6 +487,9 @@ const Submissions = () => {
         </Button>
         <Button type="primary" onClick={() => setCopyJudges(true)}>
           העתקת שופטים
+        </Button>
+        <Button type="primary" className="action-button-end" onClick={() => setEditSubmissions(true)}>
+          עריכת פרטי הגשה
         </Button>
       </div>
       <Table columns={columns} dataSource={submissionData} />
@@ -575,6 +619,70 @@ const Submissions = () => {
               }
             ]}>
             <InputNumber className="input-field-override-grade" min={0} max={100} />
+          </Form.Item>
+        </Form>
+      </Modal>
+      <Modal
+        title="עריכת פרטי הגשה"
+        open={editSubmissions}
+        okText="ערוך"
+        cancelText="סגור"
+        onOk={() => onOkHandlerEdit()}
+        onCancel={() => setEditSubmissions(false)}>
+        <Form layout="vertical" form={editSubmission}>
+          <Form.Item
+            label="שם ההגשה"
+            name="submissionName"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה לבחור הגשת מקור"
+              }
+            ]}>
+            <Select placeholder="בחר הגשת מקור">
+              {submissionNames.map((submission, index) => (
+                <Option key={index} value={submission}>
+                  {submission}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label="תאריך הגשה"
+            name="submissionDate"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין תאריך הגשה"
+              },
+              {
+                validator: (_, value) => {
+                  if (!value) {
+                    return Promise.resolve(); // Skip validation if no value is selected (handled by `required`)
+                  }
+                  // Check if the selected date is in the past
+                  const now = dayjs(); // Or dayjs(), if you're using dayjs
+                  if (value.isBefore(now)) {
+                    return Promise.reject(new Error("לא ניתן לבחור תאריך ושעה שעברו"));
+                  }
+                  return Promise.resolve();
+                }
+              }
+            ]}>
+            <DatePicker
+              className="date-picker"
+              locale={locale} // Add the Hebrew locale here
+              direction="rtl"
+              showTime={{
+                format: "HH:mm"
+              }}
+              format="DD-MM-YYYY HH:mm"
+            />
+          </Form.Item>
+          <Form.Item label="פרטים נוספים" name="submissionInfo">
+            <TextArea rows={4} />
           </Form.Item>
         </Form>
       </Modal>

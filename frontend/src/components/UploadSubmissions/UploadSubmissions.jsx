@@ -213,15 +213,25 @@ const UploadSubmissions = () => {
       dataIndex: "submissionStatus",
       key: "submissionStatus",
       render: (_, record) => {
+        const isLate = new Date(record.submissionDate) < new Date(record.uploadDate);
         return (
-          <span>{record.file ? <Badge color="green" text="הוגש" /> : <Badge color="orange" text="לא הוגש" />}</span>
+          <span>
+            {record.file ? (
+              <Badge color="green" text={`הוגש${isLate ? " באיחור" : ""}`} />
+            ) : (
+              <Badge color="orange" text="לא הוגש" />
+            )}
+          </span>
         );
       },
     },
     {
-      title: "הערות",
+      title: "הנחיות",
       dataIndex: "submissionInfo",
       key: "info",
+      render: (text) => {
+        return <Tooltip title={text}>{text.length > 25 ? `${text.slice(0, 25)}...` : text}</Tooltip>;
+      },
     },
     {
       title: "פעולות",
@@ -271,8 +281,13 @@ const UploadSubmissions = () => {
         width="50%">
         <div className="submission-modal">
           {currentSubmission?.submissionInfo && (
-            <div>
+            <div className="submission-info">
               <b>הנחיות</b>: {currentSubmission.submissionInfo}
+              {new Date(currentSubmission.submissionDate) < new Date() && (
+                <div className="submission-late">
+                  <b>שימו לב - ההגשה נשלחת באיחור</b>
+                </div>
+              )}
             </div>
           )}
           <Dragger {...props}>
