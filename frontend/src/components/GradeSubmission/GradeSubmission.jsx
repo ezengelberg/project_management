@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./GradeSubmission.scss";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Button, Form, Input, Select, Space, message, Spin } from "antd";
+import { Button, Form, Input, Select, message, Spin } from "antd";
 
 const GradeSubmission = () => {
   const navigate = useNavigate();
@@ -15,7 +15,6 @@ const GradeSubmission = () => {
   const { submissionId } = useParams();
   const [project, setProject] = useState({});
   const [loading, setLoading] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
   const letterGrades = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E", "F"];
 
   useEffect(() => {
@@ -29,15 +28,14 @@ const GradeSubmission = () => {
           }
         );
         setProject(response.data);
-        if (response.data.existingGrade) {
-          setIsEdit(true);
+        if (response.data.isReviewed || response.data.isGraded) {
           form.setFieldsValue({
             grade: response.data.existingGrade,
-            videoQuality: response.data.existingComment.videoQuality,
-            workQuality: response.data.existingComment.workQuality,
-            writingQuality: response.data.existingComment.writingQuality,
-            commits: response.data.existingComment.commits,
-            journalActive: response.data.existingComment.journalActive,
+            videoQuality: response.data.existingVideoQuality,
+            workQuality: response.data.existingWorkQuality,
+            writingQuality: response.data.existingWritingQuality,
+            commits: response.data.existingCommits,
+            journalActive: response.data.existingJournalActive,
           });
         }
         setLoading(false);
@@ -87,7 +85,7 @@ const GradeSubmission = () => {
       ) : (
         <div className="grade-project-form">
           <h2>
-            שפטית פרויקט: <span style={{ textDecoration: "underline" }}>{project?.projectName}</span>
+            שפיטת פרויקט: <span style={{ textDecoration: "underline" }}>{project?.projectName}</span>
           </h2>
           <Form form={form} name="gradeProject" layout="vertical" onFinish={onFinish}>
             {project?.isReviewed && (
@@ -181,7 +179,7 @@ const GradeSubmission = () => {
             )}
 
             <Form.Item>
-              <Space>
+              <div className="form-buttons">
                 {project?.isGraded ? (
                   <Button type="primary" htmlType="submit">
                     שמור ציון
@@ -194,7 +192,7 @@ const GradeSubmission = () => {
                 <Button htmlType="button" onClick={onReset}>
                   נקה טופס
                 </Button>
-              </Space>
+              </div>
             </Form.Item>
           </Form>
         </div>

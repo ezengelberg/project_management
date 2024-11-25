@@ -34,5 +34,15 @@
     .ant-select-selector {
       font-size: 1.7rem;
     }
+    .form-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1.5rem;
+
+      button {
+        font-size: 1.7rem;
+        padding: 2rem 2rem;
+      }
+    }
   }
 }
