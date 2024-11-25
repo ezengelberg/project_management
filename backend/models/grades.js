@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const gradeSchema = new mongoose.Schema(
   {
-    grade: { type: String },
+    grade: { type: String, default: null },
     numericGrade: { type: Number, default: null },
     judge: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     videoQuality: { type: String },
@@ -14,10 +14,10 @@ const gradeSchema = new mongoose.Schema(
       type: {
         by: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         comment: { type: String, required: true },
-        newGrade: { type: String, required: true },
+        newGrade: { type: String, required: true }
       },
-      required: false,
-    },
+      required: false
+    }
   },
   { timestamps: true }
 );

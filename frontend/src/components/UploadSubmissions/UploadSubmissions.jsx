@@ -243,10 +243,12 @@ const UploadSubmissions = () => {
             <a>
               <UploadOutlined className="edit-icon" onClick={() => showUploadModal(record)} />
             </a>
-          ) : (
+          ) : new Date(record.submissionDate) > new Date() ? (
             <a>
               <DeleteOutlined className="edit-icon" onClick={() => showConfirmModal(record)} />
             </a>
+          ) : (
+            "תאריך הגשה עבר"
           )}
         </span>
       )
@@ -279,11 +281,14 @@ const UploadSubmissions = () => {
           {currentSubmission?.submissionInfo && (
             <div className="submission-info">
               <b>הנחיות</b>: {currentSubmission.submissionInfo}
-              {new Date(currentSubmission.submissionDate) < new Date() && (
-                <div className="submission-late">
-                  <b>שימו לב - ההגשה נשלחת באיחור</b>
-                </div>
-              )}
+            </div>
+          )}
+          {new Date(currentSubmission?.submissionDate) < new Date() && (
+            <div className="submission-late">
+              <b>
+                שימו לב - ההגשה נשלחת באיחור
+                <br /> לא יהיה ניתן לבצע שינויים לאחר ההגשה
+              </b>
             </div>
           )}
           <Dragger {...props}>
