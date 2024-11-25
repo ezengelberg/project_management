@@ -279,11 +279,11 @@ const UploadSubmissions = () => {
           {currentSubmission?.submissionInfo && (
             <div className="submission-info">
               <b>הנחיות</b>: {currentSubmission.submissionInfo}
-              {new Date(currentSubmission.submissionDate) < new Date() && (
-                <div className="submission-late">
-                  <b>שימו לב - ההגשה נשלחת באיחור</b>
-                </div>
-              )}
+            </div>
+          )}
+          {new Date(currentSubmission?.submissionDate) < new Date() && (
+            <div className="submission-late">
+              <b>שימו לב - ההגשה נשלחת באיחור</b>
             </div>
           )}
           <Dragger {...props}>

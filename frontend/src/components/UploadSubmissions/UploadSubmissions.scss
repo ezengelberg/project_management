@@ -9,9 +9,10 @@
   gap: 1rem;
   .submission-info {
     font-size: 1.7rem;
-    margin-bottom: 1rem;
-    .submission-late {
-      color: red;
-    }
+    margin-bottom: -0.7rem;
+  }
+  .submission-late {
+    color: red;
+    font-size: 1.7rem;
   }
 }
