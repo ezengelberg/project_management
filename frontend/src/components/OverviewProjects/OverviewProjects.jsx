@@ -691,7 +691,8 @@ const OverviewProjects = () => {
               </Button>
             )}
             <Button
-              danger
+              color="danger"
+              variant="filled"
               onClick={() => {
                 setSelectedProject(record);
                 setIsTerminateModalOpen(true);
@@ -874,8 +875,12 @@ const OverviewProjects = () => {
               }}>
               עדכן סטודנטים
             </Button>
+            <Button color="primary" variant="filled">
+              שינוי ציון
+            </Button>
             <Button
-              danger
+              color="danger"
+              variant="filled"
               onClick={() => {
                 setSelectedProject(record);
                 setIsTerminateModalOpen(true);
