@@ -408,6 +408,24 @@ export const updateSubmissionInformation = async (req, res) => {
   }
 };
 
+export const updateSpecificSubmission = async (req, res) => {
+  try {
+    const submission = await Submission.findById(req.params.id);
+    if (!submission) {
+      return res.status(404).json({ message: "הגשה לא נמצאה" });
+    } else {
+      Object.keys(req.body).forEach((key) => {
+        submission[key] = req.body[key];
+      });
+      await submission.save();
+      res.status(200).json({ message: "Submission updated successfully", submission });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 export const getSubmissionDetails = async (req, res) => {
   try {
     const submission = await Submission.findById(req.params.id)
