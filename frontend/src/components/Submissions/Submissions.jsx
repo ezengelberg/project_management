@@ -32,6 +32,7 @@ const Submissions = () => {
   const [formAll] = Form.useForm();
   const [formJudges] = Form.useForm();
   const [editSubmission] = Form.useForm();
+  const [editSpecificSubmission] = Form.useForm();
   const [formSpecific] = Form.useForm();
   const [gradeForm] = Form.useForm();
   const [allSubmissions, setAllSubmissions] = useState(false);
@@ -45,6 +46,7 @@ const Submissions = () => {
   const [submissionType, setSubmissionType] = useState(null);
   const [projects, setProjects] = useState([]);
   const [submissionInfo, setSubmissionInfo] = useState(null);
+  const [specificSubmissionInfo, setSpecificSubmissionInfo] = useState(null);
 
   const fetchActiveProjects = async () => {
     try {
@@ -189,9 +191,31 @@ const Submissions = () => {
     }
   };
 
-  const handleOkEdit = async (values) => {
+  const handleOkEditSpecific = async (values) => {
     console.log(values);
-    console.log("sending edit request");
+    console.log(specificSubmissionInfo);
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-specific-submission-information/${specificSubmissionInfo.submission.key}`,
+        {
+          name: values.submissionName,
+          submissionDate: values.submissionDate
+        },
+        {
+          withCredentials: true
+        }
+      );
+      message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
+    } catch (error) {
+      console.error("Error updating submission:", error);
+      message.error("שגיאה בעדכון ההגשה");
+    } finally {
+      handleClose();
+      fetchSubmissions();
+    }
+  };
+
+  const handleOkEdit = async (values) => {
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-information`,
@@ -298,6 +322,11 @@ const Submissions = () => {
       gradeForm.resetFields();
       setGradeFormOpen(false);
       setGradeToOverride(null);
+    }
+
+    if (editSpecificSubmission) {
+      editSpecificSubmission.resetFields();
+      setSpecificSubmissionInfo(null);
     }
 
     setSubmissionType(null);
@@ -498,10 +527,64 @@ const Submissions = () => {
           העתקת שופטים
         </Button>
         <Button type="primary" className="action-button-end" onClick={() => setEditSubmissions(true)}>
-          עריכת פרטי הגשה
+          עריכת הגשות
         </Button>
       </div>
       <Table columns={columns} dataSource={submissionData} />
+      <Modal
+        title={`עריכת פרטי הגשה`}
+        open={specificSubmissionInfo != null}
+        cancelText="סגור"
+        okText="ערוך"
+        onCancel={() => setSpecificSubmissionInfo(null)}
+        onOk={() => {
+          editSpecificSubmission
+            .validateFields()
+            .then((values) => {
+              handleOkEditSpecific(values);
+            })
+            .catch((info) => {
+              console.log("Validate Failed:", info);
+            });
+        }}>
+        <Form layout="vertical" form={editSpecificSubmission}>
+          <Form.Item label="שם הפרויקט" name="projectName">
+            <Input disabled />
+          </Form.Item>
+          <Form.Item
+            label="שם ההגשה"
+            name="submissionName"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין שם ההגשה"
+              }
+            ]}>
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="תאריך הגשה"
+            name="submissionDate"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין תאריך הגשה"
+              }
+            ]}>
+            <DatePicker
+              className="date-picker"
+              locale={locale} // Add the Hebrew locale here
+              direction="rtl"
+              showTime={{
+                format: "HH:mm"
+              }}
+              format="DD-MM-YYYY HH:mm"
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
       <Modal
         title={`פרטי ההגשה עבור: ${submissionInfo?.project.title} - ${submissionInfo?.submission.name}`}
         open={submissionInfo !== null}
@@ -519,7 +602,18 @@ const Submissions = () => {
                 <h2>{submissionInfo.project.title}</h2>
                 <Tooltip
                   title={`עריכת פרטי הגשה עבור ${submissionInfo.submission.name} של ${submissionInfo.project.title}`}>
-                  <EditOutlined className="edit-icon" />
+                  <EditOutlined
+                    className="edit-icon"
+                    onClick={() => {
+                      editSpecificSubmission.setFieldsValue({
+                        projectName: submissionInfo.project.title,
+                        submissionName: submissionInfo.submission.name,
+                        submissionDate: dayjs(submissionInfo.submission.submissionDate)
+                      });
+                      setSpecificSubmissionInfo(submissionInfo);
+                      setSubmissionInfo(null);
+                    }}
+                  />
                 </Tooltip>
               </div>
             </div>
