@@ -21,6 +21,25 @@ dotenv.config();
 const app = express();
 const server_port = process.env.SERVER_PORT || 3000;
 
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET, // Set a strong secret in .env
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      collectionName: "sessions"
+    }),
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
+      secure: false // Set to true if using HTTPS
+    }
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Allow cross-origin requests
 const corsOptions = {
   origin: true, // Allow all origins for Development purposes only
@@ -31,29 +50,6 @@ app.use(cors(corsOptions));
 // Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); // Middleware to parse URL-encoded bodies
-
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET, // Set a strong secret in .env
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
-      collectionName: "sessions",
-      ttl: 24 * 60 * 60, // Session TTL (1 day)
-      autoRemove: "native" // Enable automatic removal
-    }),
-    cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
-      secure: false, // Set to true if using HTTPS
-      httpOnly: true,
-      sameSite: "none" // Required for cross-origin cookies
-    }
-  })
-);
-
-app.use(passport.initialize());
-app.use(passport.session());
 
 app.use((req, res, next) => {
   console.log("Session Middleware:", {
