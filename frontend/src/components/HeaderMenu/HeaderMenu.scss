@@ -63,3 +63,16 @@
     transform: scale(1.1);
   }
 }
+
+.headermenu-popover-content {
+  .ant-divider {
+    margin: 0;
+  }
+  .last-divider {
+    border-color: black;
+    margin-bottom: 0.8rem;
+  }
+  .show-all-notifications {
+    margin: 10rem;
+  }
+}

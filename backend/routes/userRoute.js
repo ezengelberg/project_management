@@ -20,13 +20,15 @@ import {
   registerMultiple,
   checkUserHasProject,
   getAdvisorsForUsersInfo,
+  createAdmin
 } from "../controllers/userController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/register", registerUser);
-router.post("/register-multiple", registerMultiple);
+router.post("/register", ensureAuthenticated, registerUser);
+router.post("/register-multiple", ensureAuthenticated, registerMultiple);
+router.post("/create-admin", createAdmin);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);
 router.post("/toggle-favorite", ensureAuthenticated, toggleFavoriteProject);
