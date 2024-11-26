@@ -28,7 +28,7 @@ export const registerUser = async (req, res) => {
       isStudent: isStudent || false,
       isAdvisor: isAdvisor || false,
       isJudge: isJudge || false,
-      isCoordinator: isCoordinator || false,
+      isCoordinator: isCoordinator || false
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
@@ -71,11 +71,35 @@ export const registerMultiple = async (req, res) => {
         isStudent: role.includes("isStudent"),
         isAdvisor: role.includes("isAdvisor"),
         isJudge: role.includes("isJudge"),
-        isCoordinator: role.includes("isCoordinator"),
+        isCoordinator: role.includes("isCoordinator")
       });
       await newUser.save();
     }
     res.status(201).send({ message: "Users registered successfully", existingUsers });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const createAdmin = async (req, res) => {
+  try {
+    const user = await User.findOne({ email: "admin@jce.ac" });
+    if (!user) {
+      const hashedPassword = await bcrypt.hash("U*P0!ps#1N&p", 10);
+      const newUser = new User({
+        name: "משתמש על",
+        email: "admin@jce.ac",
+        id: "000000000",
+        password: hashedPassword,
+        firstLogin: false,
+        suspensionRecords: [],
+        isStudent: true,
+        isAdvisor: true,
+        isJudge: true,
+        isCoordinator: true
+      });
+      await newUser.save();
+    }
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -355,7 +379,7 @@ export const suspendUser = async (req, res) => {
     user.suspensionRecords.push({
       suspendedBy: req.user._id,
       suspendedAt: new Date(),
-      reason: req.body.reason,
+      reason: req.body.reason
     });
 
     await user.save();
@@ -405,7 +429,7 @@ export const getAdvisorsForUsersInfo = async (req, res) => {
       const projectsAvailable = advisorProjects.some((project) => !project.isTaken);
       return {
         ...advisor.toObject(),
-        projectsAvailable,
+        projectsAvailable
       };
     });
 

@@ -3,8 +3,8 @@ import "./HeaderMenu.scss";
 import collegeLogo from "../../assets/CollegeLogo.png";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Tooltip, Avatar, Badge } from "antd";
-import { MessageOutlined, LogoutOutlined } from "@ant-design/icons";
+import { Tooltip, Avatar, Badge, Popover, Divider } from "antd";
+import { LogoutOutlined, CommentOutlined } from "@ant-design/icons";
 import { handleMouseDown } from "../../utils/mouseDown";
 
 const HeaderMenu = () => {
@@ -13,6 +13,32 @@ const HeaderMenu = () => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
   });
+  const [open, setOpen] = useState(false);
+
+  const hide = () => {
+    setOpen(false);
+  };
+
+  const handleOpenChange = (newOpen) => {
+    setOpen(newOpen);
+  };
+
+  const content = (
+    <div className="headermenu-popover-content">
+      <p>Content</p>
+      <Divider />
+      <p>Content</p>
+      <Divider className="last-divider" />
+      <a
+        className="show-all-notifications"
+        onClick={() => {
+          navigate("/notifications");
+          hide();
+        }}>
+        כל ההתראות
+      </a>
+    </div>
+  );
 
   const handleLogout = async () => {
     try {
@@ -34,6 +60,18 @@ const HeaderMenu = () => {
         <h1>מערכת לניהול פרויקטים</h1>
       </div>
       <div className="site-upper-header-left">
+        <Popover
+          content={content}
+          title={<div style={{ textAlign: "center" }}>התראות אחרונות</div>}
+          trigger="click"
+          open={open}
+          onOpenChange={handleOpenChange}>
+          <Badge count={100} style={{ transform: "translate(50%, -50%)" }}>
+            <Tooltip title="התראות" placement="right">
+              <CommentOutlined className="notification-icon" />
+            </Tooltip>
+          </Badge>
+        </Popover>
         <Tooltip title="פרופיל">
           <Avatar
             className="avatar-icon"
@@ -44,11 +82,6 @@ const HeaderMenu = () => {
             {user.name && user.name.split(" ")[1] ? user.name.split(" ")[1][0] : ""}
           </Avatar>
         </Tooltip>
-        <Badge count={100}>
-          <Tooltip title="התראות">
-            <MessageOutlined className="notification-icon" />
-          </Tooltip>
-        </Badge>
         <Tooltip title="התנתק">
           <LogoutOutlined className="logout-icon" onClick={handleLogout} />
         </Tooltip>
