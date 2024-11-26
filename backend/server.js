@@ -51,16 +51,6 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); // Middleware to parse URL-encoded bodies
 
-app.use((req, res, next) => {
-  console.log("Session Middleware:", {
-    sessionID: req.sessionID,
-    session: req.session,
-    isAuthenticated: req.isAuthenticated(),
-    user: req.user
-  });
-  next();
-});
-
 app.use("/api/user", userRoute);
 app.use("/api/project", projectRoute);
 app.use("/api/submission", submissionRoute);
