@@ -41,10 +41,11 @@
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
-}
-
-.action-buttons .action-button-end {
-  margin-right: auto; /* Push the button to the opposite end */
+  .action-buttons-end {
+    display: flex;
+    margin-right: auto; /* Push the button to the opposite end */
+    gap: 1rem;
+  }
 }
 
 .input-field-override-grade {
