@@ -11,7 +11,8 @@ import {
   getStudentSubmissions,
   updateSubmissionFile,
   updateSubmissionInformation,
-  updateSpecificSubmission
+  updateSpecificSubmission,
+  deleteActiveSubmissions
 } from "../controllers/submissionController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -28,11 +29,7 @@ router.get("/get-submission-details/:id", ensureAuthenticated, getSubmissionDeta
 router.get("/get-student-submissions", ensureAuthenticated, getStudentSubmissions);
 router.post("/update-submission-file/:id", ensureAuthenticated, updateSubmissionFile);
 router.post("/update-submission-information", ensureAuthenticated, isCoordinator, updateSubmissionInformation);
-router.post(
-  "/update-specific-submission-information/:id",
-  ensureAuthenticated,
-  isCoordinator,
-  updateSpecificSubmission
-);
+router.post("/update-specific-submission/:id", ensureAuthenticated, isCoordinator, updateSpecificSubmission);
+router.post("/delete-active-submissions", ensureAuthenticated, isCoordinator, deleteActiveSubmissions);
 
 export default router;

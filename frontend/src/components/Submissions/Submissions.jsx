@@ -35,6 +35,7 @@ const Submissions = () => {
   const [editSpecificSubmission] = Form.useForm();
   const [formSpecific] = Form.useForm();
   const [gradeForm] = Form.useForm();
+  const [deleteSubmissionsForm] = Form.useForm();
   const [allSubmissions, setAllSubmissions] = useState(false);
   const [specificSubmission, setSpecificSubmission] = useState(false);
   const [editSubmissions, setEditSubmissions] = useState(false);
@@ -44,6 +45,8 @@ const Submissions = () => {
   const [submissionData, setSubmissionData] = useState([]);
   const [submissionNames, setSubmissionNames] = useState([]);
   const [submissionType, setSubmissionType] = useState(null);
+  const [deleteAllSubmissions, setDeleteAllSubmissions] = useState(false);
+  const [deleteAllSubmissionsConfirm, setDeleteAllSubmissionsConfirm] = useState(null);
   const [projects, setProjects] = useState([]);
   const [submissionInfo, setSubmissionInfo] = useState(null);
   const [specificSubmissionInfo, setSpecificSubmissionInfo] = useState(null);
@@ -129,6 +132,29 @@ const Submissions = () => {
     }
   };
 
+  const handleOkDelete = async (values) => {
+    console.log(values);
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-active-submissions`,
+        {
+          submissionName: values.submissionName
+        },
+        {
+          withCredentials: true
+        }
+      );
+      message.open({
+        type: "success",
+        content: "הגשות נמחקו בהצלחה"
+      });
+    } catch (error) {
+      console.error("Error deleting submissions:", error);
+    } finally {
+      handleClose();
+      fetchSubmissions();
+    }
+  };
   const handleOkAll = async (values) => {
     try {
       let name = "";
@@ -196,7 +222,7 @@ const Submissions = () => {
     console.log(specificSubmissionInfo);
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-specific-submission-information/${specificSubmissionInfo.submission.key}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-specific-submission/${specificSubmissionInfo.submission.key}`,
         {
           name: values.submissionName,
           submissionDate: values.submissionDate
@@ -205,7 +231,7 @@ const Submissions = () => {
           withCredentials: true
         }
       );
-      message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
+      message.info(`הגשה ${specificSubmissionInfo.submission.name} נמחקה בהצלחה`);
     } catch (error) {
       console.error("Error updating submission:", error);
       message.error("שגיאה בעדכון ההגשה");
@@ -327,6 +353,11 @@ const Submissions = () => {
     if (editSpecificSubmission) {
       editSpecificSubmission.resetFields();
       setSpecificSubmissionInfo(null);
+    }
+    if (deleteAllSubmissions || deleteAllSubmissionsConfirm !== null) {
+      deleteSubmissionsForm.resetFields();
+      setDeleteAllSubmissions(false);
+      setDeleteAllSubmissionsConfirm(null);
     }
 
     setSubmissionType(null);
@@ -526,11 +557,63 @@ const Submissions = () => {
         <Button type="primary" onClick={() => setCopyJudges(true)}>
           העתקת שופטים
         </Button>
-        <Button type="primary" className="action-button-end" onClick={() => setEditSubmissions(true)}>
-          עריכת הגשות
-        </Button>
+        <div className="action-buttons-end">
+          <Button type="primary" onClick={() => setEditSubmissions(true)}>
+            עריכת הגשות
+          </Button>
+          <Button color="danger" variant="solid" onClick={() => setDeleteAllSubmissions(true)}>
+            מחיקת הגשות
+          </Button>
+        </div>
       </div>
       <Table columns={columns} dataSource={submissionData} />
+      <Modal
+        title={`האם הינך בטוח שברצונך למחוק את ההגשה ${deleteAllSubmissionsConfirm?.submissionName} לכולם?`}
+        open={deleteAllSubmissionsConfirm !== null}
+        okText="מחק"
+        cancelText="ביטול"
+        onOk={() => {
+          handleOkDelete(deleteAllSubmissionsConfirm);
+        }}
+        onCancel={() => setDeleteAllSubmissionsConfirm(null)}></Modal>
+      <Modal
+        title="מחיקת הגשות"
+        open={deleteAllSubmissions}
+        cancelText="בטל"
+        okText="אשר מחיקה"
+        okButtonProps={{ danger: true }}
+        onCancel={() => setDeleteAllSubmissions(false)}
+        onOk={() => {
+          deleteSubmissionsForm
+            .validateFields()
+            .then((values) => {
+              setDeleteAllSubmissionsConfirm(values);
+            })
+            .catch((info) => {
+              console.log("Validate Failed:", info);
+            });
+        }}>
+        <Form layout="vertical" form={deleteSubmissionsForm}>
+          <Form.Item
+            label="בחר הגשה"
+            name="submissionName"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה לבחור הגשה"
+              }
+            ]}>
+            <Select placeholder="בחר הגשה">
+              {submissionNames.map((submission, index) => (
+                <Option key={index} value={submission}>
+                  {submission}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
       <Modal
         title={`עריכת פרטי הגשה`}
         open={specificSubmissionInfo != null}
@@ -774,7 +857,7 @@ const Submissions = () => {
               }
             ]}>
             <Select
-              placeholder="בחר הגשת מקור"
+              placeholder="בחר הגשה"
               onChange={(value) => editSubmission.setFieldsValue({ SubmissionName: value })}>
               {submissionNames.map((submission, index) => (
                 <Option key={index} value={submission}>
@@ -783,7 +866,11 @@ const Submissions = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item label="שם הגשה" name="SubmissionName">
+          <Form.Item
+            label="שם הגשה חדש"
+            name="SubmissionName"
+            hasFeedback
+            rules={[{ required: true, message: "חובה להזין שם הגשה" }]}>
             <Input />
           </Form.Item>
           <Form.Item

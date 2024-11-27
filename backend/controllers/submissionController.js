@@ -2,6 +2,9 @@ import Project from "../models/projects.js";
 import Submission from "../models/submission.js";
 import User from "../models/users.js";
 import Grade from "../models/grades.js";
+import Upload from "../models/uploads.js";
+import fs from "fs";
+import path from "path";
 
 export const createSubmission = async (req, res) => {
   try {
@@ -376,6 +379,37 @@ export const updateSubmissionFile = async (req, res) => {
 
     await submission.save();
     res.status(200).json({ message: "Submission updated successfully", submission });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const deleteActiveSubmissions = async (req, res) => {
+  try {
+    const activeProjects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
+    const activeProjectIds = activeProjects.map((project) => project._id);
+    const submissionsToDelete = await Submission.find({
+      project: { $in: activeProjectIds },
+      name: req.body.submissionName
+    });
+
+    await Promise.all(
+      submissionsToDelete.map(async (submission) => {
+        if (submission.file) {
+          const file = await Upload.findById(submission.file);
+          if (file) {
+            const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            console.log("file deleted");
+            await Upload.deleteOne({ _id: submission.file });
+          }
+        }
+        await Submission.deleteOne({ _id: submission._id });
+      })
+    );
+
+    res.status(200).json({ message: "Active submissions deleted successfully" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
