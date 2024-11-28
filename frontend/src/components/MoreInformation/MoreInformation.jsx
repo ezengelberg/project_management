@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./MoreInformation.scss";
 import axios from "axios";
-import { Form, Input, InputNumber, Table, Typography, message, Tooltip } from "antd";
-import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
+import { Form, Input, InputNumber, Table, Typography, message, Tooltip, Button, Space } from "antd";
+import { EditOutlined, SaveOutlined, StopOutlined, SearchOutlined } from "@ant-design/icons";
+import Highlighter from "react-highlight-words";
 
 const MoreInformation = () => {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -14,6 +15,9 @@ const MoreInformation = () => {
   const [editingKey, setEditingKey] = useState("");
   const [loading, setLoading] = useState(false);
   const isEditing = (record) => record.key === editingKey;
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef(null);
 
   useEffect(() => {
     const fetchAdvisors = async () => {
@@ -106,13 +110,74 @@ const MoreInformation = () => {
     message.success("הועתק");
   };
 
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    setSearchText("");
+  };
+
+  const getColumnSearchProps = (dataIndex) => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInput}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          style={{ marginBottom: 8, display: "block" }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}>
+            חיפוש
+          </Button>
+          <Button onClick={() => clearFilters && handleReset(clearFilters)} size="small" style={{ width: 90 }}>
+            איפוס
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close();
+            }}>
+            סגור
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />,
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
+    },
+    onFilter: (value, record) => record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+  });
+
   const columns = [
     {
       title: "שם המנחה",
       dataIndex: "name",
       key: "name",
+      ...getColumnSearchProps("name"),
       width: "22.5%",
-      render: (text) => <p>{text}</p>,
+      render: (text) => (
+        <Highlighter
+          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text}
+        />
+      ),
     },
     {
       title: "מייל",
@@ -132,6 +197,17 @@ const MoreInformation = () => {
       width: "22.5%",
       editable: true,
       render: (interests) => <p>{interests ? interests : "אין תחום עניין"}</p>,
+      filters: [
+        { text: "קיים תחום עניין", value: "קיים תחום עניין" },
+        { text: "אין תחום עניין", value: "אין תחום עניין" },
+      ],
+      onFilter: (value, record) => {
+        if (value === "קיים תחום עניין") {
+          return record.interests;
+        } else {
+          return !record.interests;
+        }
+      },
     },
     {
       title: "האם נשארו פריקטים פנויים",
@@ -139,6 +215,11 @@ const MoreInformation = () => {
       key: "projectsAvailable",
       width: "22.5%",
       render: (projectsAvailable) => <p>{projectsAvailable ? "כן" : "לא"}</p>,
+      filters: [
+        { text: "כן", value: true },
+        { text: "לא", value: false },
+      ],
+      onFilter: (value, record) => record.projectsAvailable === value,
     },
     currentUser.isCoordinator && {
       title: "פעולות",
