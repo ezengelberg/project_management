@@ -41,10 +41,11 @@
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
-}
-
-.action-buttons .action-button-end {
-  margin-right: auto; /* Push the button to the opposite end */
+  .action-buttons-end {
+    display: flex;
+    margin-right: auto; /* Push the button to the opposite end */
+    gap: 1rem;
+  }
 }
 
 .input-field-override-grade {
@@ -103,20 +104,6 @@
       }
     }
   }
-
-  // .submission-details {
-  //   display: flex;
-  //   gap: 1rem;
-  //   .detail-item {
-  //     display: flex;
-  //     gap: 1rem;
-  //     .detail-item-header {
-  //       font-size: 1.5rem;
-  //       font-weight: 500;
-  //     }
-  //   }
-  // }
-
   .submission-details {
     display: table;
     width: 100%;
@@ -142,6 +129,22 @@
         width: 70%;
         text-align: right;
       }
+    }
+  }
+}
+
+.footer-submission-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .delete-icon {
+    font-size: 2.5rem;
+    color: #ff4d4f;
+    cursor: pointer;
+    transition: color 0.2s linear;
+    &:hover {
+      color: #ff7875;
     }
   }
 }
