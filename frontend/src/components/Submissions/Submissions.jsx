@@ -219,7 +219,6 @@ const Submissions = () => {
             : false;
           break;
       }
-      console.log(isReviewed, isGraded);
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create`,
         {
@@ -233,6 +232,12 @@ const Submissions = () => {
           withCredentials: true
         }
       );
+      if (submissionNames.includes(name)) {
+        message.open({
+          type: "warning",
+          content: "הגשה עם שם זה כבר קיימת לחלק מהפרויקטים"
+        });
+      }
       message.open({
         type: "success",
         content: "הגשה נפתחה בהצלחה"
