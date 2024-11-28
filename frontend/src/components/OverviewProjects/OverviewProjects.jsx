@@ -632,9 +632,14 @@ const OverviewProjects = () => {
         dataIndex: "suitableFor",
         key: "suitableFor",
         width: "10%",
-        ...getColumnSearchProps("suitableFor"),
         sorter: (a, b) => a.suitableFor.localeCompare(b.suitableFor),
         sortDirections: ["descend", "ascend"],
+        filters: [
+          { text: "יחיד", value: "יחיד" },
+          { text: "זוג", value: "זוג" },
+          { text: "יחיד / זוג", value: "יחיד / זוג" },
+        ],
+        onFilter: (value, record) => record.suitableFor === value,
       },
       {
         title: "סוג",
