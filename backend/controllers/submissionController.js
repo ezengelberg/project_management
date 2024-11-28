@@ -385,7 +385,33 @@ export const updateSubmissionFile = async (req, res) => {
   }
 };
 
+export const deleteSubmission = async (req, res) => {
+  try {
+    console.log("deleting");
+    console.log(req.params.id);
+    const submission = await Submission.findById(req.params.id);
+    if (!submission) {
+      console.log("Submission not found");
+      return res.status(404).json({ message: "Submission not found" });
+    }
+    if (submission.file) {
+      const file = await Upload.findById(submission.file);
+      if (file) {
+        const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        console.log("file deleted");
+        await Upload.deleteOne({ _id: submission.file });
+      }
+    }
+    await Submission.deleteOne({ _id: submission._id });
+    res.status(200).json({ message: "Submission deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 export const deleteActiveSubmissions = async (req, res) => {
+  console.log("deleting");
   try {
     const activeProjects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
     const activeProjectIds = activeProjects.map((project) => project._id);

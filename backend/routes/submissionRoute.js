@@ -12,7 +12,8 @@ import {
   updateSubmissionFile,
   updateSubmissionInformation,
   updateSpecificSubmission,
-  deleteActiveSubmissions
+  deleteActiveSubmissions,
+  deleteSubmission
 } from "../controllers/submissionController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -31,5 +32,5 @@ router.post("/update-submission-file/:id", ensureAuthenticated, updateSubmission
 router.post("/update-submission-information", ensureAuthenticated, isCoordinator, updateSubmissionInformation);
 router.post("/update-specific-submission/:id", ensureAuthenticated, isCoordinator, updateSpecificSubmission);
 router.post("/delete-active-submissions", ensureAuthenticated, isCoordinator, deleteActiveSubmissions);
-
+router.delete("/delete-specific-submission/:id", ensureAuthenticated, isCoordinator, deleteSubmission);
 export default router;

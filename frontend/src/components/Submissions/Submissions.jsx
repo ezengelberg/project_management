@@ -48,6 +48,7 @@ const Submissions = () => {
   const [submissionType, setSubmissionType] = useState(null);
   const [deleteAllSubmissions, setDeleteAllSubmissions] = useState(false);
   const [deleteAllSubmissionsConfirm, setDeleteAllSubmissionsConfirm] = useState(null);
+  const [deleteSubmission, setDeleteSubmission] = useState(null);
   const [projects, setProjects] = useState([]);
   const [submissionInfo, setSubmissionInfo] = useState(null);
   const [specificSubmissionInfo, setSpecificSubmissionInfo] = useState(null);
@@ -136,6 +137,29 @@ const Submissions = () => {
     }
   };
 
+  const handleDeleteSpecific = async (values) => {
+    console.log(values);
+    console.log(values.submission.key);
+    try {
+      const response = await axios.delete(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
+        {
+          withCredentials: true
+        }
+      );
+      message.open({
+        type: "success",
+        content: "הגשה נמחקה בהצלחה"
+      });
+      setDeleteSubmission(null);
+      setSubmissionInfo(null);
+    } catch (error) {
+      console.error("Error deleting submission:", error);
+    } finally {
+      handleClose();
+      fetchSubmissions();
+    }
+  };
   const handleOkDelete = async (values) => {
     console.log(values);
     try {
@@ -637,6 +661,21 @@ const Submissions = () => {
         </Form>
       </Modal>
       <Modal
+        title="מחיקת הגשה"
+        open={deleteSubmission != null}
+        cancelText="בטל"
+        okText="מחיקה"
+        okButtonProps={{ danger: true }}
+        onCancel={() => setDeleteSubmission(null)}
+        onOk={() => {
+          handleDeleteSpecific(deleteSubmission);
+        }}>
+        <p>
+          <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - הינך מוחק את -{" "}
+          {deleteSubmission?.submission.name} עבור הפרויקט - {deleteSubmission?.project.title}
+        </p>
+      </Modal>
+      <Modal
         title={`עריכת פרטי הגשה`}
         open={specificSubmissionInfo != null}
         cancelText="סגור"
@@ -697,7 +736,7 @@ const Submissions = () => {
         footer={
           <div className="footer-submission-actions">
             <Tooltip title="מחיקת הגשה">
-              <DeleteOutlined className="delete-icon" />
+              <DeleteOutlined className="delete-icon" onClick={() => setDeleteSubmission(submissionInfo)} />
             </Tooltip>
             <Button type="primary" key="back" onClick={() => setSubmissionInfo(null)}>
               סגור
@@ -712,18 +751,20 @@ const Submissions = () => {
                 <h2>{submissionInfo.project.title}</h2>
                 <Tooltip
                   title={`עריכת פרטי הגשה עבור ${submissionInfo.submission.name} של ${submissionInfo.project.title}`}>
-                  <EditOutlined
-                    className="edit-icon"
-                    onClick={() => {
-                      editSpecificSubmission.setFieldsValue({
-                        projectName: submissionInfo.project.title,
-                        submissionName: submissionInfo.submission.name,
-                        submissionDate: dayjs(submissionInfo.submission.submissionDate)
-                      });
-                      setSpecificSubmissionInfo(submissionInfo);
-                      setSubmissionInfo(null);
-                    }}
-                  />
+                  <a href="#">
+                    <EditOutlined
+                      className="edit-icon"
+                      onClick={() => {
+                        editSpecificSubmission.setFieldsValue({
+                          projectName: submissionInfo.project.title,
+                          submissionName: submissionInfo.submission.name,
+                          submissionDate: dayjs(submissionInfo.submission.submissionDate)
+                        });
+                        setSpecificSubmissionInfo(submissionInfo);
+                        setSubmissionInfo(null);
+                      }}
+                    />
+                  </a>
                 </Tooltip>
               </div>
             </div>
@@ -874,7 +915,7 @@ const Submissions = () => {
         onCancel={() => setEditSubmissions(false)}>
         <Form layout="vertical" form={editSubmission}>
           <p>
-            <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - העריכה משנה את כל ההגשות עם שם זה
+            <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - העריכה משנה את כל ההגשות הזמינות עם שם זה
           </p>
           <Form.Item
             label="בחירת הגשה"
