@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -22,8 +22,9 @@ import {
   Divider,
   Tooltip
 } from "antd";
-import { EditOutlined, DeleteOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
+import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 
 const Submissions = () => {
   const navigate = useNavigate();
@@ -32,8 +33,10 @@ const Submissions = () => {
   const [formAll] = Form.useForm();
   const [formJudges] = Form.useForm();
   const [editSubmission] = Form.useForm();
+  const [editSpecificSubmission] = Form.useForm();
   const [formSpecific] = Form.useForm();
   const [gradeForm] = Form.useForm();
+  const [deleteSubmissionsForm] = Form.useForm();
   const [allSubmissions, setAllSubmissions] = useState(false);
   const [specificSubmission, setSpecificSubmission] = useState(false);
   const [editSubmissions, setEditSubmissions] = useState(false);
@@ -43,8 +46,15 @@ const Submissions = () => {
   const [submissionData, setSubmissionData] = useState([]);
   const [submissionNames, setSubmissionNames] = useState([]);
   const [submissionType, setSubmissionType] = useState(null);
+  const [deleteAllSubmissions, setDeleteAllSubmissions] = useState(false);
+  const [deleteAllSubmissionsConfirm, setDeleteAllSubmissionsConfirm] = useState(null);
+  const [deleteSubmission, setDeleteSubmission] = useState(null);
   const [projects, setProjects] = useState([]);
   const [submissionInfo, setSubmissionInfo] = useState(null);
+  const [specificSubmissionInfo, setSpecificSubmissionInfo] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef(null);
 
   const fetchActiveProjects = async () => {
     try {
@@ -127,6 +137,52 @@ const Submissions = () => {
     }
   };
 
+  const handleDeleteSpecific = async (values) => {
+    console.log(values);
+    console.log(values.submission.key);
+    try {
+      const response = await axios.delete(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
+        {
+          withCredentials: true
+        }
+      );
+      message.open({
+        type: "success",
+        content: "הגשה נמחקה בהצלחה"
+      });
+      setDeleteSubmission(null);
+      setSubmissionInfo(null);
+    } catch (error) {
+      console.error("Error deleting submission:", error);
+    } finally {
+      handleClose();
+      fetchSubmissions();
+    }
+  };
+  const handleOkDelete = async (values) => {
+    console.log(values);
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-active-submissions`,
+        {
+          submissionName: values.submissionName
+        },
+        {
+          withCredentials: true
+        }
+      );
+      message.open({
+        type: "success",
+        content: "הגשות נמחקו בהצלחה"
+      });
+    } catch (error) {
+      console.error("Error deleting submissions:", error);
+    } finally {
+      handleClose();
+      fetchSubmissions();
+    }
+  };
   const handleOkAll = async (values) => {
     try {
       let name = "";
@@ -163,7 +219,6 @@ const Submissions = () => {
             : false;
           break;
       }
-      console.log(isReviewed, isGraded);
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create`,
         {
@@ -177,6 +232,12 @@ const Submissions = () => {
           withCredentials: true
         }
       );
+      if (submissionNames.includes(name)) {
+        message.open({
+          type: "warning",
+          content: "הגשה עם שם זה כבר קיימת לחלק מהפרויקטים"
+        });
+      }
       message.open({
         type: "success",
         content: "הגשה נפתחה בהצלחה"
@@ -189,9 +250,31 @@ const Submissions = () => {
     }
   };
 
-  const handleOkEdit = async (values) => {
+  const handleOkEditSpecific = async (values) => {
     console.log(values);
-    console.log("sending edit request");
+    console.log(specificSubmissionInfo);
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-specific-submission/${specificSubmissionInfo.submission.key}`,
+        {
+          name: values.submissionName,
+          submissionDate: values.submissionDate
+        },
+        {
+          withCredentials: true
+        }
+      );
+      message.info(`הגשה ${specificSubmissionInfo.submission.name} נמחקה בהצלחה`);
+    } catch (error) {
+      console.error("Error updating submission:", error);
+      message.error("שגיאה בעדכון ההגשה");
+    } finally {
+      handleClose();
+      fetchSubmissions();
+    }
+  };
+
+  const handleOkEdit = async (values) => {
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-information`,
@@ -300,6 +383,16 @@ const Submissions = () => {
       setGradeToOverride(null);
     }
 
+    if (editSpecificSubmission) {
+      editSpecificSubmission.resetFields();
+      setSpecificSubmissionInfo(null);
+    }
+    if (deleteAllSubmissions || deleteAllSubmissionsConfirm !== null) {
+      deleteSubmissionsForm.resetFields();
+      setDeleteAllSubmissions(false);
+      setDeleteAllSubmissionsConfirm(null);
+    }
+
     setSubmissionType(null);
   };
 
@@ -357,11 +450,26 @@ const Submissions = () => {
       });
   };
 
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    setSearchText("");
+  };
+
+  const getColumnSearchProps = (dataIndex) =>
+    getColumnSearchPropsUtil(dataIndex, searchInput, handleSearch, handleReset, searchText);
+
   const columns = [
     {
       title: "שם הפרוייקט",
       dataIndex: "title",
       key: "title",
+      ...getColumnSearchProps("title"),
       sorter: (a, b) => {
         // Safely handle undefined values in sorting
         const titleA = (a.title || "").toString();
@@ -381,7 +489,7 @@ const Submissions = () => {
             onMouseDown={(e) => handleMouseDown(e, `/project/${record.projectid}`)}>
             <Highlighter
               highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-              searchWords={[]} // Add your search words array here if needed
+              searchWords={[searchText]}
               autoEscape
               textToHighlight={displayText}
             />
@@ -497,19 +605,148 @@ const Submissions = () => {
         <Button type="primary" onClick={() => setCopyJudges(true)}>
           העתקת שופטים
         </Button>
-        <Button type="primary" className="action-button-end" onClick={() => setEditSubmissions(true)}>
-          עריכת פרטי הגשה
-        </Button>
+        <div className="action-buttons-end">
+          <Button type="primary" onClick={() => setEditSubmissions(true)}>
+            עריכת הגשות
+          </Button>
+          <Button color="danger" variant="solid" onClick={() => setDeleteAllSubmissions(true)}>
+            מחיקת הגשות
+          </Button>
+        </div>
       </div>
       <Table columns={columns} dataSource={submissionData} />
+      <Modal
+        title={`האם הינך בטוח שברצונך למחוק את ההגשה ${deleteAllSubmissionsConfirm?.submissionName} לכולם?`}
+        open={deleteAllSubmissionsConfirm !== null}
+        okText="מחק"
+        cancelText="ביטול"
+        onOk={() => {
+          handleOkDelete(deleteAllSubmissionsConfirm);
+        }}
+        onCancel={() => setDeleteAllSubmissionsConfirm(null)}></Modal>
+      <Modal
+        title="מחיקת הגשות"
+        open={deleteAllSubmissions}
+        cancelText="בטל"
+        okText="אשר מחיקה"
+        okButtonProps={{ danger: true }}
+        onCancel={() => setDeleteAllSubmissions(false)}
+        onOk={() => {
+          deleteSubmissionsForm
+            .validateFields()
+            .then((values) => {
+              setDeleteAllSubmissionsConfirm(values);
+            })
+            .catch((info) => {
+              console.log("Validate Failed:", info);
+            });
+        }}>
+        <Form layout="vertical" form={deleteSubmissionsForm}>
+          <p>
+            <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - המחיקה מוחקת את כל ההגשות עם שם זה
+          </p>
+          <Form.Item
+            label="בחר הגשה"
+            name="submissionName"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה לבחור הגשה"
+              }
+            ]}>
+            <Select placeholder="בחר הגשה">
+              {submissionNames.map((submission, index) => (
+                <Option key={index} value={submission}>
+                  {submission}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+      <Modal
+        title="מחיקת הגשה"
+        open={deleteSubmission != null}
+        cancelText="בטל"
+        okText="מחיקה"
+        okButtonProps={{ danger: true }}
+        onCancel={() => setDeleteSubmission(null)}
+        onOk={() => {
+          handleDeleteSpecific(deleteSubmission);
+        }}>
+        <p>
+          <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - הינך מוחק את -{" "}
+          {deleteSubmission?.submission.name} עבור הפרויקט - {deleteSubmission?.project.title}
+        </p>
+      </Modal>
+      <Modal
+        title={`עריכת פרטי הגשה`}
+        open={specificSubmissionInfo != null}
+        cancelText="סגור"
+        okText="ערוך"
+        onCancel={() => setSpecificSubmissionInfo(null)}
+        onOk={() => {
+          editSpecificSubmission
+            .validateFields()
+            .then((values) => {
+              handleOkEditSpecific(values);
+            })
+            .catch((info) => {
+              console.log("Validate Failed:", info);
+            });
+        }}>
+        <Form layout="vertical" form={editSpecificSubmission}>
+          <Form.Item label="שם הפרויקט" name="projectName">
+            <Input disabled />
+          </Form.Item>
+          <Form.Item
+            label="שם ההגשה"
+            name="submissionName"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין שם ההגשה"
+              }
+            ]}>
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="תאריך הגשה"
+            name="submissionDate"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין תאריך הגשה"
+              }
+            ]}>
+            <DatePicker
+              className="date-picker"
+              locale={locale} // Add the Hebrew locale here
+              direction="rtl"
+              showTime={{
+                format: "HH:mm"
+              }}
+              format="DD-MM-YYYY HH:mm"
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
       <Modal
         title={`פרטי ההגשה עבור: ${submissionInfo?.project.title} - ${submissionInfo?.submission.name}`}
         open={submissionInfo !== null}
         onCancel={() => setSubmissionInfo(null)}
         footer={
-          <Button type="primary" key="back" onClick={() => setSubmissionInfo(null)}>
-            סגור
-          </Button>
+          <div className="footer-submission-actions">
+            <Tooltip title="מחיקת הגשה">
+              <DeleteOutlined className="delete-icon" onClick={() => setDeleteSubmission(submissionInfo)} />
+            </Tooltip>
+            <Button type="primary" key="back" onClick={() => setSubmissionInfo(null)}>
+              סגור
+            </Button>
+          </div>
         }
         width={800}>
         {submissionInfo && (
@@ -519,7 +756,20 @@ const Submissions = () => {
                 <h2>{submissionInfo.project.title}</h2>
                 <Tooltip
                   title={`עריכת פרטי הגשה עבור ${submissionInfo.submission.name} של ${submissionInfo.project.title}`}>
-                  <EditOutlined className="edit-icon" />
+                  <a href="#">
+                    <EditOutlined
+                      className="edit-icon"
+                      onClick={() => {
+                        editSpecificSubmission.setFieldsValue({
+                          projectName: submissionInfo.project.title,
+                          submissionName: submissionInfo.submission.name,
+                          submissionDate: dayjs(submissionInfo.submission.submissionDate)
+                        });
+                        setSpecificSubmissionInfo(submissionInfo);
+                        setSubmissionInfo(null);
+                      }}
+                    />
+                  </a>
                 </Tooltip>
               </div>
             </div>
@@ -669,6 +919,9 @@ const Submissions = () => {
         onOk={() => onOkHandlerEdit()}
         onCancel={() => setEditSubmissions(false)}>
         <Form layout="vertical" form={editSubmission}>
+          <p>
+            <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - העריכה משנה את כל ההגשות הזמינות עם שם זה
+          </p>
           <Form.Item
             label="בחירת הגשה"
             name="submissionOldName"
@@ -680,7 +933,7 @@ const Submissions = () => {
               }
             ]}>
             <Select
-              placeholder="בחר הגשת מקור"
+              placeholder="בחר הגשה"
               onChange={(value) => editSubmission.setFieldsValue({ SubmissionName: value })}>
               {submissionNames.map((submission, index) => (
                 <Option key={index} value={submission}>
@@ -689,7 +942,11 @@ const Submissions = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item label="שם הגשה" name="SubmissionName">
+          <Form.Item
+            label="שם הגשה חדש"
+            name="SubmissionName"
+            hasFeedback
+            rules={[{ required: true, message: "חובה להזין שם הגשה" }]}>
             <Input />
           </Form.Item>
           <Form.Item

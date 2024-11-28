@@ -240,6 +240,7 @@ const ProjectPage = () => {
                   </div>
                 </Tooltip>
               ))}
+              {advisors.length === 0 && <div>אין מנחה לפרויקט זה כרגע</div>}
             </div>
           </div>
           {!hasProject && user.isStudent ? (

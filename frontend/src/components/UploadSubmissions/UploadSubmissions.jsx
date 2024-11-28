@@ -1,19 +1,22 @@
-import React, { useEffect, useState } from "react";
-import { Badge, Table, Tooltip, Modal, Upload, message, Button } from "antd";
-import { UploadOutlined, DeleteOutlined, InboxOutlined } from "@ant-design/icons";
-
+import React, { useEffect, useState, useRef } from "react";
+import { Badge, Table, Tooltip, Modal, Upload, message, Button, Space, Input } from "antd";
+import { UploadOutlined, DeleteOutlined, InboxOutlined, SearchOutlined } from "@ant-design/icons";
+import Highlighter from "react-highlight-words";
 import axios from "axios";
 import "./UploadSubmissions.scss";
+import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 
 const UploadSubmissions = () => {
   const [submissions, setSubmissions] = useState([]);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [fileList, setFileList] = useState([]);
-
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
   const [currentSubmission, setCurrentSubmission] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef(null);
 
   const showUploadModal = (sub) => {
     setCurrentSubmission(sub);
@@ -62,7 +65,7 @@ const UploadSubmissions = () => {
     onChange: (info) => {
       const { fileList: newFileList } = info;
       setFileList(newFileList); // Update file list
-    }
+    },
   };
 
   const confirmDeleteSubmission = async () => {
@@ -76,7 +79,7 @@ const UploadSubmissions = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-file/${currentSubmission._id}`,
         {
-          file: null
+          file: null,
         },
         { withCredentials: true }
       );
@@ -94,7 +97,7 @@ const UploadSubmissions = () => {
   const fetchPendingSubmissions = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-student-submissions`, {
-        withCredentials: true
+        withCredentials: true,
       });
       const data = response.data || [];
       if (!Array.isArray(data)) {
@@ -134,9 +137,9 @@ const UploadSubmissions = () => {
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            "X-Filename-Encoding": "url"
+            "X-Filename-Encoding": "url",
           },
-          withCredentials: true
+          withCredentials: true,
         }
       );
       // Show success message and reset file
@@ -145,7 +148,7 @@ const UploadSubmissions = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-file/${currentSubmission._id}`,
         {
-          file: uploadedFile
+          file: uploadedFile,
         },
         { withCredentials: true }
       );
@@ -169,11 +172,35 @@ const UploadSubmissions = () => {
     }
   };
 
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    setSearchText("");
+  };
+
+  const getColumnSearchProps = (dataIndex) =>
+    getColumnSearchPropsUtil(dataIndex, searchInput, handleSearch, handleReset, searchText);
+
   const columns = [
     {
       title: "שם ההגשה",
       dataIndex: "submissionName",
-      key: "submissionName"
+      key: "submissionName",
+      ...getColumnSearchProps("submissionName"),
+      render: (text) => (
+        <Highlighter
+          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ""}
+        />
+      ),
+      width: "22.5%",
     },
     {
       title: "תאריך הגשה",
@@ -195,19 +222,25 @@ const UploadSubmissions = () => {
             <span
               style={{
                 color: !record.file && isPastDue ? "red" : !record.file && isDateClose ? "#f58623" : "inherit",
-                fontWeight: !record.file && (isPastDue || isDateClose) ? "bold" : "normal"
+                fontWeight: !record.file && (isPastDue || isDateClose) ? "bold" : "normal",
               }}>
               {submissionDate.toLocaleString("he-IL", {
                 hour: "2-digit",
                 minute: "2-digit",
                 day: "2-digit",
                 month: "2-digit",
-                year: "numeric"
+                year: "numeric",
               })}
             </span>
           </Tooltip>
         );
-      }
+      },
+      sorter: (a, b) => {
+        return new Date(a.submissionDate) - new Date(b.submissionDate);
+      },
+      defaultSortOrder: "ascend",
+      sortDirections: ["descend", "ascend"],
+      width: "20%",
     },
     {
       title: "סטטוס הגשה",
@@ -224,15 +257,50 @@ const UploadSubmissions = () => {
             )}
           </span>
         );
-      }
+      },
+      filters: [
+        {
+          text: "הוגש",
+          value: "הוגש",
+        },
+        {
+          text: "לא הוגש",
+          value: "לא הוגש",
+        },
+      ],
+      onFilter: (value, record) => {
+        if (value === "הוגש") {
+          return record.file;
+        }
+        return !record.file;
+      },
+      width: "22.5%",
     },
     {
       title: "הנחיות",
       dataIndex: "submissionInfo",
       key: "info",
       render: (text) => {
-        return <Tooltip title={text}>{text.length > 25 ? `${text.slice(0, 25)}...` : text}</Tooltip>;
-      }
+        return <Tooltip title={text}>{text.length > 45 ? `${text.slice(0, 45)}...` : text}</Tooltip>;
+      },
+      filters: [
+        {
+          text: "יש הנחיות",
+          value: "יש הנחיות",
+        },
+        {
+          text: "אין הנחיות",
+          value: "אין הנחיות",
+        },
+      ],
+      onFilter: (value, record) => {
+        if (value === "יש הנחיות") {
+          return record.submissionInfo;
+        }
+        return !record.submissionInfo;
+      },
+
+      width: "25%",
     },
     {
       title: "פעולות",
@@ -251,8 +319,9 @@ const UploadSubmissions = () => {
             "תאריך הגשה עבר"
           )}
         </span>
-      )
-    }
+      ),
+      width: "10%",
+    },
   ];
 
   return (

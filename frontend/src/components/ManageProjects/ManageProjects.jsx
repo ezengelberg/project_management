@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Badge, Table, Tooltip, Switch, message, Divider, Modal, Form, Input, InputNumber, Select } from "antd";
 import {
   CheckCircleOutlined,
@@ -6,12 +6,14 @@ import {
   UserDeleteOutlined,
   EditOutlined,
   CloseOutlined,
-  CheckOutlined
+  CheckOutlined,
 } from "@ant-design/icons";
 import { Editor } from "primereact/editor";
 import DOMPurify from "dompurify";
 import axios from "axios";
 import "./ManageProjects.scss";
+import Highlighter from "react-highlight-words";
+import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 
 const ManageProjects = () => {
   const { Option } = Select;
@@ -22,11 +24,14 @@ const ManageProjects = () => {
   const [isOtherType, setIsOtherType] = useState(false);
   const [studentInitiative, setStudentInitiative] = useState(false);
   const [studentsNoProject, setStudentsNoProject] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef(null);
 
   const getUsersNoProjects = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects`, {
-        withCredentials: true
+        withCredentials: true,
       });
       setStudentsNoProject(response.data.usersNoProjects);
     } catch (error) {
@@ -37,7 +42,7 @@ const ManageProjects = () => {
   const fetchData = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects/`, {
-        withCredentials: true
+        withCredentials: true,
       });
 
       // Assuming `project.candidates` contains the array of student objects
@@ -49,7 +54,7 @@ const ManageProjects = () => {
         students: project.students, // Assuming `project.students` contains the array of student objects
         registered: project.students.length + project.candidates.length,
         projectInfo: project,
-        candidatesData: []
+        candidatesData: [],
       }));
 
       for (const project of projectData) {
@@ -59,7 +64,7 @@ const ManageProjects = () => {
             const studentResponse = await axios.get(
               `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${stud.student}`,
               {
-                withCredentials: true
+                withCredentials: true,
               }
             );
             candidatesData.push({
@@ -68,7 +73,7 @@ const ManageProjects = () => {
               date: stud.joinDate,
               status: true,
               candidateInfo: studentResponse.data,
-              projectID: project.key
+              projectID: project.key,
             });
           } catch (error) {
             console.error("Error fetching student data:", error);
@@ -87,7 +92,7 @@ const ManageProjects = () => {
               date: candidate.joinDate,
               status: false,
               candidateInfo: studentResponse.data,
-              projectID: project.key
+              projectID: project.key,
             });
           } catch (error) {
             console.error("Error fetching candidate data:", error);
@@ -104,7 +109,6 @@ const ManageProjects = () => {
   };
 
   useEffect(() => {
-    console.log("Fetching data...");
     fetchData();
     getUsersNoProjects();
   }, []);
@@ -123,28 +127,42 @@ const ManageProjects = () => {
     }
   };
 
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    setSearchText("");
+  };
+
+  const getColumnSearchProps = (dataIndex) =>
+    getColumnSearchPropsUtil(dataIndex, searchInput, handleSearch, handleReset, searchText);
+
   const closeRegistration = (record) => async () => {
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/switch-registration`,
         {
-          projectID: record.key
+          projectID: record.key,
         },
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
       if (record.isTaken) {
         message.open({
           type: "info",
           content: "הפרויקט נפתח להרשמה",
-          duration: 2
+          duration: 2,
         });
       } else {
         message.open({
           type: "info",
           content: "הפרויקט נסגר להרשמה",
-          duration: 2
+          duration: 2,
         });
       }
     } catch (error) {
@@ -157,7 +175,7 @@ const ManageProjects = () => {
         if (project.key === record.key) {
           return {
             ...project,
-            isTaken: !project.isTaken
+            isTaken: !project.isTaken,
           };
         }
         return project;
@@ -171,17 +189,17 @@ const ManageProjects = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/project/approve-candidate`,
         {
           projectID: record.projectID,
-          userID: record.candidateInfo._id
+          userID: record.candidateInfo._id,
         },
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
 
       message.open({
         type: "success",
         content: "הסטודנט אושר לפרויקט",
-        duration: 2
+        duration: 2,
       });
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
@@ -192,11 +210,11 @@ const ManageProjects = () => {
                 if (candidate.key === record.key) {
                   return {
                     ...candidate,
-                    status: true
+                    status: true,
                   };
                 }
                 return candidate;
-              })
+              }),
             };
           }
           return project;
@@ -206,7 +224,7 @@ const ManageProjects = () => {
       message.open({
         type: "error",
         content: error.response.data.message,
-        duration: 2
+        duration: 2,
       });
     }
   };
@@ -217,16 +235,16 @@ const ManageProjects = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/project/remove-candidate`,
         {
           projectID: record.projectID,
-          userID: record.candidateInfo._id
+          userID: record.candidateInfo._id,
         },
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
       message.open({
         type: "info",
         content: "הסטודנט נדחה מהפרויקט",
-        duration: 2
+        duration: 2,
       });
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
@@ -234,7 +252,7 @@ const ManageProjects = () => {
             return {
               ...project,
               registered: project.registered - 1, // Decrement the number of registered students
-              candidatesData: project.candidatesData.filter((candidate) => candidate.key !== record.key) // Remove the declined candidate
+              candidatesData: project.candidatesData.filter((candidate) => candidate.key !== record.key), // Remove the declined candidate
             };
           }
           return project;
@@ -251,17 +269,17 @@ const ManageProjects = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/project/remove-student`,
         {
           projectID: record.projectID,
-          userID: record.candidateInfo._id
+          userID: record.candidateInfo._id,
         },
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
 
       message.open({
         type: "info",
         content: "הסטודנט הוסר מהפרויקט",
-        duration: 2
+        duration: 2,
       });
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
@@ -272,11 +290,11 @@ const ManageProjects = () => {
                 if (candidate.key === record.key) {
                   return {
                     ...candidate,
-                    status: false
+                    status: false,
                   };
                 }
                 return candidate;
-              })
+              }),
             };
           }
           return project;
@@ -297,7 +315,7 @@ const ManageProjects = () => {
       suitableFor: project.projectInfo.suitableFor,
       year: project.projectInfo.year,
       type: project.projectInfo.type,
-      continues: project.projectInfo.continues
+      continues: project.projectInfo.continues,
     });
     setIsEditing(true);
   };
@@ -306,13 +324,26 @@ const ManageProjects = () => {
     {
       title: "שם הפרויקט",
       dataIndex: "title",
-      key: "title"
+      key: "title",
+      ...getColumnSearchProps("title"),
+      render: (title) => (
+        <Highlighter
+          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={title.length > 90 ? title.substring(0, 90) + "..." : title}
+        />
+      ),
+      width: "70%",
     },
     {
       title: "מספר רשומים",
       dataIndex: "registered",
       key: "registered",
-      render: (registered) => registered // Display the number of candidates
+      render: (registered) => registered,
+      sorter: (a, b) => a.registered - b.registered,
+      sortDirections: ["descend", "ascend"],
+      width: "10%",
     },
     {
       title: "פעולות",
@@ -332,8 +363,14 @@ const ManageProjects = () => {
           </Tooltip>
           {record.isTaken ? "פרויקט סגור להרשמה" : "פרויקט פתוח להרשמה"}
         </span>
-      )
-    }
+      ),
+      filters: [
+        { text: "פרויקט סגור להרשמה", value: true },
+        { text: "פרויקט פתוח להרשמה", value: false },
+      ],
+      onFilter: (value, record) => record.isTaken === value,
+      width: "20%",
+    },
   ];
 
   const handleCancel = () => {
@@ -356,13 +393,13 @@ const ManageProjects = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/project/edit-project/${editProjectData._id}`,
         { title, description, year, suitableFor, type, continues },
         {
-          withCredentials: true
+          withCredentials: true,
         }
       );
       message.open({
         type: "success",
         content: `הפרויקט ${response.data.project.title} עודכן בהצלחה`,
-        duration: 2
+        duration: 2,
       });
       const projectUpdate = projects.map((project) => {
         if (project.key === editProjectData._id) {
@@ -376,8 +413,8 @@ const ManageProjects = () => {
               year,
               suitableFor,
               type,
-              continues
-            }
+              continues,
+            },
           };
         }
       });
@@ -393,20 +430,20 @@ const ManageProjects = () => {
       {
         title: "שם הסטודנט",
         dataIndex: "name",
-        key: "name"
+        key: "name",
       },
       {
         title: "תאריך רישום",
         dataIndex: "date",
         key: "date",
-        render: (date) => new Date(date).toLocaleString("he-IL") // Display the date in
+        render: (date) => new Date(date).toLocaleString("he-IL"), // Display the date in
       },
       {
         title: "סטטוס",
         dataIndex: "status",
         key: "status",
         render: (status) =>
-          status ? <Badge status="success" text="מאושר" /> : <Badge status="error" text="לא מאושר" />
+          status ? <Badge status="success" text="מאושר" /> : <Badge status="error" text="לא מאושר" />,
       },
       {
         title: "פעולה",
@@ -428,8 +465,8 @@ const ManageProjects = () => {
                 <CloseCircleOutlined onClick={declineStudent(record)} />
               </Tooltip>
             </div>
-          )
-      }
+          ),
+      },
     ];
     return <Table columns={expandColumns} dataSource={record.candidatesData} pagination={false} />;
   };
@@ -458,8 +495,8 @@ const ManageProjects = () => {
             rules={[
               {
                 required: true,
-                message: "חובה להזין תיאור לפרויקט"
-              }
+                message: "חובה להזין תיאור לפרויקט",
+              },
             ]}>
             <Editor style={{ height: "320px", wordBreak: "break-word" }} onTextChange={handleEditorChange} />
           </Form.Item>
@@ -471,8 +508,8 @@ const ManageProjects = () => {
             rules={[
               {
                 required: true,
-                message: "חובה להזין שנה"
-              }
+                message: "חובה להזין שנה",
+              },
             ]}>
             <InputNumber />
           </Form.Item>
@@ -484,8 +521,8 @@ const ManageProjects = () => {
             rules={[
               {
                 required: true,
-                message: "חובה לבחור התאמה"
-              }
+                message: "חובה לבחור התאמה",
+              },
             ]}>
             <Select placeholder="בחר יחיד/זוג/שניהם">
               <Option value="יחיד">יחיד</Option>
@@ -501,8 +538,8 @@ const ManageProjects = () => {
             rules={[
               {
                 required: true,
-                message: "חובה לבחור סוג"
-              }
+                message: "חובה לבחור סוג",
+              },
             ]}>
             <Select placeholder="בחר סוג" onChange={handleTypeChange}>
               <Option value="מחקרי">מחקרי</Option>
@@ -522,8 +559,8 @@ const ManageProjects = () => {
               rules={[
                 {
                   required: true,
-                  message: "חובה להזין מייל גורם חיצוני"
-                }
+                  message: "חובה להזין מייל גורם חיצוני",
+                },
               ]}>
               <Input type="email" placeholder="הזן מייל גורם חיצוני" />
             </Form.Item>
@@ -538,8 +575,8 @@ const ManageProjects = () => {
               rules={[
                 {
                   required: true,
-                  message: "חובה להזין סוג"
-                }
+                  message: "חובה להזין סוג",
+                },
               ]}>
               <Input placeholder="הזן סוג פרויקט מותאם" />
             </Form.Item>
@@ -551,8 +588,8 @@ const ManageProjects = () => {
             name="continues"
             rules={[
               {
-                required: false
-              }
+                required: false,
+              },
             ]}>
             <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
           </Form.Item>
