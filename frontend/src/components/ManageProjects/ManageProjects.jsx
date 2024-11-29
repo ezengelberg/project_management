@@ -65,7 +65,7 @@ const ManageProjects = () => {
               `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${stud.student}`,
               {
                 withCredentials: true,
-              }
+              },
             );
             candidatesData.push({
               key: `student-${stud.student}`,
@@ -84,7 +84,7 @@ const ManageProjects = () => {
           try {
             const studentResponse = await axios.get(
               `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${candidate.student}`,
-              { withCredentials: true }
+              { withCredentials: true },
             );
             candidatesData.push({
               key: `candidate-${candidate.student}`,
@@ -150,7 +150,7 @@ const ManageProjects = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       if (record.isTaken) {
         message.open({
@@ -179,7 +179,7 @@ const ManageProjects = () => {
           };
         }
         return project;
-      })
+      }),
     );
   };
 
@@ -193,7 +193,7 @@ const ManageProjects = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
 
       message.open({
@@ -218,7 +218,7 @@ const ManageProjects = () => {
             };
           }
           return project;
-        })
+        }),
       );
     } catch (error) {
       message.open({
@@ -239,7 +239,7 @@ const ManageProjects = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "info",
@@ -256,7 +256,7 @@ const ManageProjects = () => {
             };
           }
           return project;
-        })
+        }),
       );
     } catch (error) {
       console.error("Error occurred:", error);
@@ -273,7 +273,7 @@ const ManageProjects = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
 
       message.open({
@@ -298,7 +298,7 @@ const ManageProjects = () => {
             };
           }
           return project;
-        })
+        }),
       );
     } catch (error) {
       console.error("Error occurred:", error);
@@ -394,30 +394,31 @@ const ManageProjects = () => {
         { title, description, year, suitableFor, type, continues },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
         content: `הפרויקט ${response.data.project.title} עודכן בהצלחה`,
         duration: 2,
       });
-      const projectUpdate = projects.map((project) => {
-        if (project.key === editProjectData._id) {
-          return {
-            ...project,
-            title,
-            projectInfo: {
-              ...project.projectInfo,
-              title,
-              description,
-              year,
-              suitableFor,
-              type,
-              continues,
-            },
-          };
-        }
-      });
+      const projectUpdate = projects.map(
+        (project) =>
+          project.key === editProjectData._id
+            ? {
+                ...project,
+                title,
+                projectInfo: {
+                  ...project.projectInfo,
+                  title,
+                  description,
+                  year,
+                  suitableFor,
+                  type,
+                  continues,
+                },
+              }
+            : project, // Return the original project if not edited
+      );
       setProjects(projectUpdate);
       handleCancel();
     } catch (error) {
