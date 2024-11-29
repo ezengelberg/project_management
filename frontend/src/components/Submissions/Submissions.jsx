@@ -22,7 +22,7 @@ import {
   Divider,
   Tooltip,
 } from "antd";
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 
@@ -617,10 +617,18 @@ const Submissions = () => {
       ),
     },
     {
-      title: "הערות",
+      title: "משוב",
       dataIndex: "comments",
       key: "comments",
-      render: (text) => text || "אין הערות",
+      render: (text, record) => (
+        <Space>
+          <a href="#">
+            <Tooltip title="לצפיה במשוב">
+              <EyeOutlined style={{ fontSize: "2.5rem" }} />
+            </Tooltip>
+          </a>
+        </Space>
+      ),
     },
   ];
 
