@@ -46,7 +46,7 @@ const Login = () => {
             email: lowerCaseEmail,
             password,
           },
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
         const userData = result.data;
@@ -87,7 +87,7 @@ const Login = () => {
           oldPassword: tempUserData.id,
           newPassword: values.newPassword,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       // Update the user data to reflect password change
