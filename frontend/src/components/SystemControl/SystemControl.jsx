@@ -154,9 +154,9 @@ const SystemControl = () => {
       const gradedSubmissions = groupSubmissions.filter(
         (submission) =>
           submission.isGraded === true &&
-          submission.editable === true &&
-          submission.gradesDetailed.length !== 0 &&
-          submission.gradesDetailed.some((grade) => grade.grade !== null && grade.grade !== undefined)
+          submission.gradesDetailed.some(
+            (grade) => grade.editable === true && grade.grade !== null && grade.grade !== undefined
+          )
       );
       if (gradedSubmissions.length === 0) {
         return message.info("עדיין לא ניתן לפרסם כי אין ציונים");
@@ -167,9 +167,9 @@ const SystemControl = () => {
       const reviewedSubmissions = groupSubmissions.filter(
         (submission) =>
           submission.isReviewed === true &&
-          submission.editable === true &&
-          submission.gradesDetailed.length !== 0 &&
-          submission.gradesDetailed.some((grade) => grade.videoQuality !== undefined && grade.videoQuality !== null)
+          submission.gradesDetailed.some(
+            (grade) => grade.editable === true && grade.videoQuality !== undefined && grade.videoQuality !== null
+          )
       );
       if (reviewedSubmissions.length === 0) {
         return message.info("עדיין לא ניתן לפרסם כי אין ביקורות");
