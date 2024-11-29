@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
 
+const numericValuesSchema = new mongoose.Schema({
+  letter: { type: String, required: true },
+  value: { type: Number, required: true },
+});
+
 const submissionSchema = new mongoose.Schema(
   {
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true },
@@ -13,7 +18,8 @@ const submissionSchema = new mongoose.Schema(
     editable: { type: Boolean, default: true },
     submissionInfo: { type: String, default: "" },
     uploadDate: { type: Date },
-    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
+    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    numericValues: { type: [numericValuesSchema], default: [] }, // Add array of numeric values
   },
   { timestamps: true }
 );

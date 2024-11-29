@@ -29,23 +29,24 @@ const SystemControl = () => {
   });
   const [submissions, setSubmissions] = useState([]);
   const [submissionGroups, setSubmissionGroups] = useState({});
+  const [groupsData, setGroupsData] = useState([]);
+
+  const fetchGrades = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/grade/get-all-numeric-values`, {
+        withCredentials: true,
+      });
+      setGroupsData(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching grades:", error);
+      message.error("שגיאה בטעינת הציונים");
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
-    const fetchGrades = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/grade/get-numeric-values`, {
-          withCredentials: true,
-        });
-        setLetterToNumber(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching grades:", error);
-        message.error("שגיאה בטעינת הציונים");
-        setLoading(false);
-      }
-    };
-
     fetchGrades();
   }, []);
 
@@ -71,7 +72,10 @@ const SystemControl = () => {
             submission.gradesDetailed.every((grade) => grade.numericGrade !== undefined && grade.numericGrade !== null)
           );
           if (!allGroups) {
-            acc[submissionName] = group;
+            acc[submissionName] = {
+              submissions: group,
+              status: group.some((submission) => submission.isGraded) ? "graded" : "reviewed",
+            };
           }
           return acc;
         }, {});
@@ -114,9 +118,9 @@ const SystemControl = () => {
     );
   };
 
-  const edit = () => {
-    form.setFieldsValue({ ...letterToNumber });
-    setEditingKey("letterToNumber");
+  const edit = (record) => {
+    form.setFieldsValue({ ...record });
+    setEditingKey(record.key);
   };
 
   const cancel = () => {
@@ -124,114 +128,100 @@ const SystemControl = () => {
     form.resetFields();
   };
 
-  const save = async () => {
+  const save = async (name) => {
     try {
       const row = await form.validateFields();
-      setLetterToNumber(row);
-      setEditingKey("");
+      const updatedValues = { ...row };
+      delete updatedValues.name;
 
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/update-numeric-values`,
-        { updatedValues: row },
+        { updatedValues, name },
         { withCredentials: true }
       );
       message.success("הציון עודכן בהצלחה");
+      fetchGrades();
+      setEditingKey("");
     } catch (error) {
       console.error("Error updating grade:", error);
       message.error("שגיאה בעדכון הציון");
     }
   };
 
-  const endJudgingPeriodForSubmission = async (submissionName) => {
-    const group = submissionGroups[submissionName];
-    const ungradedSubmissions = group.filter(
-      (submission) =>
-        submission.isGraded === true &&
-        (submission.gradesDetailed.length === 0 ||
-          submission.gradesDetailed.some((grade) => grade.grade === null || grade.grade === undefined))
-    );
-
-    const unreviewedSubmissions = group.filter(
-      (submission) =>
-        submission.isReviewed === true &&
-        (submission.gradesDetailed.length === 0 ||
-          submission.gradesDetailed.some((grade) => grade.vidoeQuality === undefined || grade.vidoeQuality === null))
-    );
-
-    if (ungradedSubmissions.length > 0) {
-      message.error("יש עדיין הגשות ללא ציון");
-      setSubmissionGroups((prevGroups) => ({
-        ...prevGroups,
-        [submissionName]: prevGroups[submissionName].map((submission) => ({
-          ...submission,
-          checked: true,
-        })),
-      }));
-      return;
+  const publishGradesForSubmissions = async (submissionName, group) => {
+    const groupSubmissions = submissionGroups[submissionName].submissions;
+    if (groupSubmissions[0].isGraded) {
+      const gradedSubmissions = groupSubmissions.filter(
+        (submission) =>
+          submission.isGraded === true &&
+          submission.editable === true &&
+          submission.gradesDetailed.length !== 0 &&
+          submission.gradesDetailed.some((grade) => grade.grade !== null && grade.grade !== undefined)
+      );
+      if (gradedSubmissions.length === 0) {
+        return message.info("עדיין לא ניתן לפרסם כי אין ציונים");
+      }
     }
 
-    if (unreviewedSubmissions.length > 0) {
-      message.error("יש עדיין הגשות ללא ביקורת");
-      setSubmissionGroups((prevGroups) => ({
-        ...prevGroups,
-        [submissionName]: prevGroups[submissionName].map((submission) => ({
-          ...submission,
-          checked: true,
-        })),
-      }));
-      return;
+    if (groupSubmissions[0].isReviewed) {
+      const reviewedSubmissions = groupSubmissions.filter(
+        (submission) =>
+          submission.isReviewed === true &&
+          submission.editable === true &&
+          submission.gradesDetailed.length !== 0 &&
+          submission.gradesDetailed.some((grade) => grade.videoQuality !== undefined && grade.videoQuality !== null)
+      );
+      if (reviewedSubmissions.length === 0) {
+        return message.info("עדיין לא ניתן לפרסם כי אין ביקורות");
+      }
     }
 
     try {
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/grade/end-judging-period`,
-        { submissionName },
+        `${process.env.REACT_APP_BACKEND_URL}/api/grade/publish-grades`,
+        { submissionName, group },
         { withCredentials: true }
       );
-      message.success("תקופת השיפוט הסתיימה בהצלחה");
-      setSubmissionGroups((prevGroups) => ({
-        ...prevGroups,
-        [submissionName]: prevGroups[submissionName].map((submission) => ({
-          ...submission,
-          checked: false,
-        })),
-      }));
+      message.success("הציונים/ביקורות הזמינים פורסמו בהצלחה");
     } catch (error) {
       console.error("Error ending judging period:", error);
       if (error.response.status === 400) {
         message.error(`חסר ערך נומרי עבור הציון ${error.response.data.grade}`);
       } else {
-        message.error("שגיאה בסיום תקופת השיפוט");
+        message.error("שגיאה בפרסום הציונים");
       }
-      setSubmissionGroups((prevGroups) => ({
-        ...prevGroups,
-        [submissionName]: prevGroups[submissionName].map((submission) => ({
-          ...submission,
-          checked: true,
-        })),
-      }));
     }
   };
 
   const columns = [
+    {
+      title: "הגשה",
+      dataIndex: "name",
+      key: "name",
+      render: (text) => <span>{text}</span>, // Ensure group names show up
+      sorter: (a, b) => a.name.localeCompare(b.name),
+      defaultSortOrder: "ascend",
+      width: "10%",
+    },
     ...Object.keys(letterToNumber).map((letter) => ({
       title: <p style={{ direction: "ltr", margin: "0", textAlign: "right" }}>{letter}</p>,
       dataIndex: letter,
       key: letter,
       editable: true,
       render: (text) => (text !== null ? text : ""),
-      width: `${95 / Object.keys(letterToNumber).length}%`,
+      sorter: (a, b) => (a[letter] || 0) - (b[letter] || 0),
+      width: `${85 / Object.keys(letterToNumber).length}%`,
     })),
     {
       title: "פעולות",
       dataIndex: "actions",
       key: "actions",
-      render: () => {
-        const editable = isEditing({ key: "letterToNumber" });
+      render: (_, record) => {
+        const editable = isEditing(record);
         return editable ? (
           <span>
             <Typography.Link
-              onClick={save}
+              onClick={() => save(record.name)}
               style={{
                 marginInlineEnd: 8,
               }}>
@@ -246,7 +236,7 @@ const SystemControl = () => {
             </a>
           </span>
         ) : (
-          <Typography.Link onClick={edit}>
+          <Typography.Link onClick={() => edit(record)}>
             <Tooltip title="עריכה">
               <EditOutlined className="edit-icon" />
             </Tooltip>
@@ -263,11 +253,11 @@ const SystemControl = () => {
     }
     return {
       ...col,
-      onCell: () => ({
+      onCell: (record) => ({
         inputType: "number",
         dataIndex: col.dataIndex,
         title: col.title,
-        editing: isEditing({ key: "letterToNumber" }),
+        editing: isEditing(record),
       }),
     };
   });
@@ -305,16 +295,26 @@ const SystemControl = () => {
             <Button className="end-projects" shape="circle" type="primary" icon={<CloseCircleOutlined />}></Button>
           </Tooltip>
         </div>
-        <div className="box finish-judging-period">
-          <h3 className="box-title">סיום תקופת שיפוט</h3>
+        <div className="box publish-grades">
+          <h3 className="box-title">פרסום ציונים/ביקורות</h3>
           {Object.keys(submissionGroups).map((submissionName) => (
-            <div key={submissionName} className="switch">
-              <label className="switch-label">סיים תקופת שיפוט עבור {submissionName}</label>
-              <Switch
-                defaultChecked
-                onChange={() => endJudgingPeriodForSubmission(submissionName)}
-                checked={submissionGroups[submissionName].every((submission) => submission.checked !== false)}
-              />
+            <div key={submissionName} className="publish-button">
+              {submissionGroups[submissionName].status === "graded" && (
+                <>
+                  <label>פרסם ציונים זמינים עבור {submissionName}</label>
+                  <Button type="primary" onClick={() => publishGradesForSubmissions(submissionName, submissionName)}>
+                    פרסם ציונים
+                  </Button>
+                </>
+              )}
+              {submissionGroups[submissionName].status === "reviewed" && (
+                <>
+                  <label>פרסם ביקורות זמינים עבור {submissionName}</label>
+                  <Button type="primary" onClick={() => publishGradesForSubmissions(submissionName, submissionName)}>
+                    פרסם ביקורות
+                  </Button>
+                </>
+              )}
             </div>
           ))}
         </div>
@@ -328,7 +328,7 @@ const SystemControl = () => {
             },
           }}
           bordered
-          dataSource={[{ key: "letterToNumber", ...letterToNumber }]}
+          dataSource={groupsData.map((group) => ({ ...group, key: group.name }))} // Ensure each row has a unique key
           columns={mergedColumns}
           rowClassName="editable-row"
           pagination={false}

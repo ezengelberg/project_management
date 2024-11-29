@@ -157,6 +157,7 @@ export const getAllSubmissions = async (req, res) => {
                 comment: gradeInfo ? gradeInfo.comment : null,
                 overridden: gradeInfo ? gradeInfo.overridden : null,
                 numericGrade: gradeInfo ? gradeInfo.numericGrade : null,
+                videoQuality: gradeInfo ? gradeInfo.videoQuality : null,
               };
             })
           ),
