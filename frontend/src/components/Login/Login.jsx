@@ -32,6 +32,7 @@ const Login = () => {
       setLoading(false);
       return;
     }
+
     try {
       if (process.env.REACT_APP_ROOT_USER === email && process.env.REACT_APP_ROOT_PASSWORD === password) {
         await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/create-admin`, {
@@ -126,7 +127,7 @@ const Login = () => {
                 placeholder="הכנס אימייל"
                 value={email}
                 onChange={(e) => {
-                  setEmail(e.target.value);
+                  setEmail(e.target.value.toLowerCase());
                   setErrors((prev) => ({ ...prev, email: false }));
                   setErrorMessage("");
                 }}
