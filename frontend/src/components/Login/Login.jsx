@@ -32,6 +32,7 @@ const Login = () => {
       setLoading(false);
       return;
     }
+
     try {
       const lowerCaseEmail = email.toLowerCase();
       if (process.env.REACT_APP_ROOT_USER === lowerCaseEmail && process.env.REACT_APP_ROOT_PASSWORD === password) {
@@ -127,7 +128,7 @@ const Login = () => {
                 placeholder="הכנס אימייל"
                 value={email}
                 onChange={(e) => {
-                  setEmail(e.target.value);
+                  setEmail(e.target.value.toLowerCase());
                   setErrors((prev) => ({ ...prev, email: false }));
                   setErrorMessage("");
                 }}
