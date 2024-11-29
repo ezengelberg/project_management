@@ -31,7 +31,7 @@ export const createSubmission = async (req, res) => {
           submissionInfo: req.body.submissionInfo,
         });
         await submission.save();
-      })
+      }),
     );
     res.status(201).json({ message: "Submissions created successfully" });
   } catch (error) {
@@ -61,7 +61,7 @@ export const createSpecificSubmission = async (req, res) => {
           grades: [gradeByAdvisor],
         });
         await submission.save();
-      })
+      }),
     );
     console.log("Submissions created successfully");
     res.status(201).json({ message: "Submissions created successfully" });
@@ -96,12 +96,13 @@ export const getAllProjectSubmissions = async (req, res) => {
                   journalActive: grade.journalActive,
                   commits: grade.commits,
                 };
-              })
+              }),
             );
             return {
               key: submission._id,
               submissionid: submission._id,
               name: submission.name,
+              info: submission.submissionInfo,
               submissionDate: submission.submissionDate,
               uploadDate: submission.uploadDate,
               grades: grades,
@@ -109,7 +110,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               isGraded: submission.isGraded,
               isReviewed: submission.isReviewed,
             };
-          })
+          }),
         );
         return {
           key: project._id,
@@ -117,7 +118,7 @@ export const getAllProjectSubmissions = async (req, res) => {
           title: project.title,
           submissions: submissionsWithGrades,
         };
-      })
+      }),
     );
 
     let resolvedProjectsList = await Promise.all(projectsList);
@@ -158,11 +159,11 @@ export const getAllSubmissions = async (req, res) => {
                 overridden: gradeInfo ? gradeInfo.overridden : null,
                 numericGrade: gradeInfo ? gradeInfo.numericGrade : null,
               };
-            })
+            }),
           ),
           key: submission._id,
         };
-      })
+      }),
     );
     res.status(200).json(submissionsWithDetails);
   } catch (error) {
@@ -289,11 +290,11 @@ export const copyJudges = async (req, res) => {
           project.advisors.map(async (advisor) => {
             const newGrade = new Grade({ judge: advisor });
             return await newGrade.save();
-          })
+          }),
         );
         submission.grades = newGrades;
         await submission.save();
-      })
+      }),
     );
   } catch (error) {
     console.log(error);
@@ -332,7 +333,7 @@ export const updateJudgesInSubmission = async (req, res) => {
       await Promise.all(
         judgesToRemove.map(async (grade) => {
           await Grade.findByIdAndDelete(grade._id);
-        })
+        }),
       );
     }
 
@@ -341,7 +342,7 @@ export const updateJudgesInSubmission = async (req, res) => {
 
     // Find new judges to add
     const newJudges = validJudges.filter(
-      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID)
+      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID),
     );
 
     if (newJudges.length !== 0) {
@@ -351,7 +352,7 @@ export const updateJudgesInSubmission = async (req, res) => {
           const newGrade = new Grade({ judge: judgeID });
           await newGrade.save();
           return newGrade._id;
-        })
+        }),
       );
       submission.grades = [...submission.grades, ...newGrades];
     }
@@ -432,7 +433,7 @@ export const deleteActiveSubmissions = async (req, res) => {
           }
         }
         await Submission.deleteOne({ _id: submission._id });
-      })
+      }),
     );
 
     res.status(200).json({ message: "Active submissions deleted successfully" });
@@ -457,7 +458,7 @@ export const updateSubmissionInformation = async (req, res) => {
           submission.name = req.body.SubmissionName;
           await submission.save();
         }
-      })
+      }),
     );
 
     console.log("Submissions updated successfully");
