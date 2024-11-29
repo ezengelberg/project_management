@@ -13,7 +13,7 @@ import {
   updateSubmissionInformation,
   updateSpecificSubmission,
   deleteActiveSubmissions,
-  deleteSubmission
+  deleteSubmission,
 } from "../controllers/submissionController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 

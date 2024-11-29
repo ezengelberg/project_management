@@ -14,10 +14,11 @@ const gradeSchema = new mongoose.Schema(
       type: {
         by: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         comment: { type: String, required: true },
-        newGrade: { type: String, required: true }
+        newGrade: { type: String, required: true },
       },
-      required: false
-    }
+      required: false,
+    },
+    editable: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

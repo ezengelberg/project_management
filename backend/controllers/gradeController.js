@@ -79,7 +79,7 @@ export const updateNumericValues = async (req, res) => {
   try {
     const submissions = await Submission.find({ name });
     for (const submission of submissions) {
-      if (!submission.editable) {
+      if (submission.editable === false) {
         continue;
       }
       for (const [letter, value] of Object.entries(updatedValues)) {
@@ -220,32 +220,51 @@ export const publishGrades = async (req, res) => {
   try {
     const submissions = await Submission.find({ name: submissionName }).populate("grades");
     for (const submission of submissions) {
-      if (!submission.editable) {
+      if (submission.editable === false) {
         continue;
       }
 
-      let hasGrade = false;
-      let hasOtherFieldsPopulated = false;
+      let totalGrade = 0;
+      let gradeCount = 0;
+      let allGradesHaveNumericValue = true;
+      let allGradesHaveVideoQuality = true;
 
       for (const grade of submission.grades) {
-        if (grade.numericGrade === null && grade.grade) {
+        if (grade.numericGrade === null && grade.grade !== null) {
           const numericValueDoc = submission.numericValues.find((nv) => nv.letter === grade.grade);
           if (!numericValueDoc) {
             return res.status(400).json({ message: `Missing numeric value for grade ${grade.grade}` });
           }
           grade.numericGrade = numericValueDoc.value;
+          grade.editable = false;
           await grade.save();
-          hasGrade = true;
         }
-        if (grade.videoQuality !== undefined && grade.videoQuality !== null) {
-          hasOtherFieldsPopulated = true;
+        if (grade.numericGrade !== null) {
+          totalGrade += grade.numericGrade;
+          gradeCount++;
+        } else {
+          allGradesHaveNumericValue = false;
+        }
+        if (grade.videoQuality !== undefined && grade.videoQuality !== null && grade.editable) {
+          grade.editable = false;
+          await grade.save();
+        }
+        if (grade.videoQuality === undefined || grade.videoQuality === null) {
+          allGradesHaveVideoQuality = false;
         }
       }
 
-      if (hasGrade || hasOtherFieldsPopulated) {
+      if (allGradesHaveNumericValue && gradeCount > 0) {
+        let averageGrade = totalGrade / gradeCount;
+        submission.finalGrade = Math.round(averageGrade);
         submission.editable = false;
-        await submission.save();
+      } else {
+        submission.finalGrade = null;
       }
+      if (allGradesHaveVideoQuality && !allGradesHaveNumericValue) {
+        submission.editable = false;
+      }
+      await submission.save();
     }
 
     res.status(200).json({ message: "Grades were published" });

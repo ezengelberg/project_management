@@ -483,8 +483,14 @@ const OverviewProjects = () => {
                   onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
                   {grade.judgeName}
                 </a>{" "}
-                - {grade.grade !== undefined ? <p>{grade.grade}</p> : "אין ציון"}{" "}
-                {grade.numericGrade && `(${grade.numericGrade})`}
+                -{" "}
+                {submission.isGraded && (
+                  <>
+                    {grade.grade !== null ? <p>{grade.grade}</p> : "לא ניתן ציון"}{" "}
+                    {grade.numericGrade && `(${grade.numericGrade})`}
+                  </>
+                )}
+                {submission.isReviewed && !submission.isGraded && `${!grade.editable ? "ניתן משוב" : "לא ניתן משוב"}`}
               </div>
             </div>
           ))}
@@ -829,9 +835,16 @@ const OverviewProjects = () => {
             <div>
               {projectSubmissions.map((submission) => (
                 <div key={submission._id} className="inner-table-order">
-                  <p>
-                    {submission.name} - {submission.finalGrade ? submission.finalGrade : "לא שוקלל ציון"}
-                  </p>
+                  {submission.isGraded && (
+                    <p>
+                      {submission.name} - {submission.finalGrade ? submission.finalGrade : "לא שוקלל ציון"}
+                    </p>
+                  )}
+                  {submission.isReviewed && !submission.isGraded && (
+                    <p>
+                      {submission.name} - {!submission.editable ? "משוב פורסם" : "לא פורסם משוב"}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
