@@ -8,7 +8,8 @@ import mongoose from "mongoose";
 export const registerUser = async (req, res) => {
   try {
     const { name, email, id, password, isStudent, isAdvisor, isJudge, isCoordinator } = req.body;
-    const userByEmail = await User.findOne({ email: email });
+    const lowerCaseEmail = email.toLowerCase();
+    const userByEmail = await User.findOne({ email: lowerCaseEmail });
     if (userByEmail) {
       return res.status(400).send("Email already in use");
     }
@@ -21,6 +22,7 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
       ...req.body,
+      email: lowerCaseEmail,
       firstLogin: true,
       password: hashedPassword,
       registerDate: new Date(),
@@ -28,7 +30,7 @@ export const registerUser = async (req, res) => {
       isStudent: isStudent || false,
       isAdvisor: isAdvisor || false,
       isJudge: isJudge || false,
-      isCoordinator: isCoordinator || false
+      isCoordinator: isCoordinator || false,
     });
     await newUser.save();
     console.log(`User ${name} registered successfully`);
@@ -46,10 +48,11 @@ export const registerMultiple = async (req, res) => {
     for (const user of users) {
       console.log("printing user");
       const { name, email, id, role } = user;
+      const lowerCaseEmail = email.toLowerCase();
       delete user.key;
       delete user.role;
       console.log(user);
-      const userByEmail = await User.findOne({ email: email });
+      const userByEmail = await User.findOne({ email: lowerCaseEmail });
       if (userByEmail) {
         existingUsers.push(user);
         continue;
@@ -64,6 +67,7 @@ export const registerMultiple = async (req, res) => {
       console.log(role);
       const newUser = new User({
         ...user,
+        email: lowerCaseEmail,
         firstLogin: true,
         password: await bcrypt.hash(id, 10),
         registerDate: new Date(),
@@ -71,7 +75,7 @@ export const registerMultiple = async (req, res) => {
         isStudent: role.includes("isStudent"),
         isAdvisor: role.includes("isAdvisor"),
         isJudge: role.includes("isJudge"),
-        isCoordinator: role.includes("isCoordinator")
+        isCoordinator: role.includes("isCoordinator"),
       });
       await newUser.save();
     }
@@ -96,7 +100,7 @@ export const createAdmin = async (req, res) => {
         isStudent: true,
         isAdvisor: true,
         isJudge: true,
-        isCoordinator: true
+        isCoordinator: true,
       });
       await newUser.save();
     }
@@ -106,6 +110,7 @@ export const createAdmin = async (req, res) => {
 };
 
 export const loginUser = (req, res, next) => {
+  req.body.email = req.body.email.toLowerCase();
   passport.authenticate("local", (err, user, info) => {
     if (err) return next(err);
     if (!user) return res.status(401).send(info.message);
@@ -379,7 +384,7 @@ export const suspendUser = async (req, res) => {
     user.suspensionRecords.push({
       suspendedBy: req.user._id,
       suspendedAt: new Date(),
-      reason: req.body.reason
+      reason: req.body.reason,
     });
 
     await user.save();
@@ -429,7 +434,7 @@ export const getAdvisorsForUsersInfo = async (req, res) => {
       const projectsAvailable = advisorProjects.some((project) => !project.isTaken);
       return {
         ...advisor.toObject(),
-        projectsAvailable
+        projectsAvailable,
       };
     });
 
