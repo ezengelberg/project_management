@@ -149,6 +149,7 @@ const SystemControl = () => {
   };
 
   const publishGradesForSubmissions = async (submissionName, group) => {
+    setLoading(true);
     const groupSubmissions = submissionGroups[submissionName].submissions;
     if (groupSubmissions[0].isGraded) {
       const gradedSubmissions = groupSubmissions.filter(
@@ -159,6 +160,7 @@ const SystemControl = () => {
           )
       );
       if (gradedSubmissions.length === 0) {
+        setLoading(false);
         return message.info("עדיין לא ניתן לפרסם כי אין ציונים");
       }
     }
@@ -172,6 +174,7 @@ const SystemControl = () => {
           )
       );
       if (reviewedSubmissions.length === 0) {
+        setLoading(false);
         return message.info("עדיין לא ניתן לפרסם כי אין ביקורות");
       }
     }
@@ -190,6 +193,8 @@ const SystemControl = () => {
       } else {
         message.error("שגיאה בפרסום הציונים");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -302,7 +307,10 @@ const SystemControl = () => {
               {submissionGroups[submissionName].status === "graded" && (
                 <>
                   <label>פרסם ציונים זמינים עבור {submissionName}</label>
-                  <Button type="primary" onClick={() => publishGradesForSubmissions(submissionName, submissionName)}>
+                  <Button
+                    type="primary"
+                    loading={loading}
+                    onClick={() => publishGradesForSubmissions(submissionName, submissionName)}>
                     פרסם ציונים
                   </Button>
                 </>
@@ -310,7 +318,10 @@ const SystemControl = () => {
               {submissionGroups[submissionName].status === "reviewed" && (
                 <>
                   <label>פרסם משובים זמינים עבור {submissionName}</label>
-                  <Button type="primary" onClick={() => publishGradesForSubmissions(submissionName, submissionName)}>
+                  <Button
+                    type="primary"
+                    loading={loading}
+                    onClick={() => publishGradesForSubmissions(submissionName, submissionName)}>
                     פרסם משובים
                   </Button>
                 </>
@@ -328,7 +339,7 @@ const SystemControl = () => {
             },
           }}
           bordered
-          dataSource={groupsData.map((group) => ({ ...group, key: group.name }))} // Ensure each row has a unique key
+          dataSource={groupsData.map((group) => ({ ...group, key: group.name }))}
           columns={mergedColumns}
           rowClassName="editable-row"
           pagination={false}
