@@ -381,11 +381,11 @@ const ManageProjects = () => {
   };
 
   const onConfirmEdit = async () => {
-    const { title, description, year, suitableFor, type, continues } = form.getFieldsValue();
+    const { title, description, year, suitableFor, type, externalEmail, continues } = form.getFieldsValue();
     try {
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/edit-project/${editProjectData._id}`,
-        { title, description, year, suitableFor, type, continues },
+        { title, description, year, suitableFor, type, externalEmail, continues },
         {
           withCredentials: true,
         }
@@ -408,6 +408,7 @@ const ManageProjects = () => {
                   year,
                   suitableFor,
                   type,
+                  externalEmail,
                   continues,
                 },
               }
