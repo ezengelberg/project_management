@@ -65,7 +65,7 @@ const ManageProjects = () => {
               `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${stud.student}`,
               {
                 withCredentials: true,
-              },
+              }
             );
             candidatesData.push({
               key: `student-${stud.student}`,
@@ -84,7 +84,7 @@ const ManageProjects = () => {
           try {
             const studentResponse = await axios.get(
               `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${candidate.student}`,
-              { withCredentials: true },
+              { withCredentials: true }
             );
             candidatesData.push({
               key: `candidate-${candidate.student}`,
@@ -150,7 +150,7 @@ const ManageProjects = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       if (record.isTaken) {
         message.open({
@@ -179,7 +179,7 @@ const ManageProjects = () => {
           };
         }
         return project;
-      }),
+      })
     );
   };
 
@@ -193,7 +193,7 @@ const ManageProjects = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
 
       message.open({
@@ -218,7 +218,7 @@ const ManageProjects = () => {
             };
           }
           return project;
-        }),
+        })
       );
     } catch (error) {
       message.open({
@@ -239,7 +239,7 @@ const ManageProjects = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "info",
@@ -256,7 +256,7 @@ const ManageProjects = () => {
             };
           }
           return project;
-        }),
+        })
       );
     } catch (error) {
       console.error("Error occurred:", error);
@@ -273,7 +273,7 @@ const ManageProjects = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
 
       message.open({
@@ -298,7 +298,7 @@ const ManageProjects = () => {
             };
           }
           return project;
-        }),
+        })
       );
     } catch (error) {
       console.error("Error occurred:", error);
@@ -307,15 +307,8 @@ const ManageProjects = () => {
 
   const handleEditProject = (project) => {
     getUsersNoProjects();
-    console.log(project);
     setEditProjectData({
-      _id: project.projectInfo._id,
-      title: project.projectInfo.title,
-      description: project.projectInfo.description,
-      suitableFor: project.projectInfo.suitableFor,
-      year: project.projectInfo.year,
-      type: project.projectInfo.type,
-      continues: project.projectInfo.continues,
+      ...project.projectInfo,
     });
     setIsEditing(true);
   };
@@ -387,14 +380,14 @@ const ManageProjects = () => {
   };
 
   const onConfirmEdit = async () => {
-    const { title, description, year, suitableFor, type, continues } = form.getFieldsValue();
+    const { title, description, year, suitableFor, type, externalEmail, continues } = form.getFieldsValue();
     try {
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/edit-project/${editProjectData._id}`,
-        { title, description, year, suitableFor, type, continues },
+        { title, description, year, suitableFor, type, externalEmail, continues },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -414,10 +407,11 @@ const ManageProjects = () => {
                   year,
                   suitableFor,
                   type,
+                  externalEmail,
                   continues,
                 },
               }
-            : project, // Return the original project if not edited
+            : project // Return the original project if not edited
       );
       setProjects(projectUpdate);
       handleCancel();
@@ -485,7 +479,16 @@ const ManageProjects = () => {
         cancelText="בטל"
         width={"70rem"}>
         <Form form={form} layout="vertical" initialValues={editProjectData}>
-          <Form.Item name="title" label="שם הפרויקט">
+          <Form.Item
+            name="title"
+            label="שם הפרויקט"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין שם לפרויקט",
+              },
+            ]}>
             <Input />
           </Form.Item>
           <Form.Item
@@ -551,7 +554,7 @@ const ManageProjects = () => {
               <Option value="אחר">אחר</Option>
             </Select>
           </Form.Item>
-          {studentInitiative && (
+          {editProjectData.externalEmail && (
             <Form.Item
               className="create-project-form-item"
               label="מייל גורם חיצוני"

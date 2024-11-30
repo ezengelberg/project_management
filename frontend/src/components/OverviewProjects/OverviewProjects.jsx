@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./OverviewProjects.scss";
 import { useNavigate } from "react-router-dom";
-import { Tabs, Table, Modal, Select, Button, message, Tooltip, Input, Space, Divider } from "antd";
+import { Tabs, Table, Modal, Select, Button, message, Tooltip, Input, Space, Divider, Badge } from "antd";
 import { DeleteOutlined, RollbackOutlined, SearchOutlined } from "@ant-design/icons";
 import axios from "axios";
 import Highlighter from "react-highlight-words";
@@ -486,11 +486,24 @@ const OverviewProjects = () => {
                 -{" "}
                 {submission.isGraded && (
                   <>
-                    {grade.grade !== null ? <p>{grade.grade}</p> : "לא ניתן ציון"}{" "}
+                    {grade.grade !== null ? (
+                      <>
+                        <Badge color="green" />
+                        <p>{grade.grade}</p>
+                      </>
+                    ) : (
+                      <Badge color="red" text="לא ניתן ציון" />
+                    )}{" "}
                     {grade.numericGrade && `(${grade.numericGrade})`}
                   </>
                 )}
-                {submission.isReviewed && !submission.isGraded && `${!grade.editable ? "ניתן משוב" : "לא ניתן משוב"}`}
+                {submission.isReviewed &&
+                  !submission.isGraded &&
+                  (!grade.editable ? (
+                    <Badge color="green" text="ניתן משוב" />
+                  ) : (
+                    <Badge color="red" text="לא ניתן משוב" />
+                  ))}
               </div>
             </div>
           ))}
@@ -837,12 +850,22 @@ const OverviewProjects = () => {
                 <div key={submission._id} className="inner-table-order">
                   {submission.isGraded && (
                     <p>
-                      {submission.name} - {submission.finalGrade ? submission.finalGrade : "לא שוקלל ציון"}
+                      {submission.name} -{" "}
+                      {submission.finalGrade ? (
+                        <Badge color="green" text={`${submission.finalGrade}`} />
+                      ) : (
+                        <Badge color="red" text="לא שוקלל ציון" />
+                      )}
                     </p>
                   )}
                   {submission.isReviewed && !submission.isGraded && (
                     <p>
-                      {submission.name} - {!submission.editable ? "משוב פורסם" : "לא פורסם משוב"}
+                      {submission.name} -{" "}
+                      {!submission.editable ? (
+                        <Badge color="green" text="פורסם משוב" />
+                      ) : (
+                        <Badge color="red" text="לא פורסם משוב" />
+                      )}
                     </p>
                   )}
                 </div>
