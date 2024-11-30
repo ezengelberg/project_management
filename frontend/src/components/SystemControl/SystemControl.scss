@@ -61,6 +61,13 @@
   .edit-icon {
     font-size: 2.5rem;
   }
+  .cancel {
+    color: #1677ff;
+    transition: 0.2s color linear;
+    &:hover {
+      color: #69b1ff;
+    }
+  }
 
   .publish-grades {
     .publish-button {
