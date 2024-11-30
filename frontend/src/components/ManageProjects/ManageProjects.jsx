@@ -44,7 +44,6 @@ const ManageProjects = () => {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects/`, {
         withCredentials: true,
       });
-      console.log(response.data.projects);
 
       // Assuming `project.candidates` contains the array of student objects
       const projectData = response.data.projects.map((project) => ({
