@@ -2,7 +2,7 @@ import express from "express";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 import {
   addGrade,
-  updateGrade,
+  changeFinalGrade,
   getGradeBySubmission,
   updateNumericValues,
   getAllNumericValues,
@@ -12,7 +12,7 @@ import {
 const router = express.Router();
 
 router.post("/add-grade", ensureAuthenticated, addGrade);
-router.put("/update-grade/:id", ensureAuthenticated, isCoordinator, updateGrade);
+router.put("/change-final-grade/:id", ensureAuthenticated, isCoordinator, changeFinalGrade);
 router.get("/submission/:submissionId", ensureAuthenticated, getGradeBySubmission);
 router.put("/update-numeric-values", ensureAuthenticated, isCoordinator, updateNumericValues);
 router.get("/get-all-numeric-values", ensureAuthenticated, getAllNumericValues);

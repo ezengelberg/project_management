@@ -156,35 +156,35 @@ export const getAllNumericValues = async (req, res) => {
   }
 };
 
-// Update grade (override by coordinator)
-export const updateGrade = async (req, res) => {
-  const { grade, comment } = req.body;
+export const changeFinalGrade = async (req, res) => {
   const { id } = req.params;
-
-  if (!grade) {
-    return res.status(400).json({ message: "חייב להזין ציון" });
-  }
+  const { newGrade, comment } = req.body;
 
   try {
-    const gradeToUpdate = await Grade.findById(id);
+    const submission = await Submission.findById(id);
 
-    if (!gradeToUpdate) {
-      return res.status(404).json({ message: "הציון לא נמצא" });
+    if (!submission) {
+      return res.status(404).json({ message: "ההגשה לא נמצאה" });
     }
 
-    gradeToUpdate.overridden = {
+    const oldGrades = submission.overridden ? submission.overridden.oldGrades : [];
+    oldGrades.push({
+      grade: submission.finalGrade,
+      comment: comment,
+    });
+
+    submission.overridden = {
       by: req.user._id,
-      newGrade: grade,
-      numericGrade: gradeToUpdate.numericGrade,
-      comment: comment || "הציון התעדכן על ידי הרכז",
+      oldGrades,
+      newGrade,
     };
+    submission.finalGrade = newGrade;
+    await submission.save();
 
-    await gradeToUpdate.save();
-
-    res.status(200).json({ message: "הציון עודכן בהצלחה" });
+    res.status(200).json({ message: "הציון הסופי עודכן בהצלחה" });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "שגיאה בעדכון הציון" });
+    console.log("Error changing final grade:", error);
+    res.status(500).json({ message: "Error changing final grade" });
   }
 };
 

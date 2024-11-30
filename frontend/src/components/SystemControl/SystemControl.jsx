@@ -94,7 +94,7 @@ const SystemControl = () => {
   const isEditing = (record) => record.key === editingKey;
 
   const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
-    const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
+    const inputNode = inputType === "number" ? <InputNumber min={0} max={100} /> : <Input />;
     return (
       <td {...restProps}>
         {editing ? (
@@ -309,9 +309,9 @@ const SystemControl = () => {
               )}
               {submissionGroups[submissionName].status === "reviewed" && (
                 <>
-                  <label>פרסם ביקורות זמינים עבור {submissionName}</label>
+                  <label>פרסם משובים זמינים עבור {submissionName}</label>
                   <Button type="primary" onClick={() => publishGradesForSubmissions(submissionName, submissionName)}>
-                    פרסם ביקורות
+                    פרסם משובים
                   </Button>
                 </>
               )}
