@@ -89,7 +89,6 @@ export const getAllProjectSubmissions = async (req, res) => {
                   judge: grade.judge,
                   judgeName: judge ? judge.name : null,
                   grade: grade.grade,
-                  overridden: grade.overridden,
                   videoQuality: grade.videoQuality,
                   workQuality: grade.workQuality,
                   writingQuality: grade.writingQuality,
@@ -108,6 +107,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               submitted: submission.file ? true : false,
               isGraded: submission.isGraded,
               isReviewed: submission.isReviewed,
+              overridden: submission.overridden,
             };
           })
         );
@@ -155,10 +155,10 @@ export const getAllSubmissions = async (req, res) => {
                 judgeName: judge ? judge.name : null,
                 grade: gradeInfo ? gradeInfo.grade : null,
                 comment: gradeInfo ? gradeInfo.comment : null,
-                overridden: gradeInfo ? gradeInfo.overridden : null,
                 numericGrade: gradeInfo ? gradeInfo.numericGrade : null,
                 videoQuality: gradeInfo ? gradeInfo.videoQuality : null,
                 editable: gradeInfo ? gradeInfo.editable : null,
+                overridden: submission.overridden,
               };
             })
           ),
@@ -223,7 +223,6 @@ export const getJudgeSubmissions = async (req, res) => {
       submissionDate: submission.submissionDate,
       grade: submission.grades[0]?.grade || null,
       comment: submission.grades[0]?.comment || "",
-      overridden: submission.grades[0]?.overridden || null,
       videoQuality: submission.grades[0]?.videoQuality || null,
       projectId: submission.project ? submission.project._id : null,
       editable: submission.grades[0]?.editable,
@@ -515,11 +514,11 @@ export const getSubmissionDetails = async (req, res) => {
       writingQuality: grade.writingQuality,
       journalActive: grade.journalActive,
       commits: grade.commits,
-      overridden: grade.overridden,
       updatedAt: grade.updatedAt,
       numericValue: grade.numericGrade,
       isGraded: submission.isGraded,
       isReviewed: submission.isReviewed,
+      overridden: submission.overridden,
     };
 
     res.status(200).json(submissionDetails);
