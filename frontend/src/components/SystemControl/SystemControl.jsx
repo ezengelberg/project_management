@@ -234,11 +234,9 @@ const SystemControl = () => {
                 <SaveOutlined className="edit-icon" />
               </Tooltip>
             </Typography.Link>
-            <a onClick={cancel}>
-              <Tooltip title="ביטול">
-                <StopOutlined className="edit-icon" />
-              </Tooltip>
-            </a>
+            <Tooltip title="ביטול">
+              <StopOutlined className="edit-icon cancel" onClick={cancel} />
+            </Tooltip>
           </span>
         ) : (
           <Typography.Link onClick={() => edit(record)}>
