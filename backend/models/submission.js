@@ -18,8 +18,16 @@ const submissionSchema = new mongoose.Schema(
     submissionInfo: { type: String, default: "" },
     uploadDate: { type: Date },
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    numericValues: { type: [numericValuesSchema], default: [] }, // Add array of numeric values
+    numericValues: { type: [numericValuesSchema], default: [] },
     editable: { type: Boolean, default: true },
+    overridden: {
+      type: {
+        by: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        comment: { type: String, required: true },
+        newGrade: { type: Number, required: true },
+      },
+      required: false,
+    },
   },
   { timestamps: true }
 );
