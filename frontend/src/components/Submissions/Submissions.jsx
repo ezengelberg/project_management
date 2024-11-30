@@ -149,7 +149,8 @@ const Submissions = () => {
     } catch (error) {
       console.error("Error copying judges:", error);
     } finally {
-      handleClose();
+      formJudges.resetFields();
+      setCopyJudges(false);
       fetchSubmissions();
     }
   };
@@ -169,8 +170,6 @@ const Submissions = () => {
   };
 
   const handleDeleteSpecific = async (values) => {
-    console.log(values);
-    console.log(values.submission.key);
     try {
       const response = await axios.delete(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
@@ -187,12 +186,10 @@ const Submissions = () => {
     } catch (error) {
       console.error("Error deleting submission:", error);
     } finally {
-      handleClose();
       fetchSubmissions();
     }
   };
   const handleOkDelete = async (values) => {
-    console.log(values);
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-active-submissions`,
@@ -204,13 +201,14 @@ const Submissions = () => {
         },
       );
       message.open({
-        type: "success",
+        type: "info",
         content: "הגשות נמחקו בהצלחה",
       });
+      setDeleteAllSubmissionsConfirm(null);
+      setDeleteAllSubmissions(false);
     } catch (error) {
       console.error("Error deleting submissions:", error);
     } finally {
-      handleClose();
       fetchSubmissions();
     }
   };
@@ -276,14 +274,13 @@ const Submissions = () => {
     } catch (error) {
       console.error("Error creating submission:", error);
     } finally {
-      handleClose();
+      formAll.resetFields();
+      setAllSubmissions(false);
       fetchSubmissions();
     }
   };
 
   const handleOkEditSpecific = async (values) => {
-    console.log(values);
-    console.log(specificSubmissionInfo);
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-specific-submission/${specificSubmissionInfo.submission.key}`,
@@ -300,7 +297,8 @@ const Submissions = () => {
       console.error("Error updating submission:", error);
       message.error("שגיאה בעדכון ההגשה");
     } finally {
-      handleClose();
+      editSpecificSubmission.resetFields();
+      setSpecificSubmissionInfo(null);
       fetchSubmissions();
     }
   };
@@ -387,44 +385,10 @@ const Submissions = () => {
     } catch (error) {
       console.error("Error creating submission:", error);
     } finally {
-      handleClose();
-      fetchSubmissions();
-    }
-  };
-
-  const handleClose = () => {
-    if (allSubmissions) {
-      formAll.resetFields();
-      setAllSubmissions(false);
-    }
-
-    if (specificSubmission) {
       formSpecific.resetFields();
       setSpecificSubmission(false);
+      fetchSubmissions();
     }
-
-    if (copyJudges) {
-      formJudges.resetFields();
-      setCopyJudges(false);
-    }
-
-    if (gradeFormOpen) {
-      gradeForm.resetFields();
-      setGradeFormOpen(false);
-      setGradeToOverride(null);
-    }
-
-    if (editSpecificSubmission) {
-      editSpecificSubmission.resetFields();
-      setSpecificSubmissionInfo(null);
-    }
-    if (deleteAllSubmissions || deleteAllSubmissionsConfirm !== null) {
-      deleteSubmissionsForm.resetFields();
-      setDeleteAllSubmissions(false);
-      setDeleteAllSubmissionsConfirm(null);
-    }
-
-    setSubmissionType(null);
   };
 
   const onOkHandlerSpecific = () => {
@@ -641,6 +605,7 @@ const Submissions = () => {
         <Button type="primary" onClick={() => setSpecificSubmission(true)}>
           פתיחת הגשה לפרויקטים נבחרים
         </Button>
+        {/* work in progress, doesn't work */}
         <Button type="primary" onClick={() => setCopyJudges(true)}>
           העתקת שופטים
         </Button>
@@ -669,7 +634,10 @@ const Submissions = () => {
         cancelText="בטל"
         okText="אשר מחיקה"
         okButtonProps={{ danger: true }}
-        onCancel={() => setDeleteAllSubmissions(false)}
+        onCancel={() => {
+          setDeleteAllSubmissions(false);
+          deleteSubmissionsForm.resetFields();
+        }}
         onOk={() => {
           deleteSubmissionsForm
             .validateFields()
@@ -724,7 +692,10 @@ const Submissions = () => {
         open={specificSubmissionInfo != null}
         cancelText="סגור"
         okText="ערוך"
-        onCancel={() => setSpecificSubmissionInfo(null)}
+        onCancel={() => {
+          editSpecificSubmission.resetFields();
+          setSpecificSubmissionInfo(null);
+        }}
         onOk={() => {
           editSpecificSubmission
             .validateFields()
@@ -937,7 +908,11 @@ const Submissions = () => {
         okText="ערוך ציון"
         cancelText="סגור"
         onOk={() => onOkHandlerGrade()}
-        onCancel={() => handleClose()}>
+        onCancel={() => {
+          gradeForm.resetFields();
+          setGradeFormOpen(false);
+          setGradeToOverride(null);
+        }}>
         <Form layout="vertical" form={gradeForm}>
           <Form.Item label="ציון קודם" name="oldGrade">
             <Input disabled />
@@ -1047,7 +1022,10 @@ const Submissions = () => {
         okText="העתק שופטים"
         cancelText="סגור"
         onOk={() => onOkHandlerJudges()}
-        onCancel={() => handleClose()}>
+        onCancel={() => {
+          formJudges.resetFields();
+          setCopyJudges(false);
+        }}>
         <Form layout="vertical" form={formJudges}>
           <Form.Item
             label="הגשת מקור"
@@ -1092,9 +1070,16 @@ const Submissions = () => {
         open={allSubmissions}
         okText="יצירת הגשה"
         cancelText="סגור"
-        onCancel={() => handleClose()}
+        onCancel={() => {
+          formAll.resetFields();
+          setAllSubmissions(false);
+          setSubmissionType(null);
+        }}
         onOk={onOkHandlerAll}>
-        <Form layout="vertical" form={formAll}>
+        <Form
+          layout="vertical"
+          form={formAll} // Ensure this line is present
+        >
           <Form.Item label="סוג הגשה" name="submissionType" hasFeedback>
             <Radio.Group
               optionType="button"
@@ -1160,7 +1145,11 @@ const Submissions = () => {
         okText="יצירת הגשה"
         cancelText="סגור"
         onOk={() => onOkHandlerSpecific()}
-        onCancel={() => handleClose()}>
+        onCancel={() => {
+          formSpecific.resetFields();
+          setSpecificSubmission(false);
+          setSubmissionType(null);
+        }}>
         <Form layout="vertical" form={formSpecific}>
           {/* סוג הגשה */}
           <Form.Item label="סוג הגשה" name="submissionType" hasFeedback>
