@@ -23,7 +23,12 @@ const submissionSchema = new mongoose.Schema(
     overridden: {
       type: {
         by: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-        comment: { type: String, required: true },
+        oldGrades: [
+          {
+            grade: { type: Number, required: true },
+            comment: { type: String, required: true },
+          },
+        ],
         newGrade: { type: Number, required: true },
       },
       required: false,
