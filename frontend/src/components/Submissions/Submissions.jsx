@@ -324,6 +324,11 @@ const Submissions = () => {
     } catch (error) {
       console.error("Error updating submission:", error);
     }
+    finally {
+      editSubmission.resetFields();
+      setEditSubmissions(false);
+      fetchSubmissions();
+    }
   };
 
   const handleOkSpecific = async (values) => {
