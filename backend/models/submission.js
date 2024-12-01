@@ -26,7 +26,7 @@ const submissionSchema = new mongoose.Schema(
         oldGrades: [
           {
             grade: { type: Number, required: true },
-            comment: { type: String, required: true },
+            comment: { type: String },
           },
         ],
         newGrade: { type: Number, required: true },

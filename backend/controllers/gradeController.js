@@ -170,7 +170,7 @@ export const changeFinalGrade = async (req, res) => {
     const oldGrades = submission.overridden ? submission.overridden.oldGrades : [];
     oldGrades.push({
       grade: submission.finalGrade,
-      comment: comment,
+      comment: comment ? comment : "לא ניתנה סיבה",
     });
 
     submission.overridden = {
