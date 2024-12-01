@@ -476,10 +476,6 @@ const OverviewProjects = () => {
       message.error("יש לבחור ציון חדש");
       return;
     }
-    if (!updateComment) {
-      message.error("יש להזין הערה");
-      return;
-    }
     try {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/change-final-grade/${selectedGradesToChange[0]._id}`,
