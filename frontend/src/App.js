@@ -23,6 +23,7 @@ import GradeSubmission from "./components/GradeSubmission/GradeSubmission";
 import UploadSubmissions from "./components/UploadSubmissions/UploadSubmissions";
 import Notifications from "./components/Notifications/Notifications";
 import SubmissionStatus from "./components/SubmissionStatus/SubmissionStatus";
+import Login2 from "./components/Login2.0/Login";
 
 function App() {
   return (
@@ -190,6 +191,7 @@ const MainLayout = () => {
         // Render routes without the sidebar or content container
         <Routes>
           <Route path="/" element={<Login />} />
+          {/* <Route path="/" element={<Login2 />} /> */}
           <Route path="/login" element={<Login />} />
           <Route path="*" element={<WrongPath />} />
         </Routes>
