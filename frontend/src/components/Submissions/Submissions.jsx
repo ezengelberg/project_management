@@ -544,7 +544,7 @@ const Submissions = () => {
                           sub.finalGrade !== null && (
                             <Badge
                               color="pink"
-                              text={`ציון סופי: ${sub.overridden.newGrade ? sub.overridden.newGrade : sub.finalGrade}`}
+                              text={`ציון סופי: ${sub.overridden?.newGrade ? sub.overridden.newGrade : sub.finalGrade}`}
                             />
                           )
                         )}
@@ -899,8 +899,8 @@ const Submissions = () => {
         <div className="details-title">
           <h3>{submissionInfo?.project?.title}</h3>
           <p>הגשה - {submissionInfo?.submission?.name}</p>
+          <p>נבדק ע"י: {showReview?.judgeName}</p>
         </div>
-
         <div className="details-grade">
           {submissionInfo?.submission?.isGraded && (
             <>
