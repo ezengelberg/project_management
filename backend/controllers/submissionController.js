@@ -21,6 +21,11 @@ export const createSubmission = async (req, res) => {
           newGrade = new Grade({ judge: project.advisors[0]._id });
           gradeByAdvisor = await newGrade.save();
         }
+
+        const user = await User.findById(project.advisors[0]._id);
+        user.isJudge = true;
+        await user.save();
+
         const submission = new Submission({
           name: req.body.name,
           project: project._id,
@@ -53,6 +58,10 @@ export const createSpecificSubmission = async (req, res) => {
           newGrade = new Grade({ judge: project.advisors[0]._id });
           gradeByAdvisor = await newGrade.save();
         }
+
+        const user = await User.findById(project.advisors[0]._id);
+        user.isJudge = true;
+        await user.save();
 
         const submission = new Submission({
           name: req.body.name,
