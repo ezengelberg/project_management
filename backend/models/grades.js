@@ -12,7 +12,7 @@ const gradeSchema = new mongoose.Schema(
     commits: { type: Number, default: null },
     editable: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const gradeModel = mongoose.model("Grade", gradeSchema);
