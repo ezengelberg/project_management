@@ -49,10 +49,12 @@ const SubmissionStatus = () => {
 
           const projectsWithSubmissionsAndStudents = projects.map((project, index) => ({
             ...project,
-            submissions: submissionsResponses[index].data.map((submission) => {
-              const { grades, ...rest } = submission;
-              return rest;
-            }),
+            submissions: submissionsResponses[index].data
+              .map((submission) => {
+                const { grades, ...rest } = submission;
+                return rest;
+              })
+              .sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)),
             students: studentResponses[index].map((response) => response.data),
           }));
 
