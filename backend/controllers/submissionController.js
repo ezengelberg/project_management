@@ -527,3 +527,52 @@ export const getSubmissionDetails = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const getSpecificProjectSubmissions = async (req, res) => {
+  try {
+    const projectId = req.params.projectId;
+    const submissions = await Submission.find({ project: projectId }).populate("project", "title");
+    const submissionsWithDetails = await Promise.all(
+      submissions.map(async (submission) => {
+        const grades = await Promise.all(
+          submission.grades.map(async (gradeId) => {
+            const grade = await Grade.findById(gradeId);
+            const judge = await User.findById(grade.judge);
+            return {
+              key: grade._id,
+              gradeid: grade._id,
+              judge: grade.judge,
+              judgeName: judge ? judge.name : null,
+              grade: grade.grade,
+              videoQuality: grade.videoQuality,
+              workQuality: grade.workQuality,
+              writingQuality: grade.writingQuality,
+              journalActive: grade.journalActive,
+              commits: grade.commits,
+            };
+          })
+        );
+        return {
+          key: submission._id,
+          submissionid: submission._id,
+          name: submission.name,
+          submissionDate: submission.submissionDate,
+          uploadDate: submission.uploadDate,
+          grades: grades,
+          submitted: submission.file ? true : false,
+          isGraded: submission.isGraded,
+          isReviewed: submission.isReviewed,
+          overridden: submission.overridden,
+          projectName: submission.project.title,
+          finalGrade: submission.finalGrade,
+          overridden: submission.overridden,
+          editable: submission.editable,
+        };
+      })
+    );
+    res.status(200).json(submissionsWithDetails);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};

@@ -1,0 +1,35 @@
+.submission-status-students {
+  display: flex;
+  align-items: center;
+}
+
+.submission-status-submissions {
+  display: flex;
+  gap: 2rem;
+
+  .submission-status-submission {
+    display: flex;
+
+    .submission-status-submission-details {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      transition: background-color 0.2s linear;
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+
+      .submission-title {
+        font-size: 1.5rem;
+        font-weight: 500;
+      }
+
+      .submission-late-status {
+        color: #ff4d4f;
+        font-weight: bold;
+      }
+    }
+  }
+}
