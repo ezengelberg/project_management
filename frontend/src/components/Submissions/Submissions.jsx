@@ -100,8 +100,6 @@ const Submissions = () => {
         ).values(),
       ];
 
-      console.log(submissionDetails);
-
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
           (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
@@ -323,8 +321,7 @@ const Submissions = () => {
       });
     } catch (error) {
       console.error("Error updating submission:", error);
-    }
-    finally {
+    } finally {
       editSubmission.resetFields();
       setEditSubmissions(false);
       fetchSubmissions();
@@ -511,7 +508,11 @@ const Submissions = () => {
               const waitingCheck = grades.some((grade) => grade.grade === null);
               return (
                 <div className="table-col-div" key={index}>
-                  <div className="table-col" onClick={() => setSubmissionInfo({ project: record, submission: sub })}>
+                  <div
+                    className="table-col"
+                    onClick={() => {
+                      setSubmissionInfo({ project: record, submission: sub });
+                    }}>
                     <div className="submission-title">
                       {(sub.name.length > 25 ? `${sub.name.substring(0, 25)}...` : sub.name) || ""}
                     </div>
@@ -566,24 +567,7 @@ const Submissions = () => {
       title: "ציון",
       dataIndex: "grade",
       key: "grade",
-      render: (text, record) => (
-        <Space>
-          {record.grade !== null ? record.grade : "טרם נבדק"}
-          {record.grade !== null && (
-            <EditOutlined
-              onClick={(e) => {
-                e.stopPropagation();
-                setGradeToOverride(record);
-                setGradeFormOpen(true);
-                gradeForm.setFieldsValue({
-                  oldGrade: record.grade,
-                  newGrade: record.grade,
-                });
-              }}
-            />
-          )}
-        </Space>
-      ),
+      render: (text, record) => <Space>{record.grade !== null ? record.grade : "טרם נבדק"}</Space>,
     },
     {
       title: "משוב",
@@ -816,7 +800,7 @@ const Submissions = () => {
                 <div className="detail-item-header">סטטוס בדיקה:</div>
                 <div className="detail-item-content">
                   {submissionInfo.submission.submitted &&
-                  submissionInfo.submission.grades.some((grade) => (grade.grade = null))
+                  submissionInfo.submission.grades.some((grade) => grade.grade === null)
                     ? "ממתין לבדיקה"
                     : submissionInfo.submission.submitted
                     ? "נבדק"
@@ -1165,15 +1149,10 @@ const Submissions = () => {
               onChange={(e) => {
                 const selectedName = submissionOptions.find((option) => option.value === e.target.value).label;
                 setSubmissionType(selectedName);
-
-                // Find the selected submission based on the name
-                console.log(selectedName);
-                console.log(submissionDetails);
                 const selectedSubmission = submissionDetails.find((submission) => submission.name === selectedName);
 
                 // If a submission is found, update additional state or handle accordingly
                 if (selectedSubmission) {
-                  console.log(selectedSubmission.info);
                   formSpecific.setFieldsValue({
                     submissionInfo: selectedSubmission.info,
                   });
