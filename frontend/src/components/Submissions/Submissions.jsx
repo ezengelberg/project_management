@@ -46,7 +46,7 @@ const Submissions = () => {
   const [submissionData, setSubmissionData] = useState([]);
   const [submissionDetails, setSubmissionDetails] = useState([]);
   const [submissionType, setSubmissionType] = useState(null);
-  const [showReview, setShowReview] = useState(false);
+  const [showReview, setShowReview] = useState(null);
   const [deleteAllSubmissions, setDeleteAllSubmissions] = useState(false);
   const [deleteAllSubmissionsConfirm, setDeleteAllSubmissionsConfirm] = useState(null);
   const [deleteSubmission, setDeleteSubmission] = useState(null);
@@ -500,6 +500,7 @@ const Submissions = () => {
       title: "הגשות",
       key: "submissions",
       render: (_, record) => {
+        // console.log(record);
         // Ensure submissions array exists
         const submissions = record.submissions || [];
         return (
@@ -595,7 +596,7 @@ const Submissions = () => {
             submissionInfo.submission.isReviewed ? (
               <a href="#">
                 <Tooltip title="לצפיה במשוב">
-                  <EyeOutlined style={{ fontSize: "2.5rem" }} onClick={() => setShowReview(true)} />
+                  <EyeOutlined style={{ fontSize: "2.5rem" }} onClick={() => setShowReview(record)} />
                 </Tooltip>
               </a>
             ) : (
@@ -702,7 +703,7 @@ const Submissions = () => {
       </Modal>
       <Modal
         title={`עריכת פרטי הגשה`}
-        open={specificSubmissionInfo != null}
+        open={specificSubmissionInfo !== null}
         cancelText="סגור"
         okText="ערוך"
         onCancel={() => {
@@ -880,10 +881,8 @@ const Submissions = () => {
               <Table
                 columns={gradeColumns}
                 dataSource={submissionInfo.submission.grades.map((grade, index) => ({
+                  ...grade,
                   key: grade._id || index,
-                  judgeName: grade.judgeName,
-                  grade: grade.grade,
-                  comments: grade.comments,
                 }))}
                 pagination={false}
               />
@@ -892,11 +891,48 @@ const Submissions = () => {
         )}
       </Modal>
       <Modal
-        title={`משוב עבור הגשה ${submissionInfo?.submission.name} של ${submissionInfo?.project.title}`}
-        open={showReview}
+        title={`משוב עבור הגשה ${submissionInfo?.submission?.name} של ${submissionInfo?.project?.title}`}
+        open={showReview !== null}
         cancelText="סגור"
-        onCancel={() => setShowReview(false)}
-        okButtonProps={{ style: { display: "none" } }}></Modal>
+        onCancel={() => setShowReview(null)}
+        okButtonProps={{ style: { display: "none" } }}>
+        <div className="details-title">
+          <h3>{submissionInfo?.project?.title}</h3>
+          <p>הגשה - {submissionInfo?.submission?.name}</p>
+        </div>
+
+        <div className="details-grade">
+          {submissionInfo?.submission?.isGraded && (
+            <>
+              <span>ציון:</span> <p>{showReview?.grade ? showReview?.grade : "לא ניתן ציון"}</p>
+            </>
+          )}
+        </div>
+        {submissionInfo?.submission?.isReviewed && (
+          <>
+            <p>
+              <strong>איכות הוידאו:</strong> {showReview?.videoQuality}
+            </p>
+            <p>
+              <strong>איכות העבודה:</strong> {showReview?.workQuality}
+            </p>
+            <p>
+              <strong>איכות הכתיבה:</strong> {showReview?.writingQuality}
+            </p>
+            {submissionDetails?.commits && (
+              <p>
+                <strong>מספר הקומיטים:</strong> {showReview?.commits}
+              </p>
+            )}
+            {showReview?.journalActive && (
+              <p>
+                <strong>האם היומן פעיל:</strong>{" "}
+                {showReview?.journalActive === "yes" ? "כן" : showReview?.journalActive === "no" ? "לא" : ""}
+              </p>
+            )}
+          </>
+        )}
+      </Modal>
       <Modal
         title="שנה ציון"
         open={gradeFormOpen}
