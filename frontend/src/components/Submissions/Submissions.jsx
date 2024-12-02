@@ -46,6 +46,7 @@ const Submissions = () => {
   const [submissionData, setSubmissionData] = useState([]);
   const [submissionDetails, setSubmissionDetails] = useState([]);
   const [submissionType, setSubmissionType] = useState(null);
+  const [showReview, setShowReview] = useState(false);
   const [deleteAllSubmissions, setDeleteAllSubmissions] = useState(false);
   const [deleteAllSubmissionsConfirm, setDeleteAllSubmissionsConfirm] = useState(null);
   const [deleteSubmission, setDeleteSubmission] = useState(null);
@@ -99,8 +100,6 @@ const Submissions = () => {
             ]),
         ).values(),
       ];
-
-      console.log(submissionDetails);
 
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
@@ -323,8 +322,7 @@ const Submissions = () => {
       });
     } catch (error) {
       console.error("Error updating submission:", error);
-    }
-    finally {
+    } finally {
       editSubmission.resetFields();
       setEditSubmissions(false);
       fetchSubmissions();
@@ -511,7 +509,11 @@ const Submissions = () => {
               const waitingCheck = grades.some((grade) => grade.grade === null);
               return (
                 <div className="table-col-div" key={index}>
-                  <div className="table-col" onClick={() => setSubmissionInfo({ project: record, submission: sub })}>
+                  <div
+                    className="table-col"
+                    onClick={() => {
+                      setSubmissionInfo({ project: record, submission: sub });
+                    }}>
                     <div className="submission-title">
                       {(sub.name.length > 25 ? `${sub.name.substring(0, 25)}...` : sub.name) || ""}
                     </div>
@@ -532,7 +534,20 @@ const Submissions = () => {
                         color={sub.submitted ? "green" : "orange"}
                         text={sub.submitted ? `הוגש${sub.isLate ? " באיחור" : ""}` : "מחכה להגשה"}
                       />
-                      <div>{waitingCheck && sub.submitted && <Badge color="blue" text="מחכה לבדיקה" />}</div>
+                      <div>
+                        {waitingCheck && sub.submitted ? (
+                          <Badge color="blue" text="מחכה לבדיקה" />
+                        ) : !waitingCheck && sub.submitted && sub.finalGrade === null ? (
+                          <Badge color="purple" text="מחכה לפרסום" />
+                        ) : (
+                          sub.finalGrade !== null && (
+                            <Badge
+                              color="pink"
+                              text={`ציון סופי: ${sub.overridden.newGrade ? sub.overridden.newGrade : sub.finalGrade}`}
+                            />
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
                   {index !== submissions.length - 1 && submissions.length > 1 && (
@@ -567,22 +582,7 @@ const Submissions = () => {
       dataIndex: "grade",
       key: "grade",
       render: (text, record) => (
-        <Space>
-          {record.grade !== null ? record.grade : "טרם נבדק"}
-          {record.grade !== null && (
-            <EditOutlined
-              onClick={(e) => {
-                e.stopPropagation();
-                setGradeToOverride(record);
-                setGradeFormOpen(true);
-                gradeForm.setFieldsValue({
-                  oldGrade: record.grade,
-                  newGrade: record.grade,
-                });
-              }}
-            />
-          )}
-        </Space>
+        <Space className="grade-table">{record.grade !== null ? record.grade : "טרם נבדק"}</Space>
       ),
     },
     {
@@ -591,11 +591,19 @@ const Submissions = () => {
       key: "comments",
       render: (text, record) => (
         <Space>
-          <a href="#">
-            <Tooltip title="לצפיה במשוב">
-              <EyeOutlined style={{ fontSize: "2.5rem" }} />
-            </Tooltip>
-          </a>
+          {record.grade !== null ? (
+            submissionInfo.submission.isReviewed ? (
+              <a href="#">
+                <Tooltip title="לצפיה במשוב">
+                  <EyeOutlined style={{ fontSize: "2.5rem" }} onClick={() => setShowReview(true)} />
+                </Tooltip>
+              </a>
+            ) : (
+              <span>הגשה ללא משוב</span>
+            )
+          ) : (
+            "טרם נבדק"
+          )}
         </Space>
       ),
     },
@@ -747,6 +755,12 @@ const Submissions = () => {
               format="DD-MM-YYYY HH:mm"
             />
           </Form.Item>
+          <Form.Item name="submissionChecklist">
+            <Checkbox.Group>
+              <Checkbox value="isGraded">מתן ציון</Checkbox>
+              <Checkbox value="isReviewed">מתן משוב</Checkbox>
+            </Checkbox.Group>
+          </Form.Item>
         </Form>
       </Modal>
       <Modal
@@ -816,7 +830,7 @@ const Submissions = () => {
                 <div className="detail-item-header">סטטוס בדיקה:</div>
                 <div className="detail-item-content">
                   {submissionInfo.submission.submitted &&
-                  submissionInfo.submission.grades.some((grade) => (grade.grade = null))
+                  submissionInfo.submission.grades.some((grade) => grade.grade === null)
                     ? "ממתין לבדיקה"
                     : submissionInfo.submission.submitted
                     ? "נבדק"
@@ -849,6 +863,16 @@ const Submissions = () => {
                     : "ממתין להגשה"}
                 </div>
               </div>
+              {submissionInfo.submission.finalGrade && (
+                <div className="detail-item">
+                  <div className="detail-item-header">ציון סופי</div>
+                  <div className="detail-item-content">
+                    {submissionInfo.submission.overridden.newGrade
+                      ? submissionInfo.submission.overridden.newGrade
+                      : submissionInfo.submission.finalGrade}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="submission-grades">
@@ -864,49 +888,15 @@ const Submissions = () => {
                 pagination={false}
               />
             </div>
-
-            {/* {submissionInfo.submission.grades.length > 0 && (
-              <div className="grade-summary">
-                <h3>סיכום ציונים</h3>
-                <Row gutter={[16, 16]}>
-                  <Col span={8}>
-                    <Statistic
-                      title="ממוצע"
-                      value={
-                        submissionInfo.submission.grades
-                          .filter((grade) => grade.grade !== null)
-                          .reduce((acc, curr) => acc + curr.grade, 0) /
-                        submissionInfo.submission.grades.filter((grade) => grade.grade !== null).length
-                      }
-                      precision={1}
-                    />
-                  </Col>
-                  <Col span={8}>
-                    <Statistic
-                      title="ציון מקסימלי"
-                      value={Math.max(
-                        ...submissionInfo.submission.grades
-                          .filter((grade) => grade.grade !== null)
-                          .map((grade) => grade.grade)
-                      )}
-                    />
-                  </Col>
-                  <Col span={8}>
-                    <Statistic
-                      title="ציון מינימלי"
-                      value={Math.min(
-                        ...submissionInfo.submission.grades
-                          .filter((grade) => grade.grade !== null)
-                          .map((grade) => grade.grade)
-                      )}
-                    />
-                  </Col>
-                </Row>
-              </div>
-            )} */}
           </div>
         )}
       </Modal>
+      <Modal
+        title={`משוב עבור הגשה ${submissionInfo?.submission.name} של ${submissionInfo?.project.title}`}
+        open={showReview}
+        cancelText="סגור"
+        onCancel={() => setShowReview(false)}
+        okButtonProps={{ style: { display: "none" } }}></Modal>
       <Modal
         title="שנה ציון"
         open={gradeFormOpen}
@@ -1165,15 +1155,10 @@ const Submissions = () => {
               onChange={(e) => {
                 const selectedName = submissionOptions.find((option) => option.value === e.target.value).label;
                 setSubmissionType(selectedName);
-
-                // Find the selected submission based on the name
-                console.log(selectedName);
-                console.log(submissionDetails);
                 const selectedSubmission = submissionDetails.find((submission) => submission.name === selectedName);
 
                 // If a submission is found, update additional state or handle accordingly
                 if (selectedSubmission) {
-                  console.log(selectedSubmission.info);
                   formSpecific.setFieldsValue({
                     submissionInfo: selectedSubmission.info,
                   });
