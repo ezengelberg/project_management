@@ -46,6 +46,7 @@ const Submissions = () => {
   const [submissionData, setSubmissionData] = useState([]);
   const [submissionDetails, setSubmissionDetails] = useState([]);
   const [submissionType, setSubmissionType] = useState(null);
+  const [showReview, setShowReview] = useState(false);
   const [deleteAllSubmissions, setDeleteAllSubmissions] = useState(false);
   const [deleteAllSubmissionsConfirm, setDeleteAllSubmissionsConfirm] = useState(null);
   const [deleteSubmission, setDeleteSubmission] = useState(null);
@@ -591,10 +592,10 @@ const Submissions = () => {
       render: (text, record) => (
         <Space>
           {record.grade !== null ? (
-            submissionInfo.project.isReviewed ? (
+            submissionInfo.submission.isReviewed ? (
               <a href="#">
                 <Tooltip title="לצפיה במשוב">
-                  <EyeOutlined style={{ fontSize: "2.5rem" }} />
+                  <EyeOutlined style={{ fontSize: "2.5rem" }} onClick={() => setShowReview(true)} />
                 </Tooltip>
               </a>
             ) : (
@@ -887,49 +888,15 @@ const Submissions = () => {
                 pagination={false}
               />
             </div>
-
-            {/* {submissionInfo.submission.grades.length > 0 && (
-              <div className="grade-summary">
-                <h3>סיכום ציונים</h3>
-                <Row gutter={[16, 16]}>
-                  <Col span={8}>
-                    <Statistic
-                      title="ממוצע"
-                      value={
-                        submissionInfo.submission.grades
-                          .filter((grade) => grade.grade !== null)
-                          .reduce((acc, curr) => acc + curr.grade, 0) /
-                        submissionInfo.submission.grades.filter((grade) => grade.grade !== null).length
-                      }
-                      precision={1}
-                    />
-                  </Col>
-                  <Col span={8}>
-                    <Statistic
-                      title="ציון מקסימלי"
-                      value={Math.max(
-                        ...submissionInfo.submission.grades
-                          .filter((grade) => grade.grade !== null)
-                          .map((grade) => grade.grade)
-                      )}
-                    />
-                  </Col>
-                  <Col span={8}>
-                    <Statistic
-                      title="ציון מינימלי"
-                      value={Math.min(
-                        ...submissionInfo.submission.grades
-                          .filter((grade) => grade.grade !== null)
-                          .map((grade) => grade.grade)
-                      )}
-                    />
-                  </Col>
-                </Row>
-              </div>
-            )} */}
           </div>
         )}
       </Modal>
+      <Modal
+        title={`משוב עבור הגשה ${submissionInfo?.submission.name} של ${submissionInfo?.project.title}`}
+        open={showReview}
+        cancelText="סגור"
+        onCancel={() => setShowReview(false)}
+        okButtonProps={{ style: { display: "none" } }}></Modal>
       <Modal
         title="שנה ציון"
         open={gradeFormOpen}
