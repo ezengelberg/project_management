@@ -533,7 +533,20 @@ const Submissions = () => {
                         color={sub.submitted ? "green" : "orange"}
                         text={sub.submitted ? `הוגש${sub.isLate ? " באיחור" : ""}` : "מחכה להגשה"}
                       />
-                      <div>{waitingCheck && sub.submitted && <Badge color="blue" text="מחכה לבדיקה" />}</div>
+                      <div>
+                        {waitingCheck && sub.submitted ? (
+                          <Badge color="blue" text="מחכה לבדיקה" />
+                        ) : !waitingCheck && sub.submitted && sub.finalGrade === null ? (
+                          <Badge color="purple" text="מחכה לפרסום" />
+                        ) : (
+                          sub.finalGrade !== null && (
+                            <Badge
+                              color="pink"
+                              text={`ציון סופי: ${sub.overridden.newGrade ? sub.overridden.newGrade : sub.finalGrade}`}
+                            />
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
                   {index !== submissions.length - 1 && submissions.length > 1 && (
@@ -567,7 +580,9 @@ const Submissions = () => {
       title: "ציון",
       dataIndex: "grade",
       key: "grade",
-      render: (text, record) => <Space>{record.grade !== null ? record.grade : "טרם נבדק"}</Space>,
+      render: (text, record) => (
+        <Space className="grade-table">{record.grade !== null ? record.grade : "טרם נבדק"}</Space>
+      ),
     },
     {
       title: "משוב",
@@ -575,11 +590,19 @@ const Submissions = () => {
       key: "comments",
       render: (text, record) => (
         <Space>
-          <a href="#">
-            <Tooltip title="לצפיה במשוב">
-              <EyeOutlined style={{ fontSize: "2.5rem" }} />
-            </Tooltip>
-          </a>
+          {record.grade !== null ? (
+            submissionInfo.project.isReviewed ? (
+              <a href="#">
+                <Tooltip title="לצפיה במשוב">
+                  <EyeOutlined style={{ fontSize: "2.5rem" }} />
+                </Tooltip>
+              </a>
+            ) : (
+              <span>הגשה ללא משוב</span>
+            )
+          ) : (
+            "טרם נבדק"
+          )}
         </Space>
       ),
     },
@@ -731,6 +754,12 @@ const Submissions = () => {
               format="DD-MM-YYYY HH:mm"
             />
           </Form.Item>
+          <Form.Item name="submissionChecklist">
+            <Checkbox.Group>
+              <Checkbox value="isGraded">מתן ציון</Checkbox>
+              <Checkbox value="isReviewed">מתן משוב</Checkbox>
+            </Checkbox.Group>
+          </Form.Item>
         </Form>
       </Modal>
       <Modal
@@ -833,6 +862,16 @@ const Submissions = () => {
                     : "ממתין להגשה"}
                 </div>
               </div>
+              {submissionInfo.submission.finalGrade && (
+                <div className="detail-item">
+                  <div className="detail-item-header">ציון סופי</div>
+                  <div className="detail-item-content">
+                    {submissionInfo.submission.overridden.newGrade
+                      ? submissionInfo.submission.overridden.newGrade
+                      : submissionInfo.submission.finalGrade}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="submission-grades">
