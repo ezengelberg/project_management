@@ -44,10 +44,13 @@ const CheckSubmissions = () => {
       setMoreDetailsModal(false);
     }
   };
-
   const waitingForGrade = submissions.filter(
     (submission) =>
-      submission.grade === null && submission.videoQuality === null && (submission.isReviewed || submission.isGraded)
+      new Date(submission.submissionDate) < new Date() &&
+      submission.submitted &&
+      submission.grade === null &&
+      submission.videoQuality === null &&
+      (submission.isReviewed || submission.isGraded)
   );
   const gradedAndEditable = submissions
     .filter((submission) => (submission.grade !== null || submission.videoQuality !== null) && submission.editable)
