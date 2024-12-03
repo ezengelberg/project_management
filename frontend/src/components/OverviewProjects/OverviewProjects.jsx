@@ -505,32 +505,38 @@ const OverviewProjects = () => {
           {submission.gradesDetailed?.map((grade) => (
             <div key={grade.judge}>
               <div className="overview-grade">
-                <a
-                  onClick={() => navigate(`/profile/${grade.judge}`)}
-                  onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
-                  {grade.judgeName}
-                </a>{" "}
-                -{" "}
-                {submission.isGraded && (
+                {!submission.isGraded && !submission.isReviewed ? (
+                  "הגשה זאת היא ללא ציון או משוב"
+                ) : (
                   <>
-                    {grade.grade !== null ? (
+                    <a
+                      onClick={() => navigate(`/profile/${grade.judge}`)}
+                      onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
+                      {grade.judgeName}
+                    </a>{" "}
+                    -{" "}
+                    {submission.isGraded && (
                       <>
-                        <Badge color="green" />
-                        <p>{grade.grade}</p>
+                        {grade.grade !== null ? (
+                          <>
+                            <Badge color="green" />
+                            <p>{grade.grade}</p>
+                          </>
+                        ) : (
+                          <Badge color="red" text="לא ניתן ציון" />
+                        )}{" "}
+                        {grade.numericGrade && `(${grade.numericGrade})`}
                       </>
-                    ) : (
-                      <Badge color="red" text="לא ניתן ציון" />
-                    )}{" "}
-                    {grade.numericGrade && `(${grade.numericGrade})`}
+                    )}
+                    {submission.isReviewed &&
+                      !submission.isGraded &&
+                      (!grade.editable ? (
+                        <Badge color="green" text="ניתן משוב" />
+                      ) : (
+                        <Badge color="red" text="לא ניתן משוב" />
+                      ))}
                   </>
                 )}
-                {submission.isReviewed &&
-                  !submission.isGraded &&
-                  (!grade.editable ? (
-                    <Badge color="green" text="ניתן משוב" />
-                  ) : (
-                    <Badge color="red" text="לא ניתן משוב" />
-                  ))}
               </div>
             </div>
           ))}

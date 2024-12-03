@@ -178,7 +178,7 @@ const SubmissionStatus = () => {
                     )} ימים`}
                 </div>
                 <Badge color={getBadgeStatus(submission).color} text={getBadgeStatus(submission).text} />
-                {submission.isReviewed && (
+                {submission.isReviewed && submission.submitted && (
                   <Button color="primary" variant="filled">
                     הורד הגשה
                   </Button>
