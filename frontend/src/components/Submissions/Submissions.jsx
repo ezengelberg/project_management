@@ -533,7 +533,7 @@ const Submissions = () => {
                     <div className="table-col-info">
                       <Badge
                         color={sub.submitted ? "green" : "orange"}
-                        text={sub.submitted ? `הוגש${sub.isLate ? " באיחור" : ""}` : "מחכה להגשה"}
+                        text={sub.submitted ? `הוגש${sub.isLate ? " באיחור" : ""}` : "ממתין להגשה"}
                       />
                       <div>
                         {waitingCheck && sub.submitted ? (
