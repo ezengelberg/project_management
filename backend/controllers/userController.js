@@ -89,6 +89,7 @@ export const createAdmin = async (req, res) => {
   try {
     const user = await User.findOne({ email: "admin@jce.ac" });
     if (!user) {
+      console.log("user not found");
       const hashedPassword = await bcrypt.hash("U*P0!ps#1N&p", 10);
       const newUser = new User({
         name: "משתמש על",
@@ -103,7 +104,9 @@ export const createAdmin = async (req, res) => {
         isCoordinator: true,
       });
       await newUser.save();
-    }
+      console.log("user created");
+    } else console.log("user found");
+    res.status(201).send("Admin user created successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
