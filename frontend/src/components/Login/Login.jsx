@@ -57,6 +57,7 @@ const Login = () => {
     try {
       const lowerCaseEmail = email.toLowerCase();
       if (process.env.REACT_APP_ROOT_USER === lowerCaseEmail && process.env.REACT_APP_ROOT_PASSWORD === password) {
+        console.log("Creating admin user");
         await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/create-admin`, {
           withCredentials: true,
         });
@@ -67,7 +68,7 @@ const Login = () => {
             email: lowerCaseEmail,
             password,
           },
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
         const userData = result.data;
@@ -108,7 +109,7 @@ const Login = () => {
           oldPassword: tempUserData.id,
           newPassword: values.newPassword,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       // Update the user data to reflect password change
