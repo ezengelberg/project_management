@@ -21,6 +21,11 @@ export const createSubmission = async (req, res) => {
           newGrade = new Grade({ judge: project.advisors[0]._id });
           gradeByAdvisor = await newGrade.save();
         }
+
+        const user = await User.findById(project.advisors[0]._id);
+        user.isJudge = true;
+        await user.save();
+
         const submission = new Submission({
           name: req.body.name,
           project: project._id,
@@ -28,7 +33,7 @@ export const createSubmission = async (req, res) => {
           grades: [gradeByAdvisor],
           isGraded: req.body.isGraded,
           isReviewed: req.body.isReviewed,
-          submissionInfo: req.body.submissionInfo
+          submissionInfo: req.body.submissionInfo,
         });
         await submission.save();
       })
@@ -54,11 +59,15 @@ export const createSpecificSubmission = async (req, res) => {
           gradeByAdvisor = await newGrade.save();
         }
 
+        const user = await User.findById(project.advisors[0]._id);
+        user.isJudge = true;
+        await user.save();
+
         const submission = new Submission({
           name: req.body.name,
           project: project._id,
           submissionDate: new Date(req.body.submissionDate),
-          grades: [gradeByAdvisor]
+          grades: [gradeByAdvisor],
         });
         await submission.save();
       })
@@ -89,12 +98,11 @@ export const getAllProjectSubmissions = async (req, res) => {
                   judge: grade.judge,
                   judgeName: judge ? judge.name : null,
                   grade: grade.grade,
-                  overridden: grade.overridden,
                   videoQuality: grade.videoQuality,
                   workQuality: grade.workQuality,
                   writingQuality: grade.writingQuality,
                   journalActive: grade.journalActive,
-                  commits: grade.commits
+                  commits: grade.commits,
                 };
               })
             );
@@ -107,7 +115,9 @@ export const getAllProjectSubmissions = async (req, res) => {
               grades: grades,
               submitted: submission.file ? true : false,
               isGraded: submission.isGraded,
-              isReviewed: submission.isReviewed
+              isReviewed: submission.isReviewed,
+              overridden: submission.overridden,
+              finalGrade: submission.finalGrade,
             };
           })
         );
@@ -115,7 +125,7 @@ export const getAllProjectSubmissions = async (req, res) => {
           key: project._id,
           projectid: project._id,
           title: project.title,
-          submissions: submissionsWithGrades
+          submissions: submissionsWithGrades,
         };
       })
     );
@@ -155,12 +165,14 @@ export const getAllSubmissions = async (req, res) => {
                 judgeName: judge ? judge.name : null,
                 grade: gradeInfo ? gradeInfo.grade : null,
                 comment: gradeInfo ? gradeInfo.comment : null,
-                overridden: gradeInfo ? gradeInfo.overridden : null,
-                numericGrade: gradeInfo ? gradeInfo.numericGrade : null
+                numericGrade: gradeInfo ? gradeInfo.numericGrade : null,
+                videoQuality: gradeInfo ? gradeInfo.videoQuality : null,
+                editable: gradeInfo ? gradeInfo.editable : null,
+                overridden: submission.overridden,
               };
             })
           ),
-          key: submission._id
+          key: submission._id,
         };
       })
     );
@@ -185,7 +197,7 @@ export const getStudentSubmissions = async (req, res) => {
         project: submission.project,
         submissionName: submission.name,
         submissionDate: submission.submissionDate,
-        file: submission.file
+        file: submission.file,
       }))
       .sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate));
 
@@ -204,8 +216,8 @@ export const getJudgeSubmissions = async (req, res) => {
         match: { judge: req.user._id },
         populate: {
           path: "judge",
-          select: "name email"
-        }
+          select: "name email",
+        },
       })
       .populate("project", "title description")
       .exec();
@@ -221,12 +233,12 @@ export const getJudgeSubmissions = async (req, res) => {
       submissionDate: submission.submissionDate,
       grade: submission.grades[0]?.grade || null,
       comment: submission.grades[0]?.comment || "",
-      overridden: submission.grades[0]?.overridden || null,
       videoQuality: submission.grades[0]?.videoQuality || null,
       projectId: submission.project ? submission.project._id : null,
-      editable: submission.editable,
+      editable: submission.grades[0]?.editable,
       isGraded: submission.isGraded,
-      isReviewed: submission.isReviewed
+      isReviewed: submission.isReviewed,
+      submitted: submission.file ? true : false,
     }));
 
     res.status(200).json(submissionsWithDetails);
@@ -245,8 +257,8 @@ export const getSubmission = async (req, res) => {
         match: { judge: req.user._id },
         populate: {
           path: "judge",
-          select: "name email"
-        }
+          select: "name email",
+        },
       })
       .exec();
 
@@ -267,7 +279,7 @@ export const getSubmission = async (req, res) => {
       existingJournalActive: submission.grades[0]?.journalActive || "",
       existingCommits: submission.grades[0]?.commits || "",
       isReviewed: submission.isReviewed,
-      isGraded: submission.isGraded
+      isGraded: submission.isGraded,
     };
 
     res.status(200).json(submissionData);
@@ -417,7 +429,7 @@ export const deleteActiveSubmissions = async (req, res) => {
     const activeProjectIds = activeProjects.map((project) => project._id);
     const submissionsToDelete = await Submission.find({
       project: { $in: activeProjectIds },
-      name: req.body.submissionName
+      name: req.body.submissionName,
     });
 
     await Promise.all(
@@ -493,7 +505,7 @@ export const getSubmissionDetails = async (req, res) => {
       .populate({
         path: "grades",
         match: { judge: req.user._id },
-        populate: { path: "judge", select: "name email" }
+        populate: { path: "judge", select: "name email" },
       })
       .exec();
 
@@ -513,14 +525,63 @@ export const getSubmissionDetails = async (req, res) => {
       writingQuality: grade.writingQuality,
       journalActive: grade.journalActive,
       commits: grade.commits,
-      overridden: grade.overridden,
       updatedAt: grade.updatedAt,
       numericValue: grade.numericGrade,
       isGraded: submission.isGraded,
-      isReviewed: submission.isReviewed
+      isReviewed: submission.isReviewed,
+      overridden: submission.overridden,
     };
 
     res.status(200).json(submissionDetails);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getSpecificProjectSubmissions = async (req, res) => {
+  try {
+    const projectId = req.params.projectId;
+    const submissions = await Submission.find({ project: projectId }).populate("project", "title");
+    const submissionsWithDetails = await Promise.all(
+      submissions.map(async (submission) => {
+        const grades = await Promise.all(
+          submission.grades.map(async (gradeId) => {
+            const grade = await Grade.findById(gradeId);
+            const judge = await User.findById(grade.judge);
+            return {
+              key: grade._id,
+              gradeid: grade._id,
+              judge: grade.judge,
+              judgeName: judge ? judge.name : null,
+              grade: grade.grade,
+              videoQuality: grade.videoQuality,
+              workQuality: grade.workQuality,
+              writingQuality: grade.writingQuality,
+              journalActive: grade.journalActive,
+              commits: grade.commits,
+            };
+          })
+        );
+        return {
+          key: submission._id,
+          submissionid: submission._id,
+          name: submission.name,
+          submissionDate: submission.submissionDate,
+          uploadDate: submission.uploadDate,
+          grades: grades,
+          submitted: submission.file ? true : false,
+          isGraded: submission.isGraded,
+          isReviewed: submission.isReviewed,
+          overridden: submission.overridden,
+          projectName: submission.project.title,
+          finalGrade: submission.finalGrade,
+          overridden: submission.overridden,
+          editable: submission.editable,
+        };
+      })
+    );
+    res.status(200).json(submissionsWithDetails);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });

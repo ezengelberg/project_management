@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./OverviewProjects.scss";
 import { useNavigate } from "react-router-dom";
-import { Tabs, Table, Modal, Select, Button, message, Tooltip, Input, Space, Divider } from "antd";
+import { Tabs, Table, Modal, Select, Button, message, Tooltip, Input, InputNumber, Space, Divider, Badge } from "antd";
 import { DeleteOutlined, RollbackOutlined, SearchOutlined } from "@ant-design/icons";
 import axios from "axios";
 import Highlighter from "react-highlight-words";
@@ -34,6 +34,10 @@ const OverviewProjects = () => {
   const [yearFilter, setYearFilter] = useState("");
   const [submissions, setSubmissions] = useState([]);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [selectedGradesToChange, setSelectedGradesToChange] = useState([]);
+  const [isChangeGradeModalOpen, setIsChangeGradeModalOpen] = useState(false);
+  const [newGrade, setNewGrade] = useState(null);
+  const [updateComment, setUpdateComment] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -467,6 +471,29 @@ const OverviewProjects = () => {
 
   const handleAssignJudgesAutomatically = async () => {};
 
+  const handleChangeGrade = async () => {
+    if (newGrade === null) {
+      message.error("יש לבחור ציון חדש");
+      return;
+    }
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/grade/change-final-grade/${selectedGradesToChange[0]._id}`,
+        { newGrade, comment: updateComment },
+        { withCredentials: true }
+      );
+
+      setIsChangeGradeModalOpen(false);
+      setSelectedGradesToChange([]);
+      setNewGrade(null);
+      setUpdateComment("");
+      message.success("הציון עודכן בהצלחה!");
+    } catch (error) {
+      console.error("Error changing grade:", error);
+      message.error("שגיאה בשינוי הציון");
+    }
+  };
+
   const expandedRowRender = (record) => {
     const projectSubmissions = submissions.filter((submission) => submission.project === record._id);
     const expandColumns = projectSubmissions.map((submission, index) => ({
@@ -478,13 +505,38 @@ const OverviewProjects = () => {
           {submission.gradesDetailed?.map((grade) => (
             <div key={grade.judge}>
               <div className="overview-grade">
-                <a
-                  onClick={() => navigate(`/profile/${grade.judge}`)}
-                  onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
-                  {grade.judgeName}
-                </a>{" "}
-                - {grade.grade !== undefined ? <p>{grade.grade}</p> : "אין ציון"}{" "}
-                {grade.numericGrade && `(${grade.numericGrade})`}
+                {!submission.isGraded && !submission.isReviewed ? (
+                  "הגשה זאת היא ללא ציון או משוב"
+                ) : (
+                  <>
+                    <a
+                      onClick={() => navigate(`/profile/${grade.judge}`)}
+                      onMouseDown={(e) => handleMouseDown(e, `/profile/${grade.judge}`)}>
+                      {grade.judgeName}
+                    </a>{" "}
+                    -{" "}
+                    {submission.isGraded && (
+                      <>
+                        {grade.grade !== null ? (
+                          <>
+                            <Badge color="green" />
+                            <p>{grade.grade}</p>
+                          </>
+                        ) : (
+                          <Badge color="red" text="לא ניתן ציון" />
+                        )}{" "}
+                        {grade.numericGrade && `(${grade.numericGrade})`}
+                      </>
+                    )}
+                    {submission.isReviewed &&
+                      !submission.isGraded &&
+                      (!grade.editable ? (
+                        <Badge color="green" text="ניתן משוב" />
+                      ) : (
+                        <Badge color="red" text="לא ניתן משוב" />
+                      ))}
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -829,9 +881,38 @@ const OverviewProjects = () => {
             <div>
               {projectSubmissions.map((submission) => (
                 <div key={submission._id} className="inner-table-order">
-                  <p>
-                    {submission.name} - {submission.finalGrade ? submission.finalGrade : "לא שוקלל ציון"}
-                  </p>
+                  {submission.isGraded && (
+                    <div className="show-grade">
+                      {submission.name} -{" "}
+                      {submission.overridden ? (
+                        <div className="overridden-grade">
+                          <Badge color="green" />
+                          {submission.overridden.oldGrades.map((oldGrade, index) => (
+                            <Tooltip key={index} title={oldGrade.comment}>
+                              <p style={{ textDecoration: "line-through", color: "red" }}>{oldGrade.grade}</p>
+                            </Tooltip>
+                          ))}
+                          <Tooltip title={submission.overridden.comment}>
+                            <p>{submission.finalGrade}</p>
+                          </Tooltip>
+                        </div>
+                      ) : submission.finalGrade !== null ? (
+                        <Badge color="green" text={`${submission.finalGrade}`} />
+                      ) : (
+                        <Badge color="red" text="לא שוקלל ציון" />
+                      )}
+                    </div>
+                  )}
+                  {submission.isReviewed && !submission.isGraded && (
+                    <p>
+                      {submission.name} -{" "}
+                      {!submission.editable ? (
+                        <Badge color="green" text="פורסם משוב" />
+                      ) : (
+                        <Badge color="red" text="לא פורסם משוב" />
+                      )}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -880,7 +961,17 @@ const OverviewProjects = () => {
               }}>
               עדכן סטודנטים
             </Button>
-            <Button color="primary" variant="filled">
+            <Button
+              color="primary"
+              variant="filled"
+              onClick={() => {
+                const projectSubmissions = submissions.filter(
+                  (submission) => submission.project === record._id && submission.isGraded && !submission.editable
+                );
+                setSelectedGradesToChange(projectSubmissions);
+                setSelectedProject(record);
+                setIsChangeGradeModalOpen(true);
+              }}>
               שינוי ציון
             </Button>
             <Button
@@ -1521,6 +1612,48 @@ const OverviewProjects = () => {
         cancelText="ביטול">
         <div>
           <p>אתה בטוח שברצונך להפסיק את הפרויקט?</p>
+        </div>
+      </Modal>
+
+      {/* Change Grade Modal */}
+      <Modal
+        open={isChangeGradeModalOpen}
+        title={`שינוי ציון לפרויקט: ${selectedProject?.title}`}
+        onOk={handleChangeGrade}
+        onCancel={() => {
+          setIsChangeGradeModalOpen(false);
+          setSelectedGradesToChange([]);
+          setUpdateComment("");
+        }}
+        okText="שנה ציון"
+        cancelText="ביטול">
+        <div>
+          <p>ניתן להכניס ציון בין 0 ל-100</p>
+          <Divider />
+          {selectedGradesToChange.map((submission, index) => (
+            <div key={submission._id} className="modal-select-input">
+              <p>{submission.name}</p>
+              <InputNumber
+                value={submission.finalGrade}
+                onChange={(value) => {
+                  const updatedGrades = selectedGradesToChange.map((s) =>
+                    s._id === submission._id ? { ...s, finalGrade: value } : s
+                  );
+                  setSelectedGradesToChange(updatedGrades);
+                  setNewGrade(value);
+                }}
+                min={0}
+                max={100}
+              />
+            </div>
+          ))}
+          <Divider />
+          <Input.TextArea
+            value={updateComment}
+            onChange={(e) => setUpdateComment(e.target.value)}
+            placeholder="הכנס סיבה לעדכון הציון"
+            rows={4}
+          />
         </div>
       </Modal>
 

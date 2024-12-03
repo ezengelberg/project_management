@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./Login.css";
+import "./Login.scss";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
@@ -10,40 +10,62 @@ const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({ email: false, password: false });
   const [errorMessage, setErrorMessage] = useState("");
   const [tempUserData, setTempUserData] = useState(null);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
+  const [changePasswordForm] = Form.useForm();
+  const [loginForm] = Form.useForm();
+
+  const EmailSvg = () => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path
+          d="M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12ZM16 12V13.5C16 14.8807 17.1193 16 18.5 16V16C19.8807 16 21 14.8807 21 13.5V12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21H16"
+          stroke="#adadad"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"></path>
+      </g>
+    </svg>
+  );
+
+  const PasswordSvg = () => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path
+          d="M2 16C2 13.1716 2 11.7574 2.87868 10.8787C3.75736 10 5.17157 10 8 10H16C18.8284 10 20.2426 10 21.1213 10.8787C22 11.7574 22 13.1716 22 16C22 18.8284 22 20.2426 21.1213 21.1213C20.2426 22 18.8284 22 16 22H8C5.17157 22 3.75736 22 2.87868 21.1213C2 20.2426 2 18.8284 2 16Z"
+          stroke="#adadad"
+          strokeWidth="1.5"></path>
+        <circle cx="12" cy="16" r="2" stroke="#adadad" strokeWidth="1.5"></circle>
+        <path
+          d="M6 10V8C6 4.68629 8.68629 2 12 2C15.3137 2 18 4.68629 18 8V10"
+          stroke="#adadad"
+          strokeWidth="1.5"
+          strokeLinecap="round"></path>
+      </g>
+    </svg>
+  );
 
   const handleOnSubmit = async (e) => {
     setLoading(true);
-    e.preventDefault();
-
-    // Check for empty fields
-    let newErrors = { email: false, password: false };
-    if (!email) newErrors.email = true;
-    if (!password) newErrors.password = true;
-
-    if (newErrors.email || newErrors.password) {
-      setErrors(newErrors);
-      setLoading(false);
-      return;
-    }
 
     try {
-      if (process.env.REACT_APP_ROOT_USER === email && process.env.REACT_APP_ROOT_PASSWORD === password) {
+      const lowerCaseEmail = email.toLowerCase();
+      if (process.env.REACT_APP_ROOT_USER === lowerCaseEmail && process.env.REACT_APP_ROOT_PASSWORD === password) {
         await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/create-admin`, {
-          withCredentials: true
+          withCredentials: true,
         });
       } else {
         const result = await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/api/user/login`,
           {
-            email,
-            password
+            email: lowerCaseEmail,
+            password,
           },
           { withCredentials: true }
         );
@@ -84,7 +106,7 @@ const Login = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/user/change-password`,
         {
           oldPassword: tempUserData.id,
-          newPassword: values.newPassword
+          newPassword: values.newPassword,
         },
         { withCredentials: true }
       );
@@ -92,13 +114,14 @@ const Login = () => {
       // Update the user data to reflect password change
       const updatedUserData = {
         ...tempUserData,
-        firstLogin: false
+        firstLogin: false,
       };
 
       localStorage.setItem("user", JSON.stringify(updatedUserData));
       sessionStorage.setItem("user", JSON.stringify(updatedUserData));
 
       message.success("הסיסמה שונתה בהצלחה");
+      changePasswordForm.resetFields();
       navigate("/home");
     } catch (error) {
       if (error.response?.status === 400) {
@@ -115,107 +138,81 @@ const Login = () => {
     <div className="login">
       <img src={collegeLogo} alt="collage logo" className="collage-logo" />
       {!showChangePassword ? (
-        <form onSubmit={handleOnSubmit} className="login-form">
+        <Form form={loginForm} onFinish={handleOnSubmit} layout="vertical" className="login-form">
           <h1>התחברות</h1>
-          <div className="form-input-group login-input-group">
-            <label htmlFor="email">אימייל</label>
-            <div className="input-icon-holder">
-              <input
+          <div className="form-area">
+            <Form.Item
+              name="email"
+              label="אימייל"
+              rules={[
+                { required: true, message: "חובה להזין אימייל" },
+                { type: "email", message: "אימייל לא תקין" },
+              ]}
+              hasFeedback>
+              <Input
                 type="email"
-                id="email"
-                name="email"
+                prefix={<EmailSvg />}
+                size="large"
                 placeholder="הכנס אימייל"
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value.toLowerCase());
-                  setErrors((prev) => ({ ...prev, email: false }));
-                  setErrorMessage("");
-                }}
+                onChange={(e) => setEmail(e.target.value.toLowerCase())}
               />
-              <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12ZM16 12V13.5C16 14.8807 17.1193 16 18.5 16V16C19.8807 16 21 14.8807 21 13.5V12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21H16"
-                    stroke="#adadad"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            {errors.email && <Alert message="שדה חובה" type="error" showIcon />}
-          </div>
-          <div className="form-input-group login-input-group">
-            <label htmlFor="password">סיסמה</label>
-            <div className="input-icon-holder">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                name="password"
+            </Form.Item>
+            <Form.Item
+              name="password"
+              label="סיסמה"
+              rules={[
+                { required: true, message: "חובה להזין סיסמה" },
+                //   { min: 8, message: "הסיסמה חייבת להכיל לפחות 8 תווים" },
+              ]}
+              hasFeedback>
+              <Input.Password
+                prefix={<PasswordSvg />}
+                size="large"
                 placeholder="הכנס סיסמה"
                 value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setErrors((prev) => ({ ...prev, password: false }));
-                  setErrorMessage("");
-                }}
+                onChange={(e) => setPassword(e.target.value)}
               />
-              <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M2 16C2 13.1716 2 11.7574 2.87868 10.8787C3.75736 10 5.17157 10 8 10H16C18.8284 10 20.2426 10 21.1213 10.8787C22 11.7574 22 13.1716 22 16C22 18.8284 22 20.2426 21.1213 21.1213C20.2426 22 18.8284 22 16 22H8C5.17157 22 3.75736 22 2.87868 21.1213C2 20.2426 2 18.8284 2 16Z"
-                    stroke="#adadad"
-                    strokeWidth="1.5"></path>
-                  <circle cx="12" cy="16" r="2" stroke="#adadad" strokeWidth="1.5"></circle>
-                  <path
-                    d="M6 10V8C6 4.68629 8.68629 2 12 2C15.3137 2 18 4.68629 18 8V10"
-                    stroke="#adadad"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"></path>
-                </g>
-              </svg>
-              <div className="login-password-icon">
-                {showPassword ? (
-                  <EyeOutlined onClick={() => setShowPassword(false)} />
-                ) : (
-                  <EyeInvisibleOutlined onClick={() => setShowPassword(true)} />
-                )}
-              </div>
-            </div>
-            {errors.password && <Alert message="שדה חובה" type="error" showIcon />}
+            </Form.Item>
+            <a className="forgot-password" onClick={() => navigate("/")}>
+              שכחת סיסמה?
+            </a>
+            <Form.Item>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                התחבר
+              </Button>
+            </Form.Item>
+            {errorMessage && <Alert className="server-error" message={errorMessage} type="error" showIcon />}
           </div>
-          <a className="forgot-password" onClick={() => navigate("/")}>
-            שכחת סיסמה?
-          </a>
-          <button className="button-large login-button">התחבר</button>
-          {errorMessage && <Alert className="server-error" message={errorMessage} type="error" showIcon />}
-        </form>
+        </Form>
       ) : (
-        <Form form={form} onFinish={handleChangePassword} className="change-password-form">
+        <Form
+          form={changePasswordForm}
+          onFinish={handleChangePassword}
+          layout="vertical"
+          className="change-password-form">
           <h2>שינוי סיסמה ראשונית</h2>
           <Form.Item
             name="newPassword"
+            label="סיסמה חדשה"
             hasFeedback
             rules={[
               { required: true, message: "חובה להזין סיסמה חדשה" },
               { min: 8, message: "הסיסמה חייבת להכיל לפחות 8 תווים" },
               {
                 pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                message: "הסיסמה חייבת להכיל אות גדולה, אות קטנה, מספר ותו מיוחד"
-              }
+                message: "הסיסמה חייבת להכיל אות גדולה, אות קטנה, מספר ותו מיוחד",
+              },
             ]}>
             <Input.Password
-              placeholder="סיסמה חדשה"
+              placeholder="הכנס סיסמה חדשה"
               iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
             />
           </Form.Item>
 
           <Form.Item
             name="confirmPassword"
+            label="אימות סיסמה"
             dependencies={["newPassword"]}
             hasFeedback
             rules={[
@@ -226,11 +223,11 @@ const Login = () => {
                     return Promise.resolve();
                   }
                   return Promise.reject(new Error("הסיסמאות אינן תואמות"));
-                }
-              })
+                },
+              }),
             ]}>
             <Input.Password
-              placeholder="אימות סיסמה"
+              placeholder="אמת סיסמה"
               iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
             />
           </Form.Item>

@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import Grade from "../models/grades.js";
 import Submission from "../models/submission.js";
-import NumericValue from "../models/numericValues.js";
 
 const defaultLetters = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E", "F"];
 
@@ -75,17 +74,32 @@ export const addGrade = async (req, res) => {
 
 // Update numeric values for grades
 export const updateNumericValues = async (req, res) => {
-  const { updatedValues } = req.body;
+  const { updatedValues, name } = req.body;
 
   try {
-    for (const [letter, value] of Object.entries(updatedValues)) {
-      await NumericValue.findOneAndUpdate({ letter }, { value }, { upsert: true, new: true });
+    const submissions = await Submission.find({ name });
+    for (const submission of submissions) {
+      if (submission.editable === false) {
+        continue;
+      }
+      for (const [letter, value] of Object.entries(updatedValues)) {
+        const numericValue = submission.numericValues.find((nv) => nv.letter === letter);
+        if (numericValue) {
+          numericValue.value = value;
+        } else {
+          submission.numericValues.push({ letter, value });
+        }
+      }
+      await submission.save();
     }
-    const updatedNumericValues = await NumericValue.find({});
+
+    // Fetch updated numeric values
+    const updatedNumericValues = submissions.flatMap((submission) => submission.numericValues);
     const letterToNumber = defaultLetters.reduce((acc, letter) => {
       acc[letter] = updatedNumericValues.find((nv) => nv.letter === letter)?.value || null;
       return acc;
     }, {});
+
     res.status(200).json({ message: "Numeric values updated successfully", letterToNumber });
   } catch (error) {
     console.log("Error updating numeric values:", error);
@@ -93,54 +107,84 @@ export const updateNumericValues = async (req, res) => {
   }
 };
 
-export const getNumericValues = async (req, res) => {
+export const getAllNumericValues = async (req, res) => {
   try {
-    const numericValues = await NumericValue.find({});
-    const letterToNumber = defaultLetters.reduce((acc, letter) => {
-      acc[letter] = numericValues.find((nv) => nv.letter === letter)?.value || null;
-      return acc;
-    }, {});
-    res.status(200).json(letterToNumber);
+    // Get all unique submission names with graded submissions
+    const submissionNames = await Submission.distinct("name", { isGraded: true });
+
+    // Prepare the grouped values
+    const groupedValues = {};
+
+    // Iterate through each submission name
+    for (const name of submissionNames) {
+      // Find all submissions with this specific name
+      const submissions = await Submission.find({ name });
+
+      // Initialize the group with default null values for all letters
+      const groupValues = {
+        name,
+        ...defaultLetters.reduce((obj, letter) => ({ ...obj, [letter]: null }), {}),
+      };
+
+      // Populate the group's values
+      for (const submission of submissions) {
+        for (const letter of defaultLetters) {
+          const existingValue = submission.numericValues.find((nv) => nv.letter === letter);
+
+          if (!existingValue) {
+            // If no existing value, create a new one
+            const newValue = { letter, value: 0 };
+            submission.numericValues.push(newValue);
+            groupValues[letter] = 0;
+          } else {
+            // Use existing value
+            groupValues[letter] = existingValue.value;
+          }
+        }
+        await submission.save();
+      }
+
+      // Store the group values
+      groupedValues[name] = groupValues;
+    }
+
+    // Convert to array and send response
+    res.status(200).json(Object.values(groupedValues));
   } catch (error) {
-    console.log("Error getting numeric values:", error);
-    res.status(500).json({ message: "Error getting numeric values" });
+    console.log("Error getting all numeric values:", error);
+    res.status(500).json({ message: "Error getting all numeric values" });
   }
 };
 
-// Update grade (override by coordinator)
-export const updateGrade = async (req, res) => {
-  const { grade, comment } = req.body;
+export const changeFinalGrade = async (req, res) => {
   const { id } = req.params;
-  const numericValueDoc = await NumericValue.findOne({ letter: grade });
-  const numericGrade = numericValueDoc ? numericValueDoc.value : null;
-
-  if (!grade) {
-    return res.status(400).json({ message: "חייב להזין ציון" });
-  }
-  if (numericGrade === null) {
-    return res.status(400).json({ message: "הציון חייב להיות בין (0) ל-(100)" });
-  }
+  const { newGrade, comment } = req.body;
 
   try {
-    const gradeToUpdate = await Grade.findById(id);
+    const submission = await Submission.findById(id);
 
-    if (!gradeToUpdate) {
-      return res.status(404).json({ message: "הציון לא נמצא" });
+    if (!submission) {
+      return res.status(404).json({ message: "ההגשה לא נמצאה" });
     }
 
-    gradeToUpdate.overridden = {
+    const oldGrades = submission.overridden ? submission.overridden.oldGrades : [];
+    oldGrades.push({
+      grade: submission.finalGrade,
+      comment: comment ? comment : "לא ניתנה סיבה",
+    });
+
+    submission.overridden = {
       by: req.user._id,
-      newGrade: grade,
-      numericGrade,
-      comment: comment || "הציון התעדכן על ידי הרכז",
+      oldGrades,
+      newGrade,
     };
+    submission.finalGrade = newGrade;
+    await submission.save();
 
-    await gradeToUpdate.save();
-
-    res.status(200).json({ message: "הציון עודכן בהצלחה" });
+    res.status(200).json({ message: "הציון הסופי עודכן בהצלחה" });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "שגיאה בעדכון הציון" });
+    console.log("Error changing final grade:", error);
+    res.status(500).json({ message: "Error changing final grade" });
   }
 };
 
@@ -171,29 +215,61 @@ export const getGradeBySubmission = async (req, res) => {
   }
 };
 
-export const endJudgingPeriod = async (req, res) => {
-  const { submissionName } = req.body;
+export const publishGrades = async (req, res) => {
+  const { submissionName, group } = req.body;
   try {
     const submissions = await Submission.find({ name: submissionName }).populate("grades");
-
     for (const submission of submissions) {
-      submission.editable = false;
+      if (submission.editable === false) {
+        continue;
+      }
+
+      let totalGrade = 0;
+      let gradeCount = 0;
+      let allGradesHaveNumericValue = true;
+      let allGradesHaveVideoQuality = true;
+
       for (const grade of submission.grades) {
-        if (grade.numericGrade === null && grade.grade) {
-          const numericValueDoc = await NumericValue.findOne({ letter: grade.grade });
+        if (grade.numericGrade === null && grade.grade !== null) {
+          const numericValueDoc = submission.numericValues.find((nv) => nv.letter === grade.grade);
           if (!numericValueDoc) {
             return res.status(400).json({ message: `Missing numeric value for grade ${grade.grade}` });
           }
           grade.numericGrade = numericValueDoc.value;
+          grade.editable = false;
           await grade.save();
         }
+        if (grade.numericGrade !== null) {
+          totalGrade += grade.numericGrade;
+          gradeCount++;
+        } else {
+          allGradesHaveNumericValue = false;
+        }
+        if (grade.videoQuality !== undefined && grade.videoQuality !== null && grade.editable) {
+          grade.editable = false;
+          await grade.save();
+        }
+        if (grade.videoQuality === undefined || grade.videoQuality === null) {
+          allGradesHaveVideoQuality = false;
+        }
+      }
+
+      if (allGradesHaveNumericValue && gradeCount > 0) {
+        let averageGrade = totalGrade / gradeCount;
+        submission.finalGrade = Math.round(averageGrade);
+        submission.editable = false;
+      } else {
+        submission.finalGrade = null;
+      }
+      if (allGradesHaveVideoQuality && !allGradesHaveNumericValue) {
+        submission.editable = false;
       }
       await submission.save();
     }
 
-    res.status(200).json({ message: "Judging period ended and numeric values attached successfully" });
+    res.status(200).json({ message: "Grades were published" });
   } catch (error) {
-    console.log("Error ending judging period:", error);
-    res.status(500).json({ message: "Error ending judging period" });
+    console.log("Error while publishing grades:", error);
+    res.status(500).json({ message: "Error while publishing grades" });
   }
 };

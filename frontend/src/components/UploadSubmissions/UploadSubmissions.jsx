@@ -100,7 +100,10 @@ const UploadSubmissions = () => {
         withCredentials: true,
       });
       const data = response.data || [];
-      if (!Array.isArray(data)) {
+      if (data.message === "No project found") {
+        setSubmissions([]);
+        return;
+      } else if (!Array.isArray(data)) {
         throw new Error("Invalid data format");
       }
       setSubmissions(data);

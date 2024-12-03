@@ -307,15 +307,8 @@ const ManageProjects = () => {
 
   const handleEditProject = (project) => {
     getUsersNoProjects();
-    console.log(project);
     setEditProjectData({
-      _id: project.projectInfo._id,
-      title: project.projectInfo.title,
-      description: project.projectInfo.description,
-      suitableFor: project.projectInfo.suitableFor,
-      year: project.projectInfo.year,
-      type: project.projectInfo.type,
-      continues: project.projectInfo.continues,
+      ...project.projectInfo,
     });
     setIsEditing(true);
   };
@@ -387,11 +380,11 @@ const ManageProjects = () => {
   };
 
   const onConfirmEdit = async () => {
-    const { title, description, year, suitableFor, type, continues } = form.getFieldsValue();
+    const { title, description, year, suitableFor, type, externalEmail, continues } = form.getFieldsValue();
     try {
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/edit-project/${editProjectData._id}`,
-        { title, description, year, suitableFor, type, continues },
+        { title, description, year, suitableFor, type, externalEmail, continues },
         {
           withCredentials: true,
         }
@@ -401,23 +394,25 @@ const ManageProjects = () => {
         content: `הפרויקט ${response.data.project.title} עודכן בהצלחה`,
         duration: 2,
       });
-      const projectUpdate = projects.map((project) => {
-        if (project.key === editProjectData._id) {
-          return {
-            ...project,
-            title,
-            projectInfo: {
-              ...project.projectInfo,
-              title,
-              description,
-              year,
-              suitableFor,
-              type,
-              continues,
-            },
-          };
-        }
-      });
+      const projectUpdate = projects.map(
+        (project) =>
+          project.key === editProjectData._id
+            ? {
+                ...project,
+                title,
+                projectInfo: {
+                  ...project.projectInfo,
+                  title,
+                  description,
+                  year,
+                  suitableFor,
+                  type,
+                  externalEmail,
+                  continues,
+                },
+              }
+            : project // Return the original project if not edited
+      );
       setProjects(projectUpdate);
       handleCancel();
     } catch (error) {
@@ -484,7 +479,16 @@ const ManageProjects = () => {
         cancelText="בטל"
         width={"70rem"}>
         <Form form={form} layout="vertical" initialValues={editProjectData}>
-          <Form.Item name="title" label="שם הפרויקט">
+          <Form.Item
+            name="title"
+            label="שם הפרויקט"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה להזין שם לפרויקט",
+              },
+            ]}>
             <Input />
           </Form.Item>
           <Form.Item
@@ -550,7 +554,7 @@ const ManageProjects = () => {
               <Option value="אחר">אחר</Option>
             </Select>
           </Form.Item>
-          {studentInitiative && (
+          {editProjectData.externalEmail && (
             <Form.Item
               className="create-project-form-item"
               label="מייל גורם חיצוני"

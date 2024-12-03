@@ -378,7 +378,7 @@ export const updateProject = async (req, res) => {
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
-    const { title, description, year, suitableFor, type, continues } = req.body;
+    const { title, description, year, suitableFor, type, externalEmail, continues } = req.body;
     if (!title || !description || !year || !suitableFor || !type) {
       return res.status(400).send({ message: "Missing required fields" });
     }
@@ -399,6 +399,9 @@ export const updateProject = async (req, res) => {
     if (type !== project.type) {
       updatedFields.push({ field: "type", oldValue: project.type, newValue: type });
     }
+    if (externalEmail !== project.externalEmail) {
+      updatedFields.push({ field: "externalEmail", oldValue: project.externalEmail, newValue: externalEmail });
+    }
     if (continues !== project.continues) {
       updatedFields.push({ field: "continues", oldValue: project.continues, newValue: continues });
     }
@@ -410,6 +413,7 @@ export const updateProject = async (req, res) => {
     project.year = year;
     project.suitableFor = suitableFor;
     project.type = type;
+    project.externalEmail = externalEmail;
     project.continues = continues;
 
     await project.save();

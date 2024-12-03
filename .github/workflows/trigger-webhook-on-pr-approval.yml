@@ -1,0 +1,26 @@
+name: Trigger Webhook on Pull Request Approval
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  trigger_webhook:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'production'
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Send webhook to server
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "https://github.jce.ac/webhook/g7dh5a3c-8a24-4fghe3-gdgr-c2f542a8fghs92")
+          if [ $response -ne 200 ]; then
+            echo "Webhook call failed with status $response"
+            exit 1
+          else
+            echo "Webhook call succeeded with status $response"
+          fi

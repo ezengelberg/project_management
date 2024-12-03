@@ -20,9 +20,9 @@ import {
   Badge,
   Space,
   Divider,
-  Tooltip
+  Tooltip,
 } from "antd";
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 
@@ -44,8 +44,9 @@ const Submissions = () => {
   const [gradeFormOpen, setGradeFormOpen] = useState(false);
   const [gradeToOverride, setGradeToOverride] = useState(null);
   const [submissionData, setSubmissionData] = useState([]);
-  const [submissionNames, setSubmissionNames] = useState([]);
+  const [submissionDetails, setSubmissionDetails] = useState([]);
   const [submissionType, setSubmissionType] = useState(null);
+  const [showReview, setShowReview] = useState(null);
   const [deleteAllSubmissions, setDeleteAllSubmissions] = useState(false);
   const [deleteAllSubmissionsConfirm, setDeleteAllSubmissionsConfirm] = useState(null);
   const [deleteSubmission, setDeleteSubmission] = useState(null);
@@ -59,7 +60,7 @@ const Submissions = () => {
   const fetchActiveProjects = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-active-projects`, {
-        withCredentials: true
+        withCredentials: true,
       });
       setProjects(response.data);
     } catch (error) {
@@ -72,8 +73,8 @@ const Submissions = () => {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
-          withCredentials: true
-        }
+          withCredentials: true,
+        },
       );
 
       response.data.map((project) => {
@@ -84,10 +85,39 @@ const Submissions = () => {
         return project;
       });
       setSubmissionData(response.data);
-      const submissionNames = [
-        ...new Set(response.data.flatMap((submission) => submission.submissions.map((sub) => sub.name)))
+      const submissionDetails = [
+        ...new Map(
+          response.data
+            .flatMap((submission) =>
+              submission.submissions.map((sub) => ({
+                name: sub.name,
+                info: sub.info,
+              })),
+            )
+            .map((sub) => [
+              sub.name, // Use the name as key
+              sub, // Keep the object with name and info as the value
+            ]),
+        ).values(),
       ];
-      setSubmissionNames(submissionNames);
+
+      const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
+        const existing = self.find(
+          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
+        );
+
+        if (!existing) return submission;
+
+        // If both have info, select the one with the longer info
+        if (submission.info && existing.info) {
+          return submission.info.length > existing.info.length ? submission : existing;
+        }
+
+        // If one has info, return the one with info
+        return submission.info ? submission : existing;
+      });
+
+      setSubmissionDetails(filteredSubmissionDetails);
     } catch (error) {
       console.error("Error fetching submissions:", error);
       setSubmissionData([]);
@@ -105,20 +135,21 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/copy-judges`,
         {
           sourceSubmission: values.sourceSubmission,
-          destinationSubmission: values.destinationSubmission
+          destinationSubmission: values.destinationSubmission,
         },
         {
-          withCredentials: true
-        }
+          withCredentials: true,
+        },
       );
       message.open({
         type: "success",
-        content: "העתקת השופטים הושלמה בהצלחה"
+        content: "העתקת השופטים הושלמה בהצלחה",
       });
     } catch (error) {
       console.error("Error copying judges:", error);
     } finally {
-      handleClose();
+      formJudges.resetFields();
+      setCopyJudges(false);
       fetchSubmissions();
     }
   };
@@ -128,9 +159,9 @@ const Submissions = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/update/${gradeToOverride.key}`,
         {
-          grade: values.newGrade
+          grade: values.newGrade,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
     } catch (error) {
       console.error("Error overriding grade:", error);
@@ -138,48 +169,45 @@ const Submissions = () => {
   };
 
   const handleDeleteSpecific = async (values) => {
-    console.log(values);
-    console.log(values.submission.key);
     try {
       const response = await axios.delete(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
-          withCredentials: true
-        }
+          withCredentials: true,
+        },
       );
       message.open({
         type: "success",
-        content: "הגשה נמחקה בהצלחה"
+        content: "הגשה נמחקה בהצלחה",
       });
       setDeleteSubmission(null);
       setSubmissionInfo(null);
     } catch (error) {
       console.error("Error deleting submission:", error);
     } finally {
-      handleClose();
       fetchSubmissions();
     }
   };
   const handleOkDelete = async (values) => {
-    console.log(values);
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-active-submissions`,
         {
-          submissionName: values.submissionName
+          submissionName: values.submissionName,
         },
         {
-          withCredentials: true
-        }
+          withCredentials: true,
+        },
       );
       message.open({
-        type: "success",
-        content: "הגשות נמחקו בהצלחה"
+        type: "info",
+        content: "הגשות נמחקו בהצלחה",
       });
+      setDeleteAllSubmissionsConfirm(null);
+      setDeleteAllSubmissions(false);
     } catch (error) {
       console.error("Error deleting submissions:", error);
     } finally {
-      handleClose();
       fetchSubmissions();
     }
   };
@@ -226,50 +254,50 @@ const Submissions = () => {
           submissionDate: values.submissionDate,
           submissionInfo: values.submissionInfo,
           isGraded: isGraded,
-          isReviewed: isReviewed
+          isReviewed: isReviewed,
         },
         {
-          withCredentials: true
-        }
+          withCredentials: true,
+        },
       );
-      if (submissionNames.includes(name)) {
+      if (submissionDetails.some((submission) => submission.name === name)) {
         message.open({
           type: "warning",
-          content: "הגשה עם שם זה כבר קיימת לחלק מהפרויקטים"
+          content: "הגשה עם שם זה כבר קיימת לחלק מהפרויקטים",
         });
       }
       message.open({
         type: "success",
-        content: "הגשה נפתחה בהצלחה"
+        content: "הגשה נפתחה בהצלחה",
       });
     } catch (error) {
       console.error("Error creating submission:", error);
     } finally {
-      handleClose();
+      formAll.resetFields();
+      setAllSubmissions(false);
       fetchSubmissions();
     }
   };
 
   const handleOkEditSpecific = async (values) => {
-    console.log(values);
-    console.log(specificSubmissionInfo);
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-specific-submission/${specificSubmissionInfo.submission.key}`,
         {
           name: values.submissionName,
-          submissionDate: values.submissionDate
+          submissionDate: values.submissionDate,
         },
         {
-          withCredentials: true
-        }
+          withCredentials: true,
+        },
       );
       message.info(`הגשה ${specificSubmissionInfo.submission.name} נמחקה בהצלחה`);
     } catch (error) {
       console.error("Error updating submission:", error);
       message.error("שגיאה בעדכון ההגשה");
     } finally {
-      handleClose();
+      editSpecificSubmission.resetFields();
+      setSpecificSubmissionInfo(null);
       fetchSubmissions();
     }
   };
@@ -282,18 +310,22 @@ const Submissions = () => {
           submissionOldName: values.submissionOldName,
           SubmissionName: values.SubmissionName,
           submissionDate: values.submissionDate,
-          submissionInfo: values.submissionInfo
+          submissionInfo: values.submissionInfo,
         },
         {
-          withCredentials: true
-        }
+          withCredentials: true,
+        },
       );
       message.open({
         type: "success",
-        content: "הגשה עודכנה בהצלחה"
+        content: "הגשה עודכנה בהצלחה",
       });
     } catch (error) {
       console.error("Error updating submission:", error);
+    } finally {
+      editSubmission.resetFields();
+      setEditSubmissions(false);
+      fetchSubmissions();
     }
   };
 
@@ -343,57 +375,23 @@ const Submissions = () => {
           submissionInfo: values.submissionInfo,
           projects: values.projects,
           isGraded: isGraded,
-          isReviewed: isReviewed
+          isReviewed: isReviewed,
         },
         {
-          withCredentials: true
-        }
+          withCredentials: true,
+        },
       );
       message.open({
         type: "success",
-        content: "הגשה נפתחה בהצלחה"
+        content: "הגשה נפתחה בהצלחה",
       });
     } catch (error) {
       console.error("Error creating submission:", error);
     } finally {
-      handleClose();
-      fetchSubmissions();
-    }
-  };
-
-  const handleClose = () => {
-    if (allSubmissions) {
-      formAll.resetFields();
-      setAllSubmissions(false);
-    }
-
-    if (specificSubmission) {
       formSpecific.resetFields();
       setSpecificSubmission(false);
+      fetchSubmissions();
     }
-
-    if (copyJudges) {
-      formJudges.resetFields();
-      setCopyJudges(false);
-    }
-
-    if (gradeFormOpen) {
-      gradeForm.resetFields();
-      setGradeFormOpen(false);
-      setGradeToOverride(null);
-    }
-
-    if (editSpecificSubmission) {
-      editSpecificSubmission.resetFields();
-      setSpecificSubmissionInfo(null);
-    }
-    if (deleteAllSubmissions || deleteAllSubmissionsConfirm !== null) {
-      deleteSubmissionsForm.resetFields();
-      setDeleteAllSubmissions(false);
-      setDeleteAllSubmissionsConfirm(null);
-    }
-
-    setSubmissionType(null);
   };
 
   const onOkHandlerSpecific = () => {
@@ -496,12 +494,13 @@ const Submissions = () => {
           </a>
         );
       },
-      width: "25%"
+      width: "25%",
     },
     {
       title: "הגשות",
       key: "submissions",
       render: (_, record) => {
+        // console.log(record);
         // Ensure submissions array exists
         const submissions = record.submissions || [];
         return (
@@ -511,7 +510,11 @@ const Submissions = () => {
               const waitingCheck = grades.some((grade) => grade.grade === null);
               return (
                 <div className="table-col-div" key={index}>
-                  <div className="table-col" onClick={() => setSubmissionInfo({ project: record, submission: sub })}>
+                  <div
+                    className="table-col"
+                    onClick={() => {
+                      setSubmissionInfo({ project: record, submission: sub });
+                    }}>
                     <div className="submission-title">
                       {(sub.name.length > 25 ? `${sub.name.substring(0, 25)}...` : sub.name) || ""}
                     </div>
@@ -523,16 +526,29 @@ const Submissions = () => {
                             minute: "2-digit",
                             day: "2-digit",
                             month: "2-digit",
-                            year: "numeric"
+                            year: "numeric",
                           })
                         : ""}
                     </span>
                     <div className="table-col-info">
                       <Badge
                         color={sub.submitted ? "green" : "orange"}
-                        text={sub.submitted ? `הוגש${sub.isLate ? " באיחור" : ""}` : "מחכה להגשה"}
+                        text={sub.submitted ? `הוגש${sub.isLate ? " באיחור" : ""}` : "ממתין להגשה"}
                       />
-                      <div>{waitingCheck && sub.submitted && <Badge color="blue" text="מחכה לבדיקה" />}</div>
+                      <div>
+                        {waitingCheck && sub.submitted ? (
+                          <Badge color="blue" text="מחכה לבדיקה" />
+                        ) : !waitingCheck && sub.submitted && sub.finalGrade === null ? (
+                          <Badge color="purple" text="מחכה לפרסום" />
+                        ) : (
+                          sub.finalGrade !== null && (
+                            <Badge
+                              color="pink"
+                              text={`ציון סופי: ${sub.overridden?.newGrade ? sub.overridden.newGrade : sub.finalGrade}`}
+                            />
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
                   {index !== submissions.length - 1 && submissions.length > 1 && (
@@ -544,8 +560,8 @@ const Submissions = () => {
           </div>
         );
       },
-      width: "75%"
-    }
+      width: "75%",
+    },
   ];
 
   const submissionOptions = [
@@ -553,44 +569,45 @@ const Submissions = () => {
     { label: "דוח אלפה", value: "alphaReport", isGraded: true, isReviewed: true },
     { label: "דוח סופי", value: "finalReport", isGraded: false, isReviewed: true },
     { label: "מבחן סוף", value: "finalExam", isGraded: true, isReviewed: false },
-    { label: "אחר", value: "other" }
+    { label: "אחר", value: "other" },
   ];
 
   const gradeColumns = [
     {
       title: "שופט",
       dataIndex: "judgeName",
-      key: "judgeName"
+      key: "judgeName",
     },
     {
       title: "ציון",
       dataIndex: "grade",
       key: "grade",
       render: (text, record) => (
-        <Space>
-          {record.grade !== null ? record.grade : "טרם נבדק"}
-          {record.grade !== null && (
-            <EditOutlined
-              onClick={(e) => {
-                e.stopPropagation();
-                setGradeToOverride(record);
-                setGradeFormOpen(true);
-                gradeForm.setFieldsValue({
-                  oldGrade: record.grade,
-                  newGrade: record.grade
-                });
-              }}
-            />
-          )}
-        </Space>
-      )
+        <Space className="grade-table">{record.grade !== null ? record.grade : "טרם נבדק"}</Space>
+      ),
     },
     {
-      title: "הערות",
+      title: "משוב",
       dataIndex: "comments",
       key: "comments",
-      render: (text) => text || "אין הערות"
-    }
+      render: (text, record) => (
+        <Space>
+          {record.grade !== null ? (
+            submissionInfo.submission.isReviewed ? (
+              <a href="#">
+                <Tooltip title="לצפיה במשוב">
+                  <EyeOutlined style={{ fontSize: "2.5rem" }} onClick={() => setShowReview(record)} />
+                </Tooltip>
+              </a>
+            ) : (
+              <span>הגשה ללא משוב</span>
+            )
+          ) : (
+            "טרם נבדק"
+          )}
+        </Space>
+      ),
+    },
   ];
 
   return (
@@ -602,6 +619,7 @@ const Submissions = () => {
         <Button type="primary" onClick={() => setSpecificSubmission(true)}>
           פתיחת הגשה לפרויקטים נבחרים
         </Button>
+        {/* work in progress, doesn't work */}
         <Button type="primary" onClick={() => setCopyJudges(true)}>
           העתקת שופטים
         </Button>
@@ -630,7 +648,10 @@ const Submissions = () => {
         cancelText="בטל"
         okText="אשר מחיקה"
         okButtonProps={{ danger: true }}
-        onCancel={() => setDeleteAllSubmissions(false)}
+        onCancel={() => {
+          setDeleteAllSubmissions(false);
+          deleteSubmissionsForm.resetFields();
+        }}
         onOk={() => {
           deleteSubmissionsForm
             .validateFields()
@@ -652,13 +673,13 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה לבחור הגשה"
-              }
+                message: "חובה לבחור הגשה",
+              },
             ]}>
             <Select placeholder="בחר הגשה">
-              {submissionNames.map((submission, index) => (
-                <Option key={index} value={submission}>
-                  {submission}
+              {submissionDetails.map((submission, index) => (
+                <Option key={index} value={submission.name}>
+                  {submission.name}
                 </Option>
               ))}
             </Select>
@@ -682,10 +703,13 @@ const Submissions = () => {
       </Modal>
       <Modal
         title={`עריכת פרטי הגשה`}
-        open={specificSubmissionInfo != null}
+        open={specificSubmissionInfo !== null}
         cancelText="סגור"
         okText="ערוך"
-        onCancel={() => setSpecificSubmissionInfo(null)}
+        onCancel={() => {
+          editSpecificSubmission.resetFields();
+          setSpecificSubmissionInfo(null);
+        }}
         onOk={() => {
           editSpecificSubmission
             .validateFields()
@@ -707,8 +731,8 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה להזין שם ההגשה"
-              }
+                message: "חובה להזין שם ההגשה",
+              },
             ]}>
             <Input />
           </Form.Item>
@@ -719,18 +743,24 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה להזין תאריך הגשה"
-              }
+                message: "חובה להזין תאריך הגשה",
+              },
             ]}>
             <DatePicker
               className="date-picker"
               locale={locale} // Add the Hebrew locale here
               direction="rtl"
               showTime={{
-                format: "HH:mm"
+                format: "HH:mm",
               }}
               format="DD-MM-YYYY HH:mm"
             />
+          </Form.Item>
+          <Form.Item name="submissionChecklist">
+            <Checkbox.Group>
+              <Checkbox value="isGraded">מתן ציון</Checkbox>
+              <Checkbox value="isReviewed">מתן משוב</Checkbox>
+            </Checkbox.Group>
           </Form.Item>
         </Form>
       </Modal>
@@ -763,7 +793,7 @@ const Submissions = () => {
                         editSpecificSubmission.setFieldsValue({
                           projectName: submissionInfo.project.title,
                           submissionName: submissionInfo.submission.name,
-                          submissionDate: dayjs(submissionInfo.submission.submissionDate)
+                          submissionDate: dayjs(submissionInfo.submission.submissionDate),
                         });
                         setSpecificSubmissionInfo(submissionInfo);
                         setSubmissionInfo(null);
@@ -778,6 +808,12 @@ const Submissions = () => {
                 <div className="detail-item-header">שם ההגשה:</div>
                 <div className="detail-item-content">{submissionInfo.submission.name}</div>
               </div>
+              {submissionInfo.submission.info && (
+                <div className="detail-item">
+                  <div className="detail-item-header">הנחיות הגשה:</div>
+                  <div className="detail-item-content">{submissionInfo.submission.info}</div>
+                </div>
+              )}
               <div className="detail-item">
                 <div className="detail-item-header">סטטוס ההגשה:</div>
                 <div className="detail-item-content">
@@ -795,7 +831,7 @@ const Submissions = () => {
                 <div className="detail-item-header">סטטוס בדיקה:</div>
                 <div className="detail-item-content">
                   {submissionInfo.submission.submitted &&
-                  submissionInfo.submission.grades.some((grade) => (grade.grade = null))
+                  submissionInfo.submission.grades.some((grade) => grade.grade === null)
                     ? "ממתין לבדיקה"
                     : submissionInfo.submission.submitted
                     ? "נבדק"
@@ -810,7 +846,7 @@ const Submissions = () => {
                     minute: "2-digit",
                     day: "2-digit",
                     month: "2-digit",
-                    year: "numeric"
+                    year: "numeric",
                   })}
                 </div>
               </div>
@@ -823,11 +859,21 @@ const Submissions = () => {
                         minute: "2-digit",
                         day: "2-digit",
                         month: "2-digit",
-                        year: "numeric"
+                        year: "numeric",
                       })
                     : "ממתין להגשה"}
                 </div>
               </div>
+              {submissionInfo.submission.finalGrade && (
+                <div className="detail-item">
+                  <div className="detail-item-header">ציון סופי</div>
+                  <div className="detail-item-content">
+                    {submissionInfo.submission.overridden.newGrade
+                      ? submissionInfo.submission.overridden.newGrade
+                      : submissionInfo.submission.finalGrade}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="submission-grades">
@@ -835,55 +881,56 @@ const Submissions = () => {
               <Table
                 columns={gradeColumns}
                 dataSource={submissionInfo.submission.grades.map((grade, index) => ({
+                  ...grade,
                   key: grade._id || index,
-                  judgeName: grade.judgeName,
-                  grade: grade.grade,
-                  comments: grade.comments
                 }))}
                 pagination={false}
               />
             </div>
-
-            {/* {submissionInfo.submission.grades.length > 0 && (
-              <div className="grade-summary">
-                <h3>סיכום ציונים</h3>
-                <Row gutter={[16, 16]}>
-                  <Col span={8}>
-                    <Statistic
-                      title="ממוצע"
-                      value={
-                        submissionInfo.submission.grades
-                          .filter((grade) => grade.grade !== null)
-                          .reduce((acc, curr) => acc + curr.grade, 0) /
-                        submissionInfo.submission.grades.filter((grade) => grade.grade !== null).length
-                      }
-                      precision={1}
-                    />
-                  </Col>
-                  <Col span={8}>
-                    <Statistic
-                      title="ציון מקסימלי"
-                      value={Math.max(
-                        ...submissionInfo.submission.grades
-                          .filter((grade) => grade.grade !== null)
-                          .map((grade) => grade.grade)
-                      )}
-                    />
-                  </Col>
-                  <Col span={8}>
-                    <Statistic
-                      title="ציון מינימלי"
-                      value={Math.min(
-                        ...submissionInfo.submission.grades
-                          .filter((grade) => grade.grade !== null)
-                          .map((grade) => grade.grade)
-                      )}
-                    />
-                  </Col>
-                </Row>
-              </div>
-            )} */}
           </div>
+        )}
+      </Modal>
+      <Modal
+        title={`משוב עבור הגשה ${submissionInfo?.submission?.name} של ${submissionInfo?.project?.title}`}
+        open={showReview !== null}
+        cancelText="סגור"
+        onCancel={() => setShowReview(null)}
+        okButtonProps={{ style: { display: "none" } }}>
+        <div className="details-title">
+          <h3>{submissionInfo?.project?.title}</h3>
+          <p>הגשה - {submissionInfo?.submission?.name}</p>
+          <p>נבדק ע"י: {showReview?.judgeName}</p>
+        </div>
+        <div className="details-grade">
+          {submissionInfo?.submission?.isGraded && (
+            <>
+              <span>ציון:</span> <p>{showReview?.grade ? showReview?.grade : "לא ניתן ציון"}</p>
+            </>
+          )}
+        </div>
+        {submissionInfo?.submission?.isReviewed && (
+          <>
+            <p>
+              <strong>איכות הוידאו:</strong> {showReview?.videoQuality}
+            </p>
+            <p>
+              <strong>איכות העבודה:</strong> {showReview?.workQuality}
+            </p>
+            <p>
+              <strong>איכות הכתיבה:</strong> {showReview?.writingQuality}
+            </p>
+            {submissionDetails?.commits && (
+              <p>
+                <strong>מספר הקומיטים:</strong> {showReview?.commits}
+              </p>
+            )}
+            {showReview?.journalActive && (
+              <p>
+                <strong>האם היומן פעיל:</strong>{" "}
+                {showReview?.journalActive === "yes" ? "כן" : showReview?.journalActive === "no" ? "לא" : ""}
+              </p>
+            )}
+          </>
         )}
       </Modal>
       <Modal
@@ -892,7 +939,11 @@ const Submissions = () => {
         okText="ערוך ציון"
         cancelText="סגור"
         onOk={() => onOkHandlerGrade()}
-        onCancel={() => handleClose()}>
+        onCancel={() => {
+          gradeForm.resetFields();
+          setGradeFormOpen(false);
+          setGradeToOverride(null);
+        }}>
         <Form layout="vertical" form={gradeForm}>
           <Form.Item label="ציון קודם" name="oldGrade">
             <Input disabled />
@@ -904,8 +955,8 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה להזין ציון בין (0) ל (100)"
-              }
+                message: "חובה להזין ציון בין (0) ל (100)",
+              },
             ]}>
             <InputNumber className="input-field-override-grade" min={0} max={100} />
           </Form.Item>
@@ -929,15 +980,24 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה לבחור הגשת מקור"
-              }
+                message: "חובה לבחור הגשת מקור",
+              },
             ]}>
             <Select
               placeholder="בחר הגשה"
-              onChange={(value) => editSubmission.setFieldsValue({ SubmissionName: value })}>
-              {submissionNames.map((submission, index) => (
-                <Option key={index} value={submission}>
-                  {submission}
+              onChange={(value) => {
+                // Find the selected submission details
+                const selectedSubmission = submissionDetails.find((submission) => submission.name === value);
+
+                // Set form fields with the selected submission details
+                editSubmission.setFieldsValue({
+                  SubmissionName: value,
+                  submissionInfo: selectedSubmission?.info || "", // Populate `submissionInfo` if available
+                });
+              }}>
+              {submissionDetails.map((submission, index) => (
+                <Option key={index} value={submission.name}>
+                  {submission.name}
                 </Option>
               ))}
             </Select>
@@ -956,7 +1016,7 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה להזין תאריך הגשה"
+                message: "חובה להזין תאריך הגשה",
               },
               {
                 validator: (_, value) => {
@@ -969,15 +1029,15 @@ const Submissions = () => {
                     return Promise.reject(new Error("לא ניתן לבחור תאריך ושעה שעברו"));
                   }
                   return Promise.resolve();
-                }
-              }
+                },
+              },
             ]}>
             <DatePicker
               className="date-picker"
               locale={locale} // Add the Hebrew locale here
               direction="rtl"
               showTime={{
-                format: "HH:mm"
+                format: "HH:mm",
               }}
               format="DD-MM-YYYY HH:mm"
             />
@@ -993,7 +1053,10 @@ const Submissions = () => {
         okText="העתק שופטים"
         cancelText="סגור"
         onOk={() => onOkHandlerJudges()}
-        onCancel={() => handleClose()}>
+        onCancel={() => {
+          formJudges.resetFields();
+          setCopyJudges(false);
+        }}>
         <Form layout="vertical" form={formJudges}>
           <Form.Item
             label="הגשת מקור"
@@ -1002,13 +1065,13 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה לבחור הגשת מקור"
-              }
+                message: "חובה לבחור הגשת מקור",
+              },
             ]}>
             <Select placeholder="בחר הגשת מקור">
-              {submissionNames.map((submission, index) => (
+              {submissionDetails.map((submission, index) => (
                 <Option key={index} value={submission.name}>
-                  {submission}
+                  {submission.name}
                 </Option>
               ))}
             </Select>
@@ -1020,13 +1083,13 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה לבחור הגשת יעד"
-              }
+                message: "חובה לבחור הגשת יעד",
+              },
             ]}>
             <Select placeholder="בחר הגשת יעד">
-              {submissionNames.map((submission, index) => (
+              {submissionDetails.map((submission, index) => (
                 <Option key={index} value={submission.name}>
-                  {submission}
+                  {submission.name}
                 </Option>
               ))}
             </Select>
@@ -1038,9 +1101,16 @@ const Submissions = () => {
         open={allSubmissions}
         okText="יצירת הגשה"
         cancelText="סגור"
-        onCancel={() => handleClose()}
+        onCancel={() => {
+          formAll.resetFields();
+          setAllSubmissions(false);
+          setSubmissionType(null);
+        }}
         onOk={onOkHandlerAll}>
-        <Form layout="vertical" form={formAll}>
+        <Form
+          layout="vertical"
+          form={formAll} // Ensure this line is present
+        >
           <Form.Item label="סוג הגשה" name="submissionType" hasFeedback>
             <Radio.Group
               optionType="button"
@@ -1059,8 +1129,8 @@ const Submissions = () => {
               rules={[
                 {
                   required: submissionType === "other",
-                  message: "חובה להזין שם ההגשה"
-                }
+                  message: "חובה להזין שם ההגשה",
+                },
               ]}>
               <Input />
             </Form.Item>
@@ -1072,15 +1142,15 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה להזין תאריך הגשה"
-              }
+                message: "חובה להזין תאריך הגשה",
+              },
             ]}>
             <DatePicker
               className="date-picker"
               locale={locale} // Add the Hebrew locale here
               direction="rtl"
               showTime={{
-                format: "HH:mm"
+                format: "HH:mm",
               }}
               format="DD-MM-YYYY HH:mm"
             />
@@ -1106,7 +1176,11 @@ const Submissions = () => {
         okText="יצירת הגשה"
         cancelText="סגור"
         onOk={() => onOkHandlerSpecific()}
-        onCancel={() => handleClose()}>
+        onCancel={() => {
+          formSpecific.resetFields();
+          setSpecificSubmission(false);
+          setSubmissionType(null);
+        }}>
         <Form layout="vertical" form={formSpecific}>
           {/* סוג הגשה */}
           <Form.Item label="סוג הגשה" name="submissionType" hasFeedback>
@@ -1114,7 +1188,18 @@ const Submissions = () => {
               optionType="button"
               buttonStyle="solid"
               options={submissionOptions}
-              onChange={(e) => setSubmissionType(e.target.value)}
+              onChange={(e) => {
+                const selectedName = submissionOptions.find((option) => option.value === e.target.value).label;
+                setSubmissionType(selectedName);
+                const selectedSubmission = submissionDetails.find((submission) => submission.name === selectedName);
+
+                // If a submission is found, update additional state or handle accordingly
+                if (selectedSubmission) {
+                  formSpecific.setFieldsValue({
+                    submissionInfo: selectedSubmission.info,
+                  });
+                }
+              }}
             />
           </Form.Item>
 
@@ -1127,8 +1212,8 @@ const Submissions = () => {
               rules={[
                 {
                   required: true,
-                  message: "חובה להזין שם ההגשה"
-                }
+                  message: "חובה להזין שם ההגשה",
+                },
               ]}>
               <Input />
             </Form.Item>
@@ -1143,8 +1228,8 @@ const Submissions = () => {
               {
                 type: "object", // Corrected the type from "array" to "object"
                 required: true,
-                message: "חובה להזין תאריך הגשה"
-              }
+                message: "חובה להזין תאריך הגשה",
+              },
             ]}>
             <DatePicker
               className="date-picker"
@@ -1167,8 +1252,8 @@ const Submissions = () => {
             rules={[
               {
                 required: true,
-                message: "חובה לבחור פרוייקטים"
-              }
+                message: "חובה לבחור פרוייקטים",
+              },
             ]}>
             <Select mode="multiple" placeholder="בחר פרוייקטים">
               {projects.map((project) => (

@@ -22,6 +22,7 @@ import CheckSubmissions from "./components/CheckSubmissions/CheckSubmissions";
 import GradeSubmission from "./components/GradeSubmission/GradeSubmission";
 import UploadSubmissions from "./components/UploadSubmissions/UploadSubmissions";
 import Notifications from "./components/Notifications/Notifications";
+import SubmissionStatus from "./components/SubmissionStatus/SubmissionStatus";
 
 function App() {
   return (
@@ -138,6 +139,14 @@ const MainLayout = () => {
                 element={
                   <ProtectedRoute>
                     <CheckSubmissions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/submission-status"
+                element={
+                  <ProtectedRoute>
+                    <SubmissionStatus />
                   </ProtectedRoute>
                 }
               />
