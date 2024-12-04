@@ -538,8 +538,18 @@ const Submissions = () => {
                     </span>
                     <div className="table-col-info">
                       <Badge
-                        color={sub.submitted ? "green" : "orange"}
-                        text={sub.submitted ? `הוגש${sub.isLate ? " באיחור" : ""}` : "ממתין להגשה"}
+                        color={sub.submitted ? (sub.isLate ? "darkgreen" : "green") : "orange"}
+                        text={
+                          sub.submitted
+                            ? `הוגש${
+                                sub.isLate
+                                  ? ` באיחור - ${Math.ceil(
+                                      (new Date(sub.uploadDate) - new Date(sub.submissionDate)) / (1000 * 60 * 60 * 24),
+                                    )} ימים`
+                                  : ""
+                              }`
+                            : "ממתין להגשה"
+                        }
                       />
                       <div>
                         {waitingCheck && sub.submitted ? (
@@ -828,10 +838,24 @@ const Submissions = () => {
                 <div className="detail-item-header">סטטוס ההגשה:</div>
                 <div className="detail-item-content">
                   <Badge
-                    status={submissionInfo.submission.submitted ? "success" : "warning"}
+                    color={
+                      submissionInfo.submission.submitted
+                        ? submissionInfo.submission.isLate
+                          ? "darkgreen"
+                          : "green"
+                        : "orange"
+                    }
                     text={
                       submissionInfo.submission.submitted
-                        ? `הוגש${submissionInfo.submission.isLate ? " באיחור" : ""}`
+                        ? `הוגש${
+                            submissionInfo.submission.isLate
+                              ? ` באיחור - ${Math.ceil(
+                                  (new Date(submissionInfo.submission.uploadDate) -
+                                    new Date(submissionInfo.submission.submissionDate)) /
+                                    (1000 * 60 * 60 * 24),
+                                )} ימים`
+                              : ""
+                          }`
                         : "ממתין להגשה"
                     }
                   />
