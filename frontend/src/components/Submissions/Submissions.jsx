@@ -575,6 +575,16 @@ const Submissions = () => {
         );
       },
       width: "75%",
+      filters: [
+        { text: "הוגש", value: "submitted" },
+        { text: "לא הוגש", value: "notSubmitted" },
+        { text: "מחכה לבדיקה", value: "waitingCheck" },
+        { text: "מחכה לפרסום", value: "waitingPublish" },
+        { text: "פורסם", value: "finalGrade" },
+      ],
+      onFilter: (value, record) => {
+        // setSelectedFilters((prev) => (prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]));
+      },
     },
   ];
 
