@@ -184,7 +184,12 @@ const SubmissionsStatus = () => {
                     הורד הגשה
                   </Button>
                 )}
-                {submission.submitted && submission.editable && <Badge color="blue" text="בבדיקה" />}
+                {submission.submitted && submission.editable && new Date(submission.submissionDate) > new Date() && (
+                  <Badge color="orange" text="ניתן לשינוי" />
+                )}
+                {submission.submitted && submission.editable && new Date(submission.submissionDate) < new Date() && (
+                  <Badge color="blue" text="בבדיקה" />
+                )}
                 {submission.isGraded && !submission.editable && (
                   <p style={{ margin: "0" }}>
                     <strong>ציון:</strong> {submission.finalGrade}

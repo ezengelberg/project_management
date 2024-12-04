@@ -239,6 +239,7 @@ export const getJudgeSubmissions = async (req, res) => {
       isGraded: submission.isGraded,
       isReviewed: submission.isReviewed,
       submitted: submission.file ? true : false,
+      file: submission.file,
     }));
 
     res.status(200).json(submissionsWithDetails);

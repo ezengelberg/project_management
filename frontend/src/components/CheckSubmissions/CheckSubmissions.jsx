@@ -5,6 +5,7 @@ import { Tooltip, List, Skeleton, Modal, Tabs } from "antd";
 import { useNavigate } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { DownloadOutlined } from "@ant-design/icons";
+import { downloadFile } from "../../utils/downloadFile";
 
 const CheckSubmissions = () => {
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ const CheckSubmissions = () => {
             </span>
           )}
           <Tooltip title="הורד קובץ">
-            <DownloadOutlined className="icon" />
+            <DownloadOutlined className="icon" onClick={() => downloadFile(item.file, "submissions")} />
           </Tooltip>
         </>
       );
@@ -91,7 +92,7 @@ const CheckSubmissions = () => {
             <p>{item.grade}</p>
           </div>
           <Tooltip title="הורד קובץ">
-            <DownloadOutlined className="icon" />
+            <DownloadOutlined className="icon" onClick={() => downloadFile(item.file, "submissions")} />
           </Tooltip>
         </>
       );
