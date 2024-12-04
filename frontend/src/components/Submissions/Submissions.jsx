@@ -371,8 +371,6 @@ const Submissions = () => {
             : false;
           break;
       }
-      console.log(name, isGraded, isReviewed);
-      return;
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create-specific`,
         {

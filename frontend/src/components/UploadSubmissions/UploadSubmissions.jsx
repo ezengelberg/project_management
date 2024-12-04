@@ -258,9 +258,15 @@ const UploadSubmissions = () => {
                 color={isLate ? "darkgreen" : "green"}
                 text={`הוגש${
                   isLate
-                    ? ` באיחור - ${Math.ceil(
-                        (new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24),
-                      )} ימים`
+                    ? ` באיחור - ${
+                        Math.ceil(
+                          (new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24),
+                        ) === 1
+                          ? "יום אחד"
+                          : `${Math.ceil(
+                              (new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24),
+                            )} ימים`
+                      }`
                     : ""
                 }`}
               />
@@ -369,7 +375,7 @@ const UploadSubmissions = () => {
               <b>
                 שימו לב - ההגשה נשלחת באיחור
                 <br /> לכן, לא ניתן יהיה לבצע{" "}
-                <Tooltip title="למחוק • לערוך • להגיש מחדש">
+                <Tooltip title="שינויים כגון: למחוק • לערוך • להגיש מחדש">
                   <span className="upload-warning">שינויים נוספים</span>
                 </Tooltip>{" "}
                 לאחר ההגשה
