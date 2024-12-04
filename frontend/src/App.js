@@ -22,7 +22,7 @@ import CheckSubmissions from "./components/CheckSubmissions/CheckSubmissions";
 import GradeSubmission from "./components/GradeSubmission/GradeSubmission";
 import UploadSubmissions from "./components/UploadSubmissions/UploadSubmissions";
 import Notifications from "./components/Notifications/Notifications";
-import SubmissionStatus from "./components/SubmissionStatus/SubmissionStatus";
+import SubmissionsStatus from "./components/SubmissionsStatus/SubmissionsStatus";
 
 function App() {
   return (
@@ -146,7 +146,7 @@ const MainLayout = () => {
                 path="/submission-status"
                 element={
                   <ProtectedRoute>
-                    <SubmissionStatus />
+                    <SubmissionsStatus />
                   </ProtectedRoute>
                 }
               />

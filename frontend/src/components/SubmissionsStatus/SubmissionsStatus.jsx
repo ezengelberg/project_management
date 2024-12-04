@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import "./SubmissionStatus.scss";
+import "./SubmissionsStatus.scss";
 import axios from "axios";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { useNavigate } from "react-router-dom";
 import { Table, Divider, Badge, Button } from "antd";
-import { downloadFile } from "../../utils/downloadFile"; // Import the downloadFile utility function
+import { downloadFile } from "../../utils/downloadFile";
 
-const SubmissionStatus = () => {
+const SubmissionsStatus = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -218,4 +218,4 @@ const SubmissionStatus = () => {
   );
 };
 
-export default SubmissionStatus;
+export default SubmissionsStatus;

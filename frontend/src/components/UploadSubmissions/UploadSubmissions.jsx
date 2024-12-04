@@ -73,7 +73,7 @@ const UploadSubmissions = () => {
       // Send POST request to delete the file & remove its' schema reference
       await axios.delete(
         `${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete/${currentSubmission.file}?destination=submissions`,
-        { withCredentials: true },
+        { withCredentials: true }
       );
       // POST request to remove file form submission schema
       await axios.post(
@@ -81,10 +81,10 @@ const UploadSubmissions = () => {
         {
           file: null,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
       const submissionsUpdated = submissions.map((submission) =>
-        submission._id === currentSubmission._id ? { ...submission, file: null } : submission,
+        submission._id === currentSubmission._id ? { ...submission, file: null } : submission
       );
       setSubmissions(submissionsUpdated);
       message.info(`הגשה עבור ${currentSubmission.name} נמחקה בהצלחה`);
@@ -172,7 +172,7 @@ const UploadSubmissions = () => {
             "X-Filename-Encoding": "url",
           },
           withCredentials: true,
-        },
+        }
       );
       // Show success message and reset file
       const uploadedFile = response.data.files[0]._id;
@@ -182,11 +182,11 @@ const UploadSubmissions = () => {
         {
           file: uploadedFile,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
 
       const submissionsUpdated = submissions.map((submission) =>
-        submission._id === currentSubmission._id ? { ...submission, file: uploadedFile } : submission,
+        submission._id === currentSubmission._id ? { ...submission, file: uploadedFile } : submission
       );
       setSubmissions(submissionsUpdated);
       setFile(null); // Clear the selected file
@@ -276,8 +276,8 @@ const UploadSubmissions = () => {
     },
     {
       title: "סטטוס הגשה",
-      dataIndex: "submissionStatus",
-      key: "submissionStatus",
+      dataIndex: "submissionsStatus",
+      key: "submissionsStatus",
       render: (_, record) => {
         const isLate = new Date(record.submissionDate) < new Date(record.uploadDate);
         return (
@@ -289,11 +289,11 @@ const UploadSubmissions = () => {
                   isLate
                     ? ` באיחור - ${
                         Math.ceil(
-                          (new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24),
+                          (new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24)
                         ) === 1
                           ? "יום אחד"
                           : `${Math.ceil(
-                              (new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24),
+                              (new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24)
                             )} ימים`
                       }`
                     : ""
