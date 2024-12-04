@@ -73,7 +73,7 @@ const UploadSubmissions = () => {
       // Send POST request to delete the file & remove its' schema reference
       await axios.delete(
         `${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete/${currentSubmission.file}?destination=submissions`,
-        { withCredentials: true }
+        { withCredentials: true },
       );
       // POST request to remove file form submission schema
       await axios.post(
@@ -81,10 +81,10 @@ const UploadSubmissions = () => {
         {
           file: null,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       const submissionsUpdated = submissions.map((submission) =>
-        submission._id === currentSubmission._id ? { ...submission, file: null } : submission
+        submission._id === currentSubmission._id ? { ...submission, file: null } : submission,
       );
       setSubmissions(submissionsUpdated);
       message.info(`הגשה עבור ${currentSubmission.name} נמחקה בהצלחה`);
@@ -172,7 +172,7 @@ const UploadSubmissions = () => {
             "X-Filename-Encoding": "url",
           },
           withCredentials: true,
-        }
+        },
       );
       // Show success message and reset file
       const uploadedFile = response.data.files[0]._id;
@@ -182,11 +182,11 @@ const UploadSubmissions = () => {
         {
           file: uploadedFile,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       const submissionsUpdated = submissions.map((submission) =>
-        submission._id === currentSubmission._id ? { ...submission, file: uploadedFile } : submission
+        submission._id === currentSubmission._id ? { ...submission, file: uploadedFile } : submission,
       );
       setSubmissions(submissionsUpdated);
       setFile(null); // Clear the selected file
@@ -283,7 +283,22 @@ const UploadSubmissions = () => {
         return (
           <span>
             {record.file ? (
-              <Badge color="green" text={`הוגש${isLate ? " באיחור" : ""}`} />
+              <Badge
+                color={isLate ? "darkgreen" : "green"}
+                text={`הוגש${
+                  isLate
+                    ? ` באיחור - ${
+                        Math.ceil(
+                          (new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24),
+                        ) === 1
+                          ? "יום אחד"
+                          : `${Math.ceil(
+                              (new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24),
+                            )} ימים`
+                      }`
+                    : ""
+                }`}
+              />
             ) : (
               <Badge color="orange" text="לא הוגש" />
             )}
@@ -388,7 +403,11 @@ const UploadSubmissions = () => {
             <div className="submission-late">
               <b>
                 שימו לב - ההגשה נשלחת באיחור
-                <br /> לא יהיה ניתן לבצע שינויים לאחר ההגשה
+                <br /> לכן, לא ניתן יהיה לבצע{" "}
+                <Tooltip title="שינויים כגון: למחוק • לערוך • להגיש מחדש">
+                  <span className="upload-warning">שינויים נוספים</span>
+                </Tooltip>{" "}
+                לאחר ההגשה
               </b>
             </div>
           )}
