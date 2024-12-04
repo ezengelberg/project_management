@@ -286,12 +286,16 @@ const Submissions = () => {
         {
           name: values.submissionName,
           submissionDate: values.submissionDate,
+          isGraded: Array.isArray(values.submissionChecklist) ? values.submissionChecklist.includes("isGraded") : false,
+          isReviewed: Array.isArray(values.submissionChecklist)
+            ? values.submissionChecklist.includes("isReviewed")
+            : false,
         },
         {
           withCredentials: true,
         },
       );
-      message.info(`הגשה ${specificSubmissionInfo.submission.name} נמחקה בהצלחה`);
+      message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
       console.error("Error updating submission:", error);
       message.error("שגיאה בעדכון ההגשה");
@@ -330,12 +334,13 @@ const Submissions = () => {
   };
 
   const handleOkSpecific = async (values) => {
+    console.log(values);
     try {
       let name = "";
       let isGraded = false;
       let isReviewed = false;
 
-      switch (submissionType) {
+      switch (values.submissionType) {
         case "proposalReport":
           name = "דוח הצעה";
           isGraded = submissionOptions.find((option) => option.value === "proposalReport").isGraded;
@@ -366,7 +371,8 @@ const Submissions = () => {
             : false;
           break;
       }
-
+      console.log(name, isGraded, isReviewed);
+      return;
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create-specific`,
         {
@@ -794,6 +800,10 @@ const Submissions = () => {
                           projectName: submissionInfo.project.title,
                           submissionName: submissionInfo.submission.name,
                           submissionDate: dayjs(submissionInfo.submission.submissionDate),
+                          submissionChecklist: [
+                            submissionInfo.submission.isGraded ? "isGraded" : null,
+                            submissionInfo.submission.isReviewed ? "isReviewed" : null,
+                          ].filter((value) => value !== null),
                         });
                         setSpecificSubmissionInfo(submissionInfo);
                         setSubmissionInfo(null);
@@ -1189,7 +1199,7 @@ const Submissions = () => {
               buttonStyle="solid"
               options={submissionOptions}
               onChange={(e) => {
-                const selectedName = submissionOptions.find((option) => option.value === e.target.value).label;
+                const selectedName = submissionOptions.find((option) => option.value === e.target.value).value;
                 setSubmissionType(selectedName);
                 const selectedSubmission = submissionDetails.find((submission) => submission.name === selectedName);
 
@@ -1265,7 +1275,7 @@ const Submissions = () => {
           </Form.Item>
 
           {submissionType === "other" && (
-            <Form.Item>
+            <Form.Item name="submissionChecklist">
               <Checkbox.Group>
                 <Checkbox value="isGraded">מתן ציון</Checkbox>
                 <Checkbox value="isReviewed">מתן משוב</Checkbox>
