@@ -254,7 +254,16 @@ const UploadSubmissions = () => {
         return (
           <span>
             {record.file ? (
-              <Badge color="green" text={`הוגש${isLate ? " באיחור" : ""}`} />
+              <Badge
+                color={isLate ? "darkgreen" : "green"}
+                text={`הוגש${
+                  isLate
+                    ? ` באיחור - ${Math.ceil(
+                        (new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24),
+                      )} ימים`
+                    : ""
+                }`}
+              />
             ) : (
               <Badge color="orange" text="לא הוגש" />
             )}
@@ -359,7 +368,11 @@ const UploadSubmissions = () => {
             <div className="submission-late">
               <b>
                 שימו לב - ההגשה נשלחת באיחור
-                <br /> לכן, לא ניתן יהיה לבצע <Tooltip title="למחוק • לערוך • להגיש מחדש"><u>שינויים נוספים</u></Tooltip> לאחר ההגשה
+                <br /> לכן, לא ניתן יהיה לבצע{" "}
+                <Tooltip title="למחוק • לערוך • להגיש מחדש">
+                  <span className="upload-warning">שינויים נוספים</span>
+                </Tooltip>{" "}
+                לאחר ההגשה
               </b>
             </div>
           )}

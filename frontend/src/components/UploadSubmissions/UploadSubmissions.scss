@@ -14,5 +14,9 @@
   .submission-late {
     color: red;
     font-size: 1.7rem;
+    .upload-warning {
+      text-decoration: underline;
+      cursor: pointer;
+    }
   }
 }
