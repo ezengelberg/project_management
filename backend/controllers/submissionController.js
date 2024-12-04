@@ -578,6 +578,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
           finalGrade: submission.finalGrade,
           overridden: submission.overridden,
           editable: submission.editable,
+          file: submission.file,
         };
       })
     );

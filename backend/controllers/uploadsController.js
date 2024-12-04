@@ -5,13 +5,21 @@ import path from "path";
 
 export const getFiles = async (req, res) => {
   try {
-    const destination = req.query.destination; // Use `req.query` for GET request parameters
-    if (!destination) {
-      return res.status(400).send({ message: "Destination is required" });
+    const files = await Upload.find({ destination: req.query.destination }).sort({ uploadDate: -1 });
+    res.status(200).send(files);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const getSpecificFileInfo = async (req, res) => {
+  try {
+    const file = await Upload.findById(req.params.id);
+    if (!file) {
+      return res.status(404).send({ message: "File not found" });
     }
 
-    const files = await Upload.find({ destination });
-    res.status(200).send(files);
+    res.status(200).send(file);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -62,7 +70,7 @@ export const createFile = async (req, res) => {
           filename: decodedFilename,
           description: req.body.description,
           user: req.user._id,
-          destination: req.body.destination
+          destination: req.body.destination,
         });
 
         await newFile.save();
@@ -81,7 +89,7 @@ export const createFile = async (req, res) => {
     // Send response with saved files
     res.status(201).json({
       message: "Files uploaded and saved successfully",
-      files: savedFiles
+      files: savedFiles,
     });
   } catch (error) {
     console.error("Error in createFile:", error.message);
@@ -120,7 +128,7 @@ export const updateFile = async (req, res) => {
       oldDescription: req.body.oldDescription,
       newDescription: req.body.description,
       editDate: new Date(),
-      editedBy: { name: user.name, id: user.id }
+      editedBy: { name: user.name, id: user.id },
     });
 
     file.title = req.body.title;

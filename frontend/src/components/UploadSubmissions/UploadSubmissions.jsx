@@ -106,7 +106,19 @@ const UploadSubmissions = () => {
       } else if (!Array.isArray(data)) {
         throw new Error("Invalid data format");
       }
-      setSubmissions(data);
+
+      const submissionsWithProjectNames = await Promise.all(
+        data.map(async (submission) => {
+          const projectResponse = await axios.get(
+            `${process.env.REACT_APP_BACKEND_URL}/api/project/get-project/${submission.project}`,
+            { withCredentials: true }
+          );
+          const projectName = projectResponse.data.title;
+          return { ...submission, projectName };
+        })
+      );
+
+      setSubmissions(submissionsWithProjectNames);
     } catch (error) {
       console.error("Error fetching submissions:", error);
       setSubmissions([]);
@@ -124,8 +136,25 @@ const UploadSubmissions = () => {
     }
 
     const formData = new FormData();
+    let projectName = currentSubmission.projectName;
+    let fileName = file.name;
 
-    formData.append("files", file, encodeURIComponent(file.name));
+    // Ensure the combined length does not exceed 50 characters
+    const maxLength = 50;
+    const combinedLength = `${projectName}-${fileName}`.length;
+    if (combinedLength > maxLength) {
+      const excessLength = combinedLength - maxLength;
+      if (projectName.length > excessLength) {
+        projectName = projectName.substring(0, projectName.length - excessLength);
+      } else {
+        fileName = fileName.substring(0, fileName.length - excessLength);
+      }
+      message.warning(`שם הקובץ קוצר ל-${maxLength} תווים`);
+    }
+
+    const fileNameWithProject = `${projectName}-${fileName}`;
+
+    formData.append("files", file, encodeURIComponent(fileNameWithProject));
     formData.append("title", "");
     formData.append("description", "");
     formData.append("destination", "submissions"); // Set destination for dynamic pathing

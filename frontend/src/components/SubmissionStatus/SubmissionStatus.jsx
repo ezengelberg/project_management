@@ -6,6 +6,7 @@ import { handleMouseDown } from "../../utils/mouseDown";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { useNavigate } from "react-router-dom";
 import { Table, Divider, Badge, Button } from "antd";
+import { downloadFile } from "../../utils/downloadFile"; // Import the downloadFile utility function
 
 const SubmissionStatus = () => {
   const navigate = useNavigate();
@@ -178,8 +179,8 @@ const SubmissionStatus = () => {
                     )} ימים`}
                 </div>
                 <Badge color={getBadgeStatus(submission).color} text={getBadgeStatus(submission).text} />
-                {submission.isReviewed && submission.submitted && (
-                  <Button color="primary" variant="filled">
+                {submission.isReviewed && submission.submitted && submission.file && (
+                  <Button color="primary" variant="filled" onClick={() => downloadFile(submission.file, "submissions")}>
                     הורד הגשה
                   </Button>
                 )}

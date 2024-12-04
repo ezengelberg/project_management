@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./DownloadFile.scss";
+import "./FileCard.scss";
 import {
   DownloadOutlined,
   DeleteOutlined,
@@ -11,8 +11,9 @@ import {
 import { Tooltip, Modal, Card, message, Divider, Descriptions } from "antd";
 import axios from "axios";
 import { processContent } from "../../utils/htmlProcessor";
+import { downloadFile } from "../../utils/downloadFile"; // Import the downloadFile utility function
 
-const DownloadFile = ({ file, onEdit, onDelete, destination }) => {
+const FileCard = ({ file, onEdit, onDelete, destination }) => {
   const [isDescriptionModalVisible, setIsDescriptionModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -43,21 +44,7 @@ const DownloadFile = ({ file, onEdit, onDelete, destination }) => {
 
   const handleDownload = async () => {
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/uploads/download/${file._id}?destination=${destination}`,
-        {
-          responseType: "blob",
-          withCredentials: true,
-        }
-      );
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", file.filename);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode.removeChild(link);
+      await downloadFile(file._id, destination); // Use the downloadFile utility function
     } catch (error) {
       console.error("Error downloading file:", error);
     }
@@ -233,31 +220,10 @@ const DownloadFile = ({ file, onEdit, onDelete, destination }) => {
         open={showHistory}
         onCancel={() => SetShowHistory(false)}
         footer={null}>
-        {/* {file.editRecord.map((record) => (
-          <div key={record.editDate} className="edit-record">
-            <div className="edit-record-title">
-              <span>כותרת:</span>
-              <span>{record.newTitle}</span>
-            </div>
-            <div className="edit-record-description">
-              <span>תיאור:</span>
-              <span>{record.newDescription}</span>
-            </div>
-            <div className="edit-record-date">
-              <span>תאריך:</span>
-              <span>{new Date(record.editDate).toLocaleDateString("he-IL")}</span>
-            </div>
-            <div className="edit-record-edited-by">
-              <span>ערך על ידי:</span>
-              <span>{record.editedBy.name}</span>
-            </div>
-            <Divider variant="dotted" style={{ borderColor: "#7cb305" }} />
-          </div>
-        ))} */}
         <Descriptions bordered items={items} />
       </Modal>
     </div>
   );
 };
 
-export default DownloadFile;
+export default FileCard;
