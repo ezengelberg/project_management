@@ -711,8 +711,15 @@ const Submissions = () => {
           handleDeleteSpecific(deleteSubmission);
         }}>
         <p>
-          <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - הינך מוחק את -{" "}
-          {deleteSubmission?.submission.name} עבור הפרויקט - {deleteSubmission?.project.title}
+          <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - הינך מוחק את ההגשה{" "}
+          <span style={{ backgroundColor: "#e4eafc", padding: "1px 2px", borderRadius: "5px" }}>
+            {deleteSubmission?.submission.name}
+          </span>
+          <br />
+          עבור הפרויקט -
+          <span style={{ backgroundColor: "#e4eafc", padding: "1px 2px", borderRadius: "5px" }}>
+            {deleteSubmission?.project.title}
+          </span>
         </p>
       </Modal>
       <Modal
