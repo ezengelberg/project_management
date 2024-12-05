@@ -80,6 +80,7 @@ const UploadSubmissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-file/${currentSubmission._id}`,
         {
           file: null,
+          sentFromDelete: true,
         },
         { withCredentials: true }
       );

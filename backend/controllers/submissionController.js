@@ -370,6 +370,12 @@ export const updateJudgesInSubmission = async (req, res) => {
       await Promise.all(
         judgesToRemove.map(async (grade) => {
           await Grade.findByIdAndDelete(grade._id);
+          const notification = new Notification({
+            user: grade.judge,
+            message: `You have been removed from the submission: ${submission.name}`,
+            link: `/submission/${submission._id}`,
+          });
+          await notification.save();
         })
       );
     }
@@ -388,6 +394,12 @@ export const updateJudgesInSubmission = async (req, res) => {
         newJudges.map(async (judgeID) => {
           const newGrade = new Grade({ judge: judgeID });
           await newGrade.save();
+          const notification = new Notification({
+            user: judgeID,
+            message: `You have been assigned to the submission: ${submission.name}`,
+            link: `/submission/${submission._id}`,
+          });
+          await notification.save();
           return newGrade._id;
         })
       );
@@ -404,7 +416,7 @@ export const updateJudgesInSubmission = async (req, res) => {
 export const updateSubmissionFile = async (req, res) => {
   try {
     console.log("updating sub");
-    const submission = await Submission.findById(req.params.id);
+    const submission = await Submission.findById(req.params.id).populate("project");
     if (!submission) {
       return res.status(404).json({ message: "Submission not found" });
     }
@@ -416,6 +428,20 @@ export const updateSubmissionFile = async (req, res) => {
     submission.uploadedBy = req.user._id;
 
     await submission.save();
+
+    // Create notifications for students
+    if (!req.body.sentFromDelete) {
+      await Promise.all(
+        submission.project.students.map(async (student) => {
+          const notification = new Notification({
+            user: student.student,
+            message: `הועלה קובץ עבור: ${submission.name} ע"י ${req.user.name}`,
+          });
+          await notification.save();
+        })
+      );
+    }
+
     res.status(200).json({ message: "Submission updated successfully", submission });
   } catch (error) {
     console.log(error);
@@ -427,7 +453,7 @@ export const deleteSubmission = async (req, res) => {
   try {
     console.log("deleting");
     console.log(req.params.id);
-    const submission = await Submission.findById(req.params.id);
+    const submission = await Submission.findById(req.params.id).populate("project");
     if (!submission) {
       console.log("Submission not found");
       return res.status(404).json({ message: "Submission not found" });
@@ -448,6 +474,7 @@ export const deleteSubmission = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 export const deleteActiveSubmissions = async (req, res) => {
   console.log("deleting");
   try {
@@ -482,13 +509,13 @@ export const deleteActiveSubmissions = async (req, res) => {
 
 export const updateSubmissionInformation = async (req, res) => {
   try {
-    const submissions = await Submission.find({ name: req.body.submissionOldName });
+    const submissions = await Submission.find({ name: req.body.submissionOldName }).populate("project");
     const activeProjects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
     const activeProjectIds = activeProjects.map((project) => project._id.toString()); // Convert ObjectIds to strings
 
     await Promise.all(
       submissions.map(async (submission) => {
-        if (activeProjectIds.includes(submission.project.toString())) {
+        if (activeProjectIds.includes(submission.project._id.toString())) {
           Object.keys(req.body).forEach((key) => {
             submission[key] = req.body[key];
           });
@@ -508,7 +535,7 @@ export const updateSubmissionInformation = async (req, res) => {
 
 export const updateSpecificSubmission = async (req, res) => {
   try {
-    const submission = await Submission.findById(req.params.id);
+    const submission = await Submission.findById(req.params.id).populate("project");
     if (!submission) {
       return res.status(404).json({ message: "הגשה לא נמצאה" });
     } else {

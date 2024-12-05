@@ -15,12 +15,14 @@ const HeaderMenu = () => {
   });
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   const fetchNotifications = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications`, {
         withCredentials: true,
       });
+      setUnreadNotifications(response.data.length);
       setNotifications(response.data.slice(0, 5)); // Show only the 5 most recent notifications
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -79,12 +81,16 @@ const HeaderMenu = () => {
             <CloseOutlined className="notification-close" onClick={() => markNotificationAsRead(notification._id)} />
             {notification.link ? (
               <div className="notification-with-link">
-                <a onClick={() => handleNotificationClick(notification)}>{notification.message}</a>
+                <a onClick={() => handleNotificationClick(notification)}>
+                  {notification.message.length > 40
+                    ? `${notification.message.substring(0, 45)}...`
+                    : notification.message}
+                </a>
               </div>
             ) : (
-              <p style={{ marginLeft: "20px" }}>
+              <p className="notification-no-link">
                 {notification.message.length > 40
-                  ? `${notification.message.substring(0, 40)}...`
+                  ? `${notification.message.substring(0, 45)}...`
                   : notification.message}
               </p>
             )}
@@ -133,7 +139,7 @@ const HeaderMenu = () => {
           trigger="click"
           open={open}
           onOpenChange={handleOpenChange}>
-          <Badge count={notifications.length} style={{ transform: "translate(65%, -50%)" }}>
+          <Badge count={unreadNotifications} style={{ transform: "translate(90%, -50%)" }}>
             <Tooltip title="התראות" placement="right">
               <CommentOutlined className="notification-icon" />
             </Tooltip>
