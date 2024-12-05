@@ -93,6 +93,8 @@ export const createProject = async (req, res) => {
     }
 
     let newProject;
+    const advisorsList = [];
+    const studentsList = [];
     if (req.user.isAdvisor && !req.user.isCoordinator) {
       newProject = new Project({
         ...req.body,
@@ -104,7 +106,6 @@ export const createProject = async (req, res) => {
         grades: [],
       });
     } else {
-      const advisorsList = [];
       if (advisors.length > 0) {
         for (const adv of advisors) {
           const advisorUser = await User.findOne({ _id: adv, isAdvisor: true });
@@ -114,7 +115,6 @@ export const createProject = async (req, res) => {
           advisorsList.push(advisorUser);
         }
       }
-      const studentsList = [];
       if (students.length > 0) {
         for (const stud of students) {
           const studentUser = await User.findOne({ id: stud.id, isStudent: true });
