@@ -270,6 +270,11 @@ export const publishGrades = async (req, res) => {
         let averageGrade = totalGrade / gradeCount;
         submission.finalGrade = Math.round(averageGrade);
         submission.editable = false;
+        // adding penalty for days late
+        const days = Math.ceil(
+          (new Date(submission.uploadDate) - new Date(submission.submissionDate)) / (1000 * 60 * 60 * 24),
+        );
+        submission.finalGrade -= days * 2;
       } else {
         submission.finalGrade = null;
       }
