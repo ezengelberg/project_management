@@ -73,7 +73,7 @@ const UploadSubmissions = () => {
       // Send POST request to delete the file & remove its' schema reference
       await axios.delete(
         `${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete/${currentSubmission.file}?destination=submissions`,
-        { withCredentials: true }
+        { withCredentials: true },
       );
       // POST request to remove file form submission schema
       await axios.post(
@@ -82,10 +82,10 @@ const UploadSubmissions = () => {
           file: null,
           sentFromDelete: true,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       const submissionsUpdated = submissions.map((submission) =>
-        submission._id === currentSubmission._id ? { ...submission, file: null } : submission
+        submission._id === currentSubmission._id ? { ...submission, file: null } : submission,
       );
       setSubmissions(submissionsUpdated);
       message.info(`הגשה עבור ${currentSubmission.name} נמחקה בהצלחה`);
@@ -112,11 +112,11 @@ const UploadSubmissions = () => {
         data.map(async (submission) => {
           const projectResponse = await axios.get(
             `${process.env.REACT_APP_BACKEND_URL}/api/project/get-project/${submission.project}`,
-            { withCredentials: true }
+            { withCredentials: true },
           );
           const projectName = projectResponse.data.title;
           return { ...submission, projectName };
-        })
+        }),
       );
 
       setSubmissions(submissionsWithProjectNames);
@@ -173,7 +173,7 @@ const UploadSubmissions = () => {
             "X-Filename-Encoding": "url",
           },
           withCredentials: true,
-        }
+        },
       );
       // Show success message and reset file
       const uploadedFile = response.data.files[0]._id;
@@ -183,11 +183,11 @@ const UploadSubmissions = () => {
         {
           file: uploadedFile,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       const submissionsUpdated = submissions.map((submission) =>
-        submission._id === currentSubmission._id ? { ...submission, file: uploadedFile } : submission
+        submission._id === currentSubmission._id ? { ...submission, file: uploadedFile } : submission,
       );
       setSubmissions(submissionsUpdated);
       setFile(null); // Clear the selected file
@@ -281,25 +281,17 @@ const UploadSubmissions = () => {
       key: "submissionsStatus",
       render: (_, record) => {
         const isLate = new Date(record.submissionDate) < new Date(record.uploadDate);
+        const days = Math.ceil((new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24));
         return (
           <span>
             {record.file ? (
-              <Badge
-                color={isLate ? "darkgreen" : "green"}
-                text={`הוגש${
-                  isLate
-                    ? ` באיחור - ${
-                        Math.ceil(
-                          (new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24)
-                        ) === 1
-                          ? "יום אחד"
-                          : `${Math.ceil(
-                              (new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24)
-                            )} ימים`
-                      }`
-                    : ""
-                }`}
-              />
+              isLate ? (
+                <Tooltip title={`2 נקודות קנס על כל יום איחור - סה"כ ${days * 2} נקודות`}>
+                  <Badge color={"darkgreen"} text={`הוגש באיחור - ${days} ימים`} />
+                </Tooltip>
+              ) : (
+                <Badge color={"green"} text={"הוגש"} />
+              )
             ) : (
               <Badge color="orange" text="לא הוגש" />
             )}
