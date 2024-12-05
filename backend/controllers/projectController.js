@@ -501,7 +501,7 @@ export const addAdvisorToProject = async (req, res) => {
       link: `/project/${project._id}`,
     });
     notification.save();
-    
+
     res.status(200).send("Advisor added successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -527,6 +527,13 @@ export const updateAdvisorInProject = async (req, res) => {
       project.isTaken = false;
     }
 
+    const notification = new Notification({
+      user: advisorID,
+      message: `התווספת כמנחה לפרויקט ${project.title}`,
+      link: `/project/${project._id}`,
+    });
+    notification.save();
+
     await project.save();
 
     res.status(200).send({ message: "Advisor updated successfully", project });
@@ -542,7 +549,26 @@ export const terminateProject = async (req, res) => {
       return res.status(404).send({ message: "Project not found" });
     }
 
-    // Save students to terminationRecord and free them from the project
+    await Promise.all([
+      ...project.students.map(async (student) => {
+        const notification = new Notification({
+          user: student.student,
+          message: `הפרויקט ${project.title} בו אתה רשום בוטל`,
+          link: `/project/${project._id}`,
+        });
+        await notification.save();
+      }),
+      ...project.advisors.map(async (advisor) => {
+        const notification = new Notification({
+          user: advisor,
+          message: `הפרויקט ${project.title} שאתה מנחה בוטל`,
+          link: `/project/${project._id}`,
+        });
+        await notification.save();
+      }),
+    ]);
+
+    // Save students to termination Record and free them from the project
     project.terminationRecord = project.students;
     project.students = [];
     project.alphaReportJudges = [];
