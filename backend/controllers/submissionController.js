@@ -5,7 +5,7 @@ import Grade from "../models/grades.js";
 import Upload from "../models/uploads.js";
 import fs from "fs";
 import path from "path";
-import Notification from "../models/notification.js";
+import Notification from "../models/notifications.js";
 
 export const createSubmission = async (req, res) => {
   try {
