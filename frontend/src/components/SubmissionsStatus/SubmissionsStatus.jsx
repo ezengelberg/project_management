@@ -5,7 +5,7 @@ import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { useNavigate } from "react-router-dom";
-import { Table, Divider, Badge, Button } from "antd";
+import { Table, Divider, Badge, Button, Tooltip } from "antd";
 import { downloadFile } from "../../utils/downloadFile";
 
 const SubmissionsStatus = () => {
@@ -157,7 +157,13 @@ const SubmissionsStatus = () => {
           {record.submissions.map((submission, index) => (
             <div key={index} className="submission-status-submission">
               <div className="submission-status-submission-details">
-                <div className="submission-title">{submission.name}</div>
+                <div className="submission-title">
+                  {submission.name.length > 25 ? (
+                    <Tooltip title={submission.name}>{submission.name.substring(0, 25)}...</Tooltip>
+                  ) : (
+                    submission.name
+                  )}
+                </div>
                 <div className="submission-date">
                   <strong>הגשה עד:</strong>{" "}
                   {submission.submissionDate

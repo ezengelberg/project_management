@@ -5,6 +5,7 @@ import Grade from "../models/grades.js";
 import Upload from "../models/uploads.js";
 import fs from "fs";
 import path from "path";
+import Notification from "../models/notification.js";
 
 export const createSubmission = async (req, res) => {
   try {
@@ -36,6 +37,18 @@ export const createSubmission = async (req, res) => {
           submissionInfo: req.body.submissionInfo,
         });
         await submission.save();
+
+        // Create notifications for students
+        await Promise.all(
+          project.students.map(async (student) => {
+            const notification = new Notification({
+              user: student.student,
+              message: `נוצרה הגשה חדשה: ${req.body.name}`,
+              link: "/my-submissions",
+            });
+            await notification.save();
+          })
+        );
       })
     );
     res.status(201).json({ message: "Submissions created successfully" });
@@ -70,6 +83,18 @@ export const createSpecificSubmission = async (req, res) => {
           grades: [gradeByAdvisor],
         });
         await submission.save();
+
+        // Create notifications for students
+        await Promise.all(
+          project.students.map(async (student) => {
+            const notification = new Notification({
+              user: student.student,
+              message: `נוצרה הגשה חדשה: ${req.body.name}`,
+              link: "/my-submissions",
+            });
+            await notification.save();
+          })
+        );
       })
     );
     console.log("Submissions created successfully");

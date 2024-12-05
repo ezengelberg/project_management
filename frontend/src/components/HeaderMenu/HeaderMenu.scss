@@ -75,4 +75,27 @@
   .show-all-notifications {
     margin: 10rem;
   }
+
+  .notification-list {
+    position: relative;
+    .notification-close {
+      position: absolute;
+      left: 1%;
+      top: -10%;
+      cursor: pointer;
+      transition: 0.2s all linear;
+
+      &:hover {
+        color: #69b1ff;
+      }
+    }
+    .notification-with-link {
+      margin: 1.4rem 0 0 2rem !important;
+    }
+    .notification-date {
+      margin: 0 0 1.4rem;
+      color: rgba(0, 0, 0, 0.45);
+      font-size: 1.2rem;
+    }
+  }
 }
