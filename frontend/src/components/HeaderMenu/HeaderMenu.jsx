@@ -102,14 +102,15 @@ const HeaderMenu = () => {
         <p>אין התראות חדשות</p>
       )}
       <Divider className="last-divider" />
-      <a
-        className="show-all-notifications"
-        onClick={() => {
-          navigate("/notifications");
-          hide();
-        }}>
-        כל ההתראות
-      </a>
+      <div className="notification-footer">
+        <a
+          onClick={() => {
+            navigate("/notifications");
+            hide();
+          }}>
+          כל ההתראות
+        </a>
+      </div>
     </div>
   );
 

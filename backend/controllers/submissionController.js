@@ -342,7 +342,7 @@ export const copyJudges = async (req, res) => {
 export const updateJudgesInSubmission = async (req, res) => {
   try {
     const { submissionID, judges } = req.body;
-    const submission = await Submission.findById(submissionID).populate("grades");
+    const submission = await Submission.findById(submissionID).populate("project").populate("grades");
     if (!submission) {
       return res.status(404).send({ message: "Submission not found" });
     }
@@ -372,8 +372,7 @@ export const updateJudgesInSubmission = async (req, res) => {
           await Grade.findByIdAndDelete(grade._id);
           const notification = new Notification({
             user: grade.judge,
-            message: `You have been removed from the submission: ${submission.name}`,
-            link: `/submission/${submission._id}`,
+            message: `הוסרת משפיטת: "${submission.name}" עבור פרויקט: "${submission.project.title}"`,
           });
           await notification.save();
         })
@@ -396,8 +395,7 @@ export const updateJudgesInSubmission = async (req, res) => {
           await newGrade.save();
           const notification = new Notification({
             user: judgeID,
-            message: `You have been assigned to the submission: ${submission.name}`,
-            link: `/submission/${submission._id}`,
+            message: `מונתה לשפיטת: "${submission.name}" עבור פרויקט: "${submission.project.title}"`,
           });
           await notification.save();
           return newGrade._id;
@@ -430,17 +428,17 @@ export const updateSubmissionFile = async (req, res) => {
     await submission.save();
 
     // Create notifications for students
-    if (!req.body.sentFromDelete) {
-      await Promise.all(
-        submission.project.students.map(async (student) => {
-          const notification = new Notification({
-            user: student.student,
-            message: `הועלה קובץ עבור: ${submission.name} ע"י ${req.user.name}`,
-          });
-          await notification.save();
-        })
-      );
-    }
+    await Promise.all(
+      submission.project.students.map(async (student) => {
+        const notification = new Notification({
+          user: student.student,
+          message: req.body.sentFromDelete
+            ? `קובץ נמחק עבור "${submission.name}" ע"י ${req.user.name}`
+            : `הועלה קובץ עבור: "${submission.name}" ע"י ${req.user.name}`,
+        });
+        await notification.save();
+      })
+    );
 
     res.status(200).json({ message: "Submission updated successfully", submission });
   } catch (error) {

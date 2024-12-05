@@ -497,7 +497,12 @@ const OverviewProjects = () => {
   const expandedRowRender = (record) => {
     const projectSubmissions = submissions.filter((submission) => submission.project === record._id);
     const expandColumns = projectSubmissions.map((submission, index) => ({
-      title: submission.name,
+      title:
+        submission.name.length > 35 ? (
+          <Tooltip title={submission.name}>{submission.name.substring(0, 35)}...</Tooltip>
+        ) : (
+          submission.name
+        ),
       dataIndex: `submission-${index}`,
       key: `submission-${index}`,
       render: () => (

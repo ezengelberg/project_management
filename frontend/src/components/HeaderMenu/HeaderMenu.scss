@@ -65,6 +65,8 @@
 }
 
 .headermenu-popover-content {
+  display: flex;
+  flex-direction: column;
   .ant-divider {
     margin: 0;
   }
@@ -72,8 +74,8 @@
     border-color: black;
     margin-bottom: 0.8rem;
   }
-  .show-all-notifications {
-    margin: 10rem;
+  .notification-footer {
+    margin: 0 auto;
   }
 
   .notification-list {
@@ -94,6 +96,7 @@
     }
     .notification-no-link {
       margin: 1.4rem 0 0 2rem !important;
+      cursor: default;
     }
     .notification-date {
       margin: 0 0 1.4rem;
