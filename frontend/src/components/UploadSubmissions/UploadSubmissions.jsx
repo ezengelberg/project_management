@@ -1,6 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Badge, Table, Tooltip, Modal, Upload, message, Button, Space, Input } from "antd";
-import { UploadOutlined, DeleteOutlined, InboxOutlined, SearchOutlined } from "@ant-design/icons";
+import { Badge, Table, Tooltip, Modal, Upload, message, Button, Space, Input, Splitter } from "antd";
+import {
+  UploadOutlined,
+  DeleteOutlined,
+  InboxOutlined,
+  SearchOutlined,
+  EyeFilled,
+  EyeInvisibleFilled,
+  EyeOutlined,
+} from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import axios from "axios";
 import "./UploadSubmissions.scss";
@@ -17,6 +25,7 @@ const UploadSubmissions = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const [gradeInfo, setGradeInfo] = useState(null);
 
   const showUploadModal = (sub) => {
     setCurrentSubmission(sub);
@@ -355,6 +364,12 @@ const UploadSubmissions = () => {
             <a>
               <DeleteOutlined className="edit-icon" onClick={() => showConfirmModal(record)} />
             </a>
+          ) : record.finalGrade != null ? (
+            <a>
+              <Tooltip title="לצפיה בציון">
+                <EyeOutlined className="edit-icon" onClick={() => setGradeInfo(record)} />
+              </Tooltip>
+            </a>
           ) : (
             "תאריך הגשה עבר"
           )}
@@ -366,6 +381,42 @@ const UploadSubmissions = () => {
 
   return (
     <div>
+      <Modal
+        title={`צפיה בציון`}
+        open={gradeInfo != null}
+        width="40%"
+        cancelText="סגור"
+        onCancel={() => setGradeInfo(null)}
+        okButtonProps={{ style: { display: "none" } }}>
+        <div className="grade-info">
+          <h3 style={{ color: "red", fontWeight: "bold" }}>שיבו לב - הציון הינו סופי ולא ניתן לערעור</h3>
+          <div className="detail-item">
+            <div className="detail-item-header">שם הפרויקט:</div>
+            <div className="detail-item-content">{gradeInfo?.projectName}</div>
+          </div>
+          <div className="detail-item">
+            <div className="detail-item-header">שם ההגשה:</div>
+            <div className="detail-item-content">{gradeInfo?.submissionName}</div>
+          </div>
+          {gradeInfo?.isGraded && (
+            <div className="detail-item">
+              <div className="detail-item-header">ציון סופי:</div>
+              <div className="detail-item-content">{gradeInfo?.finalGrade}</div>
+            </div>
+          )}
+          {gradeInfo?.isGraded && (
+            <Splitter
+              style={{
+                height: 200,
+                boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+              }}>
+              <Splitter.Panel min={50}>משוב א</Splitter.Panel>
+              <Splitter.Panel min={50}>משוב ב</Splitter.Panel>
+              <Splitter.Panel min={50}>משוב ג</Splitter.Panel>
+            </Splitter>
+          )}
+        </div>
+      </Modal>
       <Modal
         title={`מחיקת הגשה עבור ${currentSubmission?.name}`}
         open={isConfirmModalVisible}
