@@ -917,9 +917,9 @@ const Submissions = () => {
                 <div className="detail-item">
                   <div className="detail-item-header">ציון סופי</div>
                   <div className="detail-item-content">
-                    {submissionInfo.submission.overridden.newGrade
-                      ? submissionInfo.submission.overridden.newGrade
-                      : submissionInfo.submission.finalGrade}
+                    {submissionInfo.submission?.overridden?.newGrade
+                      ? submissionInfo.submission?.overridden?.newGrade
+                      : submissionInfo?.submission?.finalGrade}
                   </div>
                 </div>
               )}
@@ -929,7 +929,7 @@ const Submissions = () => {
               <h3>ציונים ומשובים</h3>
               <Table
                 columns={gradeColumns}
-                dataSource={submissionInfo.submission.grades.map((grade, index) => ({
+                dataSource={submissionInfo?.submission?.grades.map((grade, index) => ({
                   ...grade,
                   key: grade._id || index,
                 }))}

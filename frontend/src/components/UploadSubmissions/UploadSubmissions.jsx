@@ -129,6 +129,7 @@ const UploadSubmissions = () => {
       );
 
       setSubmissions(submissionsWithProjectNames);
+      console.log(submissionsWithProjectNames);
     } catch (error) {
       console.error("Error fetching submissions:", error);
       setSubmissions([]);
@@ -367,7 +368,13 @@ const UploadSubmissions = () => {
           ) : record.finalGrade != null ? (
             <a>
               <Tooltip title="לצפיה בציון">
-                <EyeOutlined className="edit-icon" onClick={() => setGradeInfo(record)} />
+                <EyeOutlined
+                  className="edit-icon"
+                  onClick={() => {
+                    setGradeInfo(record);
+                    console.log(record);
+                  }}
+                />
               </Tooltip>
             </a>
           ) : (
