@@ -446,3 +446,16 @@ export const getAdvisorsForUsersInfo = async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 };
+
+export const getUserProject = async (req, res) => {
+  try {
+    const user = req.user;
+    const project = await Project.findOne({ "students.student": user._id });
+    if (!project) {
+      return res.status(204).send({ message: "No project found for the user" });
+    }
+    res.status(200).send(project);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};

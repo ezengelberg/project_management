@@ -21,6 +21,7 @@ import {
   checkUserHasProject,
   getAdvisorsForUsersInfo,
   createAdmin,
+  getUserProject,
 } from "../controllers/userController.js";
 import {
   getNotifications,
@@ -55,6 +56,7 @@ router.put("/unsuspend-user/:userId", ensureAuthenticated, isCoordinator, unsusp
 router.delete("/delete-suspended-user/:userId", ensureAuthenticated, isCoordinator, deleteSuspendedUser);
 router.get("/check-user-has-projects/:userId", ensureAuthenticated, checkUserHasProject);
 router.get("/advisors-for-users-info", ensureAuthenticated, getAdvisorsForUsersInfo);
+router.get("/user-project", ensureAuthenticated, getUserProject);
 
 // Notifications
 router.get("/notifications", ensureAuthenticated, getNotifications);
