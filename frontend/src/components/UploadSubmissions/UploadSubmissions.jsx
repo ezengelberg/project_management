@@ -406,21 +406,55 @@ const UploadSubmissions = () => {
             <div className="detail-item-content">{gradeInfo?.submissionName}</div>
           </div>
           {gradeInfo?.isGraded && (
-            <div className="detail-item">
-              <div className="detail-item-header">ציון סופי:</div>
-              <div className="detail-item-content">{gradeInfo?.finalGrade}</div>
-            </div>
+            <>
+              <div className="detail-item">
+                <div className="detail-item-header">ציון סופי:</div>
+                <div
+                  className="detail-item-content"
+                  style={{
+                    color: gradeInfo?.finalGrade >= 55 ? "darkgreen" : "red",
+                    fontWeight: "bold",
+                  }}>
+                  {gradeInfo?.finalGrade}
+                </div>
+              </div>
+              {Math.ceil(
+                (new Date(gradeInfo?.uploadDate) - new Date(gradeInfo?.submissionDate)) / (1000 * 60 * 60 * 24),
+              ) > 0 && (
+                <Tooltip title="2 נקודות על כל יום איחור">
+                  <div className="detail-item">
+                    <div className="detail-item-header">נקודות קנס:</div>
+                    <div className="detail-item-content" style={{ color: "red", fontWeight: "bold" }}>
+                      {Math.ceil(
+                        (new Date(gradeInfo?.uploadDate) - new Date(gradeInfo?.submissionDate)) / (1000 * 60 * 60 * 24),
+                      ) * 2}
+                    </div>
+                  </div>
+                </Tooltip>
+              )}
+            </>
           )}
-          {gradeInfo?.isGraded && (
-            <Splitter
-              style={{
-                height: 200,
-                boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-              }}>
-              <Splitter.Panel min={50}>משוב א</Splitter.Panel>
-              <Splitter.Panel min={50}>משוב ב</Splitter.Panel>
-              <Splitter.Panel min={50}>משוב ג</Splitter.Panel>
-            </Splitter>
+
+          {gradeInfo?.isReviewed && (
+            <div className="reviews">
+              {gradeInfo.grades.map((grade, index) => (
+                <div className="review">
+                  <div className="review-title">משוב ע"י שופט {index + 1}</div>
+                  <div className="review-item">
+                    <div className="review-header">משוב איכות הכתיבה:</div>
+                    <div className="review-content">{grade?.videoQuality}</div>
+                  </div>
+                  <div className="review-item">
+                    <div className="review-header">משוב איכות העבודה:</div>
+                    <div className="review-content">{grade?.workQuality}</div>
+                  </div>
+                  <div className="review-item">
+                    <div className="review-header">משוב איכות הכתיבה:</div>
+                    <div className="review-content">{grade?.writingQuality}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </Modal>

@@ -184,11 +184,11 @@ export const changeFinalGrade = async (req, res) => {
     // Create notifications for students and advisor
     const notifications = submission.project.students.map((student) => ({
       user: student.student,
-      message: `הציון של "${submission.name}" שונה`,
+      message: `הציון של "${submission.name}" עודכן`,
     }));
     notifications.push({
       user: submission.project.advisors[0],
-      message: `הציון של "${submission.name}" שונה`,
+      message: `הציון של "${submission.name}" עודכן`,
     });
     await Notification.insertMany(notifications);
 

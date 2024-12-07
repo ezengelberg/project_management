@@ -56,6 +56,13 @@ const Submissions = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const [filters, setSelectedFilters] = useState({
+    submitted: false,
+    notSubmitted: false,
+    waitingCheck: false,
+    waitingPublish: false,
+    finalGrade: false,
+  });
 
   const fetchActiveProjects = async () => {
     try {
@@ -334,7 +341,6 @@ const Submissions = () => {
   };
 
   const handleOkSpecific = async (values) => {
-    console.log(values);
     try {
       let name = "";
       let isGraded = false;
@@ -504,7 +510,6 @@ const Submissions = () => {
       title: "הגשות",
       key: "submissions",
       render: (_, record) => {
-        // console.log(record);
         // Ensure submissions array exists
         const submissions = record.submissions || [];
         return (
@@ -582,8 +587,11 @@ const Submissions = () => {
         { text: "מחכה לפרסום", value: "waitingPublish" },
         { text: "פורסם", value: "finalGrade" },
       ],
-      onFilter: (value, record) => {
-        // setSelectedFilters((prev) => (prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]));
+      onFilter: (value) => {
+        setSelectedFilters((prevFilters) => ({
+          ...prevFilters,
+          [value]: !prevFilters[value],
+        }));
       },
     },
   ];
