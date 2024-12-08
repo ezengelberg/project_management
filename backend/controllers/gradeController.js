@@ -275,6 +275,7 @@ export const publishGrades = async (req, res) => {
           (new Date(submission.uploadDate) - new Date(submission.submissionDate)) / (1000 * 60 * 60 * 24),
         );
         submission.finalGrade -= days * 2;
+        if (submission.finalGrade < 0) submission.finalGrade = 0;
       } else {
         submission.finalGrade = null;
       }
