@@ -10,7 +10,6 @@ import {
   TeamOutlined,
   SettingOutlined,
   InfoCircleOutlined,
-  CheckCircleOutlined,
   BarChartOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -116,32 +115,13 @@ const Sidebar = () => {
             </div>
           </li>
           {user.isStudent && (
-            <li className={`${openSubmenus.myProject ? "open" : "closed"}`}>
+            <li>
               <div
-                className="sidebar-option"
-                onClick={() => toggleSubmenu("myProject")}
-                onMouseDown={(e) => handleMouseDown(e, "/my-project")}>
+                className={`sidebar-option ${isActive("/my-submissions") ? "active" : ""}`}
+                onClick={() => navigate("/my-submissions")}
+                onMouseDown={(e) => handleMouseDown(e, "/my-submissions")}>
                 <ApartmentOutlined />
-                <span>הפרויקט שלי</span>
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
-                    stroke="#0C0310"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-              <div className={`sidebar-drop-menu`}>
-                <ul>
-                  <li className={`${isActive("/my-project") ? "active" : ""}`}>הפרויקט שלי</li>
-                  <li
-                    className={`${isActive("/my-submissions") ? "active" : ""}`}
-                    onClick={() => navigate("/my-submissions")}
-                    onMouseDown={(e) => handleMouseDown(e, "/my-submissions")}>
-                    הגשות
-                  </li>
-                </ul>
+                הגשות
               </div>
             </li>
           )}
@@ -210,7 +190,7 @@ const Sidebar = () => {
                     className={`${isActive("/overview-projects") ? "active" : ""}`}
                     onClick={() => navigate("/overview-projects")}
                     onMouseDown={(e) => handleMouseDown(e, "/overview-projects")}>
-                    רשימת פרויקטים
+                    הצגת פרויקטים
                   </li>
                   <li
                     className={`sidebar-option ${isActive("/submissions") ? "active" : ""}`}
