@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Badge, Table, Tooltip, Modal, Upload, message, Button, Space, Input, Splitter } from "antd";
+import { Badge, Table, Tooltip, Modal, Upload, message, Divider } from "antd";
 import {
   UploadOutlined,
   DeleteOutlined,
@@ -438,20 +438,25 @@ const UploadSubmissions = () => {
           {gradeInfo?.isReviewed && (
             <div className="reviews">
               {gradeInfo.grades.map((grade, index) => (
-                <div className="review">
-                  <div className="review-title">משוב ע"י שופט {index + 1}</div>
-                  <div className="review-item">
-                    <div className="review-header">משוב איכות הכתיבה:</div>
-                    <div className="review-content">{grade?.videoQuality}</div>
+                <div className="review-container">
+                  <div className="review">
+                    <div className="review-title">משוב ע"י שופט {index + 1}</div>
+                    <div className="review-item">
+                      <div className="review-header">משוב איכות הכתיבה:</div>
+                      <div className="review-content">{grade?.videoQuality}</div>
+                    </div>
+                    <div className="review-item">
+                      <div className="review-header">משוב איכות העבודה:</div>
+                      <div className="review-content">{grade?.workQuality}</div>
+                    </div>
+                    <div className="review-item">
+                      <div className="review-header">משוב איכות הכתיבה:</div>
+                      <div className="review-content">{grade?.writingQuality}</div>
+                    </div>
                   </div>
-                  <div className="review-item">
-                    <div className="review-header">משוב איכות העבודה:</div>
-                    <div className="review-content">{grade?.workQuality}</div>
-                  </div>
-                  <div className="review-item">
-                    <div className="review-header">משוב איכות הכתיבה:</div>
-                    <div className="review-content">{grade?.writingQuality}</div>
-                  </div>
+                  {index !== gradeInfo.grades.length - 1 && gradeInfo.grades.length > 1 && (
+                    <Divider type="vertical" style={{ height: "100%", margin: "0 5px" }} />
+                  )}
                 </div>
               ))}
             </div>

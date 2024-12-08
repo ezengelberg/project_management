@@ -48,18 +48,20 @@
     margin-top: 1rem;
     display: flex;
     width: 100%;
-    gap: 3rem;
-    .review {
-      width: 30%;
+    .review-container {
       display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      .review-item {
+      width: calc(100%/3 - 1rem);
+      .review {
         display: flex;
         flex-direction: column;
-        .review-header {
-          font-weight: bold;
-          color: #525252;
+        // gap: 0.5rem;
+        .review-item {
+          display: flex;
+          flex-direction: column;
+          .review-header {
+            font-weight: bold;
+            color: #525252;
+          }
         }
       }
     }
