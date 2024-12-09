@@ -146,7 +146,7 @@ export const createProject = async (req, res) => {
       advisorsList.map(async (advisor) => {
         const notification = new Notification({
           user: advisor._id,
-          message: `התווספת כמנחה לפרויקט ${title}`,
+          message: `התווספת כמנחה לפרויקט: ${title}`,
           link: `/project/${savedProject._id}`,
         });
         notification.save();
@@ -155,11 +155,11 @@ export const createProject = async (req, res) => {
       studentsList.map(async (student) => {
         const notification = new Notification({
           user: student.student,
-          message: `התווספת כסטודנט לפרויקט ${title}`,
+          message: `התווספת כסטודנט לפרויקט: ${title}`,
           link: `/project/${savedProject._id}`,
         });
         notification.save();
-      }),
+      })
     );
 
     res.status(201).json({
@@ -207,7 +207,7 @@ export const addStudentToProject = async (req, res) => {
       project.students.push({ student: user._id });
       const notification = new Notification({
         user: user._id,
-        message: `התווספת כסטודנט לפרויקט ${project.title}`,
+        message: `התווספת כסטודנט לפרויקט: ${project.title}`,
         link: `/project/${project._id}`,
       });
       notification.save();
@@ -274,7 +274,7 @@ export const addCandidateToProject = async (req, res) => {
 
     const notification = new Notification({
       user: user._id,
-      message: `התווספת כמתמודד לפרויקט ${project.title}<br /><span style={"color: red"}>שים לב כי עליך לקבל אישור מהמנחה של הפרויקט</span>`,
+      message: `התווספת כמתמודד לפרויקט: ${project.title}<br /><span style={"color: red"}>שים לב כי עליך לקבל אישור מהמנחה של הפרויקט</span>`,
       link: `/project/${project._id}`,
     });
     notification.save();
@@ -343,7 +343,7 @@ export const approveCandidate = async (req, res) => {
       const { _id, ...candidateWithoutId } = candidate.toObject();
       project.students.push(candidateWithoutId);
       project.candidates = project.candidates.filter(
-        (candidate) => candidate.student.toString() !== user._id.toString(),
+        (candidate) => candidate.student.toString() !== user._id.toString()
       );
     }
     await project.save();
@@ -497,7 +497,7 @@ export const addAdvisorToProject = async (req, res) => {
 
     const notification = new Notification({
       user: req.body.advisorID,
-      message: `התווספת כמנחה לפרויקט ${project.title}`,
+      message: `התווספת כמנחה לפרויקט: ${project.title}`,
       link: `/project/${project._id}`,
     });
     notification.save();
@@ -529,7 +529,7 @@ export const updateAdvisorInProject = async (req, res) => {
 
     const notification = new Notification({
       user: advisorID,
-      message: `התווספת כמנחה לפרויקט ${project.title}`,
+      message: `התווספת כמנחה לפרויקט: ${project.title}`,
       link: `/project/${project._id}`,
     });
     notification.save();

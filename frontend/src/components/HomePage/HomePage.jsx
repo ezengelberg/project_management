@@ -119,7 +119,7 @@ const Homepage = () => {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications`, {
           withCredentials: true,
         });
-        setNotifications(response.data.slice(0, 3));
+        setNotifications(response.data.reverse().slice(0, 3)); // Reverse to show latest notifications first
       } catch (error) {
         console.error("Error fetching notifications:", error);
       }
@@ -169,16 +169,19 @@ const Homepage = () => {
 
   const formatter = (value) => <CountUp end={value} separator="," />;
 
-  const handleNotificationClick = async (notification) => {
-    if (notification.link) {
-      try {
-        await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/read/${notification._id}`, null, {
-          withCredentials: true,
-        });
-        navigate(notification.link);
-      } catch (error) {
-        console.error("Error marking notification as read:", error);
+  const markNotificationAsRead = async (notificationId, link = null) => {
+    try {
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/read/${notificationId}`, null, {
+        withCredentials: true,
+      });
+      setNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification._id !== notificationId)
+      );
+      if (link) {
+        navigate(link);
       }
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
     }
   };
 
@@ -304,23 +307,56 @@ const Homepage = () => {
             </span>
           </div>
           <div className="home-page-notifications-list">
-            {notifications.map((notification) => (
-              <Alert
-                key={notification._id}
-                description={
-                  <div className="notification-list-message">
-                    {notification.link ? (
-                      <a onClick={() => handleNotificationClick(notification)}>{notification.message}</a>
-                    ) : (
-                      notification.message
-                    )}
-                    <CloseOutlined className="notification-list-close-icon" />
-                  </div>
-                }
-                type="info"
-                showIcon
-              />
-            ))}
+            {notifications.length === 0 ? (
+              <p style={{ fontSize: "20px" }}>אין התראות חדשות</p>
+            ) : (
+              notifications.map((notification) => (
+                <Alert
+                  key={notification._id}
+                  description={
+                    <div className="notification-list-message">
+                      {notification.link ? (
+                        <a onClick={() => markNotificationAsRead(notification._id, notification.link)}>
+                          <p>
+                            {notification.message}
+                            <br />
+                            <span className="notification-list-date">
+                              {new Date(notification.createdAt).toLocaleString("he-IL", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              })}
+                            </span>
+                          </p>
+                        </a>
+                      ) : (
+                        <p>
+                          {notification.message}
+                          <br />
+                          <span className="notification-list-date">
+                            {new Date(notification.createdAt).toLocaleString("he-IL", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                            })}
+                          </span>
+                        </p>
+                      )}
+                      <CloseOutlined
+                        className="notification-list-close-icon"
+                        onClick={() => markNotificationAsRead(notification._id)}
+                      />
+                    </div>
+                  }
+                  type="info"
+                  showIcon
+                />
+              ))
+            )}
           </div>
         </div>
       </div>

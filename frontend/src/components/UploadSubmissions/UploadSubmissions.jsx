@@ -127,7 +127,6 @@ const UploadSubmissions = () => {
       );
 
       setSubmissions(submissionsWithProjectNames);
-      console.log(submissionsWithProjectNames);
     } catch (error) {
       console.error("Error fetching submissions:", error);
       setSubmissions([]);

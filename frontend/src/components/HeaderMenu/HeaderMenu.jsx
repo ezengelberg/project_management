@@ -23,7 +23,7 @@ const HeaderMenu = () => {
         withCredentials: true,
       });
       setUnreadNotifications(response.data.length);
-      setNotifications(response.data.slice(0, 5)); // Show only the 5 most recent notifications
+      setNotifications(response.data.reverse().slice(0, 5)); // Reverse to show latest notifications first
     } catch (error) {
       console.error("Error fetching notifications:", error);
     }
