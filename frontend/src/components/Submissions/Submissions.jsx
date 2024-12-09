@@ -516,7 +516,10 @@ const Submissions = () => {
           <div className="table-row">
             {submissions.map((sub, index) => {
               const grades = sub.grades || [];
-              const waitingCheck = grades.some((grade) => grade.grade === null);
+              const waitingCheck =
+                (sub.isGraded && grades.some((grade) => grade.grade === null)) ||
+                (sub.isReviewed &&
+                  grades.some((grade) => grade.videoQuality === undefined || grade.videoQuality === undefined));
               return (
                 <div className="table-col-div" key={index}>
                   <div
@@ -557,10 +560,10 @@ const Submissions = () => {
                       <div>
                         {waitingCheck && sub.submitted ? (
                           <Badge color="blue" text="מחכה לבדיקה" />
-                        ) : !waitingCheck && sub.submitted && sub.finalGrade === null ? (
+                        ) : !waitingCheck && sub.submitted ? (
                           <Badge color="purple" text="מחכה לפרסום" />
                         ) : (
-                          sub.finalGrade !== null && (
+                          sub.editable !== null && (
                             <Badge
                               color="pink"
                               text={`ציון סופי: ${sub.overridden?.newGrade ? sub.overridden.newGrade : sub.finalGrade}`}
