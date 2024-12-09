@@ -41,6 +41,24 @@
     }
   }
 
+  .home-page-notifications-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    span {
+      font-size: 1.4rem;
+      align-self: flex-end;
+      margin-bottom: 0.5rem;
+      color: #1677ff;
+      cursor: pointer;
+      transition: 0.2s all ease-in-out;
+      &:hover {
+        color: #4096ff;
+      }
+    }
+  }
+
   .home-page-notifications-list {
     display: flex;
     flex-direction: column;
