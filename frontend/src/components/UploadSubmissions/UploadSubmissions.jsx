@@ -1,18 +1,16 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, forwardRef } from "react";
 import { Badge, Table, Tooltip, Modal, Upload, message, Divider } from "antd";
-import {
-  UploadOutlined,
-  DeleteOutlined,
-  InboxOutlined,
-  SearchOutlined,
-  EyeFilled,
-  EyeInvisibleFilled,
-  EyeOutlined,
-} from "@ant-design/icons";
+import { UploadOutlined, DeleteOutlined, InboxOutlined, EyeOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import axios from "axios";
 import "./UploadSubmissions.scss";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
+
+const SafeTooltip = forwardRef(({ title, children }, ref) => (
+  <Tooltip title={title}>
+    <span ref={ref}>{children}</span>
+  </Tooltip>
+));
 
 const UploadSubmissions = () => {
   const [submissions, setSubmissions] = useState([]);
@@ -82,7 +80,7 @@ const UploadSubmissions = () => {
       // Send POST request to delete the file & remove its' schema reference
       await axios.delete(
         `${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete/${currentSubmission.file}?destination=submissions`,
-        { withCredentials: true },
+        { withCredentials: true }
       );
       // POST request to remove file form submission schema
       await axios.post(
@@ -91,10 +89,10 @@ const UploadSubmissions = () => {
           file: null,
           sentFromDelete: true,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
       const submissionsUpdated = submissions.map((submission) =>
-        submission._id === currentSubmission._id ? { ...submission, file: null } : submission,
+        submission._id === currentSubmission._id ? { ...submission, file: null } : submission
       );
       setSubmissions(submissionsUpdated);
       message.info(`הגשה עבור ${currentSubmission.name} נמחקה בהצלחה`);
@@ -121,11 +119,11 @@ const UploadSubmissions = () => {
         data.map(async (submission) => {
           const projectResponse = await axios.get(
             `${process.env.REACT_APP_BACKEND_URL}/api/project/get-project/${submission.project}`,
-            { withCredentials: true },
+            { withCredentials: true }
           );
           const projectName = projectResponse.data.title;
           return { ...submission, projectName };
-        }),
+        })
       );
 
       setSubmissions(submissionsWithProjectNames);
@@ -183,7 +181,7 @@ const UploadSubmissions = () => {
             "X-Filename-Encoding": "url",
           },
           withCredentials: true,
-        },
+        }
       );
       // Show success message and reset file
       const uploadedFile = response.data.files[0]._id;
@@ -193,11 +191,11 @@ const UploadSubmissions = () => {
         {
           file: uploadedFile,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
 
       const submissionsUpdated = submissions.map((submission) =>
-        submission._id === currentSubmission._id ? { ...submission, file: uploadedFile } : submission,
+        submission._id === currentSubmission._id ? { ...submission, file: uploadedFile } : submission
       );
       setSubmissions(submissionsUpdated);
       setFile(null); // Clear the selected file
@@ -254,7 +252,7 @@ const UploadSubmissions = () => {
         const isPastDue = submissionDate < new Date();
         const isDateClose = submissionDate - new Date() < 2 * 24 * 60 * 60 * 1000;
         return (
-          <Tooltip
+          <SafeTooltip
             title={`${
               !record.file && isPastDue
                 ? "תאריך ההגשה עבר, ההגשה באיחור"
@@ -275,7 +273,7 @@ const UploadSubmissions = () => {
                 year: "numeric",
               })}
             </span>
-          </Tooltip>
+          </SafeTooltip>
         );
       },
       sorter: (a, b) => {
@@ -296,9 +294,9 @@ const UploadSubmissions = () => {
           <span>
             {record.file ? (
               isLate ? (
-                <Tooltip title={`2 נקודות קנס על כל יום איחור - סה"כ ${days * 2} נקודות`}>
+                <SafeTooltip title={`2 נקודות קנס על כל יום איחור - סה"כ ${days * 2} נקודות`}>
                   <Badge color={"darkgreen"} text={`הוגש באיחור - ${days} ימים`} />
-                </Tooltip>
+                </SafeTooltip>
               ) : (
                 <Badge color={"green"} text={"הוגש"} />
               )
@@ -419,14 +417,14 @@ const UploadSubmissions = () => {
                 </div>
               </div>
               {Math.ceil(
-                (new Date(gradeInfo?.uploadDate) - new Date(gradeInfo?.submissionDate)) / (1000 * 60 * 60 * 24),
+                (new Date(gradeInfo?.uploadDate) - new Date(gradeInfo?.submissionDate)) / (1000 * 60 * 60 * 24)
               ) > 0 && (
                 <Tooltip title="2 נקודות על כל יום איחור">
                   <div className="detail-item">
                     <div className="detail-item-header">נקודות קנס:</div>
                     <div className="detail-item-content" style={{ color: "red", fontWeight: "bold" }}>
                       {Math.ceil(
-                        (new Date(gradeInfo?.uploadDate) - new Date(gradeInfo?.submissionDate)) / (1000 * 60 * 60 * 24),
+                        (new Date(gradeInfo?.uploadDate) - new Date(gradeInfo?.submissionDate)) / (1000 * 60 * 60 * 24)
                       ) * 2}
                     </div>
                   </div>
