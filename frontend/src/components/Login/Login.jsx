@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
 import { Alert, Form, Input, Button, message } from "antd";
-import { EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
+import { EyeInvisibleOutlined, EyeOutlined, ArrowRightOutlined } from "@ant-design/icons";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -14,8 +14,10 @@ const Login = () => {
   const [tempUserData, setTempUserData] = useState(null);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [changePasswordForm] = Form.useForm();
   const [loginForm] = Form.useForm();
+  const [forgotPasswordForm] = Form.useForm();
 
   const EmailSvg = () => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -68,7 +70,7 @@ const Login = () => {
             email: lowerCaseEmail,
             password,
           },
-          { withCredentials: true },
+          { withCredentials: true }
         );
 
         const userData = result.data;
@@ -109,7 +111,7 @@ const Login = () => {
           oldPassword: tempUserData.id,
           newPassword: values.newPassword,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
 
       // Update the user data to reflect password change
@@ -135,10 +137,12 @@ const Login = () => {
     }
   };
 
+  const handleForgotPassword = async () => {};
+
   return (
     <div className="login">
       <img src={collegeLogo} alt="collage logo" className="collage-logo" />
-      {!showChangePassword ? (
+      {!showChangePassword && !showForgotPassword ? (
         <Form form={loginForm} onFinish={handleOnSubmit} layout="vertical" className="login-form">
           <h1>התחברות</h1>
           <div className="form-area">
@@ -175,7 +179,7 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </Form.Item>
-            <a className="forgot-password" onClick={() => navigate("/")}>
+            <a className="forgot-password" onClick={() => setShowForgotPassword(true)}>
               שכחת סיסמה?
             </a>
             <Form.Item>
@@ -186,7 +190,7 @@ const Login = () => {
             {errorMessage && <Alert className="server-error" message={errorMessage} type="error" showIcon />}
           </div>
         </Form>
-      ) : (
+      ) : showChangePassword ? (
         <Form
           form={changePasswordForm}
           onFinish={handleChangePassword}
@@ -232,10 +236,35 @@ const Login = () => {
               iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
             />
           </Form.Item>
-
           <Form.Item className="change-password-button">
             <Button type="primary" htmlType="submit" loading={loading}>
               שנה סיסמה
+            </Button>
+          </Form.Item>
+        </Form>
+      ) : (
+        <Form
+          form={forgotPasswordForm}
+          onFinish={handleForgotPassword}
+          layout="vertical"
+          className="forgot-password-form">
+          <span className="return-to-login" onClick={() => setShowForgotPassword(false)}>
+            <ArrowRightOutlined /> חזור להתחברות
+          </span>
+          <h2>שחזור סיסמה</h2>
+          <Form.Item
+            name="email"
+            label="אימייל"
+            rules={[
+              { required: true, message: "חובה להזין אימייל" },
+              { type: "email", message: "אימייל לא תקין" },
+            ]}
+            hasFeedback>
+            <Input type="email" size="large" placeholder="הכנס אימייל" />
+          </Form.Item>
+          <Form.Item className="forgot-password-button">
+            <Button type="primary" htmlType="submit" loading={loading}>
+              שלח קישור לאיפוס סיסמה
             </Button>
           </Form.Item>
         </Form>
