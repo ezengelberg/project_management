@@ -362,7 +362,7 @@ const UploadSubmissions = () => {
             <a>
               <DeleteOutlined className="edit-icon" onClick={() => showConfirmModal(record)} />
             </a>
-          ) : record.finalGrade != null ? (
+          ) : record.editable === false ? (
             <a>
               <Tooltip title="לצפיה בציון">
                 <EyeOutlined
