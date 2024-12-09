@@ -1,0 +1,31 @@
+.notification-item {
+  gap: 2rem;
+  .ant-list-item-meta {
+    .ant-list-item-meta-content {
+      h4 {
+        word-break: break-word;
+      }
+    }
+  }
+  span {
+    font-size: 2rem;
+    cursor: pointer;
+    color: #1677ff;
+    transition: 0.2s all linear;
+    &:hover {
+      color: #4096ff;
+    }
+  }
+}
+
+.notification-with-link {
+  .ant-list-item-meta {
+    .ant-list-item-meta-content {
+      h4 {
+        word-break: break-word;
+        color: #1677ff !important;
+        cursor: pointer;
+      }
+    }
+  }
+}
