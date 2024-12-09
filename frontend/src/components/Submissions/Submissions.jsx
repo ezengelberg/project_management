@@ -519,6 +519,7 @@ const Submissions = () => {
               const waitingCheck =
                 (sub.isGraded && grades.some((grade) => grade.grade === null)) ||
                 (sub.isReviewed &&
+                  sub.editable === false &&
                   grades.some((grade) => grade.videoQuality === undefined || grade.videoQuality === undefined));
               return (
                 <div className="table-col-div" key={index}>
@@ -563,7 +564,8 @@ const Submissions = () => {
                         ) : !waitingCheck && sub.submitted ? (
                           <Badge color="purple" text="מחכה לפרסום" />
                         ) : (
-                          sub.editable !== null && (
+                          sub.editable !== null &&
+                          sub.isGraded && (
                             <Badge
                               color="pink"
                               text={`ציון סופי: ${sub.overridden?.newGrade ? sub.overridden.newGrade : sub.finalGrade}`}
