@@ -307,13 +307,31 @@ const Homepage = () => {
             </span>
           </div>
           <div className="home-page-notifications-list">
-            {notifications.map((notification) => (
-              <Alert
-                key={notification._id}
-                description={
-                  <div className="notification-list-message">
-                    {notification.link ? (
-                      <a onClick={() => markNotificationAsRead(notification._id, notification.link)}>
+            {notifications.length === 0 ? (
+              <p style={{ fontSize: "20px" }}>אין התראות חדשות</p>
+            ) : (
+              notifications.map((notification) => (
+                <Alert
+                  key={notification._id}
+                  description={
+                    <div className="notification-list-message">
+                      {notification.link ? (
+                        <a onClick={() => markNotificationAsRead(notification._id, notification.link)}>
+                          <p>
+                            {notification.message}
+                            <br />
+                            <span className="notification-list-date">
+                              {new Date(notification.createdAt).toLocaleString("he-IL", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              })}
+                            </span>
+                          </p>
+                        </a>
+                      ) : (
                         <p>
                           {notification.message}
                           <br />
@@ -327,32 +345,18 @@ const Homepage = () => {
                             })}
                           </span>
                         </p>
-                      </a>
-                    ) : (
-                      <p>
-                        {notification.message}
-                        <br />
-                        <span className="notification-list-date">
-                          {new Date(notification.createdAt).toLocaleString("he-IL", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })}
-                        </span>
-                      </p>
-                    )}
-                    <CloseOutlined
-                      className="notification-list-close-icon"
-                      onClick={() => markNotificationAsRead(notification._id)}
-                    />
-                  </div>
-                }
-                type="info"
-                showIcon
-              />
-            ))}
+                      )}
+                      <CloseOutlined
+                        className="notification-list-close-icon"
+                        onClick={() => markNotificationAsRead(notification._id)}
+                      />
+                    </div>
+                  }
+                  type="info"
+                  showIcon
+                />
+              ))
+            )}
           </div>
         </div>
       </div>
