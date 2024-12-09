@@ -24,9 +24,11 @@ import {
   getUserProject,
 } from "../controllers/userController.js";
 import {
-  getNotifications,
+  getUnreadNotifications,
+  getAllNotifications,
   markAllNotificationsAsRead,
   markNotificationAsRead,
+  deleteNotification,
 } from "../controllers/notificationController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -59,8 +61,10 @@ router.get("/advisors-for-users-info", ensureAuthenticated, getAdvisorsForUsersI
 router.get("/user-project", ensureAuthenticated, getUserProject);
 
 // Notifications
-router.get("/notifications", ensureAuthenticated, getNotifications);
+router.get("/notifications", ensureAuthenticated, getUnreadNotifications);
+router.get("/notifications/all", ensureAuthenticated, getAllNotifications);
 router.put("/notifications/read", ensureAuthenticated, markAllNotificationsAsRead);
 router.put("/notifications/read/:notificationId", ensureAuthenticated, markNotificationAsRead);
+router.delete("/notifications/delete/:notificationId", ensureAuthenticated, deleteNotification);
 
 export default router;

@@ -297,7 +297,12 @@ const Homepage = () => {
           </div>
         </div>
         <div className="home-page-notifications">
-          <h2>התראות</h2>
+          <div className="home-page-notifications-header">
+            <h2>התראות</h2>
+            <span onClick={() => navigate("/notifications")} onMouseDown={(e) => handleMouseDown(e, "/notifications")}>
+              כל ההתראות
+            </span>
+          </div>
           <div className="home-page-notifications-list">
             {notifications.map((notification) => (
               <Alert
