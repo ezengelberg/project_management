@@ -36,10 +36,12 @@ export const getColumnSearchProps = (dataIndex, searchInput, handleSearch, handl
     </div>
   ),
   filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />,
-  onFilterDropdownOpenChange: (visible) => {
-    if (visible) {
-      setTimeout(() => searchInput.current?.select(), 100);
-    }
+  filterDropdownProps: {
+    onOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
+    },
   },
   onFilter: (value, record) => record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
 });

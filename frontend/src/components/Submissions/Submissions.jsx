@@ -56,6 +56,13 @@ const Submissions = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const [filters, setSelectedFilters] = useState({
+    submitted: false,
+    notSubmitted: false,
+    waitingCheck: false,
+    waitingPublish: false,
+    finalGrade: false,
+  });
 
   const fetchActiveProjects = async () => {
     try {
@@ -286,12 +293,16 @@ const Submissions = () => {
         {
           name: values.submissionName,
           submissionDate: values.submissionDate,
+          isGraded: Array.isArray(values.submissionChecklist) ? values.submissionChecklist.includes("isGraded") : false,
+          isReviewed: Array.isArray(values.submissionChecklist)
+            ? values.submissionChecklist.includes("isReviewed")
+            : false,
         },
         {
           withCredentials: true,
         },
       );
-      message.info(`הגשה ${specificSubmissionInfo.submission.name} נמחקה בהצלחה`);
+      message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
       console.error("Error updating submission:", error);
       message.error("שגיאה בעדכון ההגשה");
@@ -335,7 +346,7 @@ const Submissions = () => {
       let isGraded = false;
       let isReviewed = false;
 
-      switch (submissionType) {
+      switch (values.submissionType) {
         case "proposalReport":
           name = "דוח הצעה";
           isGraded = submissionOptions.find((option) => option.value === "proposalReport").isGraded;
@@ -366,7 +377,6 @@ const Submissions = () => {
             : false;
           break;
       }
-
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create-specific`,
         {
@@ -500,14 +510,17 @@ const Submissions = () => {
       title: "הגשות",
       key: "submissions",
       render: (_, record) => {
-        // console.log(record);
         // Ensure submissions array exists
         const submissions = record.submissions || [];
         return (
           <div className="table-row">
             {submissions.map((sub, index) => {
               const grades = sub.grades || [];
-              const waitingCheck = grades.some((grade) => grade.grade === null);
+              const waitingCheck =
+                (sub.isGraded && grades.some((grade) => grade.grade === null)) ||
+                (sub.isReviewed &&
+                  sub.editable === false &&
+                  grades.some((grade) => grade.videoQuality === undefined || grade.videoQuality === undefined));
               return (
                 <div className="table-col-div" key={index}>
                   <div
@@ -532,16 +545,27 @@ const Submissions = () => {
                     </span>
                     <div className="table-col-info">
                       <Badge
-                        color={sub.submitted ? "green" : "orange"}
-                        text={sub.submitted ? `הוגש${sub.isLate ? " באיחור" : ""}` : "ממתין להגשה"}
+                        color={sub.submitted ? (sub.isLate ? "darkgreen" : "green") : "orange"}
+                        text={
+                          sub.submitted
+                            ? `הוגש${
+                                sub.isLate
+                                  ? ` באיחור - ${Math.ceil(
+                                      (new Date(sub.uploadDate) - new Date(sub.submissionDate)) / (1000 * 60 * 60 * 24),
+                                    )} ימים`
+                                  : ""
+                              }`
+                            : "ממתין להגשה"
+                        }
                       />
                       <div>
                         {waitingCheck && sub.submitted ? (
                           <Badge color="blue" text="מחכה לבדיקה" />
-                        ) : !waitingCheck && sub.submitted && sub.finalGrade === null ? (
+                        ) : !waitingCheck && sub.submitted ? (
                           <Badge color="purple" text="מחכה לפרסום" />
                         ) : (
-                          sub.finalGrade !== null && (
+                          sub.editable !== null &&
+                          sub.isGraded && (
                             <Badge
                               color="pink"
                               text={`ציון סופי: ${sub.overridden?.newGrade ? sub.overridden.newGrade : sub.finalGrade}`}
@@ -561,6 +585,19 @@ const Submissions = () => {
         );
       },
       width: "75%",
+      filters: [
+        { text: "הוגש", value: "submitted" },
+        { text: "לא הוגש", value: "notSubmitted" },
+        { text: "מחכה לבדיקה", value: "waitingCheck" },
+        { text: "מחכה לפרסום", value: "waitingPublish" },
+        { text: "פורסם", value: "finalGrade" },
+      ],
+      onFilter: (value) => {
+        setSelectedFilters((prevFilters) => ({
+          ...prevFilters,
+          [value]: !prevFilters[value],
+        }));
+      },
     },
   ];
 
@@ -697,8 +734,15 @@ const Submissions = () => {
           handleDeleteSpecific(deleteSubmission);
         }}>
         <p>
-          <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - הינך מוחק את -{" "}
-          {deleteSubmission?.submission.name} עבור הפרויקט - {deleteSubmission?.project.title}
+          <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - הינך מוחק את ההגשה{" "}
+          <span style={{ backgroundColor: "#e4eafc", padding: "1px 2px", borderRadius: "5px" }}>
+            {deleteSubmission?.submission.name}
+          </span>
+          <br />
+          עבור הפרויקט -
+          <span style={{ backgroundColor: "#e4eafc", padding: "1px 2px", borderRadius: "5px" }}>
+            {deleteSubmission?.project.title}
+          </span>
         </p>
       </Modal>
       <Modal
@@ -794,6 +838,10 @@ const Submissions = () => {
                           projectName: submissionInfo.project.title,
                           submissionName: submissionInfo.submission.name,
                           submissionDate: dayjs(submissionInfo.submission.submissionDate),
+                          submissionChecklist: [
+                            submissionInfo.submission.isGraded ? "isGraded" : null,
+                            submissionInfo.submission.isReviewed ? "isReviewed" : null,
+                          ].filter((value) => value !== null),
                         });
                         setSpecificSubmissionInfo(submissionInfo);
                         setSubmissionInfo(null);
@@ -818,10 +866,24 @@ const Submissions = () => {
                 <div className="detail-item-header">סטטוס ההגשה:</div>
                 <div className="detail-item-content">
                   <Badge
-                    status={submissionInfo.submission.submitted ? "success" : "warning"}
+                    color={
+                      submissionInfo.submission.submitted
+                        ? submissionInfo.submission.isLate
+                          ? "darkgreen"
+                          : "green"
+                        : "orange"
+                    }
                     text={
                       submissionInfo.submission.submitted
-                        ? `הוגש${submissionInfo.submission.isLate ? " באיחור" : ""}`
+                        ? `הוגש${
+                            submissionInfo.submission.isLate
+                              ? ` באיחור - ${Math.ceil(
+                                  (new Date(submissionInfo.submission.uploadDate) -
+                                    new Date(submissionInfo.submission.submissionDate)) /
+                                    (1000 * 60 * 60 * 24),
+                                )} ימים`
+                              : ""
+                          }`
                         : "ממתין להגשה"
                     }
                   />
@@ -868,9 +930,9 @@ const Submissions = () => {
                 <div className="detail-item">
                   <div className="detail-item-header">ציון סופי</div>
                   <div className="detail-item-content">
-                    {submissionInfo.submission.overridden.newGrade
-                      ? submissionInfo.submission.overridden.newGrade
-                      : submissionInfo.submission.finalGrade}
+                    {submissionInfo.submission?.overridden?.newGrade
+                      ? submissionInfo.submission?.overridden?.newGrade
+                      : submissionInfo?.submission?.finalGrade}
                   </div>
                 </div>
               )}
@@ -880,7 +942,7 @@ const Submissions = () => {
               <h3>ציונים ומשובים</h3>
               <Table
                 columns={gradeColumns}
-                dataSource={submissionInfo.submission.grades.map((grade, index) => ({
+                dataSource={submissionInfo?.submission?.grades.map((grade, index) => ({
                   ...grade,
                   key: grade._id || index,
                 }))}
@@ -1189,7 +1251,7 @@ const Submissions = () => {
               buttonStyle="solid"
               options={submissionOptions}
               onChange={(e) => {
-                const selectedName = submissionOptions.find((option) => option.value === e.target.value).label;
+                const selectedName = submissionOptions.find((option) => option.value === e.target.value).value;
                 setSubmissionType(selectedName);
                 const selectedSubmission = submissionDetails.find((submission) => submission.name === selectedName);
 
@@ -1265,7 +1327,7 @@ const Submissions = () => {
           </Form.Item>
 
           {submissionType === "other" && (
-            <Form.Item>
+            <Form.Item name="submissionChecklist">
               <Checkbox.Group>
                 <Checkbox value="isGraded">מתן ציון</Checkbox>
                 <Checkbox value="isReviewed">מתן משוב</Checkbox>

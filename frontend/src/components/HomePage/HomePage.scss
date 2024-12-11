@@ -15,3 +15,93 @@
     flex: 4;
   }
 }
+
+.home-page-info {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+
+  .home-page-quick-links-list {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: space-around;
+
+    .quick-link-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 2rem;
+      margin-top: 2rem;
+      cursor: pointer;
+
+      span {
+        font-size: 4rem;
+      }
+    }
+  }
+
+  .home-page-notifications-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    span {
+      font-size: 1.4rem;
+      align-self: flex-end;
+      margin-bottom: 0.5rem;
+      color: #1677ff;
+      cursor: pointer;
+      transition: 0.2s all ease-in-out;
+      &:hover {
+        color: #4096ff;
+      }
+    }
+  }
+
+  .home-page-notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    .ant-alert {
+      display: flex;
+      align-items: center;
+      padding: 1rem 2.4rem;
+    }
+
+    .notification-list-message {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+
+      p {
+        margin: 0;
+      }
+
+      .notification-list-date {
+        color: rgba(0, 0, 0, 0.45);
+        font-size: 1.2rem;
+      }
+
+      .notification-list-close-icon {
+        cursor: pointer;
+        transition: 0.2s all ease-in-out;
+
+        &:hover {
+          transform: scale(1.2);
+        }
+      }
+    }
+  }
+}
+
+.home-page-main-content {
+  margin-top: 5rem;
+}
+
+.special-icons {
+  width: 4rem;
+  height: 4rem;
+}

@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
 import Grade from "../models/grades.js";
 import Submission from "../models/submission.js";
+import Notification from "../models/notifications.js";
 
 const defaultLetters = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E", "F"];
 
@@ -161,7 +161,7 @@ export const changeFinalGrade = async (req, res) => {
   const { newGrade, comment } = req.body;
 
   try {
-    const submission = await Submission.findById(id);
+    const submission = await Submission.findById(id).populate("project");
 
     if (!submission) {
       return res.status(404).json({ message: "ההגשה לא נמצאה" });
@@ -180,6 +180,17 @@ export const changeFinalGrade = async (req, res) => {
     };
     submission.finalGrade = newGrade;
     await submission.save();
+
+    // Create notifications for students and advisor
+    const notifications = submission.project.students.map((student) => ({
+      user: student.student,
+      message: `הציון של "${submission.name}" עודכן`,
+    }));
+    notifications.push({
+      user: submission.project.advisors[0],
+      message: `הציון של "${submission.name}" עודכן`,
+    });
+    await Notification.insertMany(notifications);
 
     res.status(200).json({ message: "הציון הסופי עודכן בהצלחה" });
   } catch (error) {
@@ -218,7 +229,8 @@ export const getGradeBySubmission = async (req, res) => {
 export const publishGrades = async (req, res) => {
   const { submissionName, group } = req.body;
   try {
-    const submissions = await Submission.find({ name: submissionName }).populate("grades");
+    const submissions = await Submission.find({ name: submissionName }).populate("grades").populate("project");
+    const advisorNotified = new Set();
     for (const submission of submissions) {
       if (submission.editable === false) {
         continue;
@@ -258,6 +270,12 @@ export const publishGrades = async (req, res) => {
         let averageGrade = totalGrade / gradeCount;
         submission.finalGrade = Math.round(averageGrade);
         submission.editable = false;
+        // adding penalty for days late
+        const days = Math.ceil(
+          (new Date(submission.uploadDate) - new Date(submission.submissionDate)) / (1000 * 60 * 60 * 24),
+        );
+        submission.finalGrade -= days * 2;
+        if (submission.finalGrade < 0) submission.finalGrade = 0;
       } else {
         submission.finalGrade = null;
       }
@@ -265,6 +283,23 @@ export const publishGrades = async (req, res) => {
         submission.editable = false;
       }
       await submission.save();
+
+      // Create notifications for students
+      const notifications = submission.project.students.map((student) => ({
+        user: student.student,
+        message: `הציון עבור "${submission.name}" פורסם`,
+      }));
+
+      // Create notification for advisor if not already notified
+      if (!advisorNotified.has(submission.project.advisors[0].toString())) {
+        notifications.push({
+          user: submission.project.advisors[0],
+          message: `הציון עבור "${submission.name}" פורסם`,
+        });
+        advisorNotified.add(submission.project.advisors[0].toString());
+      }
+
+      await Notification.insertMany(notifications);
     }
 
     res.status(200).json({ message: "Grades were published" });

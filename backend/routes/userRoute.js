@@ -20,8 +20,16 @@ import {
   registerMultiple,
   checkUserHasProject,
   getAdvisorsForUsersInfo,
-  createAdmin
+  createAdmin,
+  getUserProject,
 } from "../controllers/userController.js";
+import {
+  getUnreadNotifications,
+  getAllNotifications,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+  deleteNotification,
+} from "../controllers/notificationController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -50,5 +58,13 @@ router.put("/unsuspend-user/:userId", ensureAuthenticated, isCoordinator, unsusp
 router.delete("/delete-suspended-user/:userId", ensureAuthenticated, isCoordinator, deleteSuspendedUser);
 router.get("/check-user-has-projects/:userId", ensureAuthenticated, checkUserHasProject);
 router.get("/advisors-for-users-info", ensureAuthenticated, getAdvisorsForUsersInfo);
+router.get("/user-project", ensureAuthenticated, getUserProject);
+
+// Notifications
+router.get("/notifications", ensureAuthenticated, getUnreadNotifications);
+router.get("/notifications/all", ensureAuthenticated, getAllNotifications);
+router.put("/notifications/read", ensureAuthenticated, markAllNotificationsAsRead);
+router.put("/notifications/read/:notificationId", ensureAuthenticated, markNotificationAsRead);
+router.delete("/notifications/delete/:notificationId", ensureAuthenticated, deleteNotification);
 
 export default router;

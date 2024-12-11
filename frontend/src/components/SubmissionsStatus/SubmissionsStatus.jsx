@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import "./SubmissionStatus.scss";
+import "./SubmissionsStatus.scss";
 import axios from "axios";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { useNavigate } from "react-router-dom";
-import { Table, Divider, Badge, Button } from "antd";
+import { Table, Divider, Badge, Button, Tooltip } from "antd";
+import { downloadFile } from "../../utils/downloadFile";
 
-const SubmissionStatus = () => {
+const SubmissionsStatus = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -156,7 +157,13 @@ const SubmissionStatus = () => {
           {record.submissions.map((submission, index) => (
             <div key={index} className="submission-status-submission">
               <div className="submission-status-submission-details">
-                <div className="submission-title">{submission.name}</div>
+                <div className="submission-title">
+                  {submission.name.length > 25 ? (
+                    <Tooltip title={submission.name}>{submission.name.substring(0, 25)}...</Tooltip>
+                  ) : (
+                    submission.name
+                  )}
+                </div>
                 <div className="submission-date">
                   <strong>הגשה עד:</strong>{" "}
                   {submission.submissionDate
@@ -178,12 +185,17 @@ const SubmissionStatus = () => {
                     )} ימים`}
                 </div>
                 <Badge color={getBadgeStatus(submission).color} text={getBadgeStatus(submission).text} />
-                {submission.isReviewed && submission.submitted && (
-                  <Button color="primary" variant="filled">
+                {submission.isReviewed && submission.submitted && submission.file && (
+                  <Button color="primary" variant="filled" onClick={() => downloadFile(submission.file, "submissions")}>
                     הורד הגשה
                   </Button>
                 )}
-                {submission.submitted && submission.editable && <Badge color="blue" text="בבדיקה" />}
+                {submission.submitted && submission.editable && new Date(submission.submissionDate) > new Date() && (
+                  <Badge color="orange" text="ניתן לשינוי" />
+                )}
+                {submission.submitted && submission.editable && new Date(submission.submissionDate) < new Date() && (
+                  <Badge color="blue" text="בבדיקה" />
+                )}
                 {submission.isGraded && !submission.editable && (
                   <p style={{ margin: "0" }}>
                     <strong>ציון:</strong> {submission.finalGrade}
@@ -217,4 +229,4 @@ const SubmissionStatus = () => {
   );
 };
 
-export default SubmissionStatus;
+export default SubmissionsStatus;

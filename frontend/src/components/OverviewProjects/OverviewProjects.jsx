@@ -431,10 +431,12 @@ const OverviewProjects = () => {
       }
       return record[dataIndex].toString().toLowerCase().includes(value.toLowerCase());
     },
-    onFilterDropdownOpenChange: (visible) => {
-      if (visible) {
-        setTimeout(() => searchInput.current?.select(), 100);
-      }
+    filterDropdownProps: {
+      onOpenChange: (visible) => {
+        if (visible) {
+          setTimeout(() => searchInput.current?.select(), 100);
+        }
+      },
     },
     render: (text, record) =>
       searchedColumn === dataIndex ? (
@@ -497,7 +499,12 @@ const OverviewProjects = () => {
   const expandedRowRender = (record) => {
     const projectSubmissions = submissions.filter((submission) => submission.project === record._id);
     const expandColumns = projectSubmissions.map((submission, index) => ({
-      title: submission.name,
+      title:
+        submission.name.length > 35 ? (
+          <Tooltip title={submission.name}>{submission.name.substring(0, 35)}...</Tooltip>
+        ) : (
+          submission.name
+        ),
       dataIndex: `submission-${index}`,
       key: `submission-${index}`,
       render: () => (

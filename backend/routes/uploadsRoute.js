@@ -1,7 +1,14 @@
 import express from "express";
 import multer from "multer";
 import fs from "fs";
-import { createFile, deleteFile, downloadFile, getFiles, updateFile } from "../controllers/uploadsController.js";
+import {
+  createFile,
+  deleteFile,
+  downloadFile,
+  updateFile,
+  getSpecificFileInfo,
+  getFiles,
+} from "../controllers/uploadsController.js";
 import { ensureAuthenticated } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -21,7 +28,7 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname);
-  }
+  },
 });
 
 const upload = multer({ storage: storage });
@@ -31,5 +38,6 @@ router.post("/", ensureAuthenticated, upload.array("files", 10), createFile);
 router.put("/update/:id", ensureAuthenticated, updateFile);
 router.delete("/delete/:id", ensureAuthenticated, deleteFile);
 router.get("/download/:id", ensureAuthenticated, downloadFile);
+router.get("/info/:id", ensureAuthenticated, getSpecificFileInfo);
 
 export default router;

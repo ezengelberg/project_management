@@ -14,5 +14,56 @@
   .submission-late {
     color: red;
     font-size: 1.7rem;
+    .upload-warning {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  }
+}
+
+.grade-info {
+  .detail-item {
+    display: table-row;
+    .detail-item-header,
+    .detail-item-content {
+      display: table-cell;
+      padding: 8px 16px;
+      vertical-align: middle;
+    }
+
+    .detail-item-header {
+      font-weight: bold;
+      width: 30%;
+      text-align: right;
+      opacity: 0.7;
+    }
+
+    .detail-item-content {
+      width: 70%;
+      text-align: right;
+    }
+  }
+
+  .reviews {
+    margin-top: 1rem;
+    display: flex;
+    width: 100%;
+    .review-container {
+      display: flex;
+      width: calc(100%/3 - 1rem);
+      .review {
+        display: flex;
+        flex-direction: column;
+        // gap: 0.5rem;
+        .review-item {
+          display: flex;
+          flex-direction: column;
+          .review-header {
+            font-weight: bold;
+            color: #525252;
+          }
+        }
+      }
+    }
   }
 }

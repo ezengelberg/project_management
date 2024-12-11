@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Project from "../models/projects.js";
 import User from "../models/users.js";
+import Notification from "../models/notifications.js";
 
 export const getProjects = async (req, res) => {
   try {
@@ -92,6 +93,8 @@ export const createProject = async (req, res) => {
     }
 
     let newProject;
+    const advisorsList = [];
+    const studentsList = [];
     if (req.user.isAdvisor && !req.user.isCoordinator) {
       newProject = new Project({
         ...req.body,
@@ -103,7 +106,6 @@ export const createProject = async (req, res) => {
         grades: [],
       });
     } else {
-      const advisorsList = [];
       if (advisors.length > 0) {
         for (const adv of advisors) {
           const advisorUser = await User.findOne({ _id: adv, isAdvisor: true });
@@ -113,7 +115,6 @@ export const createProject = async (req, res) => {
           advisorsList.push(advisorUser);
         }
       }
-      const studentsList = [];
       if (students.length > 0) {
         for (const stud of students) {
           const studentUser = await User.findOne({ id: stud.id, isStudent: true });
@@ -140,6 +141,26 @@ export const createProject = async (req, res) => {
     }
 
     const savedProject = await newProject.save();
+
+    Promise.all(
+      advisorsList.map(async (advisor) => {
+        const notification = new Notification({
+          user: advisor._id,
+          message: `התווספת כמנחה לפרויקט: ${title}`,
+          link: `/project/${savedProject._id}`,
+        });
+        notification.save();
+      }),
+
+      studentsList.map(async (student) => {
+        const notification = new Notification({
+          user: student.student,
+          message: `התווספת כסטודנט לפרויקט: ${title}`,
+          link: `/project/${savedProject._id}`,
+        });
+        notification.save();
+      })
+    );
 
     res.status(201).json({
       message: "Project created successfully",
@@ -184,6 +205,12 @@ export const addStudentToProject = async (req, res) => {
         return res.status(400).send({ message: "Student is already in this project" });
       }
       project.students.push({ student: user._id });
+      const notification = new Notification({
+        user: user._id,
+        message: `התווספת כסטודנט לפרויקט: ${project.title}`,
+        link: `/project/${project._id}`,
+      });
+      notification.save();
     }
 
     if (project.students.length > 0 && project.advisors.length > 0) {
@@ -244,6 +271,14 @@ export const addCandidateToProject = async (req, res) => {
     }
     project.candidates.push({ student: user._id });
     await project.save();
+
+    const notification = new Notification({
+      user: user._id,
+      message: `התווספת כמתמודד לפרויקט: ${project.title}<br /><span style={"color: red"}>שים לב כי עליך לקבל אישור מהמנחה של הפרויקט</span>`,
+      link: `/project/${project._id}`,
+    });
+    notification.save();
+
     console.log(`Candidate ${req.user.name} added successfully`);
     res.status(201).send("Candidate added successfully");
   } catch (err) {
@@ -264,7 +299,14 @@ export const removeCandidateFromProject = async (req, res) => {
     }
     project.candidates = project.candidates.filter((candidate) => candidate.student.toString() !== userid.toString());
     await project.save();
-    console.log(`Candidate ${req.user.name} removed successfully`);
+
+    const notification = new Notification({
+      user: user._id,
+      message: `הוסרת מהמועמדים לפרויקט ${project.title}`,
+      link: `/project/${project._id}`,
+    });
+    notification.save();
+
     res.status(200).send("Candidate removed successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -286,13 +328,7 @@ export const approveCandidate = async (req, res) => {
       if (project.students.find((candidate) => candidate.student.toString() === user._id.toString())) {
         return res.status(409).send({ error: "Candidate is already approved", message: "המועמד כבר אושר" });
       }
-      // await Project.findOne({ students: { $elemMatch: { student: user._id } } }, (err, doc) => {
-      //   if (doc) {
-      //     return res
-      //       .status(409)
-      //       .send({ error: "Student is already in another project", message: "הסטודנט כבר נמצא בפרויקט אחר" });
-      //   }
-      // });
+
       const projectResult = await Project.findOne({ students: { $elemMatch: { student: user._id } } });
       if (projectResult) {
         return res
@@ -311,6 +347,14 @@ export const approveCandidate = async (req, res) => {
       );
     }
     await project.save();
+
+    const notification = new Notification({
+      user: user._id,
+      message: `התקבלת כסטודנט לפרויקט ${project.title}, בהצלחה!`,
+      link: `/project/${project._id}`,
+    });
+    notification.save();
+
     console.log(`Candidate ${user.name} approved successfully`);
     res.status(200).send(`Candidate ${candidate.student} approved successfully`);
   } catch (err) {
@@ -335,6 +379,13 @@ export const removeStudentFromProject = async (req, res) => {
     project.candidates.push(student);
     await project.save();
     console.log(`Student ${user.name} moved back to candidates successfully`);
+
+    const notification = new Notification({
+      user: user._id,
+      message: `הוסרת מהסטודנטים של פרויקט ${project.title}`,
+      link: `/project/${project._id}`,
+    });
+    notification.save();
     res.status(200).send("Student moved back to candidates successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -443,6 +494,14 @@ export const addAdvisorToProject = async (req, res) => {
       project.isTaken = true;
     }
     await project.save();
+
+    const notification = new Notification({
+      user: req.body.advisorID,
+      message: `התווספת כמנחה לפרויקט: ${project.title}`,
+      link: `/project/${project._id}`,
+    });
+    notification.save();
+
     res.status(200).send("Advisor added successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -468,6 +527,13 @@ export const updateAdvisorInProject = async (req, res) => {
       project.isTaken = false;
     }
 
+    const notification = new Notification({
+      user: advisorID,
+      message: `התווספת כמנחה לפרויקט: ${project.title}`,
+      link: `/project/${project._id}`,
+    });
+    notification.save();
+
     await project.save();
 
     res.status(200).send({ message: "Advisor updated successfully", project });
@@ -483,7 +549,26 @@ export const terminateProject = async (req, res) => {
       return res.status(404).send({ message: "Project not found" });
     }
 
-    // Save students to terminationRecord and free them from the project
+    await Promise.all([
+      ...project.students.map(async (student) => {
+        const notification = new Notification({
+          user: student.student,
+          message: `הפרויקט ${project.title} בו אתה רשום בוטל`,
+          link: `/project/${project._id}`,
+        });
+        await notification.save();
+      }),
+      ...project.advisors.map(async (advisor) => {
+        const notification = new Notification({
+          user: advisor,
+          message: `הפרויקט ${project.title} שאתה מנחה בוטל`,
+          link: `/project/${project._id}`,
+        });
+        await notification.save();
+      }),
+    ]);
+
+    // Save students to termination Record and free them from the project
     project.terminationRecord = project.students;
     project.students = [];
     project.alphaReportJudges = [];

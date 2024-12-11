@@ -5,6 +5,7 @@ import Grade from "../models/grades.js";
 import Upload from "../models/uploads.js";
 import fs from "fs";
 import path from "path";
+import Notification from "../models/notifications.js";
 
 export const createSubmission = async (req, res) => {
   try {
@@ -36,7 +37,19 @@ export const createSubmission = async (req, res) => {
           submissionInfo: req.body.submissionInfo,
         });
         await submission.save();
-      })
+
+        // Create notifications for students
+        await Promise.all(
+          project.students.map(async (student) => {
+            const notification = new Notification({
+              user: student.student,
+              message: `נוצרה הגשה חדשה: ${req.body.name}`,
+              link: "/my-submissions",
+            });
+            await notification.save();
+          }),
+        );
+      }),
     );
     res.status(201).json({ message: "Submissions created successfully" });
   } catch (error) {
@@ -70,7 +83,19 @@ export const createSpecificSubmission = async (req, res) => {
           grades: [gradeByAdvisor],
         });
         await submission.save();
-      })
+
+        // Create notifications for students
+        await Promise.all(
+          project.students.map(async (student) => {
+            const notification = new Notification({
+              user: student.student,
+              message: `נוצרה הגשה חדשה: ${req.body.name}`,
+              link: "/my-submissions",
+            });
+            await notification.save();
+          }),
+        );
+      }),
     );
     console.log("Submissions created successfully");
     res.status(201).json({ message: "Submissions created successfully" });
@@ -104,7 +129,7 @@ export const getAllProjectSubmissions = async (req, res) => {
                   journalActive: grade.journalActive,
                   commits: grade.commits,
                 };
-              })
+              }),
             );
             return {
               key: submission._id,
@@ -119,7 +144,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               overridden: submission.overridden,
               finalGrade: submission.finalGrade,
             };
-          })
+          }),
         );
         return {
           key: project._id,
@@ -127,7 +152,7 @@ export const getAllProjectSubmissions = async (req, res) => {
           title: project.title,
           submissions: submissionsWithGrades,
         };
-      })
+      }),
     );
 
     let resolvedProjectsList = await Promise.all(projectsList);
@@ -170,11 +195,11 @@ export const getAllSubmissions = async (req, res) => {
                 editable: gradeInfo ? gradeInfo.editable : null,
                 overridden: submission.overridden,
               };
-            })
+            }),
           ),
           key: submission._id,
         };
-      })
+      }),
     );
     res.status(200).json(submissionsWithDetails);
   } catch (error) {
@@ -190,16 +215,28 @@ export const getStudentSubmissions = async (req, res) => {
       return res.status(200).json({ message: "No project found" });
     }
     const submissions = await Submission.find({ project: project._id });
-    const submissionsWithDetails = submissions
-      .map((submission) => ({
+    const submissionsWithDetails = await Promise.all(
+      submissions.map(async (submission) => ({
         ...submission._doc,
         key: submission._id,
         project: submission.project,
         submissionName: submission.name,
         submissionDate: submission.submissionDate,
         file: submission.file,
-      }))
-      .sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate));
+        grades: await Promise.all(
+          submission.grades.map(async (gradeId) => {
+            const grade = await Grade.findById(gradeId);
+            return {
+              videoQuality: grade.videoQuality,
+              workQuality: grade.workQuality,
+              writingQuality: grade.writingQuality,
+              journalActive: grade.journalActive,
+              commits: grade.commits,
+            };
+          }),
+        ),
+      })),
+    ).then((result) => result.sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)));
 
     res.status(200).json(submissionsWithDetails);
   } catch (err) {
@@ -239,6 +276,7 @@ export const getJudgeSubmissions = async (req, res) => {
       isGraded: submission.isGraded,
       isReviewed: submission.isReviewed,
       submitted: submission.file ? true : false,
+      file: submission.file,
     }));
 
     res.status(200).json(submissionsWithDetails);
@@ -301,11 +339,11 @@ export const copyJudges = async (req, res) => {
           project.advisors.map(async (advisor) => {
             const newGrade = new Grade({ judge: advisor });
             return await newGrade.save();
-          })
+          }),
         );
         submission.grades = newGrades;
         await submission.save();
-      })
+      }),
     );
   } catch (error) {
     console.log(error);
@@ -316,7 +354,7 @@ export const copyJudges = async (req, res) => {
 export const updateJudgesInSubmission = async (req, res) => {
   try {
     const { submissionID, judges } = req.body;
-    const submission = await Submission.findById(submissionID).populate("grades");
+    const submission = await Submission.findById(submissionID).populate("project").populate("grades");
     if (!submission) {
       return res.status(404).send({ message: "Submission not found" });
     }
@@ -344,7 +382,12 @@ export const updateJudgesInSubmission = async (req, res) => {
       await Promise.all(
         judgesToRemove.map(async (grade) => {
           await Grade.findByIdAndDelete(grade._id);
-        })
+          const notification = new Notification({
+            user: grade.judge,
+            message: `הוסרת משפיטת: "${submission.name}" עבור פרויקט: "${submission.project.title}"`,
+          });
+          await notification.save();
+        }),
       );
     }
 
@@ -353,7 +396,7 @@ export const updateJudgesInSubmission = async (req, res) => {
 
     // Find new judges to add
     const newJudges = validJudges.filter(
-      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID)
+      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID),
     );
 
     if (newJudges.length !== 0) {
@@ -362,8 +405,13 @@ export const updateJudgesInSubmission = async (req, res) => {
         newJudges.map(async (judgeID) => {
           const newGrade = new Grade({ judge: judgeID });
           await newGrade.save();
+          const notification = new Notification({
+            user: judgeID,
+            message: `מונתה לשפיטת: "${submission.name}" עבור פרויקט: "${submission.project.title}"`,
+          });
+          await notification.save();
           return newGrade._id;
-        })
+        }),
       );
       submission.grades = [...submission.grades, ...newGrades];
     }
@@ -378,7 +426,7 @@ export const updateJudgesInSubmission = async (req, res) => {
 export const updateSubmissionFile = async (req, res) => {
   try {
     console.log("updating sub");
-    const submission = await Submission.findById(req.params.id);
+    const submission = await Submission.findById(req.params.id).populate("project");
     if (!submission) {
       return res.status(404).json({ message: "Submission not found" });
     }
@@ -390,6 +438,20 @@ export const updateSubmissionFile = async (req, res) => {
     submission.uploadedBy = req.user._id;
 
     await submission.save();
+
+    // Create notifications for students
+    await Promise.all(
+      submission.project.students.map(async (student) => {
+        const notification = new Notification({
+          user: student.student,
+          message: req.body.sentFromDelete
+            ? `קובץ נמחק עבור "${submission.name}" ע"י ${req.user.name}`
+            : `הועלה קובץ עבור: "${submission.name}" ע"י ${req.user.name}`,
+        });
+        await notification.save();
+      }),
+    );
+
     res.status(200).json({ message: "Submission updated successfully", submission });
   } catch (error) {
     console.log(error);
@@ -401,7 +463,7 @@ export const deleteSubmission = async (req, res) => {
   try {
     console.log("deleting");
     console.log(req.params.id);
-    const submission = await Submission.findById(req.params.id);
+    const submission = await Submission.findById(req.params.id).populate("project");
     if (!submission) {
       console.log("Submission not found");
       return res.status(404).json({ message: "Submission not found" });
@@ -422,6 +484,7 @@ export const deleteSubmission = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 export const deleteActiveSubmissions = async (req, res) => {
   console.log("deleting");
   try {
@@ -444,7 +507,7 @@ export const deleteActiveSubmissions = async (req, res) => {
           }
         }
         await Submission.deleteOne({ _id: submission._id });
-      })
+      }),
     );
 
     res.status(200).json({ message: "Active submissions deleted successfully" });
@@ -456,20 +519,20 @@ export const deleteActiveSubmissions = async (req, res) => {
 
 export const updateSubmissionInformation = async (req, res) => {
   try {
-    const submissions = await Submission.find({ name: req.body.submissionOldName });
+    const submissions = await Submission.find({ name: req.body.submissionOldName }).populate("project");
     const activeProjects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
     const activeProjectIds = activeProjects.map((project) => project._id.toString()); // Convert ObjectIds to strings
 
     await Promise.all(
       submissions.map(async (submission) => {
-        if (activeProjectIds.includes(submission.project.toString())) {
+        if (activeProjectIds.includes(submission.project._id.toString())) {
           Object.keys(req.body).forEach((key) => {
             submission[key] = req.body[key];
           });
           submission.name = req.body.SubmissionName;
           await submission.save();
         }
-      })
+      }),
     );
 
     console.log("Submissions updated successfully");
@@ -482,7 +545,7 @@ export const updateSubmissionInformation = async (req, res) => {
 
 export const updateSpecificSubmission = async (req, res) => {
   try {
-    const submission = await Submission.findById(req.params.id);
+    const submission = await Submission.findById(req.params.id).populate("project");
     if (!submission) {
       return res.status(404).json({ message: "הגשה לא נמצאה" });
     } else {
@@ -561,7 +624,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
               journalActive: grade.journalActive,
               commits: grade.commits,
             };
-          })
+          }),
         );
         return {
           key: submission._id,
@@ -578,8 +641,9 @@ export const getSpecificProjectSubmissions = async (req, res) => {
           finalGrade: submission.finalGrade,
           overridden: submission.overridden,
           editable: submission.editable,
+          file: submission.file,
         };
-      })
+      }),
     );
     res.status(200).json(submissionsWithDetails);
   } catch (error) {
