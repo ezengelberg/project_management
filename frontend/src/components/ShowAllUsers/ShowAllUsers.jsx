@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./ShowAllUsers.scss";
 import axios from "axios";
-import { Space, Table, Tag, Avatar, Modal, Form, Input, Select, message, Tooltip, Switch } from "antd";
+import { Space, Table, Tag, Avatar, Modal, Form, Input, Select, message, Tooltip, Switch, Tabs } from "antd";
 import { EditOutlined, UserDeleteOutlined, UserAddOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
@@ -659,16 +659,22 @@ const ShowAllUsers = () => {
     setSuspensionDetails({});
   };
 
+  const tabs = [
+    {
+      key: "1",
+      label: "משתמשים רשומים",
+      children: <Table columns={columns} dataSource={dataSource} loading={loading} />,
+    },
+    {
+      key: "2",
+      label: "משתמשים מושעים",
+      children: <Table columns={suspendedColumns} dataSource={suspendedDataSource} loading={loading} />,
+    },
+  ];
+
   return (
     <div>
-      <div className="active-users">
-        <h2>משתמשים רשומים</h2>
-        <Table columns={columns} dataSource={dataSource} style={{ minHeight: "770px" }} loading={loading} />
-      </div>
-      <div className="deleted-users">
-        <h2>משתמשים מושעים</h2>
-        <Table columns={suspendedColumns} dataSource={suspendedDataSource} loading={loading} />
-      </div>
+      <Tabs items={tabs} defaultActiveKey="1" />
       <Modal
         title={`עריכת משתמש: ${editUserDetails.name}`}
         open={isEditing}

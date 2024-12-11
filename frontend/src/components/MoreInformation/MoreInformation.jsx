@@ -237,6 +237,8 @@ const MoreInformation = () => {
   return (
     <div className="info-container">
       <Form form={form} component={false} loading={loading}>
+        <h2>רשימת מנחים</h2>
+        <h3>רשימה זאת לא סופית ויכולה להשתנות</h3>
         <Table
           style={{ width: "100%", minHeight: "770px" }}
           components={{
