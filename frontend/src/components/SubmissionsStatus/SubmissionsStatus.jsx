@@ -185,7 +185,7 @@ const SubmissionsStatus = () => {
                     )} ימים`}
                 </div>
                 <Badge color={getBadgeStatus(submission).color} text={getBadgeStatus(submission).text} />
-                {submission.isReviewed && submission.submitted && submission.file && (
+                {submission.submitted && submission.file && (
                   <Button color="primary" variant="filled" onClick={() => downloadFile(submission.file, "submissions")}>
                     הורד הגשה
                   </Button>
