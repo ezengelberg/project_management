@@ -3,9 +3,9 @@ import Submission from "../models/submission.js";
 import User from "../models/users.js";
 import Grade from "../models/grades.js";
 import Upload from "../models/uploads.js";
+import Notification from "../models/notifications.js";
 import fs from "fs";
 import path from "path";
-import Notification from "../models/notifications.js";
 
 export const createSubmission = async (req, res) => {
   try {
@@ -461,8 +461,6 @@ export const updateSubmissionFile = async (req, res) => {
 
 export const deleteSubmission = async (req, res) => {
   try {
-    console.log("deleting");
-    console.log(req.params.id);
     const submission = await Submission.findById(req.params.id).populate("project");
     if (!submission) {
       console.log("Submission not found");
@@ -473,7 +471,6 @@ export const deleteSubmission = async (req, res) => {
       if (file) {
         const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        console.log("file deleted");
         await Upload.deleteOne({ _id: submission.file });
       }
     }
