@@ -372,6 +372,35 @@ export const editUserCoordinator = async (req, res) => {
   }
 };
 
+export const checkBeforeSuspend = async (req, res, next) => {
+  const { userId } = req.params;
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    if (user.isCoordinator) {
+      return res.status(403).send("Cannot suspend coordinator");
+    }
+    if (user.isAdvisor) {
+      const advisorProjects = await Project.find({ advisors: userId });
+      if (advisorProjects.length > 0) {
+        return res.status(403).send("Cannot suspend advisor with associated projects");
+      }
+    }
+    if (user.isJudge) {
+      const judgeSubmissions = await Submission.find({ grades: { $elemMatch: { judge: userId } } });
+      if (judgeSubmissions.length > 0) {
+        return res.status(403).send("Cannot suspend judge with associated submissions");
+      }
+    }
+    req.user = user;
+    next();
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const suspendUser = async (req, res) => {
   const { userId } = req.params;
   try {
@@ -382,12 +411,12 @@ export const suspendUser = async (req, res) => {
     user.suspended = true;
     user.suspendedAt = new Date();
     user.suspendedBy = req.user._id;
-    user.suspendedReason = req.body.reason;
+    user.suspendedReason = req.body.reason || "לא ניתנה סיבה";
     user.updatedAt = new Date();
     user.suspensionRecords.push({
       suspendedBy: req.user._id,
       suspendedAt: new Date(),
-      reason: req.body.reason,
+      reason: req.body.reason || "לא ניתנה סיבה",
     });
 
     await user.save();

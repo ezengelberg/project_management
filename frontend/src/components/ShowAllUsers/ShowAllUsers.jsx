@@ -746,16 +746,16 @@ const ShowAllUsers = () => {
       </Modal>
 
       <Modal
-        title={<h2 className="suspend-title">השעית משתמש: {suspensionDetails.name}</h2>}
+        title={<h3 className="suspend-title">השעית משתמש: {suspensionDetails.name}</h3>}
         open={isSuspending}
         onOk={() => handleSuspend()}
         onCancel={() => handleCancelSuspend()}
         okText="השעה"
         okButtonProps={{ danger: true }}
         cancelText="בטל"
-        width={700}>
+        width={500}>
         <Form form={suspensionForm} layout="vertical" name="suspention_form">
-          <Form.Item label="סיבת השעיה" name="reason" rules={[{ required: true, message: "חובה להזין סיבת השעיה" }]}>
+          <Form.Item label="סיבת השעיה" name="reason">
             <Input.TextArea rows={6} placeholder="נא לפרט את סיבת ההשעיה..." />
           </Form.Item>
         </Form>
