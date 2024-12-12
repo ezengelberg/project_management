@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef, forwardRef } from "react";
 import { Badge, Table, Tooltip, Modal, Upload, message, Divider } from "antd";
-import { UploadOutlined, DeleteOutlined, InboxOutlined, EyeOutlined } from "@ant-design/icons";
+import { UploadOutlined, DeleteOutlined, InboxOutlined, EyeOutlined, DownloadOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import axios from "axios";
 import "./UploadSubmissions.scss";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
+import { downloadFile } from "../../utils/downloadFile";
 
 const SafeTooltip = forwardRef(({ title, children }, ref) => (
   <Tooltip title={title}>
@@ -359,9 +360,14 @@ const UploadSubmissions = () => {
               <UploadOutlined className="edit-icon" onClick={() => showUploadModal(record)} />
             </a>
           ) : new Date(record.submissionDate) > new Date() ? (
-            <a>
-              <DeleteOutlined className="edit-icon" onClick={() => showConfirmModal(record)} />
-            </a>
+            <div class="icon-group">
+              <a>
+                <DownloadOutlined className="edit-icon" onClick={() => downloadFile(record.file, "submissions")} />
+              </a>
+              <a>
+                <DeleteOutlined className="edit-icon" onClick={() => showConfirmModal(record)} />
+              </a>
+            </div>
           ) : record.editable === false ? (
             <a>
               <Tooltip title="לצפיה בציון">

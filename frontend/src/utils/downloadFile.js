@@ -13,7 +13,7 @@ export const downloadFile = async (fileId, destination) => {
       {
         responseType: "blob",
         withCredentials: true,
-      }
+      },
     );
 
     const url = window.URL.createObjectURL(new Blob([response.data]));
