@@ -68,8 +68,13 @@ const ShowAllUsers = () => {
           projectInfo: studentProjectMap.get(user._id),
         }));
 
+        const suspendedUsersWithProjects = suspendedUsersData.map((user) => ({
+          ...user,
+          projectInfo: studentProjectMap.get(user._id),
+        }));
+
         setUsers(usersWithProjects);
-        setSuspendedUsers(suspendedUsersData);
+        setSuspendedUsers(suspendedUsersWithProjects);
       } catch (error) {
         console.error("Error occurred:", error.response?.data?.message || error.message);
       } finally {
@@ -362,7 +367,7 @@ const ShowAllUsers = () => {
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/user/suspend-user/${suspensionDetails.key}`,
         {
-          reason: values.reason,
+          reason: values.reason || "לא ניתנה סיבה",
         },
         { withCredentials: true }
       );
@@ -373,7 +378,7 @@ const ShowAllUsers = () => {
 
         const newSuspendedUser = {
           ...suspendedUser,
-          suspendedReason: values.reason,
+          suspendedReason: values.reason || "לא ניתנה סיבה",
           suspendedAt: new Date(),
         };
 

@@ -372,35 +372,6 @@ export const editUserCoordinator = async (req, res) => {
   }
 };
 
-export const checkBeforeSuspend = async (req, res, next) => {
-  const { userId } = req.params;
-  try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-    if (user.isCoordinator) {
-      return res.status(403).send("Cannot suspend coordinator");
-    }
-    if (user.isAdvisor) {
-      const advisorProjects = await Project.find({ advisors: userId });
-      if (advisorProjects.length > 0) {
-        return res.status(403).send("Cannot suspend advisor with associated projects");
-      }
-    }
-    if (user.isJudge) {
-      const judgeSubmissions = await Submission.find({ grades: { $elemMatch: { judge: userId } } });
-      if (judgeSubmissions.length > 0) {
-        return res.status(403).send("Cannot suspend judge with associated submissions");
-      }
-    }
-    req.user = user;
-    next();
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
-};
-
 export const suspendUser = async (req, res) => {
   const { userId } = req.params;
   try {
@@ -449,7 +420,39 @@ export const unsuspendUser = async (req, res) => {
 export const deleteSuspendedUser = async (req, res) => {
   const { userId } = req.params;
   try {
-    const user = await User.findByIdAndDelete(userId).orFail();
+    const user = await User.findById(userId).orFail();
+
+    // Find project IDs the user is associated with
+    const projectIds = await Project.find({
+      $or: [{ "students.student": userId }, { advisors: userId }],
+    }).distinct("_id");
+
+    // Remove user from projects
+    await Project.updateMany({ "students.student": userId }, { $pull: { students: { student: userId } } });
+    await Project.updateMany({ advisors: userId }, { $pull: { advisors: userId } });
+
+    // Remove user from submissions
+    await Submission.updateMany({ uploadedBy: userId }, { $unset: { uploadedBy: "" } });
+    await Submission.updateMany({ "grades.judge": userId }, { $pull: { grades: { judge: userId } } });
+
+    await user.deleteOne();
+
+    // Check projects and update isTaken if necessary
+    const projects = await Project.find({ _id: { $in: projectIds } });
+
+    for (const project of projects) {
+      const studentCount = project.students.length;
+      const advisorCount = project.advisors.length;
+      const openSubmissions = await Submission.countDocuments({ project: project._id });
+
+      if (studentCount === 0 || advisorCount === 0) {
+        if (openSubmissions === 0) {
+          project.isTaken = false;
+          await project.save();
+        }
+      }
+    }
+
     res.status(200).send("User deleted successfully");
   } catch (err) {
     res.status(404).send("User not found");
