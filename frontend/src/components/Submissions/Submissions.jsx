@@ -564,7 +564,8 @@ const Submissions = () => {
                         ) : !waitingCheck && sub.submitted && (sub.isGraded || sub.isReviewed) ? (
                           <Badge color="purple" text="מחכה לפרסום" />
                         ) : (
-                          sub.editable !== null &&
+                          sub.editable === false &&
+                          sub.finalGrade !== null &&
                           sub.isGraded && (
                             <Badge
                               color="pink"
