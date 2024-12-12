@@ -382,12 +382,12 @@ export const suspendUser = async (req, res) => {
     user.suspended = true;
     user.suspendedAt = new Date();
     user.suspendedBy = req.user._id;
-    user.suspendedReason = req.body.reason;
+    user.suspendedReason = req.body.reason || "לא ניתנה סיבה";
     user.updatedAt = new Date();
     user.suspensionRecords.push({
       suspendedBy: req.user._id,
       suspendedAt: new Date(),
-      reason: req.body.reason,
+      reason: req.body.reason || "לא ניתנה סיבה",
     });
 
     await user.save();
@@ -420,7 +420,39 @@ export const unsuspendUser = async (req, res) => {
 export const deleteSuspendedUser = async (req, res) => {
   const { userId } = req.params;
   try {
-    const user = await User.findByIdAndDelete(userId).orFail();
+    const user = await User.findById(userId).orFail();
+
+    // Find project IDs the user is associated with
+    const projectIds = await Project.find({
+      $or: [{ "students.student": userId }, { advisors: userId }],
+    }).distinct("_id");
+
+    // Remove user from projects
+    await Project.updateMany({ "students.student": userId }, { $pull: { students: { student: userId } } });
+    await Project.updateMany({ advisors: userId }, { $pull: { advisors: userId } });
+
+    // Remove user from submissions
+    await Submission.updateMany({ uploadedBy: userId }, { $unset: { uploadedBy: "" } });
+    await Submission.updateMany({ "grades.judge": userId }, { $pull: { grades: { judge: userId } } });
+
+    await user.deleteOne();
+
+    // Check projects and update isTaken if necessary
+    const projects = await Project.find({ _id: { $in: projectIds } });
+
+    for (const project of projects) {
+      const studentCount = project.students.length;
+      const advisorCount = project.advisors.length;
+      const openSubmissions = await Submission.countDocuments({ project: project._id });
+
+      if (studentCount === 0 || advisorCount === 0) {
+        if (openSubmissions === 0) {
+          project.isTaken = false;
+          await project.save();
+        }
+      }
+    }
+
     res.status(200).send("User deleted successfully");
   } catch (err) {
     res.status(404).send("User not found");

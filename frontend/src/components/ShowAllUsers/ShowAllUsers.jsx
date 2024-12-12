@@ -68,8 +68,13 @@ const ShowAllUsers = () => {
           projectInfo: studentProjectMap.get(user._id),
         }));
 
+        const suspendedUsersWithProjects = suspendedUsersData.map((user) => ({
+          ...user,
+          projectInfo: studentProjectMap.get(user._id),
+        }));
+
         setUsers(usersWithProjects);
-        setSuspendedUsers(suspendedUsersData);
+        setSuspendedUsers(suspendedUsersWithProjects);
       } catch (error) {
         console.error("Error occurred:", error.response?.data?.message || error.message);
       } finally {
@@ -362,7 +367,7 @@ const ShowAllUsers = () => {
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/user/suspend-user/${suspensionDetails.key}`,
         {
-          reason: values.reason,
+          reason: values.reason || "לא ניתנה סיבה",
         },
         { withCredentials: true }
       );
@@ -373,7 +378,7 @@ const ShowAllUsers = () => {
 
         const newSuspendedUser = {
           ...suspendedUser,
-          suspendedReason: values.reason,
+          suspendedReason: values.reason || "לא ניתנה סיבה",
           suspendedAt: new Date(),
         };
 
@@ -746,16 +751,16 @@ const ShowAllUsers = () => {
       </Modal>
 
       <Modal
-        title={<h2 className="suspend-title">השעית משתמש: {suspensionDetails.name}</h2>}
+        title={<h3 className="suspend-title">השעית משתמש: {suspensionDetails.name}</h3>}
         open={isSuspending}
         onOk={() => handleSuspend()}
         onCancel={() => handleCancelSuspend()}
         okText="השעה"
         okButtonProps={{ danger: true }}
         cancelText="בטל"
-        width={700}>
+        width={500}>
         <Form form={suspensionForm} layout="vertical" name="suspention_form">
-          <Form.Item label="סיבת השעיה" name="reason" rules={[{ required: true, message: "חובה להזין סיבת השעיה" }]}>
+          <Form.Item label="סיבת השעיה" name="reason">
             <Input.TextArea rows={6} placeholder="נא לפרט את סיבת ההשעיה..." />
           </Form.Item>
         </Form>

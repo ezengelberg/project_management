@@ -51,7 +51,7 @@ const OverviewProjects = () => {
 
         const activeUsers = usersRes.data.filter((user) => !user.suspended);
         setProjects(projectsRes.data);
-        setUsers(activeUsers);
+        setUsers(usersRes.data);
         setSubmissions(submissionsRes.data);
 
         const years = Array.from(new Set(projectsRes.data.map((project) => project.year))).sort((a, b) => b - a);
