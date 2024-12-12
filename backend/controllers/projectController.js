@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import Project from "../models/projects.js";
 import User from "../models/users.js";
 import Notification from "../models/notifications.js";
@@ -279,7 +278,6 @@ export const addCandidateToProject = async (req, res) => {
     });
     notification.save();
 
-    console.log(`Candidate ${req.user.name} added successfully`);
     res.status(201).send("Candidate added successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -355,10 +353,8 @@ export const approveCandidate = async (req, res) => {
     });
     notification.save();
 
-    console.log(`Candidate ${user.name} approved successfully`);
     res.status(200).send(`Candidate ${candidate.student} approved successfully`);
   } catch (err) {
-    console.log(err.message);
     res.status(500).send({ message: err.message });
   }
 };
@@ -378,7 +374,6 @@ export const removeStudentFromProject = async (req, res) => {
     project.students = project.students.filter((student) => student.student.toString() !== userid.toString());
     project.candidates.push(student);
     await project.save();
-    console.log(`Student ${user.name} moved back to candidates successfully`);
 
     const notification = new Notification({
       user: user._id,
@@ -400,7 +395,6 @@ export const switchProjectRegistration = async (req, res) => {
     }
     project.isTaken = !project.isTaken;
     await project.save();
-    console.log(`Project registration switched successfully`);
     res.status(200).send("Project registration switched successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
