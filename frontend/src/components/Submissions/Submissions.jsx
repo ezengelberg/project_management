@@ -561,7 +561,7 @@ const Submissions = () => {
                       <div>
                         {waitingCheck && sub.submitted ? (
                           <Badge color="blue" text="מחכה לבדיקה" />
-                        ) : !waitingCheck && sub.submitted ? (
+                        ) : !waitingCheck && sub.submitted && (sub.isGraded || sub.isReviewed) ? (
                           <Badge color="purple" text="מחכה לפרסום" />
                         ) : (
                           sub.editable !== null &&
