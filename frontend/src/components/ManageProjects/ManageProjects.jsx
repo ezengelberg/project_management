@@ -445,9 +445,6 @@ const ManageProjects = () => {
         dataIndex: "status",
         key: "status",
         render: (status, record) => {
-          {
-            console.log(record);
-          }
           if (status) {
             return <Badge status="success" text="מאושר" />;
           } else if (record.hasProject) {
