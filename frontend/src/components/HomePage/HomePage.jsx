@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./HomePage.scss";
 import axios from "axios";
 import { Statistic, Alert, Calendar } from "antd";
@@ -22,9 +22,12 @@ import { handleMouseDown } from "../../utils/mouseDown";
 import StudentSubmissions from "../UploadSubmissions/UploadSubmissions";
 import AdvisorSubmissionsStatus from "../SubmissionsStatus/SubmissionsStatus";
 import SubmissionsManagement from "../Submissions/Submissions";
+import { NotificationsContext } from "../../context/NotificationsContext";
 
 const Homepage = () => {
   const navigate = useNavigate();
+  const { newNotifications, markNotificationAsRead, setNewNotifications, setOldNotifications } =
+    useContext(NotificationsContext);
   const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
@@ -34,8 +37,8 @@ const Homepage = () => {
   const [numOfFinishedProjects, setNumOfFinishedProjects] = useState(0);
   const [value, setValue] = useState(() => dayjs());
   const [selectedValue, setSelectedValue] = useState(() => dayjs());
-  const [notifications, setNotifications] = useState([]);
   const [userProject, setUserProject] = useState(null);
+
   const CreateProjectSVG = () => (
     <svg className="special-icons" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000000">
       <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
@@ -114,17 +117,6 @@ const Homepage = () => {
       }
     };
 
-    const fetchNotifications = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications`, {
-          withCredentials: true,
-        });
-        setNotifications(response.data.reverse().slice(0, 3)); // Reverse to show latest notifications first
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
-    };
-
     const fetchUserProject = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/user-project`, {
@@ -137,7 +129,6 @@ const Homepage = () => {
     };
 
     fetchData();
-    fetchNotifications();
     fetchUserProject();
   }, []);
 
@@ -169,20 +160,22 @@ const Homepage = () => {
 
   const formatter = (value) => <CountUp end={value} separator="," />;
 
-  const markNotificationAsRead = async (notificationId, link = null) => {
-    try {
-      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/read/${notificationId}`, null, {
-        withCredentials: true,
-      });
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification._id !== notificationId)
-      );
-      if (link) {
-        navigate(link);
-      }
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
+  const handleNotificationClick = (notification) => {
+    if (notification.link) {
+      navigate(notification.link);
+      markNotificationAsRead(notification._id);
+      setNewNotifications((prevNotifications) => prevNotifications.filter((n) => n._id !== notification._id));
+      setOldNotifications((prevNotifications) => [...prevNotifications, { ...notification, read: true }]);
     }
+  };
+
+  const handleNotificationClose = (notificationId) => {
+    markNotificationAsRead(notificationId);
+    setNewNotifications((prevNotifications) => prevNotifications.filter((n) => n._id !== notificationId));
+    setOldNotifications((prevNotifications) => [
+      ...prevNotifications,
+      { ...newNotifications.find((n) => n._id === notificationId), read: true },
+    ]);
   };
 
   return (
@@ -307,16 +300,16 @@ const Homepage = () => {
             </span>
           </div>
           <div className="home-page-notifications-list">
-            {notifications.length === 0 ? (
+            {newNotifications.length === 0 ? (
               <p style={{ fontSize: "20px" }}>אין התראות חדשות</p>
             ) : (
-              notifications.map((notification) => (
+              newNotifications.slice(0, 3).map((notification) => (
                 <Alert
                   key={notification._id}
                   description={
                     <div className="notification-list-message">
                       {notification.link ? (
-                        <a onClick={() => markNotificationAsRead(notification._id, notification.link)}>
+                        <a onClick={() => handleNotificationClick(notification)}>
                           <p>
                             {notification.message.length > 125
                               ? `${notification.message.slice(0, 125)}...`
@@ -352,7 +345,7 @@ const Homepage = () => {
                       )}
                       <CloseOutlined
                         className="notification-list-close-icon"
-                        onClick={() => markNotificationAsRead(notification._id)}
+                        onClick={() => handleNotificationClose(notification._id)}
                       />
                     </div>
                   }

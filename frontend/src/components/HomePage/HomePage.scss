@@ -37,6 +37,11 @@
 
       span {
         font-size: 4rem;
+        transition: 0.2s all ease-in-out;
+
+        &:hover {
+          transform: scale(1.1);
+        }
       }
     }
   }
@@ -105,4 +110,9 @@
 .special-icons {
   width: 4rem;
   height: 4rem;
+  transition: 0.2s all ease-in-out;
+
+  &:hover {
+    transform: scale(1.1);
+  }
 }

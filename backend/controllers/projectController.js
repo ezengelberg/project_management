@@ -28,7 +28,7 @@ export const getProjectsStatus = async (req, res) => {
   try {
     const projects = await Project.find();
     const numOfTakenProjects = projects.filter((project) => project.isTaken).length;
-    const numOfOpenProjects = projects.filter((project) => !project.isTake).length;
+    const numOfOpenProjects = projects.filter((project) => !project.isTaken).length;
     const numOfFinishedProjects = projects.filter((project) => project.isFinished).length;
     res.status(200).send({ numOfOpenProjects, numOfTakenProjects, numOfFinishedProjects });
   } catch (err) {

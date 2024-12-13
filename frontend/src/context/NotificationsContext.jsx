@@ -1,0 +1,81 @@
+import React, { createContext, useState, useEffect } from "react";
+import axios from "axios";
+
+export const NotificationsContext = createContext();
+
+export const NotificationsProvider = ({ children }) => {
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [newNotifications, setNewNotifications] = useState([]);
+  const [oldNotifications, setOldNotifications] = useState([]);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/all`, {
+          withCredentials: true,
+        });
+        setUnreadCount(response.data.filter((notification) => !notification.read).length);
+        setNewNotifications(response.data.filter((notification) => !notification.read));
+        setOldNotifications(response.data.filter((notification) => notification.read));
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/read/${notificationId}`, null, {
+        withCredentials: true,
+      });
+      setUnreadCount((prevCount) => prevCount - 1);
+      setNewNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification._id !== notificationId)
+      );
+      setOldNotifications((prevNotifications) =>
+        prevNotifications.map((notification) => {
+          if (notification._id === notificationId) {
+            return { ...notification, read: true };
+          }
+          return notification;
+        })
+      );
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
+  };
+
+  const deleteNotification = async (notificationId) => {
+    try {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/delete/${notificationId}`, {
+        withCredentials: true,
+      });
+      setUnreadCount((prevCount) => prevCount - 1);
+      setNewNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification._id !== notificationId)
+      );
+      setOldNotifications((prevNotifications) =>
+        prevNotifications.filter((notification) => notification._id !== notificationId)
+      );
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+    }
+  };
+
+  return (
+    <NotificationsContext.Provider
+      value={{
+        unreadCount,
+        newNotifications,
+        oldNotifications,
+        markNotificationAsRead,
+        deleteNotification,
+        setNewNotifications,
+        setOldNotifications,
+      }}>
+      {children}
+    </NotificationsContext.Provider>
+  );
+};
