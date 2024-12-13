@@ -113,8 +113,8 @@ const SubmissionsStatus = () => {
             searchWords={[searchText]}
             autoEscape
             textToHighlight={
-              record.projectName && record.projectName.length > 50
-                ? `${record.projectName.slice(0, 50)}...`
+              record.projectName && record.projectName.length > 65
+                ? `${record.projectName.slice(0, 65)}...`
                 : record.projectName
             }
           />

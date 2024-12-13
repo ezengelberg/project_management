@@ -81,7 +81,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
           withCredentials: true,
-        },
+        }
       );
 
       response.data.map((project) => {
@@ -99,18 +99,18 @@ const Submissions = () => {
               submission.submissions.map((sub) => ({
                 name: sub.name,
                 info: sub.info,
-              })),
+              }))
             )
             .map((sub) => [
               sub.name, // Use the name as key
               sub, // Keep the object with name and info as the value
-            ]),
+            ])
         ).values(),
       ];
 
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
-          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
+          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission
         );
 
         if (!existing) return submission;
@@ -146,7 +146,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -168,7 +168,7 @@ const Submissions = () => {
         {
           grade: values.newGrade,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
     } catch (error) {
       console.error("Error overriding grade:", error);
@@ -181,7 +181,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -204,7 +204,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "info",
@@ -265,7 +265,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       if (submissionDetails.some((submission) => submission.name === name)) {
         message.open({
@@ -300,7 +300,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
@@ -325,7 +325,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -389,7 +389,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -474,7 +474,7 @@ const Submissions = () => {
 
   const columns = [
     {
-      title: "שם הפרוייקט",
+      title: "שם הפרויקט",
       dataIndex: "title",
       key: "title",
       ...getColumnSearchProps("title"),
@@ -551,7 +551,7 @@ const Submissions = () => {
                             ? `הוגש${
                                 sub.isLate
                                   ? ` באיחור - ${Math.ceil(
-                                      (new Date(sub.uploadDate) - new Date(sub.submissionDate)) / (1000 * 60 * 60 * 24),
+                                      (new Date(sub.uploadDate) - new Date(sub.submissionDate)) / (1000 * 60 * 60 * 24)
                                     )} ימים`
                                   : ""
                               }`
@@ -881,7 +881,7 @@ const Submissions = () => {
                               ? ` באיחור - ${Math.ceil(
                                   (new Date(submissionInfo.submission.uploadDate) -
                                     new Date(submissionInfo.submission.submissionDate)) /
-                                    (1000 * 60 * 60 * 24),
+                                    (1000 * 60 * 60 * 24)
                                 )} ימים`
                               : ""
                           }`
@@ -1307,18 +1307,18 @@ const Submissions = () => {
             <TextArea rows={4} />
           </Form.Item>
 
-          {/* פרוייקטים */}
+          {/* פרויקטים */}
           <Form.Item
-            label="פרוייקטים"
+            label="פרויקטים"
             name="projects"
             hasFeedback
             rules={[
               {
                 required: true,
-                message: "חובה לבחור פרוייקטים",
+                message: "חובה לבחור פרויקטים",
               },
             ]}>
-            <Select mode="multiple" placeholder="בחר פרוייקטים">
+            <Select mode="multiple" placeholder="בחר פרויקטים">
               {projects.map((project) => (
                 <Select.Option key={project._id} value={project._id}>
                   {project.title}

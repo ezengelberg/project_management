@@ -275,7 +275,7 @@ const SystemControl = () => {
             <label className="switch-label">הזנת פרויקטים חדשים</label>
             <Switch checked={createProject} />
           </div>
-          <Tooltip title="רישום של הסטודנטים עצמם לפרוייקט">
+          <Tooltip title="רישום של הסטודנטים עצמם לפרויקט">
             <div className="switch">
               <label className="switch-label">רישום לפרויקטים</label>
               <Switch checked={registerToProjects} />
@@ -294,7 +294,7 @@ const SystemControl = () => {
         </div>
         <div className="box finish-projects">
           <h3 className="box-title">סיים פרויקטים</h3>
-          <Tooltip title="סיים את כל הפרוייקטים">
+          <Tooltip title="סיים את כל הפרויקטים">
             <Button className="end-projects" shape="circle" type="primary" icon={<CloseCircleOutlined />}></Button>
           </Tooltip>
         </div>
