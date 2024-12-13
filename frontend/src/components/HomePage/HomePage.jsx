@@ -318,7 +318,9 @@ const Homepage = () => {
                       {notification.link ? (
                         <a onClick={() => markNotificationAsRead(notification._id, notification.link)}>
                           <p>
-                            {notification.message}
+                            {notification.message.length > 125
+                              ? `${notification.message.slice(0, 125)}...`
+                              : notification.message}
                             <br />
                             <span className="notification-list-date">
                               {new Date(notification.createdAt).toLocaleString("he-IL", {
@@ -333,7 +335,9 @@ const Homepage = () => {
                         </a>
                       ) : (
                         <p>
-                          {notification.message}
+                          {notification.message.length > 125
+                            ? `${notification.message.slice(0, 125)}...`
+                            : notification.message}
                           <br />
                           <span className="notification-list-date">
                             {new Date(notification.createdAt).toLocaleString("he-IL", {
