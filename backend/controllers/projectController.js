@@ -162,7 +162,7 @@ export const createProject = async (req, res) => {
           link: `/project/${savedProject._id}`,
         });
         notification.save();
-      }),
+      })
     );
 
     res.status(201).json({
@@ -277,7 +277,7 @@ export const addCandidateToProject = async (req, res) => {
 
     const notification = new Notification({
       user: user._id,
-      message: `התווספת כמתמודד לפרויקט: ${project.title}<br /><span style={"color: red"}>שים לב כי עליך לקבל אישור מהמנחה של הפרויקט</span>`,
+      message: `התווספת כמתמודד לפרויקט: ${project.title} שים לב כי עליך לקבל אישור מהמנחה של הפרויקט`,
       link: `/project/${project._id}`,
     });
     notification.save();
@@ -345,7 +345,7 @@ export const approveCandidate = async (req, res) => {
       const { _id, ...candidateWithoutId } = candidate.toObject();
       project.students.push(candidateWithoutId);
       project.candidates = project.candidates.filter(
-        (candidate) => candidate.student.toString() !== user._id.toString(),
+        (candidate) => candidate.student.toString() !== user._id.toString()
       );
     }
     await project.save();
@@ -597,10 +597,10 @@ export const deleteProject = async (req, res) => {
         const file = await Upload.findById(submission.file);
         if (file) {
           const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
-          console.log(filePath)
+          console.log(filePath);
           if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
           await Upload.deleteOne({ _id: submission.file });
-          console.log("deleted")
+          console.log("deleted");
         }
       }
       await submission.deleteOne();

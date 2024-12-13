@@ -86,6 +86,10 @@ const ManageProjects = () => {
               `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${candidate.student}`,
               { withCredentials: true }
             );
+            const hasProjectResponse = await axios.get(
+              `${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${candidate.student}`,
+              { withCredentials: true }
+            );
             candidatesData.push({
               key: `candidate-${candidate.student}`,
               name: studentResponse.data.name,
@@ -93,6 +97,7 @@ const ManageProjects = () => {
               status: false,
               candidateInfo: studentResponse.data,
               projectID: project.key,
+              hasProject: hasProjectResponse.data.hasProject,
             });
           } catch (error) {
             console.error("Error fetching candidate data:", error);
@@ -426,19 +431,32 @@ const ManageProjects = () => {
         title: "שם הסטודנט",
         dataIndex: "name",
         key: "name",
+        width: "50%",
       },
       {
         title: "תאריך רישום",
         dataIndex: "date",
         key: "date",
         render: (date) => new Date(date).toLocaleString("he-IL"), // Display the date in
+        width: "10%",
       },
       {
         title: "סטטוס",
         dataIndex: "status",
         key: "status",
-        render: (status) =>
-          status ? <Badge status="success" text="מאושר" /> : <Badge status="error" text="לא מאושר" />,
+        render: (status, record) => {
+          {
+            console.log(record);
+          }
+          if (status) {
+            return <Badge status="success" text="מאושר" />;
+          } else if (record.hasProject) {
+            return <Badge color="purple" text="לא מאושר - משוייך לפרויקט אחר" />;
+          } else {
+            return <Badge status="error" text="לא מאושר" />;
+          }
+        },
+        width: "20%",
       },
       {
         title: "פעולה",
@@ -453,14 +471,17 @@ const ManageProjects = () => {
             </div>
           ) : (
             <div className="approve-decline-student">
-              <Tooltip title="אשר רישום לסטודנט זה">
-                <CheckCircleOutlined onClick={approveStudent(record)} />
-              </Tooltip>
+              {!record.hasProject && (
+                <Tooltip title="אשר רישום לסטודנט זה">
+                  <CheckCircleOutlined onClick={approveStudent(record)} />
+                </Tooltip>
+              )}
               <Tooltip title="דחה רישום לסטודנט זה">
                 <CloseCircleOutlined onClick={declineStudent(record)} />
               </Tooltip>
             </div>
           ),
+        width: "20%",
       },
     ];
     return <Table columns={expandColumns} dataSource={record.candidatesData} pagination={false} />;

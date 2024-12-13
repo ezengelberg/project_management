@@ -185,12 +185,16 @@ export const getAdvisorUsers = async (req, res) => {
 };
 
 export const checkUserHasProject = async (req, res) => {
-  const user = req.user;
-  const projects = await Project.find({ "students.student": user._id });
-  if (projects.length > 0) {
-    res.status(200).send({ hasProject: true });
-  } else {
-    res.status(200).send({ hasProject: false });
+  const userId = req.params.userId;
+  try {
+    const projects = await Project.find({ "students.student": userId });
+    if (projects.length > 0) {
+      res.status(200).send({ hasProject: true });
+    } else {
+      res.status(200).send({ hasProject: false });
+    }
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };
 
