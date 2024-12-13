@@ -27,6 +27,41 @@
         margin: auto;
       }
 
+      .main-circle {
+        position: relative;
+        width: 17rem;
+        height: 17rem;
+        background: linear-gradient(#df293a, #ef495a);
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 1px 5px 1px #ce152a;
+        transition: all 0.2s ease-in;
+
+        &:hover {
+          box-shadow: 1px 3px 1px #ce152a;
+        }
+
+        .inner-circle {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          font-family: "Lato", Verdana, sans-serif;
+          color: #fff;
+          font-size: 3rem;
+          width: 12.75rem;
+          height: 12.75rem;
+          border-radius: 50%;
+          background: radial-gradient(#ef495a, #de2839);
+          box-shadow: 1px 2px 1px rgba(255, 255, 255, 0.15) inset;
+
+          p {
+            text-align: center;
+            margin: 4.5rem 0;
+          }
+        }
+      }
+
       .box-title {
         margin: 0 0 1.5rem;
       }
