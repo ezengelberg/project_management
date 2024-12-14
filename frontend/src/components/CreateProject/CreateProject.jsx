@@ -7,9 +7,11 @@ import { Switch, Button, Form, Input, InputNumber, Select, message, FloatButton 
 import { Editor } from "primereact/editor";
 import DOMPurify from "dompurify";
 import { handleMouseDown } from "../../utils/mouseDown";
+import { NotificationsContext } from "../../context/NotificationsContext";
 
 const CreateProject = () => {
   const { Option } = Select;
+  const { fetchNotifications } = useContext(NotificationsContext);
   const currentYear = new Date().getFullYear();
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const [advisorUsers, setAdvisorUsers] = useState([]);
@@ -172,6 +174,7 @@ const CreateProject = () => {
       setProjectCreatedId(response.data.project._id);
       form.resetFields();
       setIsOtherType(false);
+      fetchNotifications();
     } catch (error) {
       console.error("Error occurred:", error.response?.data?.message);
       if (error.response?.data?.message === "This Project already exists in that year") {

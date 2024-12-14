@@ -5,9 +5,11 @@ import { Tooltip, message, Spin } from "antd";
 import { UserOutlined, LoadingOutlined } from "@ant-design/icons";
 import "./ProjectPage.scss";
 import { processContent } from "../../utils/htmlProcessor";
+import { NotificationsContext } from "../../context/NotificationsContext";
 
 const ProjectPage = () => {
   const { projectID } = useParams();
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [projectData, setProjectData] = useState({});
   const [advisors, setAdvisors] = useState([]);
   const [isCandidate, setIsCandidate] = useState(false);
@@ -25,7 +27,7 @@ const ProjectPage = () => {
           `${process.env.REACT_APP_BACKEND_URL}/api/project/check-if-candidate/${projectID}`,
           {
             withCredentials: true,
-          },
+          }
         );
         setIsCandidate(response.data.isCandidate);
       } catch (error) {
@@ -61,7 +63,7 @@ const ProjectPage = () => {
           `${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${user._id}`,
           {
             withCredentials: true,
-          },
+          }
         );
         setHasProject(response.data.hasProject);
       } catch (error) {
@@ -105,9 +107,8 @@ const ProjectPage = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/remove-candidate`,
         { projectID: projectID, userID: userID },
-        { withCredentials: true },
+        { withCredentials: true }
       );
-      console.log("Unsignup successful");
       setTimeout(() => {
         message.open({
           type: "success",
@@ -115,6 +116,7 @@ const ProjectPage = () => {
           duration: 2,
         });
       }, 500);
+      fetchNotifications();
     } catch (error) {
       console.log("Error occurred:", error.response.data.message);
     } finally {
@@ -135,9 +137,8 @@ const ProjectPage = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/add-candidate`,
         { projectID: projectID },
-        { withCredentials: true },
+        { withCredentials: true }
       );
-      console.log("Signup successful");
       setTimeout(() => {
         message.open({
           type: "success",
@@ -145,6 +146,7 @@ const ProjectPage = () => {
           duration: 2,
         });
       }, 500);
+      fetchNotifications();
     } catch (error) {
       console.log("Error occurred:", error.response.data.message);
       setTimeout(() => {

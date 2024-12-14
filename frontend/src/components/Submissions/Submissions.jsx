@@ -25,11 +25,13 @@ import {
 import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
+import { NotificationsContext } from "../../context/NotificationsContext";
 
 const Submissions = () => {
   const navigate = useNavigate();
   const { TextArea } = Input;
   const { Option } = Select;
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [formAll] = Form.useForm();
   const [formJudges] = Form.useForm();
   const [editSubmission] = Form.useForm();
@@ -277,6 +279,7 @@ const Submissions = () => {
         type: "success",
         content: "הגשה נפתחה בהצלחה",
       });
+      fetchNotifications();
     } catch (error) {
       console.error("Error creating submission:", error);
     } finally {
@@ -395,6 +398,7 @@ const Submissions = () => {
         type: "success",
         content: "הגשה נפתחה בהצלחה",
       });
+      fetchNotifications();
     } catch (error) {
       console.error("Error creating submission:", error);
     } finally {

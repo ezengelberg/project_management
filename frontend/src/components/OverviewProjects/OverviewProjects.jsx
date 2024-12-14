@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import "./OverviewProjects.scss";
 import { useNavigate } from "react-router-dom";
 import { Tabs, Table, Modal, Select, Button, message, Tooltip, Input, InputNumber, Space, Divider, Badge } from "antd";
@@ -6,9 +6,11 @@ import { DeleteOutlined, RollbackOutlined, SearchOutlined } from "@ant-design/ic
 import axios from "axios";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
+import { NotificationsContext } from "../../context/NotificationsContext";
 
 const OverviewProjects = () => {
   const navigate = useNavigate();
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [projects, setProjects] = useState([]);
   const [users, setUsers] = useState([]);
   const [usersWithoutProjects, setUsersWithoutProjects] = useState([]);
@@ -114,6 +116,7 @@ const OverviewProjects = () => {
       setSelectedStudents([]);
       setSelectedProject(null);
       message.success("סטודנטים נוספו בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error adding students:", error);
       message.error("שגיאה בהוספת סטודנטים");
@@ -153,6 +156,7 @@ const OverviewProjects = () => {
       setSelectedStudents([]);
       setSelectedProject(null);
       message.success("סטודנטים עודכנו בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error updating students:", error);
       message.error("שגיאה בעדכון סטודנטים");
@@ -191,6 +195,7 @@ const OverviewProjects = () => {
       setSelectedAdvisor(null);
       setSelectedProject(null);
       message.success("המנחה נוסף בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error adding advisor:", error);
       message.error("שגיאה בהוספת מנחה");
@@ -225,6 +230,7 @@ const OverviewProjects = () => {
       setSelectedAdvisor(null);
       setSelectedProject(null);
       message.success("המנחה עודכן בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error updating advisor:", error);
       message.error("שגיאה בעדכון מנחה");
@@ -285,6 +291,7 @@ const OverviewProjects = () => {
       setIsJudgesModalOpen(false);
       setSelectedSubmission(null);
       message.success("השופטים עודכנו בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error updating judges:", error);
       message.error("שגיאה בעדכון שופטים");
@@ -321,6 +328,7 @@ const OverviewProjects = () => {
       setIsTerminateModalOpen(false);
       setSelectedProject(null);
       message.success("הפרויקט הופסק בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error terminating project:", error);
       message.error("שגיאה בהפסקת הפרויקט");
@@ -490,6 +498,7 @@ const OverviewProjects = () => {
       setNewGrade(null);
       setUpdateComment("");
       message.success("הציון עודכן בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error changing grade:", error);
       message.error("שגיאה בשינוי הציון");
