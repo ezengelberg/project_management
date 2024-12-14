@@ -519,6 +519,16 @@ export const updateAdvisorInProject = async (req, res) => {
       return res.status(400).send({ message: "Invalid advisor ID" });
     }
 
+    const currentAdvisor = project.advisors[0];
+    if (currentAdvisor !== advisorID) {
+      const notification = new Notification({
+        user: currentAdvisor,
+        message: `הוסרת כמנחה של פרויקט: ${project.title}`,
+        link: `/project/${project._id}`,
+      });
+      notification.save();
+    }
+
     project.advisors = [advisorID];
 
     if (project.advisors.length === 0) {
