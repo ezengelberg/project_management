@@ -1,10 +1,25 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./MoreInformation.scss";
 import axios from "axios";
-import { Form, Input, InputNumber, Table, Typography, message, Tooltip } from "antd";
-import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
+import {
+  Form,
+  Input,
+  InputNumber,
+  Table,
+  Typography,
+  message,
+  Tooltip,
+  Tabs,
+  Button,
+  Popconfirm,
+  DatePicker,
+  Select,
+} from "antd";
+import { EditOutlined, SaveOutlined, StopOutlined, DeleteOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
+import { handleEditSave } from "../../utils/editUtils";
+import dayjs from "dayjs";
 
 const MoreInformation = () => {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -12,38 +27,57 @@ const MoreInformation = () => {
     return storedUser ? JSON.parse(storedUser) : {};
   });
   const [form] = Form.useForm();
+  const [formGrades] = Form.useForm();
+  const [formEditGrades] = Form.useForm();
   const [data, setData] = useState([]);
   const [editingKey, setEditingKey] = useState("");
+  const [editingGradesKey, setEditingGradesKey] = useState("");
   const [loading, setLoading] = useState(false);
   const isEditing = (record) => record.key === editingKey;
+  const isGradesEditing = (record) => record.key === editingGradesKey;
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const [gradesData, setGradesData] = useState([]);
+  const [filterTachlit, setFilterTachlit] = useState(false);
 
   useEffect(() => {
-    const fetchAdvisors = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/advisors-for-users-info`, {
-          withCredentials: true,
-        });
+        const [advisorsRes, gradesRes] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/advisors-for-users-info`, {
+            withCredentials: true,
+          }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/grade-structure`, {
+            withCredentials: true,
+          }),
+        ]);
 
-        const advisors = res.data.map((advisor) => ({
+        const advisors = advisorsRes.data.map((advisor) => ({
           ...advisor,
           key: advisor._id,
         }));
         setData(advisors);
+
+        const gradeStructures = gradesRes.data.map((grade) => ({
+          ...grade,
+          key: grade._id,
+          date: dayjs(grade.date), // Ensure date is a dayjs object
+        }));
+        setGradesData(gradeStructures);
+
         setLoading(false);
       } catch (error) {
         console.error("Error occurred:", error);
         setLoading(false);
       }
     };
-    fetchAdvisors();
+    fetchData();
   }, []);
 
   const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
-    const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
+    const inputNode = inputType === "number" ? <InputNumber /> : dataIndex === "date" ? <DatePicker /> : <Input />;
     return (
       <td {...restProps}>
         {editing ? (
@@ -72,37 +106,30 @@ const MoreInformation = () => {
     setEditingKey(record.key);
   };
 
+  const editGrades = (record) => {
+    formEditGrades.setFieldsValue({ ...record, date: dayjs(record.date) });
+    setEditingGradesKey(record.key);
+  };
+
   const cancel = () => {
     setEditingKey("");
     form.resetFields();
   };
 
-  const save = async (key) => {
-    try {
-      const row = await form.validateFields();
-      const newData = [...data];
-      const index = newData.findIndex((item) => key === item.key);
-      if (index > -1) {
-        const item = newData[index];
-        const updatedItem = { ...item, ...row };
-        newData.splice(index, 1, updatedItem);
-        setData(newData);
-        setEditingKey("");
-        form.resetFields();
+  const cancelGrades = () => {
+    setEditingGradesKey("");
+    formEditGrades.resetFields();
+  };
 
-        await axios.put(
-          `${process.env.REACT_APP_BACKEND_URL}/api/user/edit-user-coordinator/${item._id}`,
-          { interests: updatedItem.interests },
-          { withCredentials: true }
-        );
-      } else {
-        newData.push(row);
-        setData(newData);
-        setEditingKey("");
-        form.resetFields();
-      }
-    } catch (errInfo) {
-      console.log("Validate Failed:", errInfo);
+  const save = async (key, isGrade) => {
+    if (isGrade) {
+      await handleEditSave(key, formEditGrades, gradesData, setGradesData, "/api/grade-structure");
+      setEditingGradesKey("");
+    } else {
+      await handleEditSave(key, form, data, setData, "/api/user/edit-user-coordinator", {
+        interests: form.getFieldValue("interests"),
+      });
+      setEditingKey("");
     }
   };
 
@@ -192,7 +219,7 @@ const MoreInformation = () => {
         return editable ? (
           <span>
             <Typography.Link
-              onClick={() => save(record.key)}
+              onClick={() => save(record.key, false)}
               style={{
                 marginInlineEnd: 8,
               }}>
@@ -234,27 +261,226 @@ const MoreInformation = () => {
     };
   });
 
+  const handleGradesDelete = async (key) => {
+    try {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/grade-structure/${key}`, {
+        withCredentials: true,
+      });
+      const newData = gradesData.filter((item) => item.key !== key);
+      setGradesData(newData);
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
+  };
+
+  const handleGradesAdd = async (values) => {
+    try {
+      const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/grade-structure`, values, {
+        withCredentials: true,
+      });
+      const newGrade = res.data;
+      newGrade.key = newGrade._id;
+      setGradesData([...gradesData, newGrade]);
+      formGrades.resetFields();
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
+  };
+
+  const handleFilterChange = (value) => {
+    setFilterTachlit(value);
+  };
+
+  const filteredGradesData = gradesData.filter((item) => item.tachlit === filterTachlit);
+
+  const gradesColumns = [
+    {
+      title: "שם",
+      dataIndex: "name",
+      editable: true,
+      width: "26%",
+    },
+    {
+      title: "משקל",
+      dataIndex: "weight",
+      editable: true,
+      render: (text) => <span>{text === 0 ? "ללא ציון" : `${text}%`}</span>,
+      width: "7%",
+    },
+    {
+      title: "תיאור",
+      dataIndex: "description",
+      editable: true,
+      width: "47%",
+    },
+    {
+      title: "תאריך הגשה",
+      dataIndex: "date",
+      editable: true,
+      render: (text) => <span>{dayjs(text).format("DD/MM/YYYY")}</span>,
+      width: "10%",
+    },
+    currentUser.isCoordinator && {
+      title: "פעולות",
+      dataIndex: "actions",
+      key: "actions",
+      render: (_, record) => {
+        const editable = isGradesEditing(record);
+        return editable ? (
+          <span>
+            <Typography.Link
+              onClick={() => save(record.key, true)}
+              style={{
+                marginInlineEnd: 8,
+              }}>
+              <Tooltip title="שמירה">
+                <SaveOutlined className="grade-weight-icon" />
+              </Tooltip>
+            </Typography.Link>
+            <a onClick={cancelGrades}>
+              <Tooltip title="ביטול">
+                <StopOutlined className="grade-weight-icon" />
+              </Tooltip>
+            </a>
+          </span>
+        ) : (
+          <div className="grade-weight-icon-container">
+            <Typography.Link disabled={editingGradesKey !== ""} onClick={() => editGrades(record)}>
+              <Tooltip title="עריכה">
+                <EditOutlined className="grade-weight-icon" />
+              </Tooltip>
+            </Typography.Link>
+            <Popconfirm
+              title="בטוח שברצונך למחוק?"
+              okText="כן"
+              okButtonProps={{ danger: true }}
+              cancelText="לא"
+              onConfirm={() => handleGradesDelete(record.key)}>
+              <Typography.Link>
+                <Tooltip title="מחיקה">
+                  <DeleteOutlined className="grade-weight-icon" />
+                </Tooltip>
+              </Typography.Link>
+            </Popconfirm>
+          </div>
+        );
+      },
+      width: "10%",
+    },
+  ].filter(Boolean);
+
+  const gradesMergedColumns = gradesColumns.map((col) => {
+    if (!col.editable) {
+      return col;
+    }
+    return {
+      ...col,
+      onCell: (record) => ({
+        record,
+        editable: col.editable.toString(),
+        dataIndex: col.dataIndex,
+        title: col.title,
+        editing: isGradesEditing(record),
+      }),
+    };
+  });
+
+  const tabs = [
+    {
+      key: "1",
+      label: "רשימת מנחים",
+      children: (
+        <Form form={form} component={false} loading={loading}>
+          <Table
+            style={{ width: "100%", minHeight: "770px" }}
+            components={{
+              body: {
+                cell: EditableCell,
+              },
+            }}
+            bordered
+            dataSource={data}
+            columns={mergedColumns}
+            rowClassName="editable-row"
+            pagination={false}
+          />
+        </Form>
+      ),
+    },
+    {
+      key: "2",
+      label: "מרכיבי הציון",
+      children: (
+        <div>
+          {currentUser.isCoordinator && (
+            <Form
+              form={formGrades}
+              onFinish={handleGradesAdd}
+              layout="inline"
+              style={{
+                marginBottom: 16,
+              }}>
+              <Form.Item name="name" rules={[{ required: true, message: "הכנס שם" }]}>
+                <Input placeholder="שם" />
+              </Form.Item>
+              <Form.Item name="weight" rules={[{ required: true, message: "הכנס משקל" }]}>
+                <InputNumber placeholder="משקל" />
+              </Form.Item>
+              <Form.Item name="description" rules={[{ required: true, message: "הכנס תיאור" }]}>
+                <Input placeholder="תיאור" />
+              </Form.Item>
+              <Form.Item name="date" rules={[{ required: true, message: "הכנס תאריך" }]}>
+                <DatePicker placeholder="תאריך" />
+              </Form.Item>
+              <Form.Item name="tachlit" rules={[{ required: true, message: "בחר סוג" }]}>
+                <Select placeholder="בחר סוג">
+                  <Select.Option value={false}>כולם</Select.Option>
+                  <Select.Option value={true}>תכלית</Select.Option>
+                </Select>
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  שורה חדשה
+                </Button>
+              </Form.Item>
+            </Form>
+          )}
+          <Select
+            placeholder="סנן לפי סוג"
+            onChange={handleFilterChange}
+            style={{ marginBottom: 16, width: 200 }}
+            defaultValue={false}>
+            <Select.Option value={false}>כולם</Select.Option>
+            <Select.Option value={true}>תכלית</Select.Option>
+          </Select>
+          <Form form={formEditGrades} component={false}>
+            <Table
+              style={{ width: "100%", minHeight: "770px" }}
+              components={{
+                body: {
+                  cell: EditableCell,
+                },
+              }}
+              bordered
+              dataSource={filteredGradesData}
+              columns={gradesMergedColumns}
+              rowClassName="editable-row"
+              pagination={false}
+            />
+          </Form>
+        </div>
+      ),
+    },
+    {
+      key: "3",
+      label: "קבצים נוספים",
+      children: <div>קבצים נוספים</div>,
+    },
+  ];
+
   return (
     <div className="info-container">
-      <Form form={form} component={false} loading={loading}>
-        <h2>רשימת מנחים</h2>
-        <h3>רשימה זאת לא סופית ויכולה להשתנות</h3>
-        <Table
-          style={{ width: "100%", minHeight: "770px" }}
-          components={{
-            body: {
-              cell: EditableCell,
-            },
-          }}
-          bordered
-          dataSource={data}
-          columns={mergedColumns}
-          rowClassName="editable-row"
-          pagination={{
-            onChange: cancel,
-          }}
-        />
-      </Form>
+      <Tabs items={tabs} defaultActiveKey={currentUser.isStudent ? "1" : "3"} />
     </div>
   );
 };
