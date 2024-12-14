@@ -29,19 +29,12 @@ const Notifications = () => {
     if (notification.link) {
       navigate(notification.link);
       markNotificationAsRead(notification._id);
-      setNewNotifications((prevNotifications) => prevNotifications.filter((n) => n._id !== notification._id));
-      setOldNotifications((prevNotifications) => [...prevNotifications, { ...notification, read: true }]);
     }
   };
 
   const handleNotificationClose = (e, notificationId) => {
     e.stopPropagation();
     markNotificationAsRead(notificationId);
-    setNewNotifications((prevNotifications) => prevNotifications.filter((n) => n._id !== notificationId));
-    setOldNotifications((prevNotifications) => [
-      ...prevNotifications,
-      { ...newNotifications.find((n) => n._id === notificationId), read: true },
-    ]);
   };
 
   const items = [
