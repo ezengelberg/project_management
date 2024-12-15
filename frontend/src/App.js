@@ -23,6 +23,7 @@ import GradeSubmission from "./components/GradeSubmission/GradeSubmission";
 import UploadSubmissions from "./components/UploadSubmissions/UploadSubmissions";
 import Notifications from "./components/Notifications/Notifications";
 import SubmissionsStatus from "./components/SubmissionsStatus/SubmissionsStatus";
+import ProfilePage from "./components/ProfilePage/ProfilePage";
 
 function App() {
   return (
@@ -49,7 +50,14 @@ const MainLayout = () => {
           <div className="main-content">
             <Routes>
               {/* Protected Routes */}
-              <Route path="/profile/:userId" element={<h1>Profile</h1>} />
+              <Route
+                path="/profile/:userId"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/home"
                 element={
