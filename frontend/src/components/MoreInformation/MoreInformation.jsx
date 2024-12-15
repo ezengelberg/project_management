@@ -14,14 +14,17 @@ import {
   Popconfirm,
   DatePicker,
   Select,
+  Upload,
+  Modal,
 } from "antd";
-import { EditOutlined, SaveOutlined, StopOutlined, DeleteOutlined } from "@ant-design/icons";
+import { EditOutlined, SaveOutlined, StopOutlined, DeleteOutlined, InboxOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { handleEditSave } from "../../utils/editUtils";
 import dayjs from "dayjs";
 import { Editor } from "primereact/editor";
 import { processContent } from "../../utils/htmlProcessor";
+import FileCard from "../FileCard/FileCard";
 
 const MoreInformation = () => {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -45,6 +48,16 @@ const MoreInformation = () => {
   const [gradeWeightDescription, setGradeWeightDescription] = useState("");
   const [randomText, setRandomText] = useState("");
   const [randomTextId, setRandomTextId] = useState(null);
+  const [fileList, setFileList] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [moreInformationFiles, setMoreInformationFiles] = useState([]);
+  const [isEditingFile, setIsEditingFile] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [currentFile, setCurrentFile] = useState({});
+  const { Dragger } = Upload;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -96,6 +109,24 @@ const MoreInformation = () => {
       }
     };
     fetchRandomText();
+  }, []);
+
+  useEffect(() => {
+    const fetchMoreInformationFiles = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=moreInformation`,
+          {
+            withCredentials: true,
+          }
+        );
+        setMoreInformationFiles(response.data);
+      } catch (error) {
+        console.error("Error fetching more information files:", error);
+      }
+    };
+
+    fetchMoreInformationFiles();
   }, []);
 
   const handleEditorChange = (e) => {
@@ -461,6 +492,152 @@ const MoreInformation = () => {
     };
   });
 
+  const handleUpload = async () => {
+    const formData = new FormData();
+    fileList.forEach((file) => {
+      formData.append("files", file, encodeURIComponent(file.name));
+    });
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("destination", "moreInformation"); // Set destination for dynamic pathing
+    setUploading(true);
+
+    try {
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=moreInformation`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "X-Filename-Encoding": "url",
+        },
+        withCredentials: true,
+      });
+      message.success("הקובץ הועלה בהצלחה");
+      setFileList([]);
+      clearForm();
+
+      const updatedFiles = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=moreInformation`,
+        {
+          withCredentials: true,
+        }
+      );
+      setMoreInformationFiles(updatedFiles.data);
+    } catch (error) {
+      console.error("Error occurred:", error);
+      if (error.response?.status === 500 || error.response?.status === 409) {
+        message.error("קובץ עם שם זה כבר קיים");
+      } else {
+        message.error("העלאת הקובץ נכשלה");
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const props = {
+    multiple: true,
+    maxCount: 10,
+    listType: "picture",
+    onRemove: (file) => {
+      const index = fileList.indexOf(file);
+      const newFileList = fileList.slice();
+      newFileList.splice(index, 1);
+      setFileList(newFileList);
+    },
+    beforeUpload: (file, fileListNew) => {
+      if (file.name.length > 50) {
+        message.error(`שם קובץ יכול להכיל עד 50 תווים (רווח גם נחשב כתו)`);
+        return Upload.LIST_IGNORE;
+      }
+      // Check if file with same name already exists in the list of uploaded files
+      const isDuplicate = fileList.some((existingFile) => existingFile.name === file.name);
+      if (isDuplicate) {
+        message.error(`קובץ "${file.name}" כבר קיים`);
+        return Upload.LIST_IGNORE;
+      }
+
+      if (fileList.length + fileListNew.length > 10) {
+        message.error("ניתן להעלות עד 10 קבצים בו זמנית");
+        return Upload.LIST_IGNORE;
+      }
+      setFileList((prevList) => [...prevList, file]);
+      return false;
+    },
+    fileList,
+  };
+
+  const setEditingFile = (fileId) => {
+    try {
+      const file = moreInformationFiles.find((file) => file._id === fileId);
+      setCurrentFile(file);
+      setEditTitle(file.title);
+      setEditDescription(file.description);
+    } catch (error) {
+      console.error("Error setting editing file:", error);
+    }
+    setIsEditingFile(true);
+  };
+
+  const handleEdit = async (fileId) => {
+    try {
+      const oldFile = moreInformationFiles.find((file) => file._id === fileId);
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/uploads/update/${fileId}?destination=moreInformation`,
+        {
+          title: editTitle,
+          description: editDescription,
+          oldTitle: oldFile.title,
+          oldDescription: oldFile.description,
+        },
+        { withCredentials: true }
+      );
+      message.success("קובץ עודכן בהצלחה");
+
+      // Refresh updated files based on dynamic destination
+      const updatedFiles = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=moreInformation`,
+        {
+          withCredentials: true,
+        }
+      );
+      setMoreInformationFiles(updatedFiles.data);
+    } catch (error) {
+      console.error("Error updating file:", error);
+      message.error("שגיאה בעדכון הקובץ");
+    } finally {
+      setIsEditingFile(false);
+    }
+  };
+
+  const handleDelete = async (fileId) => {
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete/${fileId}?destination=moreInformation`,
+        {
+          withCredentials: true,
+        }
+      );
+      message.success("קובץ נמחק בהצלחה");
+    } catch (error) {
+      console.error("Error deleting file:", error);
+    } finally {
+      setMoreInformationFiles((prevFiles) => prevFiles.filter((file) => file._id !== fileId));
+    }
+  };
+
+  const clearForm = () => {
+    setFileList([]);
+    setTitle("");
+    setDescription("");
+  };
+
+  const handleFileEditorChange = (e) => {
+    setDescription(e.htmlValue || "");
+  };
+
+  const handleEditFileEditorChange = (e) => {
+    setEditDescription(e.htmlValue || "");
+  };
+
   const tabs = [
     {
       key: "1",
@@ -586,13 +763,96 @@ const MoreInformation = () => {
     {
       key: "3",
       label: "קבצים נוספים",
-      children: <div>קבצים נוספים</div>,
+      children: (
+        <div>
+          {currentUser.isCoordinator && (
+            <div className="upload-container">
+              <Dragger {...props}>
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">לחצו או גררו כדי להעלות קבצים</p>
+                <p className="ant-upload-hint">
+                  ניתן להעלות עד 10 קבצים בו זמנית (הזנת כותרת/תיאור ישוייכו לכל הקבצים אם הועלאו ביחד)
+                </p>
+              </Dragger>
+              <hr />
+              <div className="form-input-group template-input-group">
+                <label htmlFor="title">כותרת</label>
+                <Input
+                  type="text"
+                  id="title"
+                  placeholder="כותרת לקובץ (אם לא הוכנס שם הקובץ יהיה גם הכותרת)"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
+              <div className="form-input-group template-input-group">
+                <Editor
+                  placeholder="תיאור לקובץ"
+                  value={description}
+                  onTextChange={handleFileEditorChange}
+                  style={{ height: "320px", wordBreak: "break-word" }}
+                />
+              </div>
+              <Button
+                type="primary"
+                onClick={handleUpload}
+                disabled={fileList.length === 0}
+                loading={uploading}
+                style={{ marginTop: 16 }}>
+                {uploading ? "מעלה" : "התחל העלאה"}
+              </Button>
+            </div>
+          )}
+          <div className="template-content">
+            {moreInformationFiles.length === 0 && <h2>לא הועלו עדיין קבצים</h2>}
+            {moreInformationFiles.map((file) => (
+              <FileCard
+                key={file._id}
+                file={file}
+                destination={"moreInformation"}
+                onDelete={handleDelete}
+                onEdit={() => setEditingFile(file._id)}
+              />
+            ))}
+          </div>
+        </div>
+      ),
     },
   ];
 
   return (
     <div className="info-container">
       <Tabs items={tabs} defaultActiveKey={currentUser.isStudent ? "1" : "3"} />
+      <Modal
+        className="edit-modal"
+        title="תיאור הקובץ"
+        open={isEditingFile}
+        onOk={() => handleEdit(currentFile._id)}
+        onCancel={() => setIsEditingFile(false)}
+        okText="שמירה"
+        cancelText="ביטול">
+        <div className="form-input-group template-input-group">
+          <label htmlFor="title">כותרת</label>
+          <Input
+            type="text"
+            id="title"
+            placeholder="כותרת לקובץ"
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+          />
+        </div>
+        <div className="form-input-group template-input-group">
+          <label htmlFor="description">תיאור</label>
+          <Editor
+            placeholder="תיאור לקובץ"
+            value={editDescription}
+            onTextChange={handleEditFileEditorChange}
+            style={{ height: "320px", wordBreak: "break-word" }}
+          />
+        </div>
+      </Modal>
     </div>
   );
 };

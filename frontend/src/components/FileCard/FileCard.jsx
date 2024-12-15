@@ -11,7 +11,7 @@ import {
 import { Tooltip, Modal, Card, message, Divider, Descriptions } from "antd";
 import axios from "axios";
 import { processContent } from "../../utils/htmlProcessor";
-import { downloadFile } from "../../utils/downloadFile"; // Import the downloadFile utility function
+import { downloadFile } from "../../utils/downloadFile";
 
 const FileCard = ({ file, onEdit, onDelete, destination }) => {
   const [isDescriptionModalVisible, setIsDescriptionModalVisible] = useState(false);
@@ -44,7 +44,7 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
 
   const handleDownload = async () => {
     try {
-      await downloadFile(file._id, destination); // Use the downloadFile utility function
+      await downloadFile(file._id, destination);
     } catch (error) {
       console.error("Error downloading file:", error);
     }
