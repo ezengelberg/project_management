@@ -254,7 +254,7 @@ export const getUser = async (req, res) => {
 
 export const changePassword = async (req, res) => {
   const user = req.user;
-  const { oldPassword, newPassword } = req.body;
+  const { oldPassword, newPassword, interests } = req.body;
   try {
     const match = await bcrypt.compare(oldPassword, user.password);
     if (!match) {
@@ -267,6 +267,9 @@ export const changePassword = async (req, res) => {
     user.password = hashedPassword;
     user.firstLogin = false;
     user.updatedAt = new Date();
+    if (user.isAdvisor && interests !== undefined) {
+      user.interests = interests;
+    }
     await user.save();
     res.status(200).send("Password changed successfully");
   } catch (err) {

@@ -1,11 +1,30 @@
 .profile-page {
-  width: 80%;
+  width: 25%;
   margin: 0 auto;
 
   .profile-page-header {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 5rem;
+
+    .profile-page-header-info {
+      .copy-email {
+        color: #1677ff;
+        cursor: pointer;
+        transition: 0.2s all ease-in-out;
+
+        &:hover {
+          color: #4096ff;
+        }
+      }
+
+      .user-type {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+    }
 
     .profile-page-header-buttons {
       display: flex;
@@ -16,4 +35,9 @@
 
 .avatar-text {
   font-size: 8rem;
+}
+
+.profile-svg {
+  width: 2rem;
+  height: 2rem;
 }

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import "./ProfilePage.scss";
 import axios from "axios";
-import { Avatar, Modal, message, Button, Form, Input } from "antd";
+import { Avatar, Modal, message, Button, Form, Input, Alert } from "antd";
+import { MailOutlined, IdcardOutlined, UserOutlined } from "@ant-design/icons";
 
 const ProfilePage = () => {
   const { userId } = useParams();
@@ -17,6 +18,16 @@ const ProfilePage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [editDetailsForm] = Form.useForm();
   const [changePasswordForm] = Form.useForm();
+  const InterestsSVG = () => (
+    <svg className="profile-svg" fill="#000000" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path d="M951.467 648.533s-4.267-4.267 0 0C947.2 558.933 793.6 486.4 571.734 473.6c-12.8 0-21.333 8.533-21.333 21.333s8.533 21.333 21.333 21.333c17.067 0 38.4 4.267 55.467 4.267 179.2 21.333 273.067 81.067 273.067 128 0 64-162.133 132.267-396.8 132.267-204.8 0-354.133-55.467-388.267-110.933 0-4.267-4.267-4.267-4.267-8.533V640c0-4.267 0-8.533 4.267-12.8 0 0 0-4.267 4.267-4.267 4.267-4.267 4.267-8.533 8.533-12.8-4.267 4.267 0 0 0-4.267 4.267 0 4.267-4.267 8.533-4.267 8.533-4.267 12.8-8.533 21.333-17.067 55.467-34.133 157.867-59.733 285.867-68.267 12.8 0 21.333-12.8 21.333-21.333 0-12.8-12.8-21.333-21.333-21.333-21.333 0-42.667 4.267-64 4.267h-4.267c-179.2 21.333-298.667 81.067-307.2 157.867V793.6C68.267 908.8 294.4 972.8 512 972.8c213.333 0 439.467-59.733 443.733-174.933V648.534zM507.733 934.4c-234.667 0-401.067-72.533-401.067-136.533v-72.533c76.8 64 243.2 98.133 401.067 98.133S832 789.334 908.8 725.334v72.533c0 64-166.4 136.533-401.067 136.533z"></path>
+        <path d="M396.8 418.133h76.8c4.267 0 8.533 0 12.8-4.267v226.133c0 12.8 8.533 21.333 21.333 21.333s21.333-8.533 21.333-21.333V418.132h85.333c149.333 0 268.8-119.467 268.8-268.8 0-72.533-59.733-128-128-128-110.933 0-204.8 68.267-247.467 162.133C465.065 85.332 371.199 21.332 260.265 21.332c-72.533 0-128 59.733-128 128-4.267 149.333 115.2 268.8 264.533 268.8zm132.267-128C529.067 166.4 631.467 64 755.2 64c46.933 0 85.333 38.4 85.333 85.333 0 123.733-102.4 226.133-226.133 226.133h-76.8c-4.267 0-8.533-4.267-8.533-8.533v-76.8zM260.267 64C384 64 486.4 166.4 486.4 290.133v76.8c0 4.267-4.267 8.533-8.533 8.533H396.8c-123.733 0-226.133-98.133-226.133-226.133 0-46.933 38.4-85.333 89.6-85.333z"></path>
+      </g>
+    </svg>
+  );
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -70,6 +81,17 @@ const ProfilePage = () => {
     }
   };
 
+  const handleEmailClick = () => {
+    navigator.clipboard
+      .writeText(user?.email)
+      .then(() => {
+        message.success("האימייל הועתק");
+      })
+      .catch(() => {
+        message.error("העתקת האימייל נכשלה");
+      });
+  };
+
   return (
     <div className="profile-page">
       <div className="profile-page-header">
@@ -81,28 +103,48 @@ const ProfilePage = () => {
         </Avatar>
         <div className="profile-page-header-info">
           <h1>{user?.name}</h1>
-          <h3>{user?.email}</h3>
-          <h3>תחומי עניין: {user?.interests}</h3>
-          {(currentUser.isCoordinator || currentUser._id === user?._id) && <h3>{user?.id}</h3>}
-          {currentUser._id === user?._id && (
-            <div className="profile-page-header-buttons">
-              <Button
-                type="primary"
-                onClick={() => {
-                  setIsEditing(true);
-                }}>
-                ערוך פרטים
-              </Button>
-              <Button
-                type="primary"
-                onClick={() => {
-                  setIsChangePasswordModalOpen(true);
-                }}>
-                שנה סיסמה
-              </Button>
+          <h3 onClick={handleEmailClick} className="copy-email">
+            <MailOutlined /> {user?.email}
+          </h3>
+          {(currentUser.isCoordinator || currentUser._id === user?._id) && (
+            <div className="private-info">
+              <h3>
+                <InterestsSVG /> תחומי עניין: {user?.interests}
+              </h3>
+              <h3>
+                <IdcardOutlined /> {user?.id}
+              </h3>
+              <div className="user-type">
+                <h3>
+                  <UserOutlined />
+                  סוג משתמש:
+                </h3>
+                {user?.isCoordinator ? <Alert message="מנהל" type="success" /> : ""}
+                {user?.isAdvisor ? <Alert message="מנחה" type="info" /> : ""}
+                {user?.isJudge ? <Alert message="שופט" type="error" /> : ""}
+                {user?.isStudent ? <Alert message="סטודנט" type="warning" /> : ""}
+              </div>
             </div>
           )}
         </div>
+        {currentUser._id === user?._id && (
+          <div className="profile-page-header-buttons">
+            <Button
+              type="primary"
+              onClick={() => {
+                setIsEditing(true);
+              }}>
+              ערוך פרטים
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => {
+                setIsChangePasswordModalOpen(true);
+              }}>
+              שנה סיסמה
+            </Button>
+          </div>
+        )}
       </div>
 
       <Modal

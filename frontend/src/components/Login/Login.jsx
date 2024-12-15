@@ -104,15 +104,19 @@ const Login = () => {
   const handleChangePassword = async (values) => {
     setLoading(true);
     try {
+      const updateData = {
+        oldPassword: tempUserData.id,
+        newPassword: values.newPassword,
+      };
+
+      if (tempUserData.isAdvisor) {
+        updateData.interests = values.interests;
+      }
+
       // Change password
-      await axios.put(
-        `${process.env.REACT_APP_BACKEND_URL}/api/user/change-password`,
-        {
-          oldPassword: tempUserData.id,
-          newPassword: values.newPassword,
-        },
-        { withCredentials: true }
-      );
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/user/change-password`, updateData, {
+        withCredentials: true,
+      });
 
       // Update the user data to reflect password change
       const updatedUserData = {
@@ -211,7 +215,6 @@ const Login = () => {
             ]}>
             <Input.Password placeholder="הכנס סיסמה חדשה" />
           </Form.Item>
-
           <Form.Item
             name="confirmPassword"
             label="אימות סיסמה"
@@ -230,6 +233,15 @@ const Login = () => {
             ]}>
             <Input.Password placeholder="אמת סיסמה" />
           </Form.Item>
+          {tempUserData?.isAdvisor && (
+            <Form.Item
+              name="interests"
+              label="תחומי עניין (ניתן לשנות אחר כך בפרופיל)"
+              hasFeedback
+              rules={[{ required: true, message: "חובה להזין תחומי עניין" }]}>
+              <Input placeholder="הכנס תחומי עניין" />
+            </Form.Item>
+          )}
           <Form.Item className="change-password-button">
             <Button type="primary" htmlType="submit" loading={loading}>
               שנה סיסמה
