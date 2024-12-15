@@ -197,10 +197,7 @@ const UploadSubmissions = () => {
         { withCredentials: true }
       );
 
-      const submissionsUpdated = submissions.map((submission) =>
-        submission._id === currentSubmission._id ? { ...submission, file: uploadedFile } : submission
-      );
-      setSubmissions(submissionsUpdated);
+      fetchPendingSubmissions();
       setFile(null); // Clear the selected file
       closeModal(); // Close the modal
       message.success(`הגשה עבור ${currentSubmission.name} הועלתה בהצלחה`);
