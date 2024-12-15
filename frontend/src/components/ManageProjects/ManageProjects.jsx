@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { Badge, Table, Tooltip, Switch, message, Divider, Modal, Form, Input, InputNumber, Select } from "antd";
 import {
   CheckCircleOutlined,
@@ -14,9 +14,11 @@ import axios from "axios";
 import "./ManageProjects.scss";
 import Highlighter from "react-highlight-words";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
+import { NotificationsContext } from "../../context/NotificationsContext";
 
 const ManageProjects = () => {
   const { Option } = Select;
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [form] = Form.useForm();
   const [projects, setProjects] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -206,6 +208,7 @@ const ManageProjects = () => {
         content: "הסטודנט אושר לפרויקט",
         duration: 2,
       });
+      fetchNotifications();
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
           if (project.key === record.projectID) {
@@ -251,6 +254,7 @@ const ManageProjects = () => {
         content: "הסטודנט נדחה מהפרויקט",
         duration: 2,
       });
+      fetchNotifications();
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
           if (project.key === record.projectID) {
@@ -305,6 +309,7 @@ const ManageProjects = () => {
           return project;
         })
       );
+      fetchNotifications();
     } catch (error) {
       console.error("Error occurred:", error);
     }

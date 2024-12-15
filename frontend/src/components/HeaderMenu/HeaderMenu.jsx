@@ -22,8 +22,6 @@ const HeaderMenu = () => {
     if (notification.link) {
       navigate(notification.link);
       markNotificationAsRead(notification._id);
-      setNewNotifications((prevNotifications) => prevNotifications.filter((n) => n._id !== notification._id));
-      setOldNotifications((prevNotifications) => [...prevNotifications, { ...notification, read: true }]);
       hide();
     }
   };

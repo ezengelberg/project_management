@@ -8,20 +8,21 @@ export const NotificationsProvider = ({ children }) => {
   const [newNotifications, setNewNotifications] = useState([]);
   const [oldNotifications, setOldNotifications] = useState([]);
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/all`, {
-          withCredentials: true,
-        });
-        setUnreadCount(response.data.filter((notification) => !notification.read).length);
-        setNewNotifications(response.data.filter((notification) => !notification.read));
-        setOldNotifications(response.data.filter((notification) => notification.read));
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
-    };
+  const fetchNotifications = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/all`, {
+        withCredentials: true,
+      });
+      const sortedNotifications = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setUnreadCount(sortedNotifications.filter((notification) => !notification.read).length);
+      setNewNotifications(sortedNotifications.filter((notification) => !notification.read));
+      setOldNotifications(sortedNotifications.filter((notification) => notification.read));
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchNotifications();
   }, []);
 
@@ -74,6 +75,7 @@ export const NotificationsProvider = ({ children }) => {
         deleteNotification,
         setNewNotifications,
         setOldNotifications,
+        fetchNotifications,
       }}>
       {children}
     </NotificationsContext.Provider>
