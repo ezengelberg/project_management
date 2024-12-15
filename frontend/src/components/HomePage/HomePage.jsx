@@ -26,8 +26,7 @@ import { NotificationsContext } from "../../context/NotificationsContext";
 
 const Homepage = () => {
   const navigate = useNavigate();
-  const { newNotifications, markNotificationAsRead, setNewNotifications, setOldNotifications } =
-    useContext(NotificationsContext);
+  const { newNotifications, markNotificationAsRead } = useContext(NotificationsContext);
   const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};

@@ -7,14 +7,8 @@ import { NotificationsContext } from "../../context/NotificationsContext";
 
 const Notifications = () => {
   const navigate = useNavigate();
-  const {
-    newNotifications,
-    oldNotifications,
-    markNotificationAsRead,
-    deleteNotification,
-    setNewNotifications,
-    setOldNotifications,
-  } = useContext(NotificationsContext);
+  const { newNotifications, oldNotifications, markNotificationAsRead, deleteNotification } =
+    useContext(NotificationsContext);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [notificationToDelete, setNotificationToDelete] = useState(null);
 

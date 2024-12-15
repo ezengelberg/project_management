@@ -10,8 +10,7 @@ import { NotificationsContext } from "../../context/NotificationsContext";
 
 const HeaderMenu = () => {
   const navigate = useNavigate();
-  const { newNotifications, unreadCount, markNotificationAsRead, setNewNotifications, setOldNotifications } =
-    useContext(NotificationsContext);
+  const { newNotifications, unreadCount, markNotificationAsRead } = useContext(NotificationsContext);
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
