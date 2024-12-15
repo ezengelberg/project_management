@@ -6,7 +6,7 @@ const gradeStructureSchema = new mongoose.Schema(
     weight: { type: Number, required: true },
     description: { type: String, required: true },
     date: { type: Date, required: true },
-    tachlit: { type: Boolean, required: true }, // New field
+    tachlit: { type: Boolean, required: true },
   },
   { timestamps: true }
 );

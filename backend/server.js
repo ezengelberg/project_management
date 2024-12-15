@@ -15,6 +15,7 @@ import uploadsRoute from "./routes/uploadsRoute.js";
 import submissionRoute from "./routes/submissionRoute.js";
 import gradeRoute from "./routes/gradeRoute.js";
 import gradeStructureRoute from "./routes/gradeStructureRoute.js";
+import randomRoute from "./routes/randomRoute.js";
 
 // Load environment variables and allows to use .env file
 dotenv.config();
@@ -58,6 +59,7 @@ app.use("/api/submission", submissionRoute);
 app.use("/api/grade", gradeRoute);
 app.use("/api/grade-structure", gradeStructureRoute);
 app.use("/api/uploads", uploadsRoute);
+app.use("/api/random", randomRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
 app.get("/", (req, res) => {

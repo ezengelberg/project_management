@@ -20,6 +20,8 @@ import Highlighter from "react-highlight-words";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { handleEditSave } from "../../utils/editUtils";
 import dayjs from "dayjs";
+import { Editor } from "primereact/editor";
+import { processContent } from "../../utils/htmlProcessor";
 
 const MoreInformation = () => {
   const [currentUser, setCurrentUser] = useState(() => {
@@ -40,6 +42,9 @@ const MoreInformation = () => {
   const searchInput = useRef(null);
   const [gradesData, setGradesData] = useState([]);
   const [filterTachlit, setFilterTachlit] = useState(false);
+  const [gradeWeightDescription, setGradeWeightDescription] = useState("");
+  const [randomText, setRandomText] = useState("");
+  const [randomTextId, setRandomTextId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,6 +80,77 @@ const MoreInformation = () => {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const fetchRandomText = async () => {
+      try {
+        const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/random/description-for-grade-structure`, {
+          withCredentials: true,
+        });
+        if (res.data.length > 0) {
+          setRandomText(res.data[0].descriptionForGradeStructure);
+          setRandomTextId(res.data[0]._id);
+        }
+      } catch (error) {
+        console.error("Error occurred:", error);
+      }
+    };
+    fetchRandomText();
+  }, []);
+
+  const handleEditorChange = (e) => {
+    setGradeWeightDescription(e.htmlValue || "");
+  };
+
+  const saveRandomText = async () => {
+    try {
+      if (randomTextId) {
+        await axios.put(
+          `${process.env.REACT_APP_BACKEND_URL}/api/random/edit-description-for-grade-structure/${randomTextId}`,
+          {
+            descriptionForGradeStructure: gradeWeightDescription,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+      } else {
+        const res = await axios.post(
+          `${process.env.REACT_APP_BACKEND_URL}/api/random/create-description-for-grade-structure`,
+          {
+            descriptionForGradeStructure: gradeWeightDescription,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+        setRandomTextId(res.data._id);
+      }
+      setRandomText(gradeWeightDescription);
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
+  };
+
+  const editRandomText = () => {
+    setGradeWeightDescription(randomText);
+  };
+
+  const deleteRandomText = async () => {
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_BACKEND_URL}/api/random/delete-description-for-grade-structure/${randomTextId}`,
+        {
+          withCredentials: true,
+        }
+      );
+      setRandomText("");
+      setRandomTextId(null);
+      setGradeWeightDescription("");
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
+  };
 
   const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
     const inputNode = inputType === "number" ? <InputNumber /> : dataIndex === "date" ? <DatePicker /> : <Input />;
@@ -426,7 +502,7 @@ const MoreInformation = () => {
               <Form.Item name="weight" rules={[{ required: true, message: "הכנס משקל" }]}>
                 <InputNumber placeholder="משקל" />
               </Form.Item>
-              <Form.Item name="description" rules={[{ required: true, message: "הכנס תיאור" }]}>
+              <Form.Item name="description" rules={[{ required: true, message: "הכנס תיאור" }]} style={{ width: 400 }}>
                 <Input placeholder="תיאור" />
               </Form.Item>
               <Form.Item name="date" rules={[{ required: true, message: "הכנס תאריך" }]}>
@@ -455,12 +531,12 @@ const MoreInformation = () => {
           </Select>
           <Form form={formEditGrades} component={false}>
             <Table
-              style={{ width: "100%", minHeight: "770px" }}
               components={{
                 body: {
                   cell: EditableCell,
                 },
               }}
+              style={{ marginBottom: "25px" }}
               bordered
               dataSource={filteredGradesData}
               columns={gradesMergedColumns}
@@ -468,6 +544,42 @@ const MoreInformation = () => {
               pagination={false}
             />
           </Form>
+          {currentUser.isCoordinator && (
+            <div className="grade-weight-random-description-editor">
+              <Editor
+                placeholder="כאן אפשר לרשום דברים נוספים על מרכיבי הציון"
+                value={gradeWeightDescription}
+                onTextChange={handleEditorChange}
+                style={{ height: "200px", wordBreak: "break-word" }}
+              />
+              <Button type="primary" onClick={saveRandomText} style={{ marginTop: 16 }}>
+                שמור
+              </Button>
+            </div>
+          )}
+          {randomText && (
+            <div className="grade-weight-random-description">
+              <p style={{ marginTop: "20px" }} dangerouslySetInnerHTML={{ __html: processContent(randomText) }} />
+              {currentUser.isCoordinator && (
+                <div className="grade-weight-random-description-buttons">
+                  <Button
+                    color="primary"
+                    variant="filled"
+                    onClick={editRandomText}
+                    style={{ marginTop: 16, marginLeft: 8 }}>
+                    ערוך
+                  </Button>
+                  <Button
+                    color="danger"
+                    variant="filled"
+                    onClick={deleteRandomText}
+                    style={{ marginTop: 16, marginLeft: 8 }}>
+                    מחק
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ),
     },
