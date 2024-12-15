@@ -128,8 +128,8 @@ const ShowAllUsers = () => {
       render: (text, record) => (
         <a
           className="column-name"
-          onClick={() => navigate(`/profile/${record.userId}`)}
-          onMouseDown={(e) => handleMouseDown(e, `/profile/${record.userId}`)}>
+          onClick={() => navigate(`/profile/${record.key}`)}
+          onMouseDown={(e) => handleMouseDown(e, `/profile/${record.key}`)}>
           <Avatar size="medium">
             {text[0].toUpperCase()}
             {text.split(" ")[1] ? text.split(" ")[1][0].toUpperCase() : ""}
@@ -411,8 +411,8 @@ const ShowAllUsers = () => {
       render: (text, record) => (
         <a
           className="column-name"
-          onClick={() => navigate(`/profile/${record.userId}`)}
-          onMouseDown={(e) => handleMouseDown(e, `/profile/${record.userId}`)}>
+          onClick={() => navigate(`/profile/${record.key}`)}
+          onMouseDown={(e) => handleMouseDown(e, `/profile/${record.key}`)}>
           <Avatar size="medium">
             {text[0].toUpperCase()}
             {text.split(" ")[1] ? text.split(" ")[1][0].toUpperCase() : ""}

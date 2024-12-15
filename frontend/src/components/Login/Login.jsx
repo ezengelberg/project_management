@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
 import { Alert, Form, Input, Button, message } from "antd";
-import { EyeInvisibleOutlined, EyeOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import { ArrowRightOutlined } from "@ant-design/icons";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -209,10 +209,7 @@ const Login = () => {
                 message: "הסיסמה חייבת להכיל אות גדולה, אות קטנה, מספר ותו מיוחד",
               },
             ]}>
-            <Input.Password
-              placeholder="הכנס סיסמה חדשה"
-              iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
-            />
+            <Input.Password placeholder="הכנס סיסמה חדשה" />
           </Form.Item>
 
           <Form.Item
@@ -231,10 +228,7 @@ const Login = () => {
                 },
               }),
             ]}>
-            <Input.Password
-              placeholder="אמת סיסמה"
-              iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
-            />
+            <Input.Password placeholder="אמת סיסמה" />
           </Form.Item>
           <Form.Item className="change-password-button">
             <Button type="primary" htmlType="submit" loading={loading}>

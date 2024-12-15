@@ -129,8 +129,8 @@ const HeaderMenu = () => {
           <Avatar
             className="avatar-icon"
             size="large"
-            onClick={() => navigate(`/profile/${user.id}`)}
-            onMouseDown={(e) => handleMouseDown(e, `/profile/${user.id}`)}>
+            onClick={() => navigate(`/profile/${user._id}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/profile/${user._id}`)}>
             {user.name && user.name[0]}
             {user.name && user.name.split(" ")[1] ? user.name.split(" ")[1][0] : ""}
           </Avatar>

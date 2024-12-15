@@ -282,7 +282,6 @@ export const getUserProfile = async (req, res) => {
     }
     const userObj = user.toObject();
     delete userObj.password;
-    delete userObj.id;
     res.status(200).send(userObj);
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -328,6 +327,22 @@ export const ensureFavoriteProject = async (req, res) => {
     res.status(200).send({ favorite: true });
   } else {
     res.status(200).send({ favorite: false });
+  }
+};
+
+export const userEditProfile = async (req, res) => {
+  const userId = req.user._id;
+  const { name, email, interests } = req.body;
+  try {
+    const user = await User.findById(userId);
+    if (name !== undefined) user.name = name;
+    if (email !== undefined) user.email = email;
+    if (interests !== undefined) user.interests = interests;
+    user.updatedAt = new Date();
+    await user.save();
+    res.status(200).send("Profile updated successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };
 

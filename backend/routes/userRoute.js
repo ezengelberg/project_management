@@ -22,6 +22,7 @@ import {
   getAdvisorsForUsersInfo,
   createAdmin,
   getUserProject,
+  userEditProfile,
 } from "../controllers/userController.js";
 import {
   getUnreadNotifications,
@@ -59,6 +60,7 @@ router.delete("/delete-suspended-user/:userId", ensureAuthenticated, isCoordinat
 router.get("/check-user-has-projects/:userId", ensureAuthenticated, checkUserHasProject);
 router.get("/advisors-for-users-info", ensureAuthenticated, getAdvisorsForUsersInfo);
 router.get("/user-project", ensureAuthenticated, getUserProject);
+router.put("/user-edit-profile/:id", ensureAuthenticated, userEditProfile);
 
 // Notifications
 router.get("/notifications", ensureAuthenticated, getUnreadNotifications);
