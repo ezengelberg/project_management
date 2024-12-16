@@ -164,8 +164,6 @@ const Submissions = () => {
   };
 
   const overrideGrade = async (values) => {
-    console.log(values);
-    console.log(submissionInfo);
     try {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/change-final-grade/${submissionInfo?.submission?.key}`,
@@ -1051,7 +1049,7 @@ const Submissions = () => {
             ]}>
             <InputNumber className="input-field-override-grade" min={0} max={100} />
           </Form.Item>
-          <Form.Item name="comments">
+          <Form.Item name="comment">
             <Input.TextArea placeholder="הכנס סיבה לעדכון הציון" rows={4} />
           </Form.Item>
         </Form>
