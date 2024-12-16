@@ -11,6 +11,7 @@ import {
   SettingOutlined,
   InfoCircleOutlined,
   BarChartOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -41,6 +42,31 @@ const Sidebar = () => {
           fill="#e4dede"></path>
         <path
           d="M13.63 15.74C13.44 15.74 13.25 15.67 13.1 15.52L6.03 8.44998C5.74 8.15998 5.74 7.67999 6.03 7.38999C6.32 7.09999 6.8 7.09999 7.09 7.38999L14.16 14.46C14.45 14.75 14.45 15.23 14.16 15.52C14.02 15.67 13.82 15.74 13.63 15.74Z"
+          fill="#e4dede"></path>
+      </g>
+    </svg>
+  );
+
+  const MegaphoneSVG = () => (
+    <svg
+      style={{
+        transform: "scaleX(-1)",
+        transformOrigin: "center",
+      }}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg">
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path
+          d="M11,16H5c-2.7,0-5-2.2-5-5c0-2.8,2.2-5,5-5h6c0.6,0,1,0.4,1,1v8C12,15.6,11.6,16,11,16z M5,8c-1.6,0-3,1.3-3,3 c0,1.7,1.3,3,3,3h5V8H5z"
+          fill="#e4dede"></path>
+        <path
+          d="M23,20c-0.1,0-0.2,0-0.3-0.1l-12-4C10.3,15.8,10,15.4,10,15V7c0-0.4,0.3-0.8,0.7-0.9l12-4C23,1.9,23.3,2,23.6,2.2 C23.8,2.4,24,2.7,24,3v16c0,0.3-0.2,0.6-0.4,0.8C23.4,19.9,23.2,20,23,20z M12,14.3l10,3.3V4.4L12,7.7V14.3z"
+          fill="#e4dede"></path>
+        <path
+          d="M8,22H4c-0.3,0-0.6-0.2-0.8-0.4C3,21.3,2.9,21,3.1,20.7l2-6C5.2,14.3,5.6,14,6,14h4c0.3,0,0.6,0.2,0.8,0.4 c0.2,0.3,0.2,0.6,0.1,0.9l-2,6C8.8,21.7,8.4,22,8,22z M5.4,20h1.9l1.3-4H6.7L5.4,20z"
           fill="#e4dede"></path>
       </g>
     </svg>
@@ -94,6 +120,17 @@ const Sidebar = () => {
               <span>בית</span>
             </div>
           </li>
+          {(user.isStudent || user.isAdvisor || user.isCoordinator) && (
+            <li>
+              <div
+                className={`sidebar-option ${isActive("/announcements") ? "active" : ""}`}
+                onClick={() => navigate("/announcements")}
+                onMouseDown={(e) => handleMouseDown(e, "/announcements")}>
+                <MessageOutlined />
+                <span>הודעות</span>
+              </div>
+            </li>
+          )}
           {user.isStudent && (
             <li>
               <div
