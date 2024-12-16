@@ -192,7 +192,14 @@ const MainLayout = () => {
                   </ProtectedRoute>
                 }
               />
-              <Route path="*" element={<Navigate to="/login" replace />} />
+              <Route
+                path="*"
+                element={
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
+                    <HomePage />
+                  </ProtectedRoute>
+                }
+              />
               {/* Development route */}
             </Routes>
           </div>
