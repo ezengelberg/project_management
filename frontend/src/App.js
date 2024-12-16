@@ -80,7 +80,7 @@ const MainLayout = () => {
               <Route
                 path="/templates"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
                     <Templates />
                   </ProtectedRoute>
                 }
