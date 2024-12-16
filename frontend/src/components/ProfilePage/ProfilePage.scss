@@ -1,12 +1,13 @@
 .profile-page {
-  width: 25%;
-  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: 10rem;
 
   .profile-page-header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5rem;
+    gap: 2rem;
 
     .profile-page-header-info {
       .copy-email {
@@ -30,6 +31,20 @@
       display: flex;
       gap: 2rem;
     }
+
+    .basic-statistics {
+      canvas {
+        width: 100rem !important;
+        height: 50rem !important;
+      }
+    }
+  }
+}
+
+.skills-statistics {
+  canvas {
+    width: 70rem !important;
+    height: 70rem !important;
   }
 }
 

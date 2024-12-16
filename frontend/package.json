@@ -8,6 +8,7 @@
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.22.3",
     "axios": "^1.7.7",
+    "chart.js": "^4.4.7",
     "dayjs": "^1.11.13",
     "dompurify": "^3.1.7",
     "papaparse": "^5.4.1",

@@ -23,6 +23,7 @@ import {
   createAdmin,
   getUserProject,
   userEditProfile,
+  getUserProjectStatistics,
 } from "../controllers/userController.js";
 import {
   getUnreadNotifications,
@@ -61,6 +62,7 @@ router.get("/check-user-has-projects/:userId", ensureAuthenticated, checkUserHas
 router.get("/advisors-for-users-info", ensureAuthenticated, getAdvisorsForUsersInfo);
 router.get("/user-project", ensureAuthenticated, getUserProject);
 router.put("/user-edit-profile/:id", ensureAuthenticated, userEditProfile);
+router.get("/get-user-project-statistics/:id", ensureAuthenticated, getUserProjectStatistics);
 
 // Notifications
 router.get("/notifications", ensureAuthenticated, getUnreadNotifications);

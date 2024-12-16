@@ -513,3 +513,25 @@ export const getUserProject = async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 };
+
+export const getUserProjectStatistics = async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const currentYear = new Date().getFullYear();
+    const statistics = [];
+
+    for (let year = currentYear; year >= currentYear - 4; year--) {
+      const projects = await Project.find({ advisors: userId, year: year });
+      const finishedProjects = projects.filter((project) => project.isFinished).length;
+      statistics.push({
+        year: year,
+        projects: projects.length,
+        finishedProjects: finishedProjects,
+      });
+    }
+
+    res.status(200).json(statistics);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
