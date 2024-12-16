@@ -31,7 +31,7 @@ import {
   markNotificationAsRead,
   deleteNotification,
 } from "../controllers/notificationController.js";
-import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
+import { ensureAuthenticated, isAdvisor, isCoordinator } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -46,7 +46,13 @@ router.get("/get-user-info/:id", ensureAuthenticated, getUserProfile);
 router.put("/change-password", ensureAuthenticated, changePassword);
 router.get("/advisor-users", ensureAuthenticated, isCoordinator, getAdvisorUsers);
 router.get("/check-auth", ensureAuthenticated, (req, res) => {
-  res.status(200).json({ authenticated: true });
+  res.status(200).json({
+    authenticated: true,
+    isStudent: req.user.isStudent,
+    isAdvisor: req.user.isAdvisor,
+    isJudge: req.user.isJudge,
+    isCoordinator: req.user.isCoordinator,
+  });
 });
 router.get("/privileges", ensureAuthenticated, getPrivileges);
 router.get("/get-user-name/:id", ensureAuthenticated, getUserName);

@@ -285,7 +285,7 @@ const Sidebar = () => {
               </div>
             </li>
           )}
-          <li>
+          {user.isStudent && <li>
             <div
               className={`sidebar-option ${isActive("/more-information") ? "active" : ""}`}
               onClick={() => navigate("/more-information")}
@@ -293,7 +293,7 @@ const Sidebar = () => {
               <InfoCircleOutlined />
               <span>מידע לסטודנט</span>
             </div>
-          </li>
+          </li>}
           {user.isCoordinator && (
             <li>
               <div
