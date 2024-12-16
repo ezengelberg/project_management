@@ -54,7 +54,7 @@ const MainLayout = () => {
               <Route
                 path="/profile/:userId"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
                     <ProfilePage />
                   </ProtectedRoute>
                 }

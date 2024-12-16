@@ -36,6 +36,7 @@ const ProtectedRoute = ({ children, privileges = [] }) => {
           setHasPrivilege(userHasPrivilege);
           if (!userHasPrivilege) {
             console.log("DEV: User lacks the required privileges");
+            navigate("/home");
           }
         } else {
           setIsAuthenticated(false);
