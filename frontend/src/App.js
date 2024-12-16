@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 
 import Login from "./components/Login/Login";
@@ -53,7 +54,7 @@ const MainLayout = () => {
               <Route
                 path="/profile/:userId"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
                     <ProfilePage />
                   </ProtectedRoute>
                 }
@@ -61,7 +62,7 @@ const MainLayout = () => {
               <Route
                 path="/home"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
                     <HomePage />
                   </ProtectedRoute>
                 }
@@ -69,17 +70,17 @@ const MainLayout = () => {
               <Route
                 path="/projects"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
                     <Projects />
                   </ProtectedRoute>
                 }
               />
-
+              {/* TODO privileges */}
               <Route path="/project/:projectID" element={<ProjectPage />} />
               <Route
                 path="/templates"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
                     <Templates />
                   </ProtectedRoute>
                 }
@@ -87,7 +88,7 @@ const MainLayout = () => {
               <Route
                 path="/my-submissions"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["student"]}>
                     <UploadSubmissions />
                   </ProtectedRoute>
                 }
@@ -97,7 +98,7 @@ const MainLayout = () => {
               <Route
                 path="/create-project"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["advisor"]}>
                     <CreateProject />
                   </ProtectedRoute>
                 }
@@ -105,7 +106,7 @@ const MainLayout = () => {
               <Route
                 path="/list-projects"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["advisor"]}>
                     <ManageProjects />
                   </ProtectedRoute>
                 }
@@ -113,7 +114,7 @@ const MainLayout = () => {
               <Route
                 path="/create-user"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["coordinator"]}>
                     <CreateUser />
                   </ProtectedRoute>
                 }
@@ -121,7 +122,7 @@ const MainLayout = () => {
               <Route
                 path="/display-users"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["coordinator"]}>
                     <ShowAllUsers />
                   </ProtectedRoute>
                 }
@@ -129,7 +130,7 @@ const MainLayout = () => {
               <Route
                 path="/overview-projects"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["coordinator"]}>
                     <OverviewProjects />
                   </ProtectedRoute>
                 }
@@ -137,7 +138,7 @@ const MainLayout = () => {
               <Route
                 path="/submissions"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["coordinator"]}>
                     <Submissions />
                   </ProtectedRoute>
                 }
@@ -145,7 +146,7 @@ const MainLayout = () => {
               <Route
                 path="/check-submissions"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["judge"]}>
                     <CheckSubmissions />
                   </ProtectedRoute>
                 }
@@ -153,15 +154,16 @@ const MainLayout = () => {
               <Route
                 path="/submission-status"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["advisor"]}>
                     <SubmissionsStatus />
                   </ProtectedRoute>
                 }
               />
+              {/* TODO privileges */}
               <Route
                 path="/grade-submission/:submissionId"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["judge"]}>
                     <GradeSubmission />
                   </ProtectedRoute>
                 }
@@ -169,7 +171,7 @@ const MainLayout = () => {
               <Route
                 path="/more-information"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["student"]}>
                     <MoreInformation />
                   </ProtectedRoute>
                 }
@@ -177,7 +179,7 @@ const MainLayout = () => {
               <Route
                 path="/system"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["coordinator"]}>
                     <SystemControl />
                   </ProtectedRoute>
                 }
@@ -185,8 +187,16 @@ const MainLayout = () => {
               <Route
                 path="/notifications"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
                     <Notifications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="*"
+                element={
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
+                    <HomePage />
                   </ProtectedRoute>
                 }
               />

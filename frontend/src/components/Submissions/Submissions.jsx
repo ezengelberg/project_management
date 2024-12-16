@@ -83,7 +83,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
           withCredentials: true,
-        }
+        },
       );
 
       response.data.map((project) => {
@@ -101,18 +101,18 @@ const Submissions = () => {
               submission.submissions.map((sub) => ({
                 name: sub.name,
                 info: sub.info,
-              }))
+              })),
             )
             .map((sub) => [
               sub.name, // Use the name as key
               sub, // Keep the object with name and info as the value
-            ])
+            ]),
         ).values(),
       ];
 
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
-          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission
+          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
         );
 
         if (!existing) return submission;
@@ -148,7 +148,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -165,15 +165,25 @@ const Submissions = () => {
 
   const overrideGrade = async (values) => {
     try {
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/grade/update/${gradeToOverride.key}`,
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/grade/change-final-grade/${submissionInfo?.submission?.key}`,
         {
-          grade: values.newGrade,
+          newGrade: values.newGrade,
+          comment: values.comment,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
+      message.open({
+        type: "success",
+        content: "הציון עודכן בהצלחה",
+      });
     } catch (error) {
       console.error("Error overriding grade:", error);
+    } finally {
+      gradeForm.resetFields();
+      setGradeFormOpen(false);
+      setSubmissionInfo(null);
+      fetchSubmissions();
     }
   };
 
@@ -183,7 +193,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -206,7 +216,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "info",
@@ -267,7 +277,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       if (submissionDetails.some((submission) => submission.name === name)) {
         message.open({
@@ -303,7 +313,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
@@ -328,7 +338,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -392,7 +402,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -555,7 +565,7 @@ const Submissions = () => {
                             ? `הוגש${
                                 sub.isLate
                                   ? ` באיחור - ${Math.ceil(
-                                      (new Date(sub.uploadDate) - new Date(sub.submissionDate)) / (1000 * 60 * 60 * 24)
+                                      (new Date(sub.uploadDate) - new Date(sub.submissionDate)) / (1000 * 60 * 60 * 24),
                                     )} ימים`
                                   : ""
                               }`
@@ -885,7 +895,7 @@ const Submissions = () => {
                               ? ` באיחור - ${Math.ceil(
                                   (new Date(submissionInfo.submission.uploadDate) -
                                     new Date(submissionInfo.submission.submissionDate)) /
-                                    (1000 * 60 * 60 * 24)
+                                    (1000 * 60 * 60 * 24),
                                 )} ימים`
                               : ""
                           }`
@@ -935,9 +945,18 @@ const Submissions = () => {
                 <div className="detail-item">
                   <div className="detail-item-header">ציון סופי</div>
                   <div className="detail-item-content">
-                    {submissionInfo.submission?.overridden?.newGrade
-                      ? submissionInfo.submission?.overridden?.newGrade
-                      : submissionInfo?.submission?.finalGrade}
+                    <div className="changeable-content">
+                      {submissionInfo.submission?.overridden?.newGrade
+                        ? submissionInfo.submission?.overridden?.newGrade
+                        : submissionInfo?.submission?.finalGrade}
+                      <a
+                        onClick={() => {
+                          setGradeFormOpen(true);
+                          gradeForm.setFieldsValue({ oldGrade: submissionInfo?.submission?.finalGrade });
+                        }}>
+                        <EditOutlined />
+                      </a>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1001,7 +1020,7 @@ const Submissions = () => {
         )}
       </Modal>
       <Modal
-        title="שנה ציון"
+        title={`שינוי ציון לפרויקט ${submissionInfo?.project?.title} - ${submissionInfo?.submission?.name}`}
         open={gradeFormOpen}
         okText="ערוך ציון"
         cancelText="סגור"
@@ -1012,9 +1031,12 @@ const Submissions = () => {
           setGradeToOverride(null);
         }}>
         <Form layout="vertical" form={gradeForm}>
+          <p>ניתן להכניס ציון בין 0 ל-100</p>
+          <Divider />
           <Form.Item label="ציון קודם" name="oldGrade">
             <Input disabled />
           </Form.Item>
+          <Divider />
           <Form.Item
             label="ציון חדש"
             name="newGrade"
@@ -1026,6 +1048,9 @@ const Submissions = () => {
               },
             ]}>
             <InputNumber className="input-field-override-grade" min={0} max={100} />
+          </Form.Item>
+          <Form.Item name="comment">
+            <Input.TextArea placeholder="הכנס סיבה לעדכון הציון" rows={4} />
           </Form.Item>
         </Form>
       </Modal>
