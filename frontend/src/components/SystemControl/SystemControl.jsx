@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./SystemControl.scss";
 import { Button, Switch, Form, Input, InputNumber, Table, Typography, message, Tooltip } from "antd";
-import { CloseCircleOutlined, EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
+import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
 
 const SystemControl = () => {
   const [createProject, setCreateProject] = useState(true);
