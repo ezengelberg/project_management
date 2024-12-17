@@ -265,8 +265,6 @@ const SystemControl = () => {
     };
   });
 
-  const handleEndProjects = async () => {};
-
   return (
     <div className="system">
       <h1 className="system-title">לוח בקרת מערכת</h1>
@@ -292,17 +290,6 @@ const SystemControl = () => {
           <div className="switch">
             <label className="switch-label">pending action</label>
             <Switch />
-          </div>
-        </div>
-        <div className="box finish-projects">
-          <h3 className="box-title">סיים פרויקטים</h3>
-          {/* <Tooltip title="סיים את כל הפרויקטים">
-            <Button className="end-projects" shape="circle" type="primary" icon={<CloseCircleOutlined />}></Button>
-          </Tooltip> */}
-          <div className="main-circle" onClick={() => handleEndProjects}>
-            <div className="inner-circle">
-              <p>STOP</p>
-            </div>
           </div>
         </div>
         <div className="box publish-grades">
