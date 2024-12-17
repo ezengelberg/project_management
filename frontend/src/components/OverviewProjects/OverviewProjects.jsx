@@ -573,7 +573,9 @@ const OverviewProjects = () => {
     if (takenFilter === "missingJudges") {
       return p.alphaReportJudges.length < 3 || p.finalReportJudges.length < 3 || p.examJudges.length < 3;
     }
-    return true;
+    if (yearFilter === "") return true;
+    if (yearFilter === "all") return true;
+    return p.year === yearFilter;
   });
 
   const filteredOpenProjects = projects.filter((p) => {
@@ -583,12 +585,12 @@ const OverviewProjects = () => {
     return p.year === yearFilter;
   });
 
-  const filteredFinishedProjects = projects.filter((p) => {
-    if (!p.isFinished || p.isTerminated) return false;
-    if (yearFilter === "") return true;
-    if (yearFilter === "all") return true;
-    return p.year === yearFilter;
-  });
+  // const filteredFinishedProjects = projects.filter((p) => {
+  //   if (!p.isFinished || p.isTerminated) return false;
+  //   if (yearFilter === "") return true;
+  //   if (yearFilter === "all") return true;
+  //   return p.year === yearFilter;
+  // });
 
   const filteredTerminatedProjects = projects.filter((p) => {
     if (!p.isTerminated) return false;
@@ -1371,6 +1373,14 @@ const OverviewProjects = () => {
       children: (
         <>
           <div className="upper-table-options">
+            <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px" }}>
+              <Select.Option value="all">כל השנים</Select.Option>
+              {years.map((year) => (
+                <Select.Option key={year} value={year}>
+                  {year}
+                </Select.Option>
+              ))}
+            </Select>
             <Select value={takenFilter} onChange={setTakenFilter} style={{ width: "200px" }}>
               <Select.Option value="all">כל הפרויקטים</Select.Option>
               <Select.Option value="missingJudges">פרויקטים שחסר שופטים</Select.Option>
