@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const projectSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
-  year: { type: Number, required: true },
+  year: { type: String, required: true },
   suitableFor: { type: String, required: true },
   type: { type: String, required: true },
   externalEmail: { type: String, required: false },

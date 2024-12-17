@@ -3,16 +3,36 @@ import "./CreateProject.scss";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
-import { Switch, Button, Form, Input, InputNumber, Select, message, FloatButton } from "antd";
+import { Switch, Button, Form, Input, Select, message, FloatButton } from "antd";
 import { Editor } from "primereact/editor";
 import DOMPurify from "dompurify";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { NotificationsContext } from "../../context/NotificationsContext";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const CreateProject = () => {
   const { Option } = Select;
   const { fetchNotifications } = useContext(NotificationsContext);
   const currentYear = new Date().getFullYear();
+  const previousYear = currentYear - 1;
+  const nextYear = currentYear + 1;
+
+  const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date(currentYear, 10, 10)))
+    .split(" ")
+    .pop()
+    .replace(/^ה/, "");
+
+  const previousHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date(previousYear, 10, 10)))
+    .split(" ")
+    .pop()
+    .replace(/^ה/, "");
+
+  const nextHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date(nextYear, 10, 10)))
+    .split(" ")
+    .pop()
+    .replace(/^ה/, "");
+
+  const [selectedYear, setSelectedYear] = useState("");
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const [advisorUsers, setAdvisorUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState({});
@@ -148,6 +168,10 @@ const CreateProject = () => {
     return div.innerHTML;
   };
 
+  const handleYearChange = (value) => {
+    setSelectedYear(value);
+  };
+
   const onFinish = async (values) => {
     const processedDescription = processEditorContent(values.description);
     const finalValues = {
@@ -201,10 +225,6 @@ const CreateProject = () => {
         labelCol={{
           span: 4,
         }}
-        initialValues={{
-          remember: true,
-          year: currentYear,
-        }}
         onFinish={onFinish}>
         <Form.Item
           className="create-project-form-item"
@@ -236,7 +256,7 @@ const CreateProject = () => {
 
         <Form.Item
           className="create-project-form-item"
-          label="שנה"
+          label="שנת לימודים"
           name="year"
           hasFeedback
           rules={[
@@ -245,7 +265,11 @@ const CreateProject = () => {
               message: "חובה להזין שנה",
             },
           ]}>
-          <InputNumber />
+          <Select value={selectedYear} onChange={handleYearChange}>
+            <Option value={nextHebrewYear}>{nextHebrewYear}</Option>
+            <Option value={currentHebrewYear}>{currentHebrewYear}</Option>
+            <Option value={previousHebrewYear}>{previousHebrewYear}</Option>
+          </Select>
         </Form.Item>
 
         <Form.Item
