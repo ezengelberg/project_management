@@ -114,15 +114,20 @@ export const createAdmin = async (req, res) => {
 
 export const loginUser = (req, res, next) => {
   req.body.email = req.body.email.toLowerCase();
-  passport.authenticate("local", (err, user, info) => {
+  passport.authenticate("local", async (err, user, info) => {
     if (err) return next(err);
     if (!user) return res.status(401).send(info.message);
     if (user.suspended) return res.status(403).send("User is suspended");
 
-    req.login(user, (err) => {
+    req.login(user, async (err) => {
       if (err) return next(err);
       const userObj = user.toObject();
       delete userObj.password;
+
+      // Update rememberMe field
+      user.rememberMe = req.body.rememberMe || false;
+      await user.save();
+
       res.status(200).json(userObj);
     });
   })(req, res, next);

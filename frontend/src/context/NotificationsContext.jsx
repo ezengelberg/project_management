@@ -10,6 +10,10 @@ export const NotificationsProvider = ({ children }) => {
 
   const fetchNotifications = async () => {
     try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user) {
+        return;
+      }
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/all`, {
         withCredentials: true,
       });

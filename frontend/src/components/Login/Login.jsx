@@ -1,15 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Login.scss";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
-import { Alert, Form, Input, Button, message } from "antd";
+import { Alert, Form, Input, Button, message, Checkbox } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
 
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [tempUserData, setTempUserData] = useState(null);
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -18,6 +19,13 @@ const Login = () => {
   const [changePasswordForm] = Form.useForm();
   const [loginForm] = Form.useForm();
   const [forgotPasswordForm] = Form.useForm();
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user && user.rememberMe) {
+      navigate("/home");
+    }
+  }, [navigate]);
 
   const EmailSvg = () => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -69,6 +77,7 @@ const Login = () => {
           {
             email: lowerCaseEmail,
             password,
+            rememberMe,
           },
           { withCredentials: true }
         );
@@ -182,6 +191,11 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+            </Form.Item>
+            <Form.Item name="remember" valuePropName="checked" label={null}>
+              <Checkbox checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)}>
+                זכור אותי
+              </Checkbox>
             </Form.Item>
             <a className="forgot-password" onClick={() => setShowForgotPassword(true)}>
               שכחת סיסמה?
