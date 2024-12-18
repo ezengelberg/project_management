@@ -720,3 +720,12 @@ export const assignAdvisorsAutomatically = async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 };
+
+export const getProjectYears = async (req, res) => {
+  try {
+    const years = await Project.distinct("year");
+    res.status(200).send(years);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};

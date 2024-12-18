@@ -151,6 +151,7 @@ export const getAllProjectSubmissions = async (req, res) => {
           key: project._id,
           projectid: project._id,
           title: project.title,
+          year: project.year,
           submissions: submissionsWithGrades,
         };
       })

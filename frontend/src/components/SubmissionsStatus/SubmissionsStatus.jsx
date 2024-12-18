@@ -5,8 +5,9 @@ import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { useNavigate } from "react-router-dom";
-import { Table, Divider, Badge, Button, Tooltip } from "antd";
+import { Table, Divider, Badge, Button, Tooltip, Select } from "antd";
 import { downloadFile } from "../../utils/downloadFile";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const SubmissionsStatus = () => {
   const navigate = useNavigate();
@@ -14,58 +15,77 @@ const SubmissionsStatus = () => {
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
+  const [yearFilter, setYearFilter] = useState("all");
+  const [years, setYears] = useState([]);
   const searchInput = useRef(null);
 
   useEffect(() => {
-    setLoading(true);
-    try {
-      axios
-        .get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects/`, {
-          withCredentials: true,
-        })
-        .then(async (res) => {
-          const projects = res.data.projects.filter((project) => project.students.length > 0);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [projectsResponse, yearsResponse] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects/`, {
+            withCredentials: true,
+          }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
+            withCredentials: true,
+          }),
+        ]);
 
-          const submissionsPromises = projects.map((project) =>
-            axios.get(
-              `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-specific-project-submissions/${project._id}`,
-              {
+        const projects = projectsResponse.data.projects.filter((project) => project.students.length > 0);
+
+        const submissionsPromises = projects.map((project) =>
+          axios.get(
+            `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-specific-project-submissions/${project._id}`,
+            {
+              withCredentials: true,
+            }
+          )
+        );
+
+        const studentPromises = projects.map((project) =>
+          Promise.all(
+            project.students.map((student) =>
+              axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${student.student}`, {
                 withCredentials: true,
-              }
-            )
-          );
-
-          const studentPromises = projects.map((project) =>
-            Promise.all(
-              project.students.map((student) =>
-                axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${student.student}`, {
-                  withCredentials: true,
-                })
-              )
-            )
-          );
-
-          const submissionsResponses = await Promise.all(submissionsPromises);
-          const studentResponses = await Promise.all(studentPromises);
-
-          const projectsWithSubmissionsAndStudents = projects.map((project, index) => ({
-            ...project,
-            submissions: submissionsResponses[index].data
-              .map((submission) => {
-                const { grades, ...rest } = submission;
-                return rest;
               })
-              .sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)),
-            students: studentResponses[index].map((response) => response.data),
-          }));
+            )
+          )
+        );
 
-          setProjects(projectsWithSubmissionsAndStudents);
-          setLoading(false);
-        });
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
-    }
+        const [submissionsResponses, studentResponses] = await Promise.all([
+          Promise.all(submissionsPromises),
+          Promise.all(studentPromises),
+        ]);
+
+        const projectsWithSubmissionsAndStudents = projects.map((project, index) => ({
+          ...project,
+          submissions: submissionsResponses[index].data
+            .map((submission) => {
+              const { grades, ...rest } = submission;
+              return rest;
+            })
+            .sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)),
+          students: studentResponses[index].map((response) => response.data),
+        }));
+
+        setProjects(projectsWithSubmissionsAndStudents);
+        setYears(yearsResponse.data);
+
+        const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
+        const currentHebrewYearIndex = yearsResponse.data.indexOf(currentHebrewYear);
+        setYearFilter(
+          currentHebrewYearIndex !== -1 ? yearsResponse.data[currentHebrewYearIndex] : yearsResponse.data[0]
+        );
+
+        setLoading(false);
+      } catch (error) {
+        console.log(error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
@@ -213,17 +233,33 @@ const SubmissionsStatus = () => {
     },
   ];
 
-  const dataSource = projects.map((project) => {
+  const filteredProjects = projects.filter((project) => {
+    if (yearFilter === "all") return true;
+    return project.year === yearFilter;
+  });
+
+  const dataSource = filteredProjects.map((project) => {
     return {
       key: project._id,
       projectName: project.title,
       students: project.students,
+      projectYear: project.year,
       submissions: project.submissions,
     };
   });
 
   return (
     <div className="submission-status-container">
+      <div className="upper-table-options">
+        <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px" }}>
+          <Select.Option value="all">כל השנים</Select.Option>
+          {years.map((year) => (
+            <Select.Option key={year} value={year}>
+              {year}
+            </Select.Option>
+          ))}
+        </Select>
+      </div>
       <Table columns={columns} dataSource={dataSource} loading={loading} />
     </div>
   );

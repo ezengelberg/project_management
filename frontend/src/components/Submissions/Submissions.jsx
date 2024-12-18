@@ -27,6 +27,7 @@ import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { NotificationsContext } from "../../context/NotificationsContext";
 import { downloadFile } from "../../utils/downloadFile";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const Submissions = () => {
   const navigate = useNavigate();
@@ -59,6 +60,8 @@ const Submissions = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const [yearFilter, setYearFilter] = useState("all");
+  const [years, setYears] = useState([]);
 
   const fetchActiveProjects = async () => {
     try {
@@ -68,6 +71,20 @@ const Submissions = () => {
       setProjects(response.data);
     } catch (error) {
       console.error("Error fetching projects:", error);
+    }
+  };
+
+  const fetchYears = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
+        withCredentials: true,
+      });
+      setYears(response.data);
+      const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
+      const currentHebrewYearIndex = response.data.indexOf(currentHebrewYear);
+      setYearFilter(currentHebrewYearIndex !== -1 ? response.data[currentHebrewYearIndex] : response.data[0]);
+    } catch (error) {
+      console.error("Error fetching years:", error);
     }
   };
 
@@ -118,7 +135,6 @@ const Submissions = () => {
         // If one has info, return the one with info
         return submission.info ? submission : existing;
       });
-
       setSubmissionDetails(filteredSubmissionDetails);
     } catch (error) {
       console.error("Error fetching submissions:", error);
@@ -129,6 +145,7 @@ const Submissions = () => {
   useEffect(() => {
     fetchSubmissions();
     fetchActiveProjects();
+    fetchYears();
   }, []);
 
   const handleJudgeCopy = async (values) => {
@@ -653,9 +670,21 @@ const Submissions = () => {
     },
   ];
 
+  const filteredSubmissionData = submissionData.filter(
+    (project) => yearFilter === "all" || project.year === yearFilter
+  );
+
   return (
     <div>
       <div className="action-buttons">
+        <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px", marginRight: "10px" }}>
+          <Select.Option value="all">כל השנים</Select.Option>
+          {years.map((year) => (
+            <Select.Option key={year} value={year}>
+              {year}
+            </Select.Option>
+          ))}
+        </Select>
         <Button type="primary" onClick={() => setAllSubmissions(true)}>
           פתיחת הגשה חדשה
         </Button>
@@ -675,7 +704,7 @@ const Submissions = () => {
           </Button>
         </div>
       </div>
-      <Table columns={columns} dataSource={submissionData} />
+      <Table columns={columns} dataSource={filteredSubmissionData} />
       <Modal
         title={`האם הינך בטוח שברצונך למחוק את ההגשה ${deleteAllSubmissionsConfirm?.submissionName} לכולם?`}
         open={deleteAllSubmissionsConfirm !== null}
