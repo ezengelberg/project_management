@@ -26,6 +26,7 @@ import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { NotificationsContext } from "../../context/NotificationsContext";
+import { downloadFile } from "../../utils/downloadFile";
 
 const Submissions = () => {
   const navigate = useNavigate();
@@ -58,13 +59,6 @@ const Submissions = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
-  const [filters, setSelectedFilters] = useState({
-    submitted: false,
-    notSubmitted: false,
-    waitingCheck: false,
-    waitingPublish: false,
-    finalGrade: false,
-  });
 
   const fetchActiveProjects = async () => {
     try {
@@ -83,9 +77,8 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
           withCredentials: true,
-        },
+        }
       );
-
       response.data.map((project) => {
         project.submissions.map((submission) => {
           submission.isLate = new Date(submission.submissionDate) < new Date(submission.uploadDate);
@@ -101,18 +94,18 @@ const Submissions = () => {
               submission.submissions.map((sub) => ({
                 name: sub.name,
                 info: sub.info,
-              })),
+              }))
             )
             .map((sub) => [
               sub.name, // Use the name as key
               sub, // Keep the object with name and info as the value
-            ]),
+            ])
         ).values(),
       ];
 
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
-          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
+          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission
         );
 
         if (!existing) return submission;
@@ -148,7 +141,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -171,7 +164,7 @@ const Submissions = () => {
           newGrade: values.newGrade,
           comment: values.comment,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
       message.open({
         type: "success",
@@ -193,7 +186,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -216,7 +209,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "info",
@@ -277,7 +270,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       if (submissionDetails.some((submission) => submission.name === name)) {
         message.open({
@@ -313,7 +306,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
@@ -338,7 +331,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -402,7 +395,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -565,7 +558,7 @@ const Submissions = () => {
                             ? `הוגש${
                                 sub.isLate
                                   ? ` באיחור - ${Math.ceil(
-                                      (new Date(sub.uploadDate) - new Date(sub.submissionDate)) / (1000 * 60 * 60 * 24),
+                                      (new Date(sub.uploadDate) - new Date(sub.submissionDate)) / (1000 * 60 * 60 * 24)
                                     )} ימים`
                                   : ""
                               }`
@@ -588,6 +581,17 @@ const Submissions = () => {
                           )
                         )}
                       </div>
+                      {sub.submitted && sub.file && (
+                        <Button
+                          color="primary"
+                          variant="filled"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            downloadFile(sub.file, "submissions");
+                          }}>
+                          הורד הגשה
+                        </Button>
+                      )}
                     </div>
                   </div>
                   {index !== submissions.length - 1 && submissions.length > 1 && (
@@ -600,19 +604,6 @@ const Submissions = () => {
         );
       },
       width: "75%",
-      filters: [
-        { text: "הוגש", value: "submitted" },
-        { text: "לא הוגש", value: "notSubmitted" },
-        { text: "מחכה לבדיקה", value: "waitingCheck" },
-        { text: "מחכה לפרסום", value: "waitingPublish" },
-        { text: "פורסם", value: "finalGrade" },
-      ],
-      onFilter: (value) => {
-        setSelectedFilters((prevFilters) => ({
-          ...prevFilters,
-          [value]: !prevFilters[value],
-        }));
-      },
     },
   ];
 
@@ -895,7 +886,7 @@ const Submissions = () => {
                               ? ` באיחור - ${Math.ceil(
                                   (new Date(submissionInfo.submission.uploadDate) -
                                     new Date(submissionInfo.submission.submissionDate)) /
-                                    (1000 * 60 * 60 * 24),
+                                    (1000 * 60 * 60 * 24)
                                 )} ימים`
                               : ""
                           }`
