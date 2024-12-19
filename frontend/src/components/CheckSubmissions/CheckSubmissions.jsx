@@ -48,7 +48,7 @@ const CheckSubmissions = () => {
   const waitingForGrade = submissions.filter(
     (submission) =>
       new Date(submission.submissionDate) < new Date() &&
-      submission.submitted &&
+      (submission.submitted || !submission.fileNeeded) &&
       submission.grade === null &&
       submission.videoQuality === null &&
       (submission.isReviewed || submission.isGraded)

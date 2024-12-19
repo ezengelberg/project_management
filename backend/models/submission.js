@@ -11,7 +11,8 @@ const submissionSchema = new mongoose.Schema(
     grades: [{ type: mongoose.Schema.Types.ObjectId, ref: "Grade", required: false, default: [] }],
     finalGrade: { type: Number, required: false, default: null },
     name: { type: String, required: true },
-    file: { type: mongoose.Schema.Types.ObjectId, ref: "Upload", required: false }, // needs an update
+    file: { type: mongoose.Schema.Types.ObjectId, ref: "Upload", required: false },
+    fileNeeded: { type: Boolean, required: true },
     submissionDate: { type: Date },
     isReviewed: { type: Boolean, default: false },
     isGraded: { type: Boolean, default: false },
