@@ -70,7 +70,7 @@ const SubmissionsStatus = () => {
         }));
 
         setProjects(projectsWithSubmissionsAndStudents);
-        setYears(yearsResponse.data);
+        setYears(yearsResponse.data.sort((a, b) => b.localeCompare(a)));
 
         const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
         const currentHebrewYearIndex = yearsResponse.data.indexOf(currentHebrewYear);

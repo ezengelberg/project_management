@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
-import { Badge, Table, Tooltip, Switch, message, Divider, Modal, Form, Input, InputNumber, Select } from "antd";
+import { Badge, Table, Tooltip, Switch, message, Divider, Modal, Form, Input, InputNumber, Select, Tabs } from "antd";
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -15,6 +15,7 @@ import "./ManageProjects.scss";
 import Highlighter from "react-highlight-words";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { NotificationsContext } from "../../context/NotificationsContext";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const ManageProjects = () => {
   const { Option } = Select;
@@ -29,6 +30,8 @@ const ManageProjects = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const [yearFilter, setYearFilter] = useState("all");
+  const [years, setYears] = useState([]);
 
   const getUsersNoProjects = async () => {
     try {
@@ -56,6 +59,7 @@ const ManageProjects = () => {
         students: project.students, // Assuming `project.students` contains the array of student objects
         registered: project.students.length + project.candidates.length,
         projectInfo: project,
+        year: project.year,
         candidatesData: [],
       }));
 
@@ -115,9 +119,26 @@ const ManageProjects = () => {
     }
   };
 
+  const fetchYears = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
+        withCredentials: true,
+      });
+      const sortedYears = response.data.sort((a, b) => b.localeCompare(a));
+      setYears(sortedYears);
+
+      const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
+      const currentHebrewYearIndex = sortedYears.indexOf(currentHebrewYear);
+      setYearFilter(currentHebrewYearIndex !== -1 ? sortedYears[currentHebrewYearIndex] : sortedYears[0]);
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
+  };
+
   useEffect(() => {
     fetchData();
     getUsersNoProjects();
+    fetchYears();
   }, []);
 
   useEffect(() => {
@@ -489,140 +510,171 @@ const ManageProjects = () => {
     return <Table columns={expandColumns} dataSource={record.candidatesData} pagination={false} />;
   };
 
+  const filteredProjects = projects.filter((project) => {
+    if (yearFilter === "all") return true;
+    return project.year === yearFilter;
+  });
+
+  const tabs = [
+    {
+      key: "1",
+      label: "פרויקטים פעילים",
+      children: (
+        <Table columns={columns} dataSource={filteredProjects} expandable={{ expandedRowRender: expandedRender }} />
+      ),
+    },
+    {
+      key: "2",
+      label: "פרויקטים מושהים",
+      children: <p>nothing for now</p>,
+    },
+  ];
+
   return (
     <div>
-      <Modal
-        title={`עריכת פרויקט: ${editProjectData["title"]}`}
-        open={isEditing}
-        onCancel={() => {
-          handleCancel();
-        }}
-        onOk={onConfirmEdit}
-        okText="שמור שינויים"
-        cancelText="בטל"
-        width={"70rem"}>
-        <Form form={form} layout="vertical" initialValues={editProjectData}>
-          <Form.Item
-            name="title"
-            label="שם הפרויקט"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה להזין שם לפרויקט",
-              },
-            ]}>
-            <Input />
-          </Form.Item>
-          <Form.Item
-            className="create-project-form-item"
-            label="תיאור"
-            name="description"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה להזין תיאור לפרויקט",
-              },
-            ]}>
-            <Editor style={{ height: "320px", wordBreak: "break-word" }} onTextChange={handleEditorChange} />
-          </Form.Item>
-          <Form.Item
-            className="create-project-form-item"
-            label="שנה"
-            name="year"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה להזין שנה",
-              },
-            ]}>
-            <InputNumber />
-          </Form.Item>
-          <Form.Item
-            className="create-project-form-item"
-            name="suitableFor"
-            label="מתאים ל"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה לבחור התאמה",
-              },
-            ]}>
-            <Select placeholder="בחר יחיד/זוג/שניהם">
-              <Option value="יחיד">יחיד</Option>
-              <Option value="זוג">זוג</Option>
-              <Option value="יחיד \ זוג">יחיד \ זוג</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            className="create-project-form-item"
-            name="type"
-            label="סוג הפרויקט"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה לבחור סוג",
-              },
-            ]}>
-            <Select placeholder="בחר סוג" onChange={handleTypeChange}>
-              <Option value="מחקרי">מחקרי</Option>
-              <Option value="תעשייתי הייטק">תעשייתי הייטק</Option>
-              <Option value="תעשייתי לא הייטק">תעשייתי לא הייטק</Option>
-              <Option value="יוזמת מנחה">יוזמת מנחה</Option>
-              <Option value="יוזמת סטודנט">יוזמת סטודנט</Option>
-              <Option value="אחר">אחר</Option>
-            </Select>
-          </Form.Item>
-          {editProjectData.externalEmail && (
+      <div className="upper-table-options">
+        <Modal
+          title={`עריכת פרויקט: ${editProjectData["title"]}`}
+          open={isEditing}
+          onCancel={() => {
+            handleCancel();
+          }}
+          onOk={onConfirmEdit}
+          okText="שמור שינויים"
+          cancelText="בטל"
+          width={"70rem"}>
+          <Form form={form} layout="vertical" initialValues={editProjectData}>
             <Form.Item
-              className="create-project-form-item"
-              label="מייל גורם חיצוני"
-              name="externalEmail"
+              name="title"
+              label="שם הפרויקט"
               hasFeedback
               rules={[
                 {
                   required: true,
-                  message: "חובה להזין מייל גורם חיצוני",
+                  message: "חובה להזין שם לפרויקט",
                 },
               ]}>
-              <Input type="email" placeholder="הזן מייל גורם חיצוני" />
+              <Input />
             </Form.Item>
-          )}
-
-          {isOtherType && (
             <Form.Item
               className="create-project-form-item"
-              label="סוג מותאם"
-              name="customType"
+              label="תיאור"
+              name="description"
               hasFeedback
               rules={[
                 {
                   required: true,
-                  message: "חובה להזין סוג",
+                  message: "חובה להזין תיאור לפרויקט",
                 },
               ]}>
-              <Input placeholder="הזן סוג פרויקט מותאם" />
+              <Editor style={{ height: "320px", wordBreak: "break-word" }} onTextChange={handleEditorChange} />
             </Form.Item>
-          )}
+            <Form.Item
+              className="create-project-form-item"
+              label="שנה"
+              name="year"
+              hasFeedback
+              rules={[
+                {
+                  required: true,
+                  message: "חובה להזין שנה",
+                },
+              ]}>
+              <InputNumber />
+            </Form.Item>
+            <Form.Item
+              className="create-project-form-item"
+              name="suitableFor"
+              label="מתאים ל"
+              hasFeedback
+              rules={[
+                {
+                  required: true,
+                  message: "חובה לבחור התאמה",
+                },
+              ]}>
+              <Select placeholder="בחר יחיד/זוג/שניהם">
+                <Option value="יחיד">יחיד</Option>
+                <Option value="זוג">זוג</Option>
+                <Option value="יחיד \ זוג">יחיד \ זוג</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item
+              className="create-project-form-item"
+              name="type"
+              label="סוג הפרויקט"
+              hasFeedback
+              rules={[
+                {
+                  required: true,
+                  message: "חובה לבחור סוג",
+                },
+              ]}>
+              <Select placeholder="בחר סוג" onChange={handleTypeChange}>
+                <Option value="מחקרי">מחקרי</Option>
+                <Option value="תעשייתי הייטק">תעשייתי הייטק</Option>
+                <Option value="תעשייתי לא הייטק">תעשייתי לא הייטק</Option>
+                <Option value="יוזמת מנחה">יוזמת מנחה</Option>
+                <Option value="יוזמת סטודנט">יוזמת סטודנט</Option>
+                <Option value="אחר">אחר</Option>
+              </Select>
+            </Form.Item>
+            {editProjectData.externalEmail && (
+              <Form.Item
+                className="create-project-form-item"
+                label="מייל גורם חיצוני"
+                name="externalEmail"
+                hasFeedback
+                rules={[
+                  {
+                    required: true,
+                    message: "חובה להזין מייל גורם חיצוני",
+                  },
+                ]}>
+                <Input type="email" placeholder="הזן מייל גורם חיצוני" />
+              </Form.Item>
+            )}
 
-          <Form.Item
-            className="create-project-form-item"
-            label="ממשיך"
-            name="continues"
-            rules={[
-              {
-                required: false,
-              },
-            ]}>
-            <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
-          </Form.Item>
-        </Form>
-      </Modal>
-      <Table columns={columns} dataSource={projects} expandable={{ expandedRowRender: expandedRender }} />
+            {isOtherType && (
+              <Form.Item
+                className="create-project-form-item"
+                label="סוג מותאם"
+                name="customType"
+                hasFeedback
+                rules={[
+                  {
+                    required: true,
+                    message: "חובה להזין סוג",
+                  },
+                ]}>
+                <Input placeholder="הזן סוג פרויקט מותאם" />
+              </Form.Item>
+            )}
+
+            <Form.Item
+              className="create-project-form-item"
+              label="ממשיך"
+              name="continues"
+              rules={[
+                {
+                  required: false,
+                },
+              ]}>
+              <Switch checkedChildren={<CheckOutlined />} unCheckedChildren={<CloseOutlined />} />
+            </Form.Item>
+          </Form>
+        </Modal>
+
+        <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px" }}>
+          <Select.Option value="all">כל השנים</Select.Option>
+          {years.map((year) => (
+            <Select.Option key={year} value={year}>
+              {year}
+            </Select.Option>
+          ))}
+        </Select>
+      </div>
+      <Tabs items={tabs} defaultActiveKey="1" />
     </div>
   );
 };

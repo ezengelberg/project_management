@@ -79,7 +79,7 @@ const Submissions = () => {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
         withCredentials: true,
       });
-      setYears(response.data);
+      setYears(response.data.sort((a, b) => b.localeCompare(a)));
       const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
       const currentHebrewYearIndex = response.data.indexOf(currentHebrewYear);
       setYearFilter(currentHebrewYearIndex !== -1 ? response.data[currentHebrewYearIndex] : response.data[0]);
