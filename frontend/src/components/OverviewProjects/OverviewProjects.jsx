@@ -1010,149 +1010,6 @@ const OverviewProjects = () => {
         width: "20%",
       },
     ],
-    // finished: [
-    //   {
-    //     title: "שם הפרויקט",
-    //     dataIndex: "title",
-    //     key: "title",
-    //     ...getColumnSearchProps("title"),
-    //     render: (text, record) => (
-    //       <a
-    //         onClick={() => navigate(`/project/${record._id}`)}
-    //         onMouseDown={(e) => handleMouseDown(e, `/project/${record._id}`)}>
-    //         <Highlighter
-    //           highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-    //           searchWords={[searchText]}
-    //           autoEscape
-    //           textToHighlight={text.length > 65 ? `${text.substring(0, 65)}...` : text}
-    //         />
-    //       </a>
-    //     ),
-    //     width: "25%",
-    //     sorter: (a, b) => a.title.localeCompare(b.title),
-    //     sortDirections: ["descend", "ascend"],
-    //   },
-    //   {
-    //     title: "מנחה",
-    //     dataIndex: "advisors",
-    //     key: "advisors",
-    //     ...getColumnSearchProps("advisors"),
-    //     render: (advisors) => (
-    //       <div>
-    //         {advisors.length > 0
-    //           ? advisors.map((advisor) => {
-    //               const advisorUser = users.find((u) => u._id === advisor);
-    //               return advisorUser ? (
-    //                 <a
-    //                   key={advisor}
-    //                   onClick={() => navigate(`/profile/${advisor}`)}
-    //                   onMouseDown={(e) => handleMouseDown(e, `/profile/${advisor}`)}>
-    //                   {advisorUser.name}
-    //                 </a>
-    //               ) : null;
-    //             })
-    //           : "לא משוייך מנחה"}
-    //       </div>
-    //     ),
-    //     width: "15%",
-    //     sorter: (a, b) => {
-    //       const advisorA = users.find((u) => u._id === a.advisors[0]);
-    //       const advisorB = users.find((u) => u._id === b.advisors[0]);
-    //       return advisorA && advisorB ? advisorA.name.localeCompare(advisorB.name) : 0;
-    //     },
-    //     sortDirections: ["descend", "ascend"],
-    //   },
-    //   {
-    //     title: "סטודנטים",
-    //     dataIndex: "students",
-    //     key: "students",
-    //     render: (students) => (
-    //       <div className="projects-student-list">
-    //         {students.length > 0
-    //           ? students.map(({ student }, index) => {
-    //               const studentUser = users.find((u) => u._id === student);
-    //               return studentUser ? (
-    //                 <React.Fragment key={`student-${index}`}>
-    //                   <a
-    //                     onClick={() => navigate(`/profile/${student}`)}
-    //                     onMouseDown={(e) => handleMouseDown(e, `/profile/${student}`)}>
-    //                     {studentUser.name}
-    //                   </a>
-    //                   {index !== students.length - 1 && students.length > 1 && (
-    //                     <Divider type="vertical" style={{ borderColor: "black" }} />
-    //                   )}
-    //                 </React.Fragment>
-    //               ) : null;
-    //             })
-    //           : "לא משוייכים סטודנטים"}
-    //       </div>
-    //     ),
-    //     width: "20%",
-    //     filters: [
-    //       { text: "ללא סטודנטים", value: "ללא סטודנטים" },
-    //       { text: "סטודנט אחד", value: "סטודנט אחד" },
-    //       { text: "שני סטודנטים", value: "שני סטודנטים" },
-    //     ],
-    //     onFilter: (value, record) => {
-    //       if (value === "ללא סטודנטים") {
-    //         return record.students.length === 0;
-    //       }
-    //       if (value === "סטודנט אחד") {
-    //         return record.students.length === 1;
-    //       }
-    //       if (value === "שני סטודנטים") {
-    //         return record.students.length === 2;
-    //       }
-    //     },
-    //   },
-    //   {
-    //     title: "סוג",
-    //     dataIndex: "type",
-    //     key: "type",
-    //     width: "15%",
-    //     ...getColumnSearchProps("type"),
-    //     sorter: (a, b) => a.type.localeCompare(b.type),
-    //     sortDirections: ["descend", "ascend"],
-    //   },
-    //   {
-    //     title: "ציונים",
-    //     dataIndex: "grades",
-    //     key: "grades",
-    //     render: (_, record) => {
-    //       const projectSubmissions = submissions.filter((submission) => submission.project === record._id);
-    //       return (
-    //         <div>
-    //           {projectSubmissions.map((submission) => (
-    //             <div key={submission._id} className="inner-table-order">
-    //               <p>
-    //                 {submission.name} - {submission.finalGrade ? submission.finalGrade : "לא שוקלל ציון"}
-    //               </p>
-    //             </div>
-    //           ))}
-    //         </div>
-    //       );
-    //     },
-    //     width: "20%",
-    //   },
-    //   {
-    //     title: "פעולות",
-    //     key: "actions",
-    //     render: (_, record) => (
-    //       <a>
-    //         <Tooltip title="מחק מהמערכת">
-    //           <DeleteOutlined
-    //             style={{ fontSize: "25px" }}
-    //             onClick={() => {
-    //               setSelectedProject(record);
-    //               setIsDeleteProjectModalOpen(true);
-    //             }}
-    //           />
-    //         </Tooltip>
-    //       </a>
-    //     ),
-    //     width: "5%",
-    //   },
-    // ],
     terminated: [
       {
         title: "שם הפרויקט",
@@ -1206,7 +1063,7 @@ const OverviewProjects = () => {
         sortDirections: ["descend", "ascend"],
       },
       {
-        title: "סטודנטים",
+        title: "היסטורית סטודנטים",
         dataIndex: "terminationRecord",
         key: "terminationRecord",
         render: (terminationRecord) => (
@@ -1402,52 +1259,6 @@ const OverviewProjects = () => {
         </>
       ),
     },
-    // {
-    //   key: "finished",
-    //   label: (
-    //     <div className="lable-with-icon">
-    //       <svg className="tab-icon" viewBox="0 0 32 32" version="1.1" fill="#000000">
-    //         <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-    //         <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-    //         <g id="SVGRepo_iconCarrier">
-    //           <title>checkmark-circle</title>
-    //           <desc>Created with Sketch Beta.</desc>
-    //           <defs></defs>
-    //           <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
-    //             <g id="Icon-Set" transform="translate(-100.000000, -1139.000000)" fill="#000000">
-    //               <path
-    //                 d="M122.027,1148.07 C121.548,1147.79 120.937,1147.96 120.661,1148.43 L114.266,1159.51 L110.688,1156.21 C110.31,1155.81 109.677,1155.79 109.274,1156.17 C108.871,1156.54 108.85,1157.18 109.228,1157.58 L113.8,1161.8 C114.177,1162.2 114.81,1162.22 115.213,1161.84 C115.335,1161.73 122.393,1149.43 122.393,1149.43 C122.669,1148.96 122.505,1148.34 122.027,1148.07 L122.027,1148.07 Z M116,1169 C108.268,1169 102,1162.73 102,1155 C102,1147.27 108.268,1141 116,1141 C123.732,1141 130,1147.27 130,1155 C130,1162.73 123.732,1169 116,1169 L116,1169 Z M116,1139 C107.164,1139 100,1146.16 100,1155 C100,1163.84 107.164,1171 116,1171 C124.836,1171 132,1163.84 132,1155 C132,1146.16 124.836,1139 116,1139 L116,1139 Z"
-    //                 id="checkmark-circle"></path>
-    //             </g>
-    //           </g>
-    //         </g>
-    //       </svg>
-    //       <span>פרויקטים שהושלמו</span>
-    //     </div>
-    //   ),
-    //   children: (
-    //     <>
-    //       <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px", marginBottom: "10px" }}>
-    //         <Select.Option value="all">כל השנים</Select.Option>
-    //         {years.map((year) => (
-    //           <Select.Option key={year} value={year}>
-    //             {year}
-    //           </Select.Option>
-    //         ))}
-    //       </Select>
-    //       <Table
-    //         columns={columns.finished}
-    //         dataSource={filteredFinishedProjects}
-    //         loading={loading}
-    //         rowKey="_id"
-    //         expandable={{
-    //           expandedRowRender,
-    //           defaultExpandedRowKeys: [],
-    //         }}
-    //       />
-    //     </>
-    //   ),
-    // },
     {
       key: "terminated",
       label: (

@@ -4,7 +4,7 @@ import axios from "axios";
 import collegeLogo from "../../assets/CollegeLogo.png";
 import { useNavigate } from "react-router-dom";
 import { Tooltip, Avatar, Badge, Popover, Divider } from "antd";
-import { LogoutOutlined, CommentOutlined, CloseOutlined } from "@ant-design/icons";
+import { LogoutOutlined, BellOutlined, CloseOutlined, MessageOutlined } from "@ant-design/icons";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { NotificationsContext } from "../../context/NotificationsContext";
 
@@ -119,12 +119,19 @@ const HeaderMenu = () => {
           trigger="click"
           open={open}
           onOpenChange={handleOpenChange}>
-          <Badge count={unreadCount} style={{ transform: "translate(90%, -50%)" }}>
+          <Badge
+            count={unreadCount}
+            style={{ transform: unreadCount > 9 ? "translate(60%, -50%)" : "translate(100%, -50%)" }}>
             <Tooltip title="התראות" placement="right">
-              <CommentOutlined className="notification-icon" />
+              <BellOutlined className="notification-icon" />
             </Tooltip>
           </Badge>
         </Popover>
+        <Badge count={50} style={{ transform: "translate(60%, -50%)" }}>
+          <Tooltip title="הודעות מערכת">
+            <MessageOutlined className="notification-icon" />
+          </Tooltip>
+        </Badge>
         <Tooltip title="פרופיל">
           <Avatar
             className="avatar-icon"

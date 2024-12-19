@@ -561,7 +561,7 @@ export const terminateProject = async (req, res) => {
       ...project.students.map(async (student) => {
         const notification = new Notification({
           user: student.student,
-          message: `הפרויקט ${project.title} בו אתה רשום בוטל`,
+          message: `הפרויקט: ${project.title} בו אתה רשום בוטל`,
           link: `/project/${project._id}`,
         });
         await notification.save();
@@ -569,7 +569,7 @@ export const terminateProject = async (req, res) => {
       ...project.advisors.map(async (advisor) => {
         const notification = new Notification({
           user: advisor,
-          message: `הפרויקט ${project.title} שאתה מנחה בוטל`,
+          message: `הפרויקט: ${project.title} שאתה מנחה בוטל`,
           link: `/project/${project._id}`,
         });
         await notification.save();
