@@ -46,15 +46,16 @@
 
   .reviews {
     margin-top: 1rem;
-    display: flex;
     width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     .review-container {
       display: flex;
-      width: calc(100%/3 - 1rem);
+      width: 100%;
       .review {
         display: flex;
         flex-direction: column;
-        // gap: 0.5rem;
+        width: 100%;
         .review-item {
           display: flex;
           flex-direction: column;

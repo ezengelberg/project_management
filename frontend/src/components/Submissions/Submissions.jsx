@@ -561,6 +561,9 @@ const Submissions = () => {
                 (sub.isReviewed &&
                   sub.editable === false &&
                   grades.some((grade) => grade.videoQuality === undefined || grade.videoQuality === undefined));
+              console.log(sub);
+              console.log(sub.name);
+              console.log(waitingCheck);
               return (
                 <div className="table-col-div" key={index}>
                   <div
@@ -603,22 +606,6 @@ const Submissions = () => {
                       ) : (
                         <Badge color="green" text="לא נדרש קובץ" />
                       )}
-                      <div>
-                        {waitingCheck && sub.submitted ? (
-                          <Badge color="blue" text="מחכה לבדיקה" />
-                        ) : !waitingCheck && sub.submitted && (sub.isGraded || sub.isReviewed) ? (
-                          <Badge color="purple" text="מחכה לפרסום" />
-                        ) : (
-                          sub.editable === false &&
-                          sub.finalGrade !== null &&
-                          sub.isGraded && (
-                            <Badge
-                              color="pink"
-                              text={`ציון סופי: ${sub.overridden?.newGrade ? sub.overridden.newGrade : sub.finalGrade}`}
-                            />
-                          )
-                        )}
-                      </div>
                       {sub.submitted && sub.file && (
                         <Button
                           color="primary"
@@ -630,6 +617,20 @@ const Submissions = () => {
                           הורד הגשה
                         </Button>
                       )}
+                      <div>
+                        {waitingCheck && sub.submitted ? (
+                          <Badge color="blue" text="מחכה לבדיקה" />
+                        ) : (
+                          !sub.editable &&
+                          sub.isGraded &&
+                          !waitingCheck && (
+                            <Badge
+                              color="pink"
+                              text={`ציון סופי: ${sub?.finalGrade ? sub.finalGrade : sub.overridden?.newGrade}`}
+                            />
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
                   {index !== submissions.length - 1 && submissions.length > 1 && (
