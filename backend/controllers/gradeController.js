@@ -110,7 +110,7 @@ export const updateNumericValues = async (req, res) => {
 export const getAllNumericValues = async (req, res) => {
   try {
     // Get all unique submission names with graded submissions
-    const submissionNames = await Submission.distinct("name", { isGraded: true });
+    const submissionNames = await Submission.distinct("name", { isGraded: true, editable: true });
 
     // Prepare the grouped values
     const groupedValues = {};
