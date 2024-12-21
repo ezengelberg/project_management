@@ -103,7 +103,9 @@ const SubmissionsStatus = () => {
     getColumnSearchPropsUtil(dataIndex, searchInput, handleSearch, handleReset, searchText);
 
   const getBadgeStatus = (submission) => {
-    if (!submission.submitted) {
+    if (!submission.fileNeeded) {
+      return { color: "green", text: "לא נדרש קובץ" };
+    } else if (!submission.submitted) {
       return { color: "red", text: "לא הוגש" };
     } else if (submission.submitted && new Date(submission.submissionDate) < new Date(submission.uploadDate)) {
       return {
@@ -199,6 +201,7 @@ const SubmissionsStatus = () => {
                 <div className="submission-late-status">
                   {submission.submissionDate &&
                     new Date(submission.submissionDate) < new Date() &&
+                    submission.fileNeeded &&
                     !submission.submitted &&
                     `הגשה באיחור! - ${Math.ceil(
                       (new Date() - new Date(submission.submissionDate)) / (1000 * 60 * 60 * 24)

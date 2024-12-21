@@ -34,6 +34,7 @@ export const createSubmission = async (req, res) => {
           grades: [gradeByAdvisor],
           isGraded: req.body.isGraded,
           isReviewed: req.body.isReviewed,
+          fileNeeded: req.body.fileNeeded,
           submissionInfo: req.body.submissionInfo,
         });
         await submission.save();
@@ -81,6 +82,10 @@ export const createSpecificSubmission = async (req, res) => {
           project: project._id,
           submissionDate: new Date(req.body.submissionDate),
           grades: [gradeByAdvisor],
+          isGraded: req.body.isGraded,
+          isReviewed: req.body.isReviewed,
+          fileNeeded: req.body.fileNeeded,
+          submissionInfo: req.body.submissionInfo,
         });
         await submission.save();
 
@@ -141,6 +146,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               submitted: submission.file ? true : false,
               isGraded: submission.isGraded,
               isReviewed: submission.isReviewed,
+              fileNeeded: submission.fileNeeded,
               overridden: submission.overridden,
               finalGrade: submission.finalGrade,
               file: submission.file,
@@ -225,6 +231,7 @@ export const getStudentSubmissions = async (req, res) => {
         submissionName: submission.name,
         submissionDate: submission.submissionDate,
         file: submission.file,
+        fileNeeded: submission.fileNeeded,
         grades: await Promise.all(
           submission.grades.map(async (gradeId) => {
             const grade = await Grade.findById(gradeId);
@@ -642,6 +649,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
           overridden: submission.overridden,
           editable: submission.editable,
           file: submission.file,
+          fileNeeded: submission.fileNeeded,
         };
       })
     );

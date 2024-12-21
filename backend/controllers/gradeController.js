@@ -235,7 +235,6 @@ export const publishGrades = async (req, res) => {
       if (submission.editable === false) {
         continue;
       }
-
       let totalGrade = 0;
       let gradeCount = 0;
       let allGradesHaveNumericValue = true;
@@ -271,11 +270,13 @@ export const publishGrades = async (req, res) => {
         submission.finalGrade = Math.round(averageGrade);
         submission.editable = false;
         // adding penalty for days late
-        const days = Math.ceil(
-          (new Date(submission.uploadDate) - new Date(submission.submissionDate)) / (1000 * 60 * 60 * 24),
-        );
-        submission.finalGrade -= days * 2;
-        if (submission.finalGrade < 0) submission.finalGrade = 0;
+        if (submission.fileNeeded) {
+          const days = Math.ceil(
+            (new Date(submission.uploadDate) - new Date(submission.submissionDate)) / (1000 * 60 * 60 * 24)
+          );
+          submission.finalGrade -= days * 2;
+          if (submission.finalGrade < 0) submission.finalGrade = 0;
+        }
       } else {
         submission.finalGrade = null;
       }
@@ -304,7 +305,7 @@ export const publishGrades = async (req, res) => {
 
     res.status(200).json({ message: "Grades were published" });
   } catch (error) {
-    console.log("Error while publishing grades:", error);
+    console.error("Error while publishing grades:", error);
     res.status(500).json({ message: "Error while publishing grades" });
   }
 };

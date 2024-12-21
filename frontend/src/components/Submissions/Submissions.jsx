@@ -245,26 +245,31 @@ const Submissions = () => {
       let name = "";
       let isGraded = false;
       let isReviewed = false;
+      let fileNeeded = false;
       switch (submissionType) {
         case "proposalReport":
           name = "דוח הצעה";
           isGraded = submissionOptions.find((option) => option.value === "proposalReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "proposalReport").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "proposalReport").fileNeeded;
           break;
         case "alphaReport":
           name = "דוח אלפה";
           isGraded = submissionOptions.find((option) => option.value === "alphaReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "alphaReport").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "alphaReport").fileNeeded;
           break;
         case "finalReport":
           name = "דוח סופי";
           isGraded = submissionOptions.find((option) => option.value === "finalReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "finalReport").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "finalReport").fileNeeded;
           break;
         case "finalExam":
           name = "מבחן סוף";
           isGraded = submissionOptions.find((option) => option.value === "finalExam").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "finalExam").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "finalExam").fileNeeded;
           break;
         default: // other...
           name = values.submissionName || "ללא שם";
@@ -273,6 +278,9 @@ const Submissions = () => {
             : false;
           isReviewed = Array.isArray(values.submissionChecklist)
             ? values.submissionChecklist.includes("isReviewed")
+            : false;
+          fileNeeded = Array.isArray(values.submissionChecklist)
+            ? values.submissionChecklist.includes("fileNeeded")
             : false;
           break;
       }
@@ -284,6 +292,7 @@ const Submissions = () => {
           submissionInfo: values.submissionInfo,
           isGraded: isGraded,
           isReviewed: isReviewed,
+          fileNeeded: fileNeeded,
         },
         {
           withCredentials: true,
@@ -319,6 +328,9 @@ const Submissions = () => {
           isGraded: Array.isArray(values.submissionChecklist) ? values.submissionChecklist.includes("isGraded") : false,
           isReviewed: Array.isArray(values.submissionChecklist)
             ? values.submissionChecklist.includes("isReviewed")
+            : false,
+          fileNeeded: Array.isArray(values.submissionChecklist)
+            ? values.submissionChecklist.includes("fileNeeded")
             : false,
         },
         {
@@ -368,7 +380,7 @@ const Submissions = () => {
       let name = "";
       let isGraded = false;
       let isReviewed = false;
-
+      let fileNeeded = false;
       switch (values.submissionType) {
         case "proposalReport":
           name = "דוח הצעה";
@@ -398,6 +410,9 @@ const Submissions = () => {
           isReviewed = Array.isArray(values.submissionChecklist)
             ? values.submissionChecklist.includes("isReviewed")
             : false;
+          fileNeeded = Array.isArray(values.submissionChecklist)
+            ? values.submissionChecklist.includes("fileNeeded")
+            : false;
           break;
       }
       const response = await axios.post(
@@ -409,6 +424,7 @@ const Submissions = () => {
           projects: values.projects,
           isGraded: isGraded,
           isReviewed: isReviewed,
+          fileNeeded: fileNeeded,
         },
         {
           withCredentials: true,
@@ -568,20 +584,25 @@ const Submissions = () => {
                         : ""}
                     </span>
                     <div className="table-col-info">
-                      <Badge
-                        color={sub.submitted ? (sub.isLate ? "darkgreen" : "green") : "orange"}
-                        text={
-                          sub.submitted
-                            ? `הוגש${
-                                sub.isLate
-                                  ? ` באיחור - ${Math.ceil(
-                                      (new Date(sub.uploadDate) - new Date(sub.submissionDate)) / (1000 * 60 * 60 * 24)
-                                    )} ימים`
-                                  : ""
-                              }`
-                            : "ממתין להגשה"
-                        }
-                      />
+                      {sub.fileNeeded ? (
+                        <Badge
+                          color={sub.submitted ? (sub.isLate ? "darkgreen" : "green") : "orange"}
+                          text={
+                            sub.submitted
+                              ? `הוגש${
+                                  sub.isLate
+                                    ? ` באיחור - ${Math.ceil(
+                                        (new Date(sub.uploadDate) - new Date(sub.submissionDate)) /
+                                          (1000 * 60 * 60 * 24)
+                                      )} ימים`
+                                    : ""
+                                }`
+                              : "ממתין להגשה"
+                          }
+                        />
+                      ) : (
+                        <Badge color="green" text="לא נדרש קובץ" />
+                      )}
                       <div>
                         {waitingCheck && sub.submitted ? (
                           <Badge color="blue" text="מחכה לבדיקה" />
@@ -625,10 +646,10 @@ const Submissions = () => {
   ];
 
   const submissionOptions = [
-    { label: "דוח הצעה", value: "proposalReport", isGraded: false, isReviewed: false },
-    { label: "דוח אלפה", value: "alphaReport", isGraded: true, isReviewed: true },
-    { label: "דוח סופי", value: "finalReport", isGraded: false, isReviewed: true },
-    { label: "מבחן סוף", value: "finalExam", isGraded: true, isReviewed: false },
+    { label: "דוח הצעה", value: "proposalReport", isGraded: false, isReviewed: false, fileNeeded: true },
+    { label: "דוח אלפה", value: "alphaReport", isGraded: true, isReviewed: true, fileNeeded: true },
+    { label: "דוח סופי", value: "finalReport", isGraded: false, isReviewed: true, fileNeeded: true },
+    { label: "מבחן סוף", value: "finalExam", isGraded: true, isReviewed: false, fileNeeded: false },
     { label: "אחר", value: "other" },
   ];
 
@@ -839,6 +860,7 @@ const Submissions = () => {
             <Checkbox.Group>
               <Checkbox value="isGraded">מתן ציון</Checkbox>
               <Checkbox value="isReviewed">מתן משוב</Checkbox>
+              <Checkbox value="fileNeeded">נדרש קובץ</Checkbox>
             </Checkbox.Group>
           </Form.Item>
         </Form>
@@ -876,6 +898,7 @@ const Submissions = () => {
                           submissionChecklist: [
                             submissionInfo.submission.isGraded ? "isGraded" : null,
                             submissionInfo.submission.isReviewed ? "isReviewed" : null,
+                            submissionInfo.submission.fileNeeded ? "fileNeeded" : null,
                           ].filter((value) => value !== null),
                         });
                         setSpecificSubmissionInfo(submissionInfo);
@@ -1277,6 +1300,7 @@ const Submissions = () => {
               <Checkbox.Group>
                 <Checkbox value="isGraded">מתן ציון</Checkbox>
                 <Checkbox value="isReviewed">מתן משוב</Checkbox>
+                <Checkbox value="fileNeeded">נדרש קובץ</Checkbox>
               </Checkbox.Group>
             </Form.Item>
           )}
@@ -1381,6 +1405,7 @@ const Submissions = () => {
               <Checkbox.Group>
                 <Checkbox value="isGraded">מתן ציון</Checkbox>
                 <Checkbox value="isReviewed">מתן משוב</Checkbox>
+                <Checkbox value="fileNeeded">נדרש קובץ</Checkbox>
               </Checkbox.Group>
             </Form.Item>
           )}
