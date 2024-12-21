@@ -1299,7 +1299,6 @@ const OverviewProjects = () => {
   return (
     <div>
       <Tabs items={tabs} />
-
       {/* Add Students Modal */}
       <Modal
         open={isAddStudentsModalOpen}
@@ -1326,7 +1325,6 @@ const OverviewProjects = () => {
           />
         </div>
       </Modal>
-
       {/* Update Students Modal */}
       <Modal
         open={isUpdateStudentsModalOpen}
@@ -1354,7 +1352,6 @@ const OverviewProjects = () => {
           />
         </div>
       </Modal>
-
       {/* Add Advisor Modal */}
       <Modal
         open={isAddAdvisorModalOpen}
@@ -1380,7 +1377,6 @@ const OverviewProjects = () => {
           />
         </div>
       </Modal>
-
       {/* Update Advisors Modal */}
       <Modal
         open={isUpdateAdvisorsModalOpen}
@@ -1394,7 +1390,7 @@ const OverviewProjects = () => {
         okText="עדכן מנחה"
         cancelText="ביטול">
         <div className="modal-select-input">
-          <p>בחר עד 3 שופטים לפרויקט:</p>
+          <p>בחר מנחה לפרויקט:</p>
           <Select
             value={selectedAdvisor}
             onChange={setSelectedAdvisor}
@@ -1434,11 +1430,11 @@ const OverviewProjects = () => {
                 label: user.name,
                 value: user._id,
               }))}
+              disabled={!submission.editable}
             />
           </div>
         ))}
       </Modal>
-
       {/* Terminate Project Modal */}
       <Modal
         open={isTerminateModalOpen}
@@ -1455,7 +1451,6 @@ const OverviewProjects = () => {
           <p>אתה בטוח שברצונך להפסיק את הפרויקט?</p>
         </div>
       </Modal>
-
       {/* Change Grade Modal */}
       <Modal
         open={isChangeGradeModalOpen}
@@ -1497,7 +1492,6 @@ const OverviewProjects = () => {
           />
         </div>
       </Modal>
-
       {/* Delete Project Modal */}
       <Modal
         open={isDeleteProjectModalOpen}
@@ -1518,7 +1512,6 @@ const OverviewProjects = () => {
           </p>
         </div>
       </Modal>
-
       {/* Restore Project Modal */}
       <Modal
         open={isRestoreProjectModalOpen}
