@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./SystemControl.scss";
-import { Button, Switch, Form, Input, InputNumber, Table, Typography, message, Tooltip } from "antd";
+import { Button, Switch, Form, Input, InputNumber, Table, Typography, message, Tooltip, Modal } from "antd";
 import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
 
 const SystemControl = () => {
@@ -30,6 +30,9 @@ const SystemControl = () => {
   const [submissions, setSubmissions] = useState([]);
   const [submissionGroups, setSubmissionGroups] = useState({});
   const [groupsData, setGroupsData] = useState([]);
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [currentSubmissionName, setCurrentSubmissionName] = useState("");
+  const [currentGroup, setCurrentGroup] = useState("");
 
   const fetchGrades = async () => {
     try {
@@ -150,7 +153,9 @@ const SystemControl = () => {
 
   const publishGradesForSubmissions = async (submissionName, group) => {
     setLoading(true);
-    const groupSubmissions = submissionGroups[submissionName].submissions;
+    setConfirmModalVisible(false);
+    const groupSubmissions = submissionGroups[submissionName].submissions.filter((submission) => submission.editable);
+
     if (groupSubmissions[0].isGraded) {
       const gradedSubmissions = groupSubmissions.filter(
         (submission) =>
@@ -196,6 +201,22 @@ const SystemControl = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const checkZeroGrades = (submissionName, group) => {
+    const groupSubmissions = submissionGroups[submissionName].submissions.filter((submission) => submission.editable);
+    const hasZeroGrade = groupSubmissions.some((submission) =>
+      submission.numericValues.some((grade) => grade.value === 0)
+    );
+
+    if (hasZeroGrade) {
+      setCurrentSubmissionName(submissionName);
+      setCurrentGroup(group);
+      setConfirmModalVisible(true);
+      setLoading(false);
+      return;
+    }
+    publishGradesForSubmissions(submissionName, group);
   };
 
   const columns = [
@@ -302,7 +323,7 @@ const SystemControl = () => {
                   <Button
                     type="primary"
                     loading={loading}
-                    onClick={() => publishGradesForSubmissions(submissionName, submissionName)}>
+                    onClick={() => checkZeroGrades(submissionName, submissionName)}>
                     פרסם ציונים
                   </Button>
                 </>
@@ -337,6 +358,15 @@ const SystemControl = () => {
           pagination={false}
         />
       </Form>
+      <Modal
+        title={`פרסום ציונים ל${currentGroup}`}
+        open={confirmModalVisible}
+        onOk={() => publishGradesForSubmissions(currentSubmissionName, currentGroup)}
+        onCancel={() => setConfirmModalVisible(false)}
+        okText="אשר"
+        cancelText="בטל">
+        <p>ישנם ציונים עם ערך נומרי של 0. האם אתה בטוח שברצונך לפרסם את הציונים?</p>
+      </Modal>
     </div>
   );
 };
