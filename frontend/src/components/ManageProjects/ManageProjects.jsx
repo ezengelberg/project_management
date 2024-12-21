@@ -530,6 +530,25 @@ const ManageProjects = () => {
     },
   ];
 
+  const currentYear = new Date().getFullYear();
+  const previousYear = currentYear - 1;
+  const nextYear = currentYear + 1;
+
+  const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date(currentYear, 10, 10)))
+    .split(" ")
+    .pop()
+    .replace(/^ה/, "");
+
+  const previousHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date(previousYear, 10, 10)))
+    .split(" ")
+    .pop()
+    .replace(/^ה/, "");
+
+  const nextHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date(nextYear, 10, 10)))
+    .split(" ")
+    .pop()
+    .replace(/^ה/, "");
+
   return (
     <div>
       <div className="upper-table-options">
@@ -580,7 +599,11 @@ const ManageProjects = () => {
                   message: "חובה להזין שנה",
                 },
               ]}>
-              <InputNumber />
+              <Select>
+                <Option value={nextHebrewYear}>{nextHebrewYear}</Option>
+                <Option value={currentHebrewYear}>{currentHebrewYear}</Option>
+                <Option value={previousHebrewYear}>{previousHebrewYear}</Option>
+              </Select>
             </Form.Item>
             <Form.Item
               className="create-project-form-item"
