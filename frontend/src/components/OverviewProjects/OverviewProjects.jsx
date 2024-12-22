@@ -1430,7 +1430,7 @@ const OverviewProjects = () => {
                 label: user.name,
                 value: user._id,
               }))}
-              disabled={!submission.editable}
+              disabled={submission.editable}
             />
           </div>
         ))}
