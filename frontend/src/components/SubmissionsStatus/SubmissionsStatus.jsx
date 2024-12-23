@@ -18,6 +18,22 @@ const SubmissionsStatus = () => {
   const [yearFilter, setYearFilter] = useState("all");
   const [years, setYears] = useState([]);
   const searchInput = useRef(null);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -124,7 +140,8 @@ const SubmissionsStatus = () => {
       title: "שם פרויקט",
       dataIndex: "projectName",
       key: "projectName",
-      width: "25%",
+      fixed: "left",
+      width: (windowSize.width - 220) / 4,
       ...getColumnSearchProps("projectName"),
       render: (text, record) => (
         <a
@@ -150,7 +167,8 @@ const SubmissionsStatus = () => {
       title: "שם סטודנט",
       dataIndex: "studentName",
       key: "studentName",
-      width: "20%",
+      fixed: "left",
+      width: (windowSize.width - 220) / 7,
       render: (text, record) => (
         <div className="submission-status-students">
           {record.students.map((student, index) => (
@@ -263,7 +281,7 @@ const SubmissionsStatus = () => {
           ))}
         </Select>
       </div>
-      <Table columns={columns} dataSource={dataSource} loading={loading} />
+      <Table columns={columns} dataSource={dataSource} loading={loading} scroll={{ x: "max-content" }} />
     </div>
   );
 };

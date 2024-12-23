@@ -62,6 +62,22 @@ const Submissions = () => {
   const searchInput = useRef(null);
   const [yearFilter, setYearFilter] = useState("all");
   const [years, setYears] = useState([]);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const fetchActiveProjects = async () => {
     try {
@@ -517,6 +533,7 @@ const Submissions = () => {
       title: "שם הפרויקט",
       dataIndex: "title",
       key: "title",
+      fixed: "left",
       ...getColumnSearchProps("title"),
       sorter: (a, b) => {
         // Safely handle undefined values in sorting
@@ -544,7 +561,7 @@ const Submissions = () => {
           </a>
         );
       },
-      width: "25%",
+      width: (windowSize.width - 220) / 3,
     },
     {
       title: "הגשות",
@@ -749,7 +766,7 @@ const Submissions = () => {
           </Button>
         </div>
       </div>
-      <Table columns={columns} dataSource={filteredSubmissionData} />
+      <Table columns={columns} dataSource={filteredSubmissionData} scroll={{ x: "max-content" }} />
       <Modal
         title={`האם הינך בטוח שברצונך למחוק את ההגשה ${deleteAllSubmissionsConfirm?.submissionName} לכולם?`}
         open={deleteAllSubmissionsConfirm !== null}

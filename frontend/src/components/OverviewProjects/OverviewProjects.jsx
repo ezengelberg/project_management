@@ -41,6 +41,22 @@ const OverviewProjects = () => {
   const [isChangeGradeModalOpen, setIsChangeGradeModalOpen] = useState(false);
   const [newGrade, setNewGrade] = useState(null);
   const [updateComment, setUpdateComment] = useState("");
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -562,10 +578,17 @@ const OverviewProjects = () => {
           ))}
         </div>
       ),
-      width: `${100 / projectSubmissions.length}%`,
     }));
 
-    return <Table columns={expandColumns} dataSource={[{ key: record._id }]} pagination={false} bordered={true} />;
+    return (
+      <Table
+        columns={expandColumns}
+        dataSource={[{ key: record._id }]}
+        pagination={false}
+        bordered={true}
+        scroll={{ x: "max-content" }}
+      />
+    );
   };
 
   const filteredTakenProjects = projects.filter((p) => {
@@ -585,13 +608,6 @@ const OverviewProjects = () => {
     return p.year === yearFilter;
   });
 
-  // const filteredFinishedProjects = projects.filter((p) => {
-  //   if (!p.isFinished || p.isTerminated) return false;
-  //   if (yearFilter === "") return true;
-  //   if (yearFilter === "all") return true;
-  //   return p.year === yearFilter;
-  // });
-
   const filteredTerminatedProjects = projects.filter((p) => {
     if (!p.isTerminated) return false;
     if (yearFilter === "") return true;
@@ -605,6 +621,7 @@ const OverviewProjects = () => {
         title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
+        fixed: "left",
         ...getColumnSearchProps("title"),
         render: (text, record) => (
           <a
@@ -618,7 +635,7 @@ const OverviewProjects = () => {
             />
           </a>
         ),
-        width: "25%",
+        width: (windowSize.width - 220) / 3,
         sorter: (a, b) => a.title.localeCompare(b.title),
         defaultSortOrder: "ascend",
         sortDirections: ["descend", "ascend"],
@@ -788,6 +805,7 @@ const OverviewProjects = () => {
         title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
+        fixed: "left",
         ...getColumnSearchProps("title"),
         render: (text, record) => (
           <a
@@ -801,7 +819,7 @@ const OverviewProjects = () => {
             />
           </a>
         ),
-        width: "25%",
+        width: windowSize.width > 1920 ? "25%" : (windowSize.width - 220) / 3,
         sorter: (a, b) => a.title.localeCompare(b.title),
         defaultSortOrder: "ascend",
         sortDirections: ["descend", "ascend"],
@@ -905,7 +923,7 @@ const OverviewProjects = () => {
                 <div key={submission._id} className="inner-table-order">
                   {submission.isGraded && (
                     <div className="show-grade">
-                      {submission.name} -{" "}
+                      {`${submission.name} - `}
                       {submission.overridden ? (
                         <div className="overridden-grade">
                           <Badge color="green" />
@@ -927,7 +945,7 @@ const OverviewProjects = () => {
                   )}
                   {submission.isReviewed && !submission.isGraded && (
                     <p>
-                      {submission.name} -{" "}
+                      {`${submission.name} - `}
                       {!submission.editable ? (
                         <Badge color="green" text="פורסם משוב" />
                       ) : (
@@ -940,7 +958,7 @@ const OverviewProjects = () => {
             </div>
           );
         },
-        width: "16%",
+        width: windowSize.width > 1920 ? "16%" : "25%",
       },
       {
         title: "פעולות",
@@ -1187,7 +1205,13 @@ const OverviewProjects = () => {
               שיבוץ מנחים אוטומטי
             </Button>
           </div>
-          <Table columns={columns.open} dataSource={filteredOpenProjects} loading={loading} rowKey="_id" />
+          <Table
+            columns={columns.open}
+            dataSource={filteredOpenProjects}
+            loading={loading}
+            rowKey="_id"
+            scroll={{ x: "max-content" }}
+          />
         </>
       ),
     },
@@ -1255,6 +1279,9 @@ const OverviewProjects = () => {
               expandedRowRender,
               defaultExpandedRowKeys: [],
             }}
+            scroll={{
+              x: "max-content",
+            }}
           />
         </>
       ),
@@ -1290,7 +1317,13 @@ const OverviewProjects = () => {
               </Select.Option>
             ))}
           </Select>
-          <Table columns={columns.terminated} dataSource={filteredTerminatedProjects} loading={loading} rowKey="_id" />
+          <Table
+            columns={columns.terminated}
+            dataSource={filteredTerminatedProjects}
+            loading={loading}
+            rowKey="_id"
+            scroll={{ x: "max-content" }}
+          />
         </>
       ),
     },
@@ -1298,6 +1331,7 @@ const OverviewProjects = () => {
 
   return (
     <div>
+      <p>{windowSize.width}</p>
       <Tabs items={tabs} />
       {/* Add Students Modal */}
       <Modal
