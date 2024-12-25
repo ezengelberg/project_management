@@ -164,8 +164,7 @@ const Submissions = () => {
 
   const assignJudgesAutomatically = async () => {
     try {
-      console.log("Assigning judges automatically...");
-      await axios.post(
+      const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/assign-judge-auto`,
         {
           submissionYear: yearFilter,
@@ -174,8 +173,16 @@ const Submissions = () => {
           withCredentials: true,
         },
       );
+      message.open({
+        type: "success",
+        content: "השופטים הוקצו בהצלחה",
+      });
     } catch (error) {
-      console.error("Error assigning judges:", error);
+      console.error("Error assigning judges automatically:", error);
+      message.open({
+        type: "error",
+        content: "מחסור בשופטים להקצאה אוטומטית",
+      });
     }
   };
 
