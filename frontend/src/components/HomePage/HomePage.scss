@@ -116,3 +116,9 @@
     transform: scale(1.1);
   }
 }
+
+@media screen and (max-width: 1024px) {
+  .home-page-info {
+    grid-template-columns: 1fr;
+  }
+}

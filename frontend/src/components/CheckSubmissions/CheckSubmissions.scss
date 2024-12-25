@@ -67,3 +67,9 @@
     font-weight: 400;
   }
 }
+
+@media screen and (max-width: 1024px) {
+  .check-submissions-container {
+    width: 90%;
+  }
+}

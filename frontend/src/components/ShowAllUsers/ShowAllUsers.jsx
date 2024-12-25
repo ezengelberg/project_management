@@ -33,6 +33,22 @@ const ShowAllUsers = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -124,6 +140,7 @@ const ShowAllUsers = () => {
       title: "שם",
       dataIndex: "name",
       key: "name",
+      fixed: "left",
       ...getColumnSearchProps("name"),
       render: (text, record) => (
         <a
@@ -138,7 +155,17 @@ const ShowAllUsers = () => {
             highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
             searchWords={[searchText]}
             autoEscape
-            textToHighlight={text ? text.toString() : ""}
+            textToHighlight={
+              windowSize.width > 1920
+                ? text.length > 40
+                  ? `${text.slice(0, 40)}...`
+                  : text
+                : windowSize.width <= 1920
+                ? text.length > 25
+                  ? `${text.slice(0, 25)}...`
+                  : text
+                : text
+            }
           />
         </a>
       ),
@@ -148,7 +175,7 @@ const ShowAllUsers = () => {
       sorter: (a, b) => a.name.localeCompare(b.name),
       defaultSortOrder: "ascend",
       sortDirections: ["descend", "ascend"],
-      width: "20%",
+      width: windowSize.width > 1920 ? "20%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 300,
     },
     {
       title: "ת.ז.",
@@ -160,7 +187,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.userId - b.userId,
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 120 : 120,
     },
     {
       title: "תאריך הרשמה",
@@ -172,7 +199,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => new Date(a.registerDate) - new Date(b.registerDate),
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 170 : 170,
     },
     {
       title: "פרויקט נבחר",
@@ -205,7 +232,7 @@ const ShowAllUsers = () => {
         }
         return record.projectId === null;
       },
-      width: "20%",
+      width: windowSize.width > 1920 ? "20%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 250 : 250,
     },
     {
       title: "תפקיד",
@@ -236,7 +263,7 @@ const ShowAllUsers = () => {
         }
         return false;
       },
-      width: "15%",
+      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 150 : 150,
     },
     {
       title: "אימייל",
@@ -248,7 +275,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.email.localeCompare(b.email),
       sortDirections: ["descend", "ascend"],
-      width: "15%",
+      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 200,
     },
     {
       title: "פעולות",
@@ -288,7 +315,7 @@ const ShowAllUsers = () => {
           </a>
         </Space>
       ),
-      width: "5%",
+      width: windowSize.width > 1920 ? "5%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 100 : 100,
     },
   ];
 
@@ -407,6 +434,7 @@ const ShowAllUsers = () => {
       title: "שם",
       dataIndex: "name",
       key: "name",
+      fixed: "left",
       ...getColumnSearchProps("name"),
       render: (text, record) => (
         <a
@@ -421,7 +449,17 @@ const ShowAllUsers = () => {
             highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
             searchWords={[searchText]}
             autoEscape
-            textToHighlight={text ? text.toString() : ""}
+            textToHighlight={
+              windowSize.width > 1920
+                ? text.length > 40
+                  ? `${text.slice(0, 40)}...`
+                  : text
+                : windowSize.width <= 1920
+                ? text.length > 25
+                  ? `${text.slice(0, 25)}...`
+                  : text
+                : text
+            }
           />
         </a>
       ),
@@ -431,7 +469,7 @@ const ShowAllUsers = () => {
       sorter: (a, b) => a.name.localeCompare(b.name),
       defaultSortOrder: "ascend",
       sortDirections: ["descend", "ascend"],
-      width: "15%",
+      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 300,
     },
     {
       title: "ת.ז.",
@@ -443,7 +481,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.userId - b.userId,
       sortDirections: ["descend", "ascend"],
-      width: "8%",
+      width: windowSize.width > 1920 ? "8%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 120 : 120,
     },
     {
       title: "תאריך הרשמה",
@@ -455,7 +493,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => new Date(a.registerDate) - new Date(b.registerDate),
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 170 : 170,
     },
     {
       title: "פרויקט נבחר",
@@ -488,7 +526,7 @@ const ShowAllUsers = () => {
         }
         return record.projectId === null;
       },
-      width: "20%",
+      width: windowSize.width > 1920 ? "20%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 250 : 250,
     },
     {
       title: "תפקיד",
@@ -515,7 +553,7 @@ const ShowAllUsers = () => {
         }
         return false;
       },
-      width: "10%",
+      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 150 : 150,
     },
     {
       title: "אימייל",
@@ -527,7 +565,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.email.localeCompare(b.email),
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 200,
     },
     {
       title: "סיבת השעיה",
@@ -553,7 +591,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.suspensionReason.localeCompare(b.suspensionReason),
       sortDirections: ["descend", "ascend"],
-      width: "15%",
+      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 200,
     },
     {
       title: "תאריך השעיה",
@@ -565,7 +603,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => new Date(a.suspensionDate) - new Date(b.suspensionDate),
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 170 : 170,
     },
     {
       title: "פעולות",
@@ -588,7 +626,7 @@ const ShowAllUsers = () => {
           </a>
         </Space>
       ),
-      width: "5%",
+      width: windowSize.width > 1920 ? "5%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 100 : 100,
     },
   ];
 
@@ -668,12 +706,30 @@ const ShowAllUsers = () => {
     {
       key: "1",
       label: "משתמשים רשומים",
-      children: <Table columns={columns} dataSource={dataSource} loading={loading} />,
+      children: (
+        <Table
+          columns={columns}
+          dataSource={dataSource}
+          loading={loading}
+          scroll={{
+            x: "max-content",
+          }}
+        />
+      ),
     },
     {
       key: "2",
       label: "משתמשים מושעים",
-      children: <Table columns={suspendedColumns} dataSource={suspendedDataSource} loading={loading} />,
+      children: (
+        <Table
+          columns={suspendedColumns}
+          dataSource={suspendedDataSource}
+          loading={loading}
+          scroll={{
+            x: "max-content",
+          }}
+        />
+      ),
     },
   ];
 

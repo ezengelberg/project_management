@@ -943,7 +943,7 @@ const OverviewProjects = () => {
                 <div key={submission._id} className="inner-table-order">
                   {submission.isGraded && (
                     <div className="show-grade">
-                      {`${submission.name} - `}
+                      {`${submission.name.length > 18 ? submission.name.substring(0, 18) + "..." : submission.name} - `}
                       {submission.overridden ? (
                         <div className="overridden-grade">
                           <Badge color="green" />
@@ -965,7 +965,7 @@ const OverviewProjects = () => {
                   )}
                   {submission.isReviewed && !submission.isGraded && (
                     <p>
-                      {`${submission.name} - `}
+                      {`${submission.name.length > 18 ? submission.name.substring(0, 18) + "..." : submission.name} - `}
                       {!submission.editable ? (
                         <Badge color="green" text="פורסם משוב" />
                       ) : (

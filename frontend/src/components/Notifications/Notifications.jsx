@@ -102,7 +102,7 @@ const Notifications = () => {
   ];
 
   return (
-    <div>
+    <div className="notifications-page">
       <Tabs defaultActiveKey="1" items={items} />
       <Modal
         title="מחיקת התראה"

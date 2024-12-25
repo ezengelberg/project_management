@@ -124,9 +124,7 @@ const HeaderMenu = () => {
 
   return (
     <div className="header-container">
-      {windowSize.width > 1024 && (
-        <img src={collegeLogo} alt="collage logo" className="collage-logo" onClick={() => navigate("/home")} />
-      )}
+      <img src={collegeLogo} alt="collage logo" className="collage-logo" onClick={() => navigate("/home")} />
       <div className="site-upper-header-left">
         <Popover
           content={content}

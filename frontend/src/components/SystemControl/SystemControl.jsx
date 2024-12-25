@@ -33,6 +33,22 @@ const SystemControl = () => {
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [currentSubmissionName, setCurrentSubmissionName] = useState("");
   const [currentGroup, setCurrentGroup] = useState("");
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const fetchGrades = async () => {
     try {
@@ -224,10 +240,13 @@ const SystemControl = () => {
       title: "הגשה",
       dataIndex: "name",
       key: "name",
-      render: (text) => <span>{text}</span>, // Ensure group names show up
+      fixed: "left",
+      render: (text) => (
+        <span>{text.length > 40 ? <Tooltip title={text}>{text.substring(0, 40)}...</Tooltip> : text}</span>
+      ),
       sorter: (a, b) => a.name.localeCompare(b.name),
       defaultSortOrder: "ascend",
-      width: "10%",
+      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 300,
     },
     ...Object.keys(letterToNumber).map((letter) => ({
       title: <p style={{ direction: "ltr", margin: "0", textAlign: "right" }}>{letter}</p>,
@@ -236,7 +255,12 @@ const SystemControl = () => {
       editable: true,
       render: (text) => (text !== null ? text : ""),
       sorter: (a, b) => (a[letter] || 0) - (b[letter] || 0),
-      width: `${85 / Object.keys(letterToNumber).length}%`,
+      width:
+        windowSize.width > 1920
+          ? `${80 / Object.keys(letterToNumber).length}%`
+          : windowSize.width <= 1920 && windowSize.width > 1024
+          ? 120
+          : 120,
     })),
     {
       title: "פעולות",
@@ -267,7 +291,7 @@ const SystemControl = () => {
           </Typography.Link>
         );
       },
-      width: "5%",
+      width: windowSize.width > 1920 ? "5%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 100 : 100,
     },
   ];
 
@@ -319,7 +343,14 @@ const SystemControl = () => {
             <div key={submissionName} className="publish-button">
               {submissionGroups[submissionName].status === "graded" && (
                 <>
-                  <label>פרסם ציונים זמינים עבור {submissionName}</label>
+                  <label>
+                    פרסם ציונים זמינים עבור{" "}
+                    {submissionName.length > 20 ? (
+                      <Tooltip title={submissionName}>{submissionName.substring(0, 20)}...</Tooltip>
+                    ) : (
+                      submissionName
+                    )}
+                  </label>
                   <Button
                     type="primary"
                     loading={loading}
@@ -330,7 +361,14 @@ const SystemControl = () => {
               )}
               {submissionGroups[submissionName].status === "reviewed" && (
                 <>
-                  <label>פרסם משובים זמינים עבור {submissionName}</label>
+                  <label>
+                    פרסם משובים זמינים עבור{" "}
+                    {submissionName.length > 20 ? (
+                      <Tooltip title={submissionName}>{submissionName.substring(0, 20)}...</Tooltip>
+                    ) : (
+                      submissionName
+                    )}
+                  </label>
                   <Button
                     type="primary"
                     loading={loading}
@@ -356,6 +394,9 @@ const SystemControl = () => {
           columns={mergedColumns}
           rowClassName="editable-row"
           pagination={false}
+          scroll={{
+            x: "max-content",
+          }}
         />
       </Form>
       <Modal

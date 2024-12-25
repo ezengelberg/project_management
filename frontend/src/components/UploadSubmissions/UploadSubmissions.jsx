@@ -415,13 +415,12 @@ const UploadSubmissions = () => {
             </a>
           ) : record.fileNeeded ? (
             <span>
-              תאריך הגשה עבר (
+              תאריך הגשה עבר <br />
               <Tooltip title="לחץ להורדת קובץ מקור">
                 <a style={{ fontWeight: "bold" }} onClick={() => downloadFile(record.file, "submissions")}>
                   הורדת קובץ מקור
                 </a>
               </Tooltip>
-              )
             </span>
           ) : (
             <span>הגשה ללא קובץ</span>
@@ -437,7 +436,7 @@ const UploadSubmissions = () => {
       <Modal
         title={`צפיה בציון`}
         open={gradeInfo != null}
-        width="40%"
+        width={windowSize.width > 1024 ? "40%" : "80%"}
         cancelText="סגור"
         onCancel={() => setGradeInfo(null)}
         okButtonProps={{ style: { display: "none" } }}>
@@ -512,7 +511,7 @@ const UploadSubmissions = () => {
       <Modal
         title={`מחיקת הגשה עבור ${currentSubmission?.name}`}
         open={isConfirmModalVisible}
-        width="15%"
+        width={windowSize.width > 1024 ? "15%" : "60%"}
         okText="אשר מחיקה"
         okButtonProps={{ danger: true }}
         cancelText="סגור"
@@ -528,7 +527,7 @@ const UploadSubmissions = () => {
         okText="העלה הגשה"
         cancelText="ביטול"
         okButtonProps={{ disabled: !file }}
-        width="30%">
+        width={windowSize.width > 1024 ? "30%" : "80%"}>
         <div className="submission-modal">
           {currentSubmission?.submissionInfo && (
             <div className="submission-info">

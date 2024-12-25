@@ -324,8 +324,8 @@ const Homepage = () => {
                               ? notification.message.length > 125
                                 ? `${notification.message.slice(0, 125)}...`
                                 : notification.message
-                              : notification.message.length > 65
-                              ? `${notification.message.slice(0, 65)}...`
+                              : notification.message.length > 105
+                              ? `${notification.message.slice(0, 105)}...`
                               : notification.message}
                             <br />
                             <span className="notification-list-date">
