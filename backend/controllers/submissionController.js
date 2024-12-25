@@ -416,7 +416,7 @@ export const assignJudgesAutomatically = async (req, res) => {
           !currentJudges.includes(judge) // Check judge isn't already assigned
         );
       });
-      if (potentialJudges.length === 0) {
+      if (potentialJudges.length === 0 || potentialJudges.length < remainingSlots) {
         res.status(500).json({ message: "No enough potential judges found" });
         return;
       }
