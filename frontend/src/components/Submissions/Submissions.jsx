@@ -35,7 +35,6 @@ const Submissions = () => {
   const { Option } = Select;
   const { fetchNotifications } = useContext(NotificationsContext);
   const [formAll] = Form.useForm();
-  const [formJudges] = Form.useForm();
   const [editSubmission] = Form.useForm();
   const [editSpecificSubmission] = Form.useForm();
   const [formSpecific] = Form.useForm();
@@ -44,7 +43,6 @@ const Submissions = () => {
   const [allSubmissions, setAllSubmissions] = useState(false);
   const [specificSubmission, setSpecificSubmission] = useState(false);
   const [editSubmissions, setEditSubmissions] = useState(false);
-  const [copyJudges, setCopyJudges] = useState(false);
   const [gradeFormOpen, setGradeFormOpen] = useState(false);
   const [gradeToOverride, setGradeToOverride] = useState(null);
   const [submissionData, setSubmissionData] = useState([]);
@@ -110,7 +108,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
           withCredentials: true,
-        }
+        },
       );
       response.data.map((project) => {
         project.submissions.map((submission) => {
@@ -127,18 +125,18 @@ const Submissions = () => {
               submission.submissions.map((sub) => ({
                 name: sub.name,
                 info: sub.info,
-              }))
+              })),
             )
             .map((sub) => [
               sub.name, // Use the name as key
               sub, // Keep the object with name and info as the value
-            ])
+            ]),
         ).values(),
       ];
 
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
-          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission
+          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
         );
 
         if (!existing) return submission;
@@ -164,31 +162,6 @@ const Submissions = () => {
     fetchYears();
   }, []);
 
-  const handleJudgeCopy = async (values) => {
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/submission/copy-judges`,
-        {
-          sourceSubmission: values.sourceSubmission,
-          destinationSubmission: values.destinationSubmission,
-        },
-        {
-          withCredentials: true,
-        }
-      );
-      message.open({
-        type: "success",
-        content: "העתקת השופטים הושלמה בהצלחה",
-      });
-    } catch (error) {
-      console.error("Error copying judges:", error);
-    } finally {
-      formJudges.resetFields();
-      setCopyJudges(false);
-      fetchSubmissions();
-    }
-  };
-
   const overrideGrade = async (values) => {
     try {
       await axios.put(
@@ -197,7 +170,7 @@ const Submissions = () => {
           newGrade: values.newGrade,
           comment: values.comment,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       message.open({
         type: "success",
@@ -219,7 +192,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -239,10 +212,11 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-active-submissions`,
         {
           submissionName: values.submissionName,
+          submissionYear: yearFilter,
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "info",
@@ -306,13 +280,14 @@ const Submissions = () => {
           name: name,
           submissionDate: values.submissionDate,
           submissionInfo: values.submissionInfo,
+          submissionYear: yearFilter,
           isGraded: isGraded,
           isReviewed: isReviewed,
           fileNeeded: fileNeeded,
         },
         {
           withCredentials: true,
-        }
+        },
       );
       if (submissionDetails.some((submission) => submission.name === name)) {
         message.open({
@@ -351,7 +326,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
@@ -373,10 +348,11 @@ const Submissions = () => {
           SubmissionName: values.SubmissionName,
           submissionDate: values.submissionDate,
           submissionInfo: values.submissionInfo,
+          submissionYear: yearFilter,
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -444,7 +420,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -475,17 +451,6 @@ const Submissions = () => {
       .validateFields()
       .then((values) => {
         handleOkAll(values);
-      })
-      .catch((info) => {
-        console.log("Validate Failed:", info);
-      });
-  };
-
-  const onOkHandlerJudges = () => {
-    formJudges
-      .validateFields()
-      .then((values) => {
-        handleJudgeCopy(values);
       })
       .catch((info) => {
         console.log("Validate Failed:", info);
@@ -616,7 +581,7 @@ const Submissions = () => {
                                   sub.isLate
                                     ? ` באיחור - ${Math.ceil(
                                         (new Date(sub.uploadDate) - new Date(sub.submissionDate)) /
-                                          (1000 * 60 * 60 * 24)
+                                          (1000 * 60 * 60 * 24),
                                       )} ימים`
                                     : ""
                                 }`
@@ -713,7 +678,7 @@ const Submissions = () => {
   ];
 
   const filteredSubmissionData = submissionData.filter(
-    (project) => yearFilter === "all" || project.year === yearFilter
+    (project) => yearFilter === "all" || project.year === yearFilter,
   );
 
   return (
@@ -760,8 +725,8 @@ const Submissions = () => {
           פתיחת הגשה לפרויקטים נבחרים
         </Button>
         {/* work in progress, doesn't work */}
-        <Button type="primary" onClick={() => setCopyJudges(true)}>
-          העתקת שופטים
+        <Button type="primary" onClick={() => console.log(yearFilter)}>
+          הקצאת שופטים אוטומטית
         </Button>
         <div className="action-buttons-end">
           <Button type="primary" onClick={() => setEditSubmissions(true)}>
@@ -774,14 +739,17 @@ const Submissions = () => {
       </div>
       <Table columns={columns} dataSource={filteredSubmissionData} scroll={{ x: "max-content" }} />
       <Modal
-        title={`האם הינך בטוח שברצונך למחוק את ההגשה ${deleteAllSubmissionsConfirm?.submissionName} לכולם?`}
+        title={`אישור מחיקה`}
         open={deleteAllSubmissionsConfirm !== null}
         okText="מחק"
         cancelText="ביטול"
+        okButtonProps={{ danger: true }}
         onOk={() => {
           handleOkDelete(deleteAllSubmissionsConfirm);
         }}
-        onCancel={() => setDeleteAllSubmissionsConfirm(null)}></Modal>
+        onCancel={() => setDeleteAllSubmissionsConfirm(null)}>
+        {`האם אתה בטוח שברצונך למחוק את כל ההגשות עם שם ${deleteAllSubmissionsConfirm?.submissionName} מהשנה ${yearFilter}?`}
+      </Modal>
       <Modal
         title="מחיקת הגשות"
         open={deleteAllSubmissions}
@@ -804,7 +772,10 @@ const Submissions = () => {
         }}>
         <Form layout="vertical" form={deleteSubmissionsForm}>
           <p>
-            <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - המחיקה מוחקת את כל ההגשות עם שם זה
+            <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - המחיקה מוחקת את כל ההגשות עם שם זה עבור השנה{" "}
+            <Tooltip title="ניתן לשנות בחירה ב dropdown">
+              <span style={{ textDecoration: "underline" }}>{yearFilter}</span>
+            </Tooltip>
           </p>
           <Form.Item
             label="בחר הגשה"
@@ -985,7 +956,7 @@ const Submissions = () => {
                               ? ` באיחור - ${Math.ceil(
                                   (new Date(submissionInfo.submission.uploadDate) -
                                     new Date(submissionInfo.submission.submissionDate)) /
-                                    (1000 * 60 * 60 * 24)
+                                    (1000 * 60 * 60 * 24),
                                 )} ימים`
                               : ""
                           }`
@@ -1226,55 +1197,6 @@ const Submissions = () => {
           </Form.Item>
           <Form.Item label="פרטים נוספים" name="submissionInfo">
             <TextArea rows={4} />
-          </Form.Item>
-        </Form>
-      </Modal>
-      <Modal
-        title="העתקת שופטים"
-        open={copyJudges}
-        okText="העתק שופטים"
-        cancelText="סגור"
-        onOk={() => onOkHandlerJudges()}
-        onCancel={() => {
-          formJudges.resetFields();
-          setCopyJudges(false);
-        }}>
-        <Form layout="vertical" form={formJudges}>
-          <Form.Item
-            label="הגשת מקור"
-            name="sourceSubmission"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה לבחור הגשת מקור",
-              },
-            ]}>
-            <Select placeholder="בחר הגשת מקור">
-              {submissionDetails.map((submission, index) => (
-                <Option key={index} value={submission.name}>
-                  {submission.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item
-            label="הגשת יעד"
-            name="destinationSubmission"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה לבחור הגשת יעד",
-              },
-            ]}>
-            <Select placeholder="בחר הגשת יעד">
-              {submissionDetails.map((submission, index) => (
-                <Option key={index} value={submission.name}>
-                  {submission.name}
-                </Option>
-              ))}
-            </Select>
           </Form.Item>
         </Form>
       </Modal>
