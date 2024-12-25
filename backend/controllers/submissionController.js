@@ -366,6 +366,90 @@ export const copyJudges = async (req, res) => {
   }
 };
 
+export const assignJudgesAutomatically = async (req, res) => {
+  console.log("assigning automatically");
+  const workload = {};
+  // Get all active projects
+  const activeProjects = await Project.find({
+    isTerminated: false,
+    isFinished: false,
+    isTaken: true,
+    year: req.body.submissionYear,
+  });
+
+  const activeProjectIds = activeProjects.map((project) => project._id);
+
+  // Get all advisors and assign them a workload
+  activeProjects.forEach((project) => {
+    const advisor = project.advisors[0].toString();
+    if (!workload[advisor]) {
+      workload[advisor] = { projects: 0, quota: 0, assigned: 0 };
+    }
+    workload[advisor].projects++;
+    workload[advisor].quota += 3;
+    console.log(advisor);
+  });
+
+  // Get all submissions for active projects and shuffle them
+  const submissions = await Submission.find({ project: { $in: activeProjectIds } });
+  for (const submission of submissions) {
+    // Use Promise.all to handle all grades for the submission in parallel
+    const currentJudges = await Promise.all(
+      submission.grades.map(async (grade) => {
+        const gradeInfo = await Grade.findById(grade);
+        const advisor = gradeInfo.judge.toString();
+
+        if (workload[advisor]) {
+          workload[advisor].assigned++;
+        } else {
+          console.warn(`Advisor ${advisor} not found in workload!`);
+        }
+
+        return advisor;
+      }),
+    );
+    // Calculate remaining slots for judges
+    const remainingSlots = Math.max(0, 3 - currentJudges.length);
+    if (remainingSlots > 0) {
+      const potentialJudges = Object.keys(workload).filter((judge) => {
+        return (
+          workload[judge].assigned < workload[judge].quota && // Check quota
+          !currentJudges.includes(judge) // Check judge isn't already assigned
+        );
+      });
+      if (potentialJudges.length === 0) {
+        console.log("No potential judges found");
+        res.status(500).json({ message: "No enough potential judges found" });
+      }
+
+      // Shuffle potential judges for fairness by assigned to quota ratio
+      const shuffledJudges = potentialJudges
+        .map((judge) => ({
+          judge,
+          ratio: workload[judge].assigned / workload[judge].quota,
+        }))
+        .sort((a, b) => a.ratio - b.ratio || Math.random() - 0.5)
+        .map((item) => item.judge);
+      for (let i = 0; i < remainingSlots && shuffledJudges.length > 0; i++) {
+        const selectedJudge = shuffledJudges.pop();
+        currentJudges.push(selectedJudge);
+        workload[selectedJudge].assigned++;
+
+        const newGrade = new Grade({ judge: selectedJudge });
+        await newGrade.save();
+        const notification = new Notification({
+          user: selectedJudge,
+          message: `מונתה לשפיטת: "${submission.name}" עבור פרויקט: "${submission.project.title}"`,
+        });
+        await notification.save();
+        submission.grades.push(newGrade._id);
+      }
+      await submission.save();
+    }
+  }
+  res.status(200).json({ message: "Judges assigned successfully" });
+};
+
 export const updateJudgesInSubmission = async (req, res) => {
   try {
     const { submissionID, judges } = req.body;

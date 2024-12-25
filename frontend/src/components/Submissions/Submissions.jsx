@@ -162,6 +162,23 @@ const Submissions = () => {
     fetchYears();
   }, []);
 
+  const assignJudgesAutomatically = async () => {
+    try {
+      console.log("Assigning judges automatically...");
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/assign-judge-auto`,
+        {
+          submissionYear: yearFilter,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+    } catch (error) {
+      console.error("Error assigning judges:", error);
+    }
+  };
+
   const overrideGrade = async (values) => {
     try {
       await axios.put(
@@ -719,7 +736,7 @@ const Submissions = () => {
           פתיחת הגשה לפרויקטים נבחרים
         </Button>
         {/* work in progress, doesn't work */}
-        <Button type="primary" onClick={() => console.log(yearFilter)}>
+        <Button type="primary" onClick={() => assignJudgesAutomatically()}>
           הקצאת שופטים אוטומטית
         </Button>
         <div className="action-buttons-end">
