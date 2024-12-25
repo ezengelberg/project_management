@@ -1,5 +1,5 @@
+import React, { useEffect, useState, useRef } from "react";
 import "./Sidebar.scss";
-import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
   HomeOutlined,
@@ -12,6 +12,7 @@ import {
   InfoCircleOutlined,
   BarChartOutlined,
   MessageOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -19,6 +20,7 @@ import { handleMouseDown } from "../../utils/mouseDown";
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const sidebarRef = useRef(null);
   const [user, setUser] = useState({});
   const [openSubmenus, setOpenSubmenus] = useState({
     myProject: false,
@@ -26,6 +28,39 @@ const Sidebar = () => {
     manageUsers: false,
     manageProjects: false,
   });
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarVisible(!isSidebarVisible);
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    const handleClickOutside = (event) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setIsSidebarVisible(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const JudgeSVG = () => (
     <svg className="special-sidebar-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
@@ -47,27 +82,14 @@ const Sidebar = () => {
     </svg>
   );
 
-  const MegaphoneSVG = () => (
-    <svg
-      style={{
-        transform: "scaleX(-1)",
-        transformOrigin: "center",
-      }}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg">
+  const HamburgerSVG = () => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
       <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
       <g id="SVGRepo_iconCarrier">
-        <path
-          d="M11,16H5c-2.7,0-5-2.2-5-5c0-2.8,2.2-5,5-5h6c0.6,0,1,0.4,1,1v8C12,15.6,11.6,16,11,16z M5,8c-1.6,0-3,1.3-3,3 c0,1.7,1.3,3,3,3h5V8H5z"
-          fill="#e4dede"></path>
-        <path
-          d="M23,20c-0.1,0-0.2,0-0.3-0.1l-12-4C10.3,15.8,10,15.4,10,15V7c0-0.4,0.3-0.8,0.7-0.9l12-4C23,1.9,23.3,2,23.6,2.2 C23.8,2.4,24,2.7,24,3v16c0,0.3-0.2,0.6-0.4,0.8C23.4,19.9,23.2,20,23,20z M12,14.3l10,3.3V4.4L12,7.7V14.3z"
-          fill="#e4dede"></path>
-        <path
-          d="M8,22H4c-0.3,0-0.6-0.2-0.8-0.4C3,21.3,2.9,21,3.1,20.7l2-6C5.2,14.3,5.6,14,6,14h4c0.3,0,0.6,0.2,0.8,0.4 c0.2,0.3,0.2,0.6,0.1,0.9l-2,6C8.8,21.7,8.4,22,8,22z M5.4,20h1.9l1.3-4H6.7L5.4,20z"
-          fill="#e4dede"></path>
+        <path d="M20 7L4 7" stroke="#1C274C" strokeWidth="1.5" strokeLinecap="round"></path>
+        <path d="M20 12L4 12" stroke="#1C274C" strokeWidth="1.5" strokeLinecap="round"></path>
+        <path d="M20 17L4 17" stroke="#1C274C" strokeWidth="1.5" strokeLinecap="round"></path>
       </g>
     </svg>
   );
@@ -104,210 +126,212 @@ const Sidebar = () => {
     return path.some((p) => location.pathname === p);
   };
 
-  return (
-    <div className="sidebar-container">
-      <div className="sidebar-actions">
-        <div className="sidebar-greeting">
-          <h3>שלום, {user.name}</h3>
-        </div>
-        <ul>
-          <li>
-            <div
-              className={`sidebar-option ${isActive("/home") ? "active" : ""}`}
-              onClick={() => navigate("/home")}
-              onMouseDown={(e) => handleMouseDown(e, "/home")}>
-              <HomeOutlined />
-              <span>בית</span>
-            </div>
-          </li>
-          {(user.isStudent || user.isAdvisor || user.isCoordinator) && (
-            <li>
-              <div
-                className={`sidebar-option ${isActive("/announcements") ? "active" : ""}`}
-                onClick={() => navigate("/announcements")}
-                onMouseDown={(e) => handleMouseDown(e, "/announcements")}>
-                <MessageOutlined />
-                <span>הודעות</span>
-              </div>
-            </li>
-          )}
-          {user.isStudent && (
-            <li>
-              <div
-                className={`sidebar-option ${isActive("/projects") ? "active" : ""}`}
-                onClick={() => navigate("/projects")}
-                onMouseDown={(e) => handleMouseDown(e, "/projects")}>
-                <ProjectOutlined />
-                <span>פרויקטים</span>
-              </div>
-            </li>
-          )}
-          <li>
-            <div
-              className={`sidebar-option ${isActive("/templates") ? "active" : ""}`}
-              onClick={() => navigate("/templates")}
-              onMouseDown={(e) => handleMouseDown(e, "/templates")}>
-              <FileSearchOutlined />
-              <span> תבנית דוחות</span>
-            </div>
-          </li>
-          {user.isStudent && (
-            <li>
-              <div
-                className={`sidebar-option ${isActive("/my-submissions") ? "active" : ""}`}
-                onClick={() => navigate("/my-submissions")}
-                onMouseDown={(e) => handleMouseDown(e, "/my-submissions")}>
-                <ApartmentOutlined />
-                הגשות
-              </div>
-            </li>
-          )}
-          {user.isAdvisor && (
-            <li className={`${openSubmenus.myProjects ? "open" : "closed"}`}>
-              <div
-                className="sidebar-option"
-                onClick={() => toggleSubmenu("myProjects")}
-                onMouseDown={(e) => handleMouseDown(e, "/create-project")}>
-                <FundProjectionScreenOutlined />
-                <span>פרויקטים שלי</span>
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
-                    stroke="#0C0310"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-              <div className={`sidebar-drop-menu ${openSubmenus.myProjects ? "open" : "closed"}`}>
-                <ul>
-                  <li
-                    className={`${isActive("/create-project") ? "active" : ""}`}
-                    onClick={() => navigate("/create-project")}
-                    onMouseDown={(e) => handleMouseDown(e, "/create-project")}>
-                    הזנת פרויקט
-                  </li>
-                  <li
-                    className={`${isActive("/list-projects") ? "active" : ""}`}
-                    onClick={() => navigate("/list-projects")}
-                    onMouseDown={(e) => handleMouseDown(e, "/list-projects")}>
-                    סטטוס פרויקטים
-                  </li>
-                  <li
-                    className={`${isActive("/submission-status") ? "active" : ""}`}
-                    onClick={() => navigate("/submission-status")}
-                    onMouseDown={(e) => handleMouseDown(e, "/submission-status")}>
-                    סטטוס הגשות
-                  </li>
-                </ul>
-              </div>
-            </li>
-          )}
+  const handleNavigate = (path) => {
+    navigate(path);
+    setIsSidebarVisible(false);
+  };
 
-          {user.isCoordinator && (
-            <li className={`sidebar-drop-menu ${openSubmenus.manageProjects ? "open" : "closed"}`}>
-              <div
-                className="sidebar-option"
-                onClick={() => toggleSubmenu("manageProjects")}
-                onMouseDown={(e) => handleMouseDown(e, "/overview-projects")}>
-                <BarChartOutlined />
-                <span>ניהול פרויקטים</span>
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
-                    stroke="#0C0310"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-              <div className={`sidebar-drop-menu ${openSubmenus.manageProjects ? "open" : "closed"}`}>
-                <ul>
-                  <li
-                    className={`${isActive("/overview-projects") ? "active" : ""}`}
-                    onClick={() => navigate("/overview-projects")}
-                    onMouseDown={(e) => handleMouseDown(e, "/overview-projects")}>
-                    הצגת פרויקטים
-                  </li>
-                  <li
-                    className={`sidebar-option ${isActive("/submissions") ? "active" : ""}`}
-                    onClick={() => navigate("/submissions")}
-                    onMouseDown={(e) => handleMouseDown(e, "/submissions")}>
-                    ניהול הגשות
-                  </li>
-                </ul>
-              </div>
-            </li>
-          )}
-          {user.isCoordinator && (
-            <li className={`${openSubmenus.manageUsers ? "open" : "closed"}`}>
-              <div
-                className="sidebar-option"
-                onClick={() => toggleSubmenu("manageUsers")}
-                onMouseDown={(e) => handleMouseDown(e, "/create-user")}>
-                <TeamOutlined />
-                <span>ניהול משתמשים</span>
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
-                    stroke="#0C0310"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-              <div className={`sidebar-drop-menu`}>
-                <ul>
-                  <li
-                    className={`${isActive("/create-user") ? "active" : ""}`}
-                    onClick={() => navigate("/create-user")}
-                    onMouseDown={(e) => handleMouseDown(e, "/create-user")}>
-                    יצירת משתמשים
-                  </li>
-                  <li
-                    className={`${isActive("/display-users") ? "active" : ""}`}
-                    onClick={() => navigate("display-users")}
-                    onMouseDown={(e) => handleMouseDown(e, "/display-users")}>
-                    הצגת משתמשים
-                  </li>
-                </ul>
-              </div>
-            </li>
-          )}
-          {user.isJudge && (
+  return (
+    <>
+      <button className={`${isSidebarVisible ? "" : "hamburger-button"}`} onClick={toggleSidebar}>
+        {!isSidebarVisible && <HamburgerSVG />}
+      </button>
+      <div ref={sidebarRef} className={`sidebar-container ${isSidebarVisible ? "show" : ""}`}>
+        {isSidebarVisible && (
+          <button className="close-button" onClick={toggleSidebar}>
+            {isSidebarVisible && <CloseOutlined />}
+          </button>
+        )}
+        <div className="sidebar-actions">
+          <div className="sidebar-greeting">
+            <h3>שלום, {user.name}</h3>
+          </div>
+          <ul>
             <li>
               <div
-                className={`sidebar-option ${isActive("/check-submissions") ? "active" : ""}`}
-                onClick={() => navigate("/check-submissions")}
-                onMouseDown={(e) => handleMouseDown(e, "/check-submissions")}>
-                <JudgeSVG />
-                <span>בדיקת הגשות</span>
+                className={`sidebar-option ${isActive("/home") ? "active" : ""}`}
+                onClick={() => handleNavigate("/home")}>
+                <HomeOutlined />
+                <span>בית</span>
               </div>
             </li>
-          )}
-          {user.isStudent && <li>
-            <div
-              className={`sidebar-option ${isActive("/more-information") ? "active" : ""}`}
-              onClick={() => navigate("/more-information")}
-              onMouseDown={(e) => handleMouseDown(e, "/more-information")}>
-              <InfoCircleOutlined />
-              <span>מידע לסטודנט</span>
-            </div>
-          </li>}
-          {user.isCoordinator && (
+            {(user.isStudent || user.isAdvisor || user.isCoordinator) && (
+              <li>
+                <div
+                  className={`sidebar-option ${isActive("/announcements") ? "active" : ""}`}
+                  onClick={() => handleNavigate("/announcements")}>
+                  <MessageOutlined />
+                  <span>הודעות</span>
+                </div>
+              </li>
+            )}
+            {user.isStudent && (
+              <li>
+                <div
+                  className={`sidebar-option ${isActive("/projects") ? "active" : ""}`}
+                  onClick={() => handleNavigate("/projects")}>
+                  <ProjectOutlined />
+                  <span>פרויקטים</span>
+                </div>
+              </li>
+            )}
             <li>
               <div
-                className={`sidebar-option ${isActive("/system") ? "active" : ""}`}
-                onClick={() => navigate("/system")}
-                onMouseDown={(e) => handleMouseDown(e, "/system")}>
-                <SettingOutlined />
-                <span>ניהול מערכת</span>
+                className={`sidebar-option ${isActive("/templates") ? "active" : ""}`}
+                onClick={() => handleNavigate("/templates")}>
+                <FileSearchOutlined />
+                <span> תבנית דוחות</span>
               </div>
             </li>
-          )}
-        </ul>
+            {user.isStudent && (
+              <li>
+                <div
+                  className={`sidebar-option ${isActive("/my-submissions") ? "active" : ""}`}
+                  onClick={() => handleNavigate("/my-submissions")}>
+                  <ApartmentOutlined />
+                  הגשות
+                </div>
+              </li>
+            )}
+            {user.isAdvisor && (
+              <li className={`${openSubmenus.myProjects ? "open" : "closed"}`}>
+                <div
+                  className="sidebar-option"
+                  onClick={() => toggleSubmenu("myProjects")}
+                  onMouseDown={(e) => handleMouseDown(e, "/create-project")}>
+                  <FundProjectionScreenOutlined />
+                  <span>פרויקטים שלי</span>
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
+                      stroke="#0C0310"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+                <div className={`sidebar-drop-menu ${openSubmenus.myProjects ? "open" : "closed"}`}>
+                  <ul>
+                    <li
+                      className={`${isActive("/create-project") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/create-project")}>
+                      הזנת פרויקט
+                    </li>
+                    <li
+                      className={`${isActive("/list-projects") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/list-projects")}>
+                      סטטוס פרויקטים
+                    </li>
+                    <li
+                      className={`${isActive("/submission-status") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/submission-status")}>
+                      סטטוס הגשות
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            )}
+
+            {user.isCoordinator && (
+              <li className={`sidebar-drop-menu ${openSubmenus.manageProjects ? "open" : "closed"}`}>
+                <div
+                  className="sidebar-option"
+                  onClick={() => toggleSubmenu("manageProjects")}
+                  onMouseDown={(e) => handleMouseDown(e, "/overview-projects")}>
+                  <BarChartOutlined />
+                  <span>ניהול פרויקטים</span>
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
+                      stroke="#0C0310"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+                <div className={`sidebar-drop-menu ${openSubmenus.manageProjects ? "open" : "closed"}`}>
+                  <ul>
+                    <li
+                      className={`${isActive("/overview-projects") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/overview-projects")}>
+                      הצגת פרויקטים
+                    </li>
+                    <li
+                      className={`sidebar-option ${isActive("/submissions") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/submissions")}>
+                      ניהול הגשות
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            )}
+            {user.isCoordinator && (
+              <li className={`${openSubmenus.manageUsers ? "open" : "closed"}`}>
+                <div
+                  className="sidebar-option"
+                  onClick={() => toggleSubmenu("manageUsers")}
+                  onMouseDown={(e) => handleMouseDown(e, "/create-user")}>
+                  <TeamOutlined />
+                  <span>ניהול משתמשים</span>
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
+                      stroke="#0C0310"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+                <div className={`sidebar-drop-menu`}>
+                  <ul>
+                    <li
+                      className={`${isActive("/create-user") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/create-user")}>
+                      יצירת משתמשים
+                    </li>
+                    <li
+                      className={`${isActive("/display-users") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/display-users")}>
+                      הצגת משתמשים
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            )}
+            {user.isJudge && (
+              <li>
+                <div
+                  className={`sidebar-option ${isActive("/check-submissions") ? "active" : ""}`}
+                  onClick={() => handleNavigate("/check-submissions")}>
+                  <JudgeSVG />
+                  <span>בדיקת הגשות</span>
+                </div>
+              </li>
+            )}
+            {user.isStudent && (
+              <li>
+                <div
+                  className={`sidebar-option ${isActive("/more-information") ? "active" : ""}`}
+                  onClick={() => handleNavigate("/more-information")}>
+                  <InfoCircleOutlined />
+                  <span>מידע לסטודנט</span>
+                </div>
+              </li>
+            )}
+            {user.isCoordinator && (
+              <li>
+                <div
+                  className={`sidebar-option ${isActive("/system") ? "active" : ""}`}
+                  onClick={() => handleNavigate("/system")}>
+                  <SettingOutlined />
+                  <span>ניהול מערכת</span>
+                </div>
+              </li>
+            )}
+          </ul>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

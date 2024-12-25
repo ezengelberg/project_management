@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
-import { Badge, Table, Tooltip, Switch, message, Divider, Modal, Form, Input, InputNumber, Select, Tabs } from "antd";
+import { Badge, Table, Tooltip, Switch, message, Divider, Modal, Form, Input, Select, Tabs } from "antd";
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -32,6 +32,22 @@ const ManageProjects = () => {
   const searchInput = useRef(null);
   const [yearFilter, setYearFilter] = useState("all");
   const [years, setYears] = useState([]);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const getUsersNoProjects = async () => {
     try {
@@ -349,16 +365,25 @@ const ManageProjects = () => {
       title: "שם הפרויקט",
       dataIndex: "title",
       key: "title",
+      fixed: "left",
       ...getColumnSearchProps("title"),
       render: (title) => (
         <Highlighter
           highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
           searchWords={[searchText]}
           autoEscape
-          textToHighlight={title.length > 90 ? title.substring(0, 90) + "..." : title}
+          textToHighlight={
+            windowSize.width > 1024
+              ? title.length > 90
+                ? title.substring(0, 90) + "..."
+                : title
+              : title.length > 45
+              ? title.substring(0, 45) + "..."
+              : title
+          }
         />
       ),
-      width: "70%",
+      width: windowSize.width > 1024 ? "70%" : windowSize.width / 3,
     },
     {
       title: "מספר רשומים",
@@ -367,7 +392,7 @@ const ManageProjects = () => {
       render: (registered) => registered,
       sorter: (a, b) => a.registered - b.registered,
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: windowSize.width > 1024 ? "10%" : "20%",
     },
     {
       title: "פעולות",
@@ -393,7 +418,7 @@ const ManageProjects = () => {
         { text: "פרויקט פתוח להרשמה", value: false },
       ],
       onFilter: (value, record) => record.isTaken === value,
-      width: "20%",
+      width: windowSize.width > 1024 ? "20%" : 400,
     },
   ];
 
@@ -457,14 +482,23 @@ const ManageProjects = () => {
         title: "שם הסטודנט",
         dataIndex: "name",
         key: "name",
-        width: "50%",
+        fixed: "left",
+        render: (name) =>
+          windowSize.width > 1024
+            ? name.length > 80
+              ? name.substring(0, 80) + "..."
+              : name
+            : name.length > 20
+            ? name.substring(0, 20) + "..."
+            : name,
+        width: windowSize.width > 1024 ? "40%" : 200,
       },
       {
         title: "תאריך רישום",
         dataIndex: "date",
         key: "date",
         render: (date) => new Date(date).toLocaleString("he-IL"), // Display the date in
-        width: "10%",
+        width: windowSize.width > 1024 ? "15%" : 200,
       },
       {
         title: "סטטוס",
@@ -479,7 +513,7 @@ const ManageProjects = () => {
             return <Badge status="error" text="לא מאושר" />;
           }
         },
-        width: "20%",
+        width: windowSize.width > 1024 ? "25%" : 250,
       },
       {
         title: "פעולה",
@@ -504,10 +538,19 @@ const ManageProjects = () => {
               </Tooltip>
             </div>
           ),
-        width: "20%",
+        width: windowSize.width > 1024 ? "20%" : 200,
       },
     ];
-    return <Table columns={expandColumns} dataSource={record.candidatesData} pagination={false} />;
+    return (
+      <Table
+        columns={expandColumns}
+        dataSource={record.candidatesData}
+        pagination={false}
+        scroll={{
+          x: "max-content",
+        }}
+      />
+    );
   };
 
   const filteredProjects = projects.filter((project) => {
@@ -520,7 +563,14 @@ const ManageProjects = () => {
       key: "1",
       label: "פרויקטים פעילים",
       children: (
-        <Table columns={columns} dataSource={filteredProjects} expandable={{ expandedRowRender: expandedRender }} />
+        <Table
+          columns={columns}
+          dataSource={filteredProjects}
+          expandable={{ expandedRowRender: expandedRender }}
+          scroll={{
+            x: "max-content",
+          }}
+        />
       ),
     },
     {

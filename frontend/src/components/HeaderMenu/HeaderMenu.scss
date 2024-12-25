@@ -6,17 +6,9 @@
     cursor: pointer;
   }
 
-  .site-upper-header-right {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    gap: 4rem;
-    max-width: 80%;
-    margin-right: 2rem;
-  }
-
-  .site-upper-header-right .collage-logo {
+  .collage-logo {
     width: 20rem;
+    margin-right: 2rem;
     cursor: pointer;
   }
 

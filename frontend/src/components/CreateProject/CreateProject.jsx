@@ -218,14 +218,7 @@ const CreateProject = () => {
   return (
     <div className="create-project">
       <h1>יצירת פרויקט חדש</h1>
-      <Form
-        className="create-project-form"
-        form={form}
-        name="createProject"
-        labelCol={{
-          span: 4,
-        }}
-        onFinish={onFinish}>
+      <Form className="create-project-form" form={form} name="createProject" onFinish={onFinish}>
         <Form.Item
           className="create-project-form-item"
           label="כותרת"

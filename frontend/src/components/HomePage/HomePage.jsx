@@ -37,6 +37,22 @@ const Homepage = () => {
   const [value, setValue] = useState(() => dayjs());
   const [selectedValue, setSelectedValue] = useState(() => dayjs());
   const [userProject, setUserProject] = useState(null);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const CreateProjectSVG = () => (
     <svg className="special-icons" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000000">
@@ -304,8 +320,12 @@ const Homepage = () => {
                       {notification.link ? (
                         <a onClick={() => handleNotificationClick(notification)}>
                           <p>
-                            {notification.message.length > 125
-                              ? `${notification.message.slice(0, 125)}...`
+                            {windowSize.width > 1024
+                              ? notification.message.length > 125
+                                ? `${notification.message.slice(0, 125)}...`
+                                : notification.message
+                              : notification.message.length > 65
+                              ? `${notification.message.slice(0, 65)}...`
                               : notification.message}
                             <br />
                             <span className="notification-list-date">
@@ -321,8 +341,12 @@ const Homepage = () => {
                         </a>
                       ) : (
                         <p>
-                          {notification.message.length > 125
-                            ? `${notification.message.slice(0, 125)}...`
+                          {windowSize.width > 1024
+                            ? notification.message.length > 125
+                              ? `${notification.message.slice(0, 125)}...`
+                              : notification.message
+                            : notification.message.length > 65
+                            ? `${notification.message.slice(0, 65)}...`
                             : notification.message}
                           <br />
                           <span className="notification-list-date">

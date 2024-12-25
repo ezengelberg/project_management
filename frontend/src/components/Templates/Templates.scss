@@ -44,18 +44,20 @@
   align-items: flex-start;
   gap: 2rem;
   margin: 3rem auto;
-
-  .ant-collapse-expand-icon svg {
-    rotate: 180deg;
-  }
-
-  .ant-collapse-item-active {
-    .ant-collapse-expand-icon svg {
-      transform: rotate(-90deg) !important;
-    }
-  }
 }
 
 .edit-modal {
   width: 45% !important;
+}
+
+@media screen and (max-width: 1024px) {
+  .upload-container {
+    width: 80%;
+  }
+  .template-content {
+    width: 100%;
+  }
+  .edit-modal {
+    width: 70% !important;
+  }
 }

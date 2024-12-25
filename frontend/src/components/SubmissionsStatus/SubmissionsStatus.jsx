@@ -152,8 +152,12 @@ const SubmissionsStatus = () => {
             searchWords={[searchText]}
             autoEscape
             textToHighlight={
-              record.projectName && record.projectName.length > 65
-                ? `${record.projectName.slice(0, 65)}...`
+              windowSize.width > 1024
+                ? record.projectName && record.projectName.length > 65
+                  ? `${record.projectName.slice(0, 65)}...`
+                  : record.projectName
+                : record.projectName && record.projectName.length > 35
+                ? `${record.projectName.slice(0, 35)}...`
                 : record.projectName
             }
           />
@@ -167,13 +171,11 @@ const SubmissionsStatus = () => {
       title: "שם סטודנט",
       dataIndex: "studentName",
       key: "studentName",
-      fixed: "left",
-      width: (windowSize.width - 220) / 7,
       render: (text, record) => (
         <div className="submission-status-students">
           {record.students.map((student, index) => (
             <div key={index}>
-              {student.name}
+              {student.name.length > 20 ? (student.name = student.name.substring(0, 20) + "...") : student.name}
               {index !== record.students.length - 1 && record.students.length > 1 && (
                 <Divider type="vertical" style={{ borderColor: "black" }} />
               )}
