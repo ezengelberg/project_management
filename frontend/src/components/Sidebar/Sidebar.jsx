@@ -133,10 +133,12 @@ const Sidebar = () => {
 
   return (
     <>
-      <button className={`${isSidebarVisible ? "" : "hamburger-button"}`} onClick={toggleSidebar}>
-        {!isSidebarVisible && <HamburgerSVG />}
-      </button>
-      <div ref={sidebarRef} className={`sidebar-container ${isSidebarVisible ? "show" : ""}`}>
+      {!isSidebarVisible && windowSize.width <= 1024 && (
+        <button className="hamburger-button" onClick={toggleSidebar}>
+          {!isSidebarVisible && <HamburgerSVG />}
+        </button>
+      )}
+      <div ref={sidebarRef} className={`sidebar-container ${isSidebarVisible ? "open" : ""}`}>
         {isSidebarVisible && (
           <button className="close-button" onClick={toggleSidebar}>
             {isSidebarVisible && <CloseOutlined />}

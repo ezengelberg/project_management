@@ -68,6 +68,18 @@
   }
 }
 
+@media screen and (max-width: 1600px) {
+  .check-submissions-container {
+    width: 80%;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .check-submissions-container {
+    width: 85%;
+  }
+}
+
 @media screen and (max-width: 1024px) {
   .check-submissions-container {
     width: 90%;

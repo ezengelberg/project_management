@@ -50,6 +50,27 @@
   width: 45% !important;
 }
 
+@media screen and (max-width: 1600px) {
+  .upload-container {
+    width: 60%;
+  }
+  .template-content {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .upload-container {
+    width: 70%;
+  }
+  .template-content {
+    width: 100%;
+  }
+  .edit-modal {
+    width: 60% !important;
+  }
+}
+
 @media screen and (max-width: 1024px) {
   .upload-container {
     width: 80%;

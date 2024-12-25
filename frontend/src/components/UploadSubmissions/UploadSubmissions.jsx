@@ -436,7 +436,9 @@ const UploadSubmissions = () => {
       <Modal
         title={`צפיה בציון`}
         open={gradeInfo != null}
-        width={windowSize.width > 1024 ? "40%" : "80%"}
+        width={
+          windowSize.width > 1600 ? "40%" : windowSize.width > 1200 ? "50%" : windowSize.width > 1024 ? "65%" : "80%"
+        }
         cancelText="סגור"
         onCancel={() => setGradeInfo(null)}
         okButtonProps={{ style: { display: "none" } }}>
@@ -511,7 +513,9 @@ const UploadSubmissions = () => {
       <Modal
         title={`מחיקת הגשה עבור ${currentSubmission?.name}`}
         open={isConfirmModalVisible}
-        width={windowSize.width > 1024 ? "15%" : "60%"}
+        width={
+          windowSize.width > 1600 ? "15%" : windowSize.width > 1200 ? "25%" : windowSize.width > 1024 ? "30%" : "40%"
+        }
         okText="אשר מחיקה"
         okButtonProps={{ danger: true }}
         cancelText="סגור"
@@ -527,7 +531,9 @@ const UploadSubmissions = () => {
         okText="העלה הגשה"
         cancelText="ביטול"
         okButtonProps={{ disabled: !file }}
-        width={windowSize.width > 1024 ? "30%" : "80%"}>
+        width={
+          windowSize.width > 1600 ? "30%" : windowSize.width > 1200 ? "50%" : windowSize.width > 1024 ? "60%" : "80%"
+        }>
         <div className="submission-modal">
           {currentSubmission?.submissionInfo && (
             <div className="submission-info">

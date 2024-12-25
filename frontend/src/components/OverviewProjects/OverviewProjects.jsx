@@ -632,18 +632,39 @@ const OverviewProjects = () => {
               searchWords={[searchText]}
               autoEscape
               textToHighlight={
-                windowSize.width > 1024
-                  ? text.length > 65
-                    ? `${text.substring(0, 65)}...`
+                windowSize.width > 1920
+                  ? text.length > 75
+                    ? `${text.substring(0, 75)}...`
                     : text
-                  : text.length > 35
-                  ? `${text.substring(0, 35)}...`
+                  : windowSize.width > 1600
+                  ? text.length > 60
+                    ? `${text.substring(0, 60)}...`
+                    : text
+                  : windowSize.width > 1200
+                  ? text.length > 45
+                    ? `${text.substring(0, 45)}...`
+                    : text
+                  : windowSize.width > 1024
+                  ? text.length > 30
+                    ? `${text.substring(0, 30)}...`
+                    : text
+                  : text.length > 25
+                  ? `${text.substring(0, 25)}...`
                   : text
               }
             />
           </a>
         ),
-        width: (windowSize.width - 220) / 3,
+        width:
+          windowSize.width > 1920
+            ? "30%"
+            : windowSize.width > 1600
+            ? 500
+            : windowSize.width > 1200
+            ? 400
+            : windowSize.width > 1024
+            ? 300
+            : 250,
         sorter: (a, b) => a.title.localeCompare(b.title),
         defaultSortOrder: "ascend",
         sortDirections: ["descend", "ascend"],
@@ -677,7 +698,16 @@ const OverviewProjects = () => {
               : "לא משוייך מנחה"}
           </div>
         ),
-        width: "15%",
+        width:
+          windowSize.width > 1920
+            ? "15%"
+            : windowSize.width > 1600
+            ? 250
+            : windowSize.width > 1200
+            ? 200
+            : windowSize.width > 1024
+            ? 150
+            : 130,
         sorter: (a, b) => {
           const advisorA = users.find((u) => u._id === a.advisors[0]);
           const advisorB = users.find((u) => u._id === b.advisors[0]);
@@ -699,7 +729,11 @@ const OverviewProjects = () => {
                       <a
                         onClick={() => navigate(`/profile/${student}`)}
                         onMouseDown={(e) => handleMouseDown(e, `/profile/${student}`)}>
-                        {studentUser.name.length > 20 ? `${studentUser.name.substring(0, 20)}...` : studentUser.name}
+                        {studentUser.name.length > 20 ? (
+                          <Tooltip title={studentUser.name}>{studentUser.name.substring(0, 20)}...</Tooltip>
+                        ) : (
+                          studentUser.name
+                        )}
                       </a>
                       {index !== students.length - 1 && students.length > 1 && (
                         <Divider type="vertical" style={{ borderColor: "black" }} />
@@ -710,7 +744,16 @@ const OverviewProjects = () => {
               : "לא משוייכים סטודנטים"}
           </div>
         ),
-        width: "15%",
+        width:
+          windowSize.width > 1920
+            ? "15%"
+            : windowSize.width > 1600
+            ? 250
+            : windowSize.width > 1200
+            ? 250
+            : windowSize.width > 1024
+            ? 230
+            : 210,
         filters: [
           { text: "ללא סטודנטים", value: "ללא סטודנטים" },
           { text: "סטודנט אחד", value: "סטודנט אחד" },
@@ -732,7 +775,16 @@ const OverviewProjects = () => {
         title: "מתאים ל...",
         dataIndex: "suitableFor",
         key: "suitableFor",
-        width: windowSize.width > 1024 ? "10%" : 150,
+        width:
+          windowSize.width > 1920
+            ? "10%"
+            : windowSize.width > 1600
+            ? 150
+            : windowSize.width > 1200
+            ? 130
+            : windowSize.width > 1024
+            ? 130
+            : 130,
         sorter: (a, b) => a.suitableFor.localeCompare(b.suitableFor),
         sortDirections: ["descend", "ascend"],
         filters: [
@@ -746,7 +798,16 @@ const OverviewProjects = () => {
         title: "סוג",
         dataIndex: "type",
         key: "type",
-        width: windowSize.width > 1024 ? "10%" : 170,
+        width:
+          windowSize.width > 1920
+            ? "10%"
+            : windowSize.width > 1600
+            ? 200
+            : windowSize.width > 1200
+            ? 150
+            : windowSize.width > 1024
+            ? 150
+            : 150,
         ...getColumnSearchProps("type"),
         sorter: (a, b) => a.type.localeCompare(b.type),
         sortDirections: ["descend", "ascend"],
@@ -807,7 +868,16 @@ const OverviewProjects = () => {
             </Button>
           </div>
         ),
-        width: "20%",
+        width:
+          windowSize.width > 1920
+            ? "20%"
+            : windowSize.width > 1600
+            ? 350
+            : windowSize.width > 1200
+            ? 250
+            : windowSize.width > 1024
+            ? 200
+            : 150,
       },
     ],
     taken: [
@@ -826,18 +896,39 @@ const OverviewProjects = () => {
               searchWords={[searchText]}
               autoEscape
               textToHighlight={
-                windowSize.width > 1024
-                  ? text.length > 65
-                    ? `${text.substring(0, 65)}...`
+                windowSize.width > 1920
+                  ? text.length > 60
+                    ? `${text.substring(0, 60)}...`
                     : text
-                  : text.length > 35
-                  ? `${text.substring(0, 35)}...`
+                  : windowSize.width > 1600
+                  ? text.length > 55
+                    ? `${text.substring(0, 55)}...`
+                    : text
+                  : windowSize.width > 1200
+                  ? text.length > 45
+                    ? `${text.substring(0, 45)}...`
+                    : text
+                  : windowSize.width > 1024
+                  ? text.length > 30
+                    ? `${text.substring(0, 30)}...`
+                    : text
+                  : text.length > 25
+                  ? `${text.substring(0, 25)}...`
                   : text
               }
             />
           </a>
         ),
-        width: windowSize.width > 1920 ? "25%" : (windowSize.width - 220) / 3,
+        width:
+          windowSize.width > 1920
+            ? "25%"
+            : windowSize.width > 1600
+            ? 350
+            : windowSize.width > 1200
+            ? 250
+            : windowSize.width > 1024
+            ? 200
+            : 150,
         sorter: (a, b) => a.title.localeCompare(b.title),
         defaultSortOrder: "ascend",
         sortDirections: ["descend", "ascend"],
@@ -871,7 +962,16 @@ const OverviewProjects = () => {
               : "לא משוייך מנחה"}
           </div>
         ),
-        width: windowSize.width > 1920 ? "11%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 150,
+        width:
+          windowSize.width > 1920
+            ? "11%"
+            : windowSize.width > 1600
+            ? 250
+            : windowSize.width > 1200
+            ? 200
+            : windowSize.width > 1024
+            ? 150
+            : 130,
         sorter: (a, b) => {
           const advisorA = users.find((u) => u._id === a.advisors[0]);
           const advisorB = users.find((u) => u._id === b.advisors[0]);
@@ -904,7 +1004,16 @@ const OverviewProjects = () => {
               : "לא משוייכים סטודנטים"}
           </div>
         ),
-        width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 200,
+        width:
+          windowSize.width > 1920
+            ? "15%"
+            : windowSize.width > 1600
+            ? 250
+            : windowSize.width > 1200
+            ? 250
+            : windowSize.width > 1024
+            ? 230
+            : 210,
         filters: [
           { text: "ללא סטודנטים", value: "ללא סטודנטים" },
           { text: "סטודנט אחד", value: "סטודנט אחד" },
@@ -926,7 +1035,16 @@ const OverviewProjects = () => {
         title: "סוג",
         dataIndex: "type",
         key: "type",
-        width: windowSize.width > 1920 ? "13%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 200,
+        width:
+          windowSize.width > 1920
+            ? "13%"
+            : windowSize.width > 1600
+            ? 200
+            : windowSize.width > 1200
+            ? 150
+            : windowSize.width > 1024
+            ? 150
+            : 150,
         ...getColumnSearchProps("type"),
         sorter: (a, b) => a.type.localeCompare(b.type),
         sortDirections: ["descend", "ascend"],
@@ -978,7 +1096,7 @@ const OverviewProjects = () => {
             </div>
           );
         },
-        width: windowSize.width > 1920 ? "20%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 300,
+        width: windowSize.width > 1920 ? "20%" : 350,
       },
       {
         title: "פעולות",
@@ -1045,7 +1163,16 @@ const OverviewProjects = () => {
             </Button>
           </div>
         ),
-        // width: "20%",
+        width:
+          windowSize.width > 1920
+            ? "16%"
+            : windowSize.width > 1600
+            ? 350
+            : windowSize.width > 1200
+            ? 250
+            : windowSize.width > 1024
+            ? 200
+            : 150,
       },
     ],
     terminated: [

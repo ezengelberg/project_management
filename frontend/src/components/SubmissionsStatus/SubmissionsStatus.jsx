@@ -141,7 +141,7 @@ const SubmissionsStatus = () => {
       dataIndex: "projectName",
       key: "projectName",
       fixed: "left",
-      width: (windowSize.width - 220) / 4,
+      width: windowSize.width > 1600 ? "30%" : windowSize.width > 1200 ? "25%" : windowSize.width > 1024 ? 330 : 300,
       ...getColumnSearchProps("projectName"),
       render: (text, record) => (
         <a
@@ -152,12 +152,20 @@ const SubmissionsStatus = () => {
             searchWords={[searchText]}
             autoEscape
             textToHighlight={
-              windowSize.width > 1024
-                ? record.projectName && record.projectName.length > 65
-                  ? `${record.projectName.slice(0, 65)}...`
+              windowSize.width > 1600
+                ? record.projectName && record.projectName.length > 60
+                  ? `${record.projectName.slice(0, 60)}...`
                   : record.projectName
-                : record.projectName && record.projectName.length > 35
-                ? `${record.projectName.slice(0, 35)}...`
+                : windowSize.width > 1200
+                ? record.projectName && record.projectName.length > 50
+                  ? `${record.projectName.slice(0, 50)}...`
+                  : record.projectName
+                : windowSize.width > 1024
+                ? record.projectName && record.projectName.length > 35
+                  ? `${record.projectName.slice(0, 35)}...`
+                  : record.projectName
+                : record.projectName && record.projectName.length > 30
+                ? `${record.projectName.slice(0, 30)}...`
                 : record.projectName
             }
           />
@@ -171,11 +179,26 @@ const SubmissionsStatus = () => {
       title: "שם סטודנט",
       dataIndex: "studentName",
       key: "studentName",
+      width: windowSize.width > 1600 ? "15%" : windowSize.width > 1200 ? "10%" : windowSize.width > 1024 ? 150 : 150,
       render: (text, record) => (
         <div className="submission-status-students">
           {record.students.map((student, index) => (
             <div key={index}>
-              {student.name.length > 20 ? (student.name = student.name.substring(0, 20) + "...") : student.name}
+              {windowSize.width > 1600
+                ? student.name.length > 30
+                  ? (student.name = student.name.substring(0, 30) + "...")
+                  : student.name
+                : windowSize.width > 1200
+                ? student.name.length > 20
+                  ? (student.name = student.name.substring(0, 20) + "...")
+                  : student.name
+                : windowSize.width > 1024
+                ? student.name.length > 15
+                  ? (student.name = student.name.substring(0, 15) + "...")
+                  : student.name
+                : student.name.length > 15
+                ? (student.name = student.name.substring(0, 15) + "...")
+                : student.name}
               {index !== record.students.length - 1 && record.students.length > 1 && (
                 <Divider type="vertical" style={{ borderColor: "black" }} />
               )}
@@ -193,7 +216,7 @@ const SubmissionsStatus = () => {
       title: "הגשות",
       dataIndex: "submissions",
       key: "submissions",
-      width: "55%",
+      width: windowSize.width > 1600 ? "55%" : windowSize.width > 1200 ? "65%" : windowSize.width > 1024 ? 500 : 500,
       render: (text, record) => (
         <div className="submission-status-submissions">
           {record.submissions.map((submission, index) => (

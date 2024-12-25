@@ -57,6 +57,18 @@
   }
 }
 
+@media screen and (max-width: 1600px) {
+  .info-container {
+    width: 85%;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .info-container {
+    width: 95%;
+  }
+}
+
 @media screen and (max-width: 1024px) {
   .info-container {
     width: 95%;

@@ -51,6 +51,28 @@
   }
 }
 
+@media screen and (max-width: 1600px) {
+  .create-user {
+    .create-user-form {
+      width: 30%;
+    }
+    .upload-users-csv .uploader-users-csv {
+      width: 60%;
+    }
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .create-user {
+    .create-user-form {
+      width: 40%;
+    }
+    .upload-users-csv .uploader-users-csv {
+      width: 70%;
+    }
+  }
+}
+
 @media screen and (max-width: 1024px) {
   .create-user {
     .create-user-form {

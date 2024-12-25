@@ -73,6 +73,22 @@
   }
 }
 
+@media screen and (max-width: 1600px) {
+  .create-project {
+    .create-project-form {
+      width: 65%;
+    }
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .create-project {
+    .create-project-form {
+      width: 75%;
+    }
+  }
+}
+
 @media screen and (max-width: 1024px) {
   .create-project {
     .create-project-form {

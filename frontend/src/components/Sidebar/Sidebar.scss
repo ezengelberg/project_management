@@ -113,9 +113,12 @@
     position: absolute;
     z-index: 1000;
     height: 100%;
+    transform: translateX(-100%);
   }
-  .sidebar-container.show {
+  .sidebar-container.open {
     display: block;
+    transform: translateX(0);
+    transition: transform 0.3s ease-in-out;
   }
   .close-button {
     position: absolute;

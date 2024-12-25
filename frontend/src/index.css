@@ -174,9 +174,21 @@ hr {
   z-index: 1001;
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 1600px) {
   html {
     font-size: 9px;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  html {
+    font-size: 9px;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  html {
+    font-size: 8.5px;
   }
   .sidebar-container {
     display: none;
@@ -193,11 +205,29 @@ hr {
   html {
     font-size: 8px;
   }
+  .sidebar-container {
+    display: none;
+  }
+  .hamburger-button {
+    display: block;
+  }
+  .ant-modal {
+    right: 0;
+  }
 }
 
 @media screen and (max-width: 360px) {
   html {
     font-size: 7px;
+  }
+  .sidebar-container {
+    display: none;
+  }
+  .hamburger-button {
+    display: block;
+  }
+  .ant-modal {
+    right: 0;
   }
 }
 

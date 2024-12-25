@@ -373,17 +373,25 @@ const ManageProjects = () => {
           searchWords={[searchText]}
           autoEscape
           textToHighlight={
-            windowSize.width > 1024
-              ? title.length > 90
-                ? title.substring(0, 90) + "..."
+            windowSize.width > 1600
+              ? title.length > 130
+                ? `${title.substring(0, 130)}...`
+                : title
+              : windowSize.width > 1200
+              ? title.length > 85
+                ? `${title.substring(0, 85)}...`
+                : title
+              : windowSize.width > 1024
+              ? title.length > 65
+                ? `${title.substring(0, 65)}...`
                 : title
               : title.length > 45
-              ? title.substring(0, 45) + "..."
+              ? `${title.substring(0, 45)}...`
               : title
           }
         />
       ),
-      width: windowSize.width > 1024 ? "70%" : windowSize.width / 3,
+      width: windowSize.width > 1600 ? "70%" : windowSize.width > 1200 ? "55%" : 250,
     },
     {
       title: "מספר רשומים",
@@ -392,7 +400,7 @@ const ManageProjects = () => {
       render: (registered) => registered,
       sorter: (a, b) => a.registered - b.registered,
       sortDirections: ["descend", "ascend"],
-      width: windowSize.width > 1024 ? "10%" : "20%",
+      width: windowSize.width > 1600 ? "10%" : windowSize.width > 1200 ? "15%" : 150,
     },
     {
       title: "פעולות",
@@ -418,7 +426,7 @@ const ManageProjects = () => {
         { text: "פרויקט פתוח להרשמה", value: false },
       ],
       onFilter: (value, record) => record.isTaken === value,
-      width: windowSize.width > 1024 ? "20%" : 400,
+      width: windowSize.width > 1600 ? "20%" : windowSize.width > 1200 ? "30%" : 300,
     },
   ];
 
@@ -484,21 +492,37 @@ const ManageProjects = () => {
         key: "name",
         fixed: "left",
         render: (name) =>
-          windowSize.width > 1024
-            ? name.length > 80
-              ? name.substring(0, 80) + "..."
-              : name
-            : name.length > 20
-            ? name.substring(0, 20) + "..."
-            : name,
-        width: windowSize.width > 1024 ? "40%" : 200,
+          windowSize.width > 1600 ? (
+            name.length > 80 ? (
+              name.substring(0, 80) + "..."
+            ) : (
+              name
+            )
+          ) : windowSize.width > 1200 ? (
+            name.length > 60 ? (
+              name.substring(0, 60) + "..."
+            ) : (
+              name
+            )
+          ) : windowSize.width > 1024 ? (
+            name.length > 40 ? (
+              <Tooltip title={name}>{name.substring(0, 40)}...</Tooltip>
+            ) : (
+              name
+            )
+          ) : name.length > 35 ? (
+            name.substring(0, 35) + "..."
+          ) : (
+            name
+          ),
+        width: windowSize.width > 1200 ? "40%" : windowSize.width > 1024 ? 350 : 270,
       },
       {
         title: "תאריך רישום",
         dataIndex: "date",
         key: "date",
         render: (date) => new Date(date).toLocaleString("he-IL"), // Display the date in
-        width: windowSize.width > 1024 ? "15%" : 200,
+        width: windowSize.width > 1200 ? "15%" : windowSize.width > 1024 ? 200 : 150,
       },
       {
         title: "סטטוס",
@@ -513,7 +537,7 @@ const ManageProjects = () => {
             return <Badge status="error" text="לא מאושר" />;
           }
         },
-        width: windowSize.width > 1024 ? "25%" : 250,
+        width: windowSize.width > 1200 ? "25%" : windowSize.width > 1024 ? 250 : 220,
       },
       {
         title: "פעולה",
@@ -538,7 +562,7 @@ const ManageProjects = () => {
               </Tooltip>
             </div>
           ),
-        width: windowSize.width > 1024 ? "20%" : 200,
+        width: windowSize.width > 1200 ? "20%" : windowSize.width > 1024 ? 150 : 100,
       },
     ];
     return (

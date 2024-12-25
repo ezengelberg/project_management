@@ -137,6 +137,7 @@ const CreateUser = () => {
       dataIndex: "name",
       key: "name",
       fixed: "left",
+      render: (text) => <div>{text.length > 45 ? text.substring(0, 45) + "..." : text}</div>,
     },
     {
       title: "ת.ז.",
