@@ -367,7 +367,6 @@ export const copyJudges = async (req, res) => {
 };
 
 export const assignJudgesAutomatically = async (req, res) => {
-  console.log("assigning automatically");
   const workload = {};
   // Get all active projects
   const activeProjects = await Project.find({
@@ -418,8 +417,8 @@ export const assignJudgesAutomatically = async (req, res) => {
         );
       });
       if (potentialJudges.length === 0) {
-        console.log("No potential judges found");
         res.status(500).json({ message: "No enough potential judges found" });
+        return;
       }
 
       // Shuffle potential judges for fairness by assigned to quota ratio
