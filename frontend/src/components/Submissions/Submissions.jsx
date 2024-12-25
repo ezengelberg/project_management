@@ -546,8 +546,14 @@ const Submissions = () => {
       render: (text, record) => {
         // Ensure text exists before rendering Highlighter
         const title = record.title || "";
-        const displayText = title.length > 65 ? `${title.substring(0, 65)}...` : title;
-
+        const displayText =
+          windowSize.width > 1024
+            ? title.length > 65
+              ? `${title.substring(0, 65)}...`
+              : title
+            : title.length > 35
+            ? `${title.substring(0, 35)}...`
+            : title;
         return (
           <a
             onClick={() => navigate(`/project/${record.projectid}`)}

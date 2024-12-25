@@ -4,6 +4,9 @@
   flex-direction: column;
   justify-content: space-between;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  height: 23rem;
+  min-width: 45rem;
+  max-width: 45rem;
 
   .action-icon {
     font-size: 1.8rem !important;
@@ -85,15 +88,45 @@
   height: 80% !important;
   overflow-y: auto;
 
-  .ant-descriptions-item-content {
-    max-width: 20rem;
-  }
-  .edited-description-modal-item {
+  .edited-title-modal-item {
     display: flex;
-    gap: 1rem;
+    flex-direction: column;
 
     p {
       margin: 0;
+    }
+  }
+
+  .ant-descriptions-item-content {
+    max-width: 50rem;
+  }
+  .edited-description-modal-item {
+    display: flex;
+    flex-direction: column;
+
+    p {
+      margin: 0;
+    }
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .file-card {
+    .file-card-meta {
+      .file-title {
+        font-size: 1.5rem;
+      }
+      .file-description {
+        font-size: 1.3rem;
+      }
+    }
+  }
+  .edit-record-modal {
+    width: 90% !important;
+  }
+  .edit-record-modal {
+    p {
+      font-size: 1.3rem;
     }
   }
 }

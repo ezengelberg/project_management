@@ -8,10 +8,16 @@
   .create-project-form {
     margin: 0 auto;
     width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 
     .create-project-form-item {
+      align-self: flex-start;
+      width: 100%;
       label {
         font-size: 1.7rem;
+        min-width: 13rem;
       }
 
       input {
@@ -63,6 +69,14 @@
     svg {
       width: 2rem;
       height: 2rem;
+    }
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .create-project {
+    .create-project-form {
+      width: 80%;
     }
   }
 }

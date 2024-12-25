@@ -631,7 +631,15 @@ const OverviewProjects = () => {
               highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
               searchWords={[searchText]}
               autoEscape
-              textToHighlight={text.length > 65 ? `${text.substring(0, 65)}...` : text}
+              textToHighlight={
+                windowSize.width > 1024
+                  ? text.length > 65
+                    ? `${text.substring(0, 65)}...`
+                    : text
+                  : text.length > 35
+                  ? `${text.substring(0, 35)}...`
+                  : text
+              }
             />
           </a>
         ),
@@ -659,7 +667,9 @@ const OverviewProjects = () => {
                         highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
                         searchWords={[searchText]}
                         autoEscape
-                        textToHighlight={advisorUser.name}
+                        textToHighlight={
+                          advisorUser.name.length > 20 ? `${advisorUser.name.substring(0, 20)}...` : advisorUser.name
+                        }
                       />
                     </a>
                   ) : null;
@@ -689,7 +699,7 @@ const OverviewProjects = () => {
                       <a
                         onClick={() => navigate(`/profile/${student}`)}
                         onMouseDown={(e) => handleMouseDown(e, `/profile/${student}`)}>
-                        {studentUser.name}
+                        {studentUser.name.length > 20 ? `${studentUser.name.substring(0, 20)}...` : studentUser.name}
                       </a>
                       {index !== students.length - 1 && students.length > 1 && (
                         <Divider type="vertical" style={{ borderColor: "black" }} />
@@ -722,7 +732,7 @@ const OverviewProjects = () => {
         title: "מתאים ל...",
         dataIndex: "suitableFor",
         key: "suitableFor",
-        width: "10%",
+        width: windowSize.width > 1024 ? "10%" : 150,
         sorter: (a, b) => a.suitableFor.localeCompare(b.suitableFor),
         sortDirections: ["descend", "ascend"],
         filters: [
@@ -736,7 +746,7 @@ const OverviewProjects = () => {
         title: "סוג",
         dataIndex: "type",
         key: "type",
-        width: "10%",
+        width: windowSize.width > 1024 ? "10%" : 170,
         ...getColumnSearchProps("type"),
         sorter: (a, b) => a.type.localeCompare(b.type),
         sortDirections: ["descend", "ascend"],
@@ -815,7 +825,15 @@ const OverviewProjects = () => {
               highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
               searchWords={[searchText]}
               autoEscape
-              textToHighlight={text.length > 65 ? `${text.substring(0, 65)}...` : text}
+              textToHighlight={
+                windowSize.width > 1024
+                  ? text.length > 65
+                    ? `${text.substring(0, 65)}...`
+                    : text
+                  : text.length > 35
+                  ? `${text.substring(0, 35)}...`
+                  : text
+              }
             />
           </a>
         ),
@@ -843,7 +861,9 @@ const OverviewProjects = () => {
                         highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
                         searchWords={[searchText]}
                         autoEscape
-                        textToHighlight={advisorUser.name}
+                        textToHighlight={
+                          advisorUser.name.length > 20 ? `${advisorUser.name.substring(0, 20)}...` : advisorUser.name
+                        }
                       />
                     </a>
                   ) : null;
@@ -851,7 +871,7 @@ const OverviewProjects = () => {
               : "לא משוייך מנחה"}
           </div>
         ),
-        width: "11%",
+        width: windowSize.width > 1920 ? "11%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 150,
         sorter: (a, b) => {
           const advisorA = users.find((u) => u._id === a.advisors[0]);
           const advisorB = users.find((u) => u._id === b.advisors[0]);
@@ -873,7 +893,7 @@ const OverviewProjects = () => {
                       <a
                         onClick={() => navigate(`/profile/${student}`)}
                         onMouseDown={(e) => handleMouseDown(e, `/profile/${student}`)}>
-                        {studentUser.name}
+                        {studentUser.name.length > 20 ? `${studentUser.name.substring(0, 20)}...` : studentUser.name}
                       </a>
                       {index !== students.length - 1 && students.length > 1 && (
                         <Divider type="vertical" style={{ borderColor: "black" }} />
@@ -884,7 +904,7 @@ const OverviewProjects = () => {
               : "לא משוייכים סטודנטים"}
           </div>
         ),
-        width: "15%",
+        width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 200,
         filters: [
           { text: "ללא סטודנטים", value: "ללא סטודנטים" },
           { text: "סטודנט אחד", value: "סטודנט אחד" },
@@ -906,7 +926,7 @@ const OverviewProjects = () => {
         title: "סוג",
         dataIndex: "type",
         key: "type",
-        width: "13%",
+        width: windowSize.width > 1920 ? "13%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 200,
         ...getColumnSearchProps("type"),
         sorter: (a, b) => a.type.localeCompare(b.type),
         sortDirections: ["descend", "ascend"],
@@ -958,7 +978,7 @@ const OverviewProjects = () => {
             </div>
           );
         },
-        width: windowSize.width > 1920 ? "16%" : "25%",
+        width: windowSize.width > 1920 ? "20%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 300,
       },
       {
         title: "פעולות",
@@ -1025,7 +1045,7 @@ const OverviewProjects = () => {
             </Button>
           </div>
         ),
-        width: "20%",
+        // width: "20%",
       },
     ],
     terminated: [
@@ -1331,7 +1351,6 @@ const OverviewProjects = () => {
 
   return (
     <div>
-      <p>{windowSize.width}</p>
       <Tabs items={tabs} />
       {/* Add Students Modal */}
       <Modal

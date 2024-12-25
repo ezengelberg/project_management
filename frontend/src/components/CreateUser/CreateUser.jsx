@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./CreateUser.scss";
 import { DeleteOutlined, InboxOutlined } from "@ant-design/icons";
 import axios from "axios";
@@ -10,6 +10,22 @@ const { Dragger } = Upload;
 const CreateUser = () => {
   const [form] = Form.useForm();
   const [users, setUsers] = useState([]);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const onFinish = async (values) => {
     try {
@@ -50,11 +66,11 @@ const CreateUser = () => {
       console.log(response.data.existingUsers);
       if (response.data.existingUsers.length > 0) {
         message.warning(
-          `המשתמשים הבאים כבר קיימים במערכת: ${response.data.existingUsers.map((user) => user.email).join(", ")}`,
+          `המשתמשים הבאים כבר קיימים במערכת: ${response.data.existingUsers.map((user) => user.email).join(", ")}`
         );
       }
       const usersData = users.filter((user) =>
-        response.data.existingUsers.some((existingUser) => existingUser.email === user.email),
+        response.data.existingUsers.some((existingUser) => existingUser.email === user.email)
       );
       setUsers(usersData);
     } catch (error) {
@@ -96,7 +112,7 @@ const CreateUser = () => {
     const filteredUsers = users.filter((user) => user.id !== record.id);
     setUsers(filteredUsers);
   };
-  
+
   const props = {
     name: "file",
     maxCount: 1,
@@ -120,6 +136,7 @@ const CreateUser = () => {
       title: "שם מלא",
       dataIndex: "name",
       key: "name",
+      fixed: "left",
     },
     {
       title: "ת.ז.",
@@ -254,7 +271,13 @@ const CreateUser = () => {
         </Dragger>
         {users.length > 0 && (
           <div className="users-csv">
-            <Table columns={columns} dataSource={users} />
+            <Table
+              columns={columns}
+              dataSource={users}
+              scroll={{
+                x: "max-content",
+              }}
+            />
             <Button type="primary" className="submit-csv" onClick={() => handleSubmitCSV(users)}>
               צור משתמשים
             </Button>

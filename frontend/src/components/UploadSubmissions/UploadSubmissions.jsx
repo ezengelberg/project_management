@@ -27,6 +27,22 @@ const UploadSubmissions = () => {
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
   const [gradeInfo, setGradeInfo] = useState(null);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const showUploadModal = (sub) => {
     setCurrentSubmission(sub);
@@ -232,6 +248,7 @@ const UploadSubmissions = () => {
       title: "שם ההגשה",
       dataIndex: "submissionName",
       key: "submissionName",
+      fixed: "left",
       ...getColumnSearchProps("submissionName"),
       render: (text) => (
         <Highlighter
@@ -241,12 +258,13 @@ const UploadSubmissions = () => {
           textToHighlight={text ? text.toString() : ""}
         />
       ),
-      width: "22.5%",
+      width: windowSize.width > 1024 ? "27.5%" : windowSize.width / 3,
     },
     {
       title: "תאריך הגשה",
       dataIndex: "submissionDate",
       key: "submissionDate",
+      fixed: "left",
       render: (text, record) => {
         const submissionDate = new Date(record.submissionDate);
         const isPastDue = submissionDate < new Date();
@@ -286,7 +304,7 @@ const UploadSubmissions = () => {
       },
       defaultSortOrder: "ascend",
       sortDirections: ["descend", "ascend"],
-      width: "15%",
+      width: windowSize.width > 1024 ? "15%" : 200,
     },
     {
       title: "סטטוס הגשה",
@@ -338,7 +356,7 @@ const UploadSubmissions = () => {
         }
         return !record.fileNeeded;
       },
-      width: "20%",
+      width: "17.5%",
     },
     {
       title: "הנחיות",
@@ -410,7 +428,7 @@ const UploadSubmissions = () => {
           )}
         </span>
       ),
-      width: "20%",
+      width: windowSize.width > 1024 ? "15%" : 200,
     },
   ];
 
@@ -540,7 +558,13 @@ const UploadSubmissions = () => {
           </Dragger>
         </div>
       </Modal>
-      <Table dataSource={submissions} columns={columns} />
+      <Table
+        dataSource={submissions}
+        columns={columns}
+        scroll={{
+          x: "max-content",
+        }}
+      />
     </div>
   );
 };

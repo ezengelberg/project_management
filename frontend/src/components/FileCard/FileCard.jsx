@@ -100,10 +100,16 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
         children: (
           <div className="edited-title-modal-item">
             <div>
-              <strong>ישנה:</strong> {record.oldTitle}
+              <span>
+                <strong>ישן:</strong>
+              </span>
+              <p>{record.oldTitle}</p>
             </div>
             <div>
-              <strong>חדשה:</strong> {record.newTitle}
+              <span>
+                <strong>חדש:</strong>
+              </span>
+              <p>{record.newTitle}</p>
             </div>
           </div>
         ),
@@ -114,11 +120,15 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
         children: (
           <>
             <div className="edited-description-modal-item">
-              <strong>ישן:</strong>
+              <span>
+                <strong>ישן:</strong>
+              </span>
               <div dangerouslySetInnerHTML={{ __html: processContent(record.oldDescription) }} />
             </div>
             <div className="edited-description-modal-item">
-              <strong>חדש:</strong>
+              <span>
+                <strong>חדש:</strong>
+              </span>
               <div dangerouslySetInnerHTML={{ __html: processContent(record.newDescription) }} />
             </div>
           </>
@@ -128,14 +138,13 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
         key: `${index}-editInfo`,
         label: `פרטי עריכה`,
         children: (
-          <>
-            <div>
-              <strong>תאריך עריכה:</strong> {new Date(record.editDate).toLocaleString("he-IL")}
-            </div>
-            <div>
-              <strong>נערך על ידי:</strong> {record.editedBy.name} (ת.ז: {record.editedBy.id})
-            </div>
-          </>
+          <div>
+            <sapn>
+              <strong>נערך על ידי:</strong>
+            </sapn>
+            <p>{record.editedBy.name}</p>
+            <p>{new Date(record.editDate).toLocaleString("he-IL")}</p>
+          </div>
         ),
       },
     ];
@@ -182,12 +191,7 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
           <Tooltip title="הורדה">
             <DownloadOutlined key="download" className="action-icon" onClick={handleDownload} />
           </Tooltip>,
-        ]}
-        style={{
-          height: "230px",
-          minWidth: "450px",
-          maxWidth: "450px",
-        }}>
+        ]}>
         <Card.Meta
           className="file-card-meta"
           avatar={<FileOutlined className="file-icon" />}

@@ -105,3 +105,26 @@
   width: 2.2rem;
   height: 2.2rem;
 }
+
+@media screen and (max-width: 1024px) {
+  .sidebar-container {
+    position: relative;
+    display: none;
+    position: absolute;
+    z-index: 1000;
+    height: 100%;
+  }
+  .sidebar-container.show {
+    display: block;
+  }
+  .close-button {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    z-index: 1001;
+  }
+}

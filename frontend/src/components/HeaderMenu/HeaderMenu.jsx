@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import "./HeaderMenu.scss";
 import axios from "axios";
 import collegeLogo from "../../assets/CollegeLogo.png";
@@ -16,6 +16,22 @@ const HeaderMenu = () => {
     return storedUser ? JSON.parse(storedUser) : {};
   });
   const [open, setOpen] = useState(false);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleNotificationClick = (notification) => {
     if (notification.link) {
@@ -108,10 +124,9 @@ const HeaderMenu = () => {
 
   return (
     <div className="header-container">
-      <div className="site-upper-header-right">
+      {windowSize.width > 1024 && (
         <img src={collegeLogo} alt="collage logo" className="collage-logo" onClick={() => navigate("/home")} />
-        <h1>מערכת לניהול פרויקטים</h1>
-      </div>
+      )}
       <div className="site-upper-header-left">
         <Popover
           content={content}
