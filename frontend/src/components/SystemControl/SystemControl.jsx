@@ -246,7 +246,7 @@ const SystemControl = () => {
       ),
       sorter: (a, b) => a.name.localeCompare(b.name),
       defaultSortOrder: "ascend",
-      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 300,
+      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 250,
     },
     ...Object.keys(letterToNumber).map((letter) => ({
       title: <p style={{ direction: "ltr", margin: "0", textAlign: "right" }}>{letter}</p>,

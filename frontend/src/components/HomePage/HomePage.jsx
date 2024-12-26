@@ -320,12 +320,16 @@ const Homepage = () => {
                       {notification.link ? (
                         <a onClick={() => handleNotificationClick(notification)}>
                           <p>
-                            {windowSize.width > 1024
+                            {windowSize.width > 1200
                               ? notification.message.length > 125
                                 ? `${notification.message.slice(0, 125)}...`
                                 : notification.message
-                              : notification.message.length > 105
-                              ? `${notification.message.slice(0, 105)}...`
+                              : windowSize.width > 1024
+                              ? notification.message.length > 115
+                                ? `${notification.message.slice(0, 115)}...`
+                                : notification.message
+                              : notification.message.length > 90
+                              ? `${notification.message.slice(0, 90)}...`
                               : notification.message}
                             <br />
                             <span className="notification-list-date">
@@ -341,12 +345,16 @@ const Homepage = () => {
                         </a>
                       ) : (
                         <p>
-                          {windowSize.width > 1024
+                          {windowSize.width > 1200
                             ? notification.message.length > 125
                               ? `${notification.message.slice(0, 125)}...`
                               : notification.message
-                            : notification.message.length > 65
-                            ? `${notification.message.slice(0, 65)}...`
+                            : windowSize.width > 1024
+                            ? notification.message.length > 115
+                              ? `${notification.message.slice(0, 115)}...`
+                              : notification.message
+                            : notification.message.length > 105
+                            ? `${notification.message.slice(0, 105)}...`
                             : notification.message}
                           <br />
                           <span className="notification-list-date">

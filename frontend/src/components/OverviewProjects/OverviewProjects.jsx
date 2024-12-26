@@ -499,8 +499,6 @@ const OverviewProjects = () => {
     setLoading(false);
   };
 
-  const handleAssignJudgesAutomatically = async () => {};
-
   const handleChangeGrade = async () => {
     if (newGrade === null) {
       message.error("יש לבחור ציון חדש");
@@ -1413,9 +1411,6 @@ const OverviewProjects = () => {
               <Select.Option value="all">כל הפרויקטים</Select.Option>
               <Select.Option value="missingJudges">פרויקטים שחסר שופטים</Select.Option>
             </Select>
-            <Button type="primary" onClick={handleAssignJudgesAutomatically} loading={loading}>
-              שיבוץ שופטים אוטומטי
-            </Button>
           </div>
           <Table
             columns={columns.taken}

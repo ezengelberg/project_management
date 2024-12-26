@@ -16,6 +16,22 @@ const CreateProject = () => {
   const currentYear = new Date().getFullYear();
   const previousYear = currentYear - 1;
   const nextYear = currentYear + 1;
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date(currentYear, 10, 10)))
     .split(" ")
@@ -218,7 +234,12 @@ const CreateProject = () => {
   return (
     <div className="create-project">
       <h1>יצירת פרויקט חדש</h1>
-      <Form className="create-project-form" form={form} name="createProject" onFinish={onFinish}>
+      <Form
+        className="create-project-form"
+        form={form}
+        name="createProject"
+        onFinish={onFinish}
+        layout={windowSize.width > 1024 ? "horizontal" : "vertical"}>
         <Form.Item
           className="create-project-form-item"
           label="כותרת"
@@ -440,7 +461,16 @@ const CreateProject = () => {
               </div>
             }
             style={{
-              insetInlineEnd: 150,
+              insetInlineEnd:
+                windowSize.width > 1600
+                  ? 150
+                  : windowSize.width > 1200
+                  ? 90
+                  : windowSize.width > 1024
+                  ? 800
+                  : windowSize.width > 768
+                  ? 800
+                  : 550,
             }}
           />
         </div>

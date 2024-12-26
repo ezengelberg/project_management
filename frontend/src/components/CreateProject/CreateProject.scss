@@ -87,12 +87,30 @@
       width: 75%;
     }
   }
+  .project-created {
+    button {
+      width: 13%;
+    }
+  }
 }
 
 @media screen and (max-width: 1024px) {
   .create-project {
     .create-project-form {
       width: 80%;
+    }
+  }
+  .project-created {
+    button {
+      width: 15%;
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .project-created {
+    button {
+      width: 20%;
     }
   }
 }

@@ -57,10 +57,94 @@
   height: 2rem;
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 1920px) {
+  .profile-page {
+    .profile-page-header {
+      .basic-statistics {
+        canvas {
+          width: 90rem !important;
+          height: 45rem !important;
+        }
+      }
+    }
+  }
+  .skills-statistics {
+    canvas {
+      width: 60rem !important;
+      height: 60rem !important;
+    }
+  }
+}
+
+@media screen and (max-width: 1600px) {
+  .profile-page {
+    .profile-page-header {
+      .basic-statistics {
+        canvas {
+          width: 80rem !important;
+          height: 40rem !important;
+        }
+      }
+    }
+  }
+  .skills-statistics {
+    canvas {
+      width: 58rem !important;
+      height: 58rem !important;
+    }
+  }
+}
+
+@media screen and (max-width: 1200px) {
   .profile-page {
     flex-direction: column;
     align-items: center;
     gap: 5rem;
+    .profile-page-header {
+      .basic-statistics {
+        canvas {
+          width: 90rem !important;
+          height: 45rem !important;
+        }
+      }
+    }
+  }
+  .skills-statistics {
+    canvas {
+      width: 65rem !important;
+      height: 65rem !important;
+    }
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .profile-page {
+    .profile-page-header {
+      .basic-statistics {
+        canvas {
+          width: 90rem !important;
+          height: 45rem !important;
+        }
+      }
+    }
+  }
+  .skills-statistics {
+    canvas {
+      width: 70rem !important;
+      height: 70rem !important;
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .profile-page {
+    .profile-page-header {
+      .basic-statistics {
+        canvas {
+          width: 80rem !important;
+          height: 40rem !important;
+        }
+      }
+    }
   }
 }

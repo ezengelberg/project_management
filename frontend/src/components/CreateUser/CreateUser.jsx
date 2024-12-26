@@ -63,7 +63,6 @@ const CreateUser = () => {
         withCredentials: true,
       });
       message.success("משתמשים נוצרו בהצלחה");
-      console.log(response.data.existingUsers);
       if (response.data.existingUsers.length > 0) {
         message.warning(
           `המשתמשים הבאים כבר קיימים במערכת: ${response.data.existingUsers.map((user) => user.email).join(", ")}`
@@ -101,7 +100,6 @@ const CreateUser = () => {
           }))
           .filter((row) => row.email && row.firstName && row.lastName); // Filter out rows with undefined or empty values
 
-        console.log(parsedData); // Processed CSV data with English keys
         setUsers(parsedData);
       },
     });
@@ -182,8 +180,7 @@ const CreateUser = () => {
               description={`האם ברצונך להסיר את ${record.name}?`}
               okText="הסר"
               cancelText="בטל"
-              onConfirm={() => handleRemoveUser(record)}
-              onOpenChange={() => console.log("open change")}>
+              onConfirm={() => handleRemoveUser(record)}>
               <DeleteOutlined />
             </Popconfirm>
           </Tooltip>

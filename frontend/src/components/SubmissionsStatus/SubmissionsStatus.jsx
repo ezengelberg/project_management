@@ -141,7 +141,16 @@ const SubmissionsStatus = () => {
       dataIndex: "projectName",
       key: "projectName",
       fixed: "left",
-      width: windowSize.width > 1600 ? "30%" : windowSize.width > 1200 ? "25%" : windowSize.width > 1024 ? 330 : 300,
+      width:
+        windowSize.width > 1600
+          ? "30%"
+          : windowSize.width > 1200
+          ? "25%"
+          : windowSize.width > 1024
+          ? 330
+          : windowSize.width > 768
+          ? 300
+          : 200,
       ...getColumnSearchProps("projectName"),
       render: (text, record) => (
         <a

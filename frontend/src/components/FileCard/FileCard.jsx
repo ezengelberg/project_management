@@ -139,9 +139,9 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
         label: `פרטי עריכה`,
         children: (
           <div>
-            <sapn>
+            <span>
               <strong>נערך על ידי:</strong>
-            </sapn>
+            </span>
             <p>{record.editedBy.name}</p>
             <p>{new Date(record.editDate).toLocaleString("he-IL")}</p>
           </div>

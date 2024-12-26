@@ -74,3 +74,9 @@
     width: 95%;
   }
 }
+
+@media screen and (max-width: 768px) {
+  .info-container {
+    width: 100%;
+  }
+}
