@@ -394,7 +394,7 @@ const UploadSubmissions = () => {
               <UploadOutlined className="edit-icon" onClick={() => showUploadModal(record)} />
             </a>
           ) : new Date(record.submissionDate) > new Date() && record.fileNeeded ? (
-            <div class="icon-group">
+            <div className="icon-group">
               <a>
                 <DownloadOutlined className="edit-icon" onClick={() => downloadFile(record.file, "submissions")} />
               </a>
