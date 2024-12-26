@@ -39,6 +39,12 @@
               fill: white;
             }
           }
+
+          .logout-icon {
+            svg {
+              fill: #ff4d4f;
+            }
+          }
         }
         .active {
           background-color: #1677ff;

@@ -94,3 +94,14 @@
     }
   }
 }
+
+@media screen and (max-width: 626px) {
+  .create-user {
+    .create-user-form {
+      width: 100%;
+    }
+    .upload-users-csv .uploader-users-csv {
+      width: 100%;
+    }
+  }
+}

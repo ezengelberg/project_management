@@ -13,6 +13,7 @@ import {
   BarChartOutlined,
   MessageOutlined,
   CloseOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -129,6 +130,19 @@ const Sidebar = () => {
   const handleNavigate = (path) => {
     navigate(path);
     setIsSidebarVisible(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/logout`, null, {
+        withCredentials: true,
+      });
+      navigate("/login", { replace: true });
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("user");
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
   };
 
   return (
@@ -327,6 +341,14 @@ const Sidebar = () => {
                   onClick={() => handleNavigate("/system")}>
                   <SettingOutlined />
                   <span>ניהול מערכת</span>
+                </div>
+              </li>
+            )}
+            {windowSize.width <= 768 && (
+              <li>
+                <div className="sidebar-option" onClick={handleLogout}>
+                  <LogoutOutlined className="logout-icon" />
+                  <span>התנתקות</span>
                 </div>
               </li>
             )}

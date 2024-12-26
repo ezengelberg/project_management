@@ -134,7 +134,7 @@ const CreateUser = () => {
       title: "שם מלא",
       dataIndex: "name",
       key: "name",
-      fixed: "left",
+      fixed: windowSize.width > 626 && "left",
       render: (text) => <div>{text.length > 45 ? text.substring(0, 45) + "..." : text}</div>,
     },
     {

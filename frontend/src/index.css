@@ -216,9 +216,12 @@ hr {
   }
 }
 
-@media screen and (max-width: 360px) {
+@media screen and (max-width: 626px) {
   html {
     font-size: 7px;
+  }
+  h2 {
+    font-size: 2.7rem;
   }
   .sidebar-container {
     display: none;
@@ -228,6 +231,27 @@ hr {
   }
   .ant-modal {
     right: 0;
+  }
+  .ant-list-pagination .ant-pagination-item {
+    min-width: unset;
+  }
+  .ant-pagination .ant-pagination-item {
+    min-width: unset;
+  }
+  .ant-upload .ant-upload-drag-container p.ant-upload-text {
+    font-size: 1.7rem;
+  }
+  .ant-upload .ant-upload-drag-container p.ant-upload-hint {
+    font-size: 1.7rem;
+  }
+  .ant-upload-drag p.ant-upload-drag-icon .anticon {
+    font-size: 5rem !important;
+  }
+  .ant-table {
+    font-size: 1.8rem !important;
+  }
+  .ant-badge.ant-badge-status .ant-badge-status-text {
+    font-size: 1.8rem;
   }
 }
 

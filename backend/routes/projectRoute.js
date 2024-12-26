@@ -7,7 +7,6 @@ import {
   approveCandidate,
   removeStudentFromProject,
   switchProjectRegistration,
-  getProjectsStatus,
   updateProject,
   getAvailableProjects,
   getProject,
@@ -42,7 +41,6 @@ router.post("/remove-candidate", ensureAuthenticated, removeCandidateFromProject
 router.post("/approve-candidate", ensureAuthenticated, isAdvisorOrCoordinator, approveCandidate);
 router.post("/remove-student", ensureAuthenticated, isAdvisorOrCoordinator, removeStudentFromProject);
 router.post("/switch-registration", ensureAuthenticated, isAdvisorOrCoordinator, switchProjectRegistration);
-router.get("/status", getProjectsStatus);
 router.put("/edit-project/:id", ensureAuthenticated, isAdvisorOrCoordinator, updateProject);
 router.post("/add-advisor", ensureAuthenticated, isCoordinator, addAdvisorToProject);
 router.post("/add-student", ensureAuthenticated, isCoordinator, addStudentToProject);

@@ -13,6 +13,7 @@
         font-size: 1.5rem;
       }
     }
+
     .submission-details {
       display: flex;
       align-items: center;
@@ -83,5 +84,26 @@
 @media screen and (max-width: 1024px) {
   .check-submissions-container {
     width: 90%;
+  }
+}
+
+@media screen and (max-width: 626px) {
+  .check-submissions-container {
+    width: 100%;
+    .ant-list-item {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 1rem;
+      .submission-meta {
+        width: 100%;
+        text-align: center;
+      }
+      .ant-list-item-action {
+        .submission-details {
+          color: black;
+        }
+      }
+    }
   }
 }

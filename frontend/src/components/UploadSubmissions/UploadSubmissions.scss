@@ -76,3 +76,14 @@
   display: flex;
   gap: 1rem;
 }
+
+@media screen and (max-width: 626px) {
+  .grade-info {
+    .reviews {
+      grid-template-columns: repeat(1, 1fr);
+      .review-container {
+        flex-direction: column;
+      }
+    }
+  }
+}

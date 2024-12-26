@@ -155,9 +155,11 @@ const HeaderMenu = () => {
             {user.name && user.name.split(" ")[1] ? user.name.split(" ")[1][0] : ""}
           </Avatar>
         </Tooltip>
-        <Tooltip title="התנתק">
-          <LogoutOutlined className="logout-icon" onClick={handleLogout} />
-        </Tooltip>
+        {windowSize.width > 768 && (
+          <Tooltip title="התנתק">
+            <LogoutOutlined className="logout-icon" onClick={handleLogout} />
+          </Tooltip>
+        )}
       </div>
     </div>
   );

@@ -32,7 +32,7 @@
       width: 100%;
       font-size: 1.5rem;
       word-break: break-word;
-      max-height: 69px;
+      max-height: 77px;
       overflow: hidden;
       position: relative;
 
@@ -144,6 +144,29 @@
     }
     .upload-date {
       bottom: 26%;
+    }
+    .file-card-meta {
+      .file-description {
+        max-height: 67px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 626px) {
+  .file-card {
+    .file-original-name {
+      bottom: 29%;
+      font-size: 1.4rem;
+    }
+    .upload-date {
+      bottom: 29%;
+      font-size: 1.4rem;
+    }
+    .file-card-meta {
+      .file-description {
+        max-height: 46px;
+      }
     }
   }
 }

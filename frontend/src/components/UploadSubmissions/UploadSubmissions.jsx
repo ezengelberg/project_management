@@ -248,7 +248,7 @@ const UploadSubmissions = () => {
       title: "שם ההגשה",
       dataIndex: "submissionName",
       key: "submissionName",
-      fixed: "left",
+      fixed: windowSize.width > 626 && "left",
       ...getColumnSearchProps("submissionName"),
       render: (text) => (
         <Highlighter
@@ -264,7 +264,7 @@ const UploadSubmissions = () => {
       title: "תאריך הגשה",
       dataIndex: "submissionDate",
       key: "submissionDate",
-      fixed: "left",
+      fixed: windowSize.width > 626 && "left",
       render: (text, record) => {
         const submissionDate = new Date(record.submissionDate);
         const isPastDue = submissionDate < new Date();
@@ -356,7 +356,7 @@ const UploadSubmissions = () => {
         }
         return !record.fileNeeded;
       },
-      width: "17.5%",
+      width: windowSize.width > 626 ? "17.5%" : 300,
     },
     {
       title: "הנחיות",
@@ -510,7 +510,10 @@ const UploadSubmissions = () => {
                     </div>
                   </div>
                   {index !== gradeInfo.grades.length - 1 && gradeInfo.grades.length > 1 && (
-                    <Divider type="vertical" style={{ height: "100%", margin: "0 5px" }} />
+                    <Divider
+                      type={windowSize.width > 626 ? "vertical" : "horizontal"}
+                      style={{ height: windowSize.width > 626 && "100%", margin: windowSize.width > 626 && "0 5px" }}
+                    />
                   )}
                 </div>
               ))}
@@ -530,7 +533,9 @@ const UploadSubmissions = () => {
             ? "30%"
             : windowSize.width > 768
             ? "40%"
-            : "50%"
+            : windowSize.width > 626
+            ? "50%"
+            : "90%"
         }
         okText="אשר מחיקה"
         okButtonProps={{ danger: true }}

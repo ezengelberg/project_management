@@ -240,13 +240,20 @@ const SystemControl = () => {
       title: "הגשה",
       dataIndex: "name",
       key: "name",
-      fixed: "left",
+      fixed: windowSize.width > 626 && "left",
       render: (text) => (
         <span>{text.length > 40 ? <Tooltip title={text}>{text.substring(0, 40)}...</Tooltip> : text}</span>
       ),
       sorter: (a, b) => a.name.localeCompare(b.name),
       defaultSortOrder: "ascend",
-      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 250,
+      width:
+        windowSize.width > 1920
+          ? "15%"
+          : windowSize.width <= 1920 && windowSize.width > 1024
+          ? 300
+          : windowSize.width > 768
+          ? 250
+          : 150,
     },
     ...Object.keys(letterToNumber).map((letter) => ({
       title: <p style={{ direction: "ltr", margin: "0", textAlign: "right" }}>{letter}</p>,

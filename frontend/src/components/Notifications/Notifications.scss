@@ -34,3 +34,32 @@
     display: none;
   }
 }
+
+@media screen and (max-width: 626px) {
+  .notifications-page {
+    .notification-item {
+      .ant-list-item-meta {
+        .ant-list-item-meta-content {
+          h4 {
+            font-size: 1.4rem;
+          }
+        }
+        .ant-list-item-meta-description {
+          font-size: 1.2rem;
+        }
+      }
+    }
+    .notification-with-link {
+      .ant-list-item-meta {
+        .ant-list-item-meta-content {
+          h4 {
+            font-size: 1.4rem;
+          }
+        }
+        .ant-list-item-meta-description {
+          font-size: 1.2rem;
+        }
+      }
+    }
+  }
+}

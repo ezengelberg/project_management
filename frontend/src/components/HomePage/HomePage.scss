@@ -1,8 +1,3 @@
-.home-page-statistics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-}
-
 .home-page-upcoming-events-list {
   display: flex;
   gap: 2rem;
@@ -126,5 +121,25 @@
 @media screen and (max-width: 1024px) {
   .home-page-info {
     grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+@media screen and (max-width: 626px) {
+  .home-page-info {
+    .home-page-quick-links-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      .quick-link-item {
+        font-size: 1.9rem;
+        text-align: center;
+      }
+    }
+    .home-page-notifications-list {
+      .notification-list-message {
+        p {
+          font-size: 1.6rem;
+        }
+      }
+    }
   }
 }

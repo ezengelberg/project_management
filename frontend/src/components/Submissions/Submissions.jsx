@@ -522,7 +522,7 @@ const Submissions = () => {
       title: "שם הפרויקט",
       dataIndex: "title",
       key: "title",
-      fixed: "left",
+      fixed: windowSize.width > 626 && "left",
       ...getColumnSearchProps("title"),
       sorter: (a, b) => {
         // Safely handle undefined values in sorting

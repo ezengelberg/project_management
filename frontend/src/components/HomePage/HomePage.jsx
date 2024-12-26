@@ -31,9 +31,6 @@ const Homepage = () => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
   });
-  const [numOfOpenProjects, setNumOfOpenProjects] = useState(0);
-  const [numOfTakenProjects, setNumOfTakenProjects] = useState(0);
-  const [numOfFinishedProjects, setNumOfFinishedProjects] = useState(0);
   const [value, setValue] = useState(() => dayjs());
   const [selectedValue, setSelectedValue] = useState(() => dayjs());
   const [userProject, setUserProject] = useState(null);
@@ -119,18 +116,6 @@ const Homepage = () => {
   useEffect(() => {
     dayjs.locale("he");
     dayjs.extend(localeData);
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/status`, {
-          withCredentials: true,
-        });
-        setNumOfOpenProjects(response.data.numOfOpenProjects);
-        setNumOfTakenProjects(response.data.numOfTakenProjects);
-        setNumOfFinishedProjects(response.data.numOfFinishedProjects);
-      } catch (error) {
-        console.error("Error occurred:", error);
-      }
-    };
 
     const fetchUserProject = async () => {
       try {
@@ -143,7 +128,6 @@ const Homepage = () => {
       }
     };
 
-    fetchData();
     fetchUserProject();
     fetchNotifications();
   }, []);
@@ -174,8 +158,6 @@ const Homepage = () => {
     return monthLables[month];
   };
 
-  const formatter = (value) => <CountUp end={value} separator="," />;
-
   const handleNotificationClick = (notification) => {
     if (notification.link) {
       navigate(notification.link);
@@ -189,13 +171,6 @@ const Homepage = () => {
 
   return (
     <div className="home-page">
-      {currentUser.isCoordinator && (
-        <div className="home-page-statistics">
-          <Statistic title="פרויקטים פתוחים" value={numOfOpenProjects} formatter={formatter} />
-          <Statistic title="פרויקטים לקוחים" value={numOfTakenProjects} formatter={formatter} />
-          <Statistic title="פרויקטים שהושלמו" value={numOfFinishedProjects} formatter={formatter} />
-        </div>
-      )}
       <div className="home-page-info">
         <div className="home-page-quick-links">
           <h2>קישורים מהירים</h2>

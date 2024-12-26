@@ -108,6 +108,10 @@
 
 @media screen and (max-width: 768px) {
   .header-container {
+    .site-upper-header-left {
+      gap: 3rem;
+      top: 1%;
+    }
     .avatar-icon {
       width: 35px;
       height: 35px;

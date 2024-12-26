@@ -365,7 +365,7 @@ const ManageProjects = () => {
       title: "שם הפרויקט",
       dataIndex: "title",
       key: "title",
-      fixed: "left",
+      fixed: windowSize.width > 626 && "left",
       ...getColumnSearchProps("title"),
       render: (title) => (
         <Highlighter
@@ -494,7 +494,7 @@ const ManageProjects = () => {
         title: "שם הסטודנט",
         dataIndex: "name",
         key: "name",
-        fixed: "left",
+        fixed: windowSize.width > 626 && "left",
         render: (name) =>
           windowSize.width > 1600 ? (
             name.length > 80 ? (

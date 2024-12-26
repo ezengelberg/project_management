@@ -58,6 +58,22 @@ const MoreInformation = () => {
   const [editDescription, setEditDescription] = useState("");
   const [currentFile, setCurrentFile] = useState({});
   const { Dragger } = Upload;
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -265,7 +281,7 @@ const MoreInformation = () => {
       dataIndex: "name",
       key: "name",
       ...getColumnSearchProps("name"),
-      width: "22.5%",
+      width: windowSize.width > 768 ? "22.5%" : 250,
       render: (text) => (
         <Highlighter
           highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
@@ -279,7 +295,7 @@ const MoreInformation = () => {
       title: "מייל",
       dataIndex: "email",
       key: "email",
-      width: "22.5%",
+      width: windowSize.width > 768 ? "22.5%" : 250,
       render: (text) => (
         <Tooltip title="לחץ להעתקה">
           <a onClick={() => handleEmailClick(text)}>{text}</a>
@@ -290,7 +306,7 @@ const MoreInformation = () => {
       title: "תחומי עניין",
       dataIndex: "interests",
       key: "interests",
-      width: "22.5%",
+      width: windowSize.width > 768 ? "22.5%" : 300,
       editable: true,
       render: (interests) => <p>{interests ? interests : "אין תחום עניין"}</p>,
       filters: [
@@ -309,7 +325,7 @@ const MoreInformation = () => {
       title: "האם נשארו פריקטים פנויים",
       dataIndex: "projectsAvailable",
       key: "projectsAvailable",
-      width: "22.5%",
+      width: windowSize.width > 768 ? "22.5%" : 230,
       render: (projectsAvailable) => <p>{projectsAvailable ? "כן" : "לא"}</p>,
       filters: [
         { text: "כן", value: true },
@@ -405,27 +421,27 @@ const MoreInformation = () => {
       title: "שם",
       dataIndex: "name",
       editable: true,
-      width: "26%",
+      width: windowSize.width > 768 ? "26%" : 200,
     },
     {
       title: "משקל",
       dataIndex: "weight",
       editable: true,
       render: (text) => <span>{text === 0 ? "ללא ציון" : `${text}%`}</span>,
-      width: "7%",
+      width: windowSize.width > 768 ? "7%" : 100,
     },
     {
       title: "תיאור",
       dataIndex: "description",
       editable: true,
-      width: "47%",
+      width: windowSize.width > 768 ? "47%" : 300,
     },
     {
       title: "תאריך הגשה",
       dataIndex: "date",
       editable: true,
       render: (text) => <span>{dayjs(text).format("DD/MM/YYYY")}</span>,
-      width: "10%",
+      width: windowSize.width > 768 ? "10%" : 150,
     },
     currentUser.isCoordinator && {
       title: "פעולות",
@@ -656,6 +672,7 @@ const MoreInformation = () => {
             columns={mergedColumns}
             rowClassName="editable-row"
             pagination={false}
+            {...(windowSize.width <= 768 && { scroll: { x: "max-content" } })}
           />
         </Form>
       ),
@@ -679,7 +696,10 @@ const MoreInformation = () => {
               <Form.Item name="weight" rules={[{ required: true, message: "הכנס משקל" }]}>
                 <InputNumber placeholder="משקל" />
               </Form.Item>
-              <Form.Item name="description" rules={[{ required: true, message: "הכנס תיאור" }]} style={{ width: 400 }}>
+              <Form.Item
+                name="description"
+                rules={[{ required: true, message: "הכנס תיאור" }]}
+                style={{ width: windowSize.width > 768 ? 400 : windowSize.width > 626 ? 350 : 270 }}>
                 <Input placeholder="תיאור" />
               </Form.Item>
               <Form.Item name="date" rules={[{ required: true, message: "הכנס תאריך" }]}>
@@ -719,6 +739,7 @@ const MoreInformation = () => {
               columns={gradesMergedColumns}
               rowClassName="editable-row"
               pagination={false}
+              {...(windowSize.width <= 768 && { scroll: { x: "max-content" } })}
             />
           </Form>
           {currentUser.isCoordinator && (

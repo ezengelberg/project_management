@@ -470,7 +470,9 @@ const CreateProject = () => {
                   ? 800
                   : windowSize.width > 768
                   ? 800
-                  : 550,
+                  : windowSize.width > 626
+                  ? 550
+                  : 250,
             }}
           />
         </div>

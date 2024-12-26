@@ -140,7 +140,7 @@ const SubmissionsStatus = () => {
       title: "שם פרויקט",
       dataIndex: "projectName",
       key: "projectName",
-      fixed: "left",
+      fixed: windowSize.width > 626 && "left",
       width:
         windowSize.width > 1600
           ? "30%"

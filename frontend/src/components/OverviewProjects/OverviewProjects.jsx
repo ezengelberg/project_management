@@ -619,7 +619,7 @@ const OverviewProjects = () => {
         title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
-        fixed: "left",
+        fixed: windowSize.width > 626 && "left",
         ...getColumnSearchProps("title"),
         render: (text, record) => (
           <a
@@ -883,7 +883,7 @@ const OverviewProjects = () => {
         title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
-        fixed: "left",
+        fixed: windowSize.width > 626 && "left",
         ...getColumnSearchProps("title"),
         render: (text, record) => (
           <a

@@ -140,7 +140,7 @@ const ShowAllUsers = () => {
       title: "שם",
       dataIndex: "name",
       key: "name",
-      fixed: "left",
+      fixed: windowSize.width > 626 && "left",
       ...getColumnSearchProps("name"),
       render: (text, record) => (
         <a
@@ -434,7 +434,7 @@ const ShowAllUsers = () => {
       title: "שם",
       dataIndex: "name",
       key: "name",
-      fixed: "left",
+      fixed: windowSize.width > 626 && "left",
       ...getColumnSearchProps("name"),
       render: (text, record) => (
         <a

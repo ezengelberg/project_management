@@ -13,6 +13,22 @@ const CheckSubmissions = () => {
   const [submissions, setSubmissions] = useState([]);
   const [moreDetailsModal, setMoreDetailsModal] = useState(false);
   const [submissionDetails, setSubmissionDetails] = useState({});
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -118,6 +134,9 @@ const CheckSubmissions = () => {
                 !item.isReviewed && !item.isGraded
                   ? []
                   : [
+                      windowSize.width <= 626 && (
+                        <div className="submission-details">{renderSubmissionDetails(item)}</div>
+                      ),
                       <a
                         key="list-grade"
                         onClick={() => navigate(`/grade-submission/${item.key}`)}
@@ -136,7 +155,17 @@ const CheckSubmissions = () => {
                         <a
                           onClick={() => navigate(`/project/${item.projectId}`)}
                           onMouseDown={(e) => handleMouseDown(e, `/project/${item.projectId}`)}>
-                          {item.projectName.length > 55 ? item.projectName.slice(0, 55) + "..." : item.projectName}
+                          {windowSize.width > 1200
+                            ? item.projectName.length > 55
+                              ? item.projectName.slice(0, 55) + "..."
+                              : item.projectName
+                            : windowSize.width > 626
+                            ? item.projectName.length > 40
+                              ? item.projectName.slice(0, 40) + "..."
+                              : item.projectName
+                            : item.projectName.length > 45
+                            ? item.projectName.slice(0, 45) + "..."
+                            : item.projectName}
                         </a>
                         )
                       </span>
@@ -144,7 +173,7 @@ const CheckSubmissions = () => {
                   }
                   description="פה יהיה שם הקובץ"
                 />
-                <div className="submission-details">{renderSubmissionDetails(item)}</div>
+                {windowSize.width > 626 && <div className="submission-details">{renderSubmissionDetails(item)}</div>}
               </Skeleton>
             </List.Item>
           )}
@@ -190,7 +219,17 @@ const CheckSubmissions = () => {
                         <a
                           onClick={() => navigate(`/project/${item.projectId}`)}
                           onMouseDown={(e) => handleMouseDown(e, `/project/${item.projectId}`)}>
-                          {item.projectName.length > 55 ? item.projectName.slice(0, 55) + "..." : item.projectName}
+                          {windowSize.width > 1200
+                            ? item.projectName.length > 55
+                              ? item.projectName.slice(0, 55) + "..."
+                              : item.projectName
+                            : windowSize.width > 626
+                            ? item.projectName.length > 40
+                              ? item.projectName.slice(0, 40) + "..."
+                              : item.projectName
+                            : item.projectName.length > 45
+                            ? item.projectName.slice(0, 45) + "..."
+                            : item.projectName}
                         </a>
                         )
                       </span>
@@ -238,7 +277,17 @@ const CheckSubmissions = () => {
                         <a
                           onClick={() => navigate(`/project/${item.projectId}`)}
                           onMouseDown={(e) => handleMouseDown(e, `/project/${item.projectId}`)}>
-                          {item.projectName.length > 55 ? item.projectName.slice(0, 55) + "..." : item.projectName}
+                          {windowSize.width > 1200
+                            ? item.projectName.length > 55
+                              ? item.projectName.slice(0, 55) + "..."
+                              : item.projectName
+                            : windowSize.width > 626
+                            ? item.projectName.length > 40
+                              ? item.projectName.slice(0, 40) + "..."
+                              : item.projectName
+                            : item.projectName.length > 45
+                            ? item.projectName.slice(0, 45) + "..."
+                            : item.projectName}
                         </a>
                         )
                       </span>
