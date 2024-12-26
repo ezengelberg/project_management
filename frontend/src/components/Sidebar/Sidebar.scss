@@ -109,16 +109,16 @@
 @media screen and (max-width: 1024px) {
   .sidebar-container {
     position: relative;
-    display: none;
+    display: block;
     position: absolute;
+    right: 0;
     z-index: 1000;
     height: 100%;
-    transform: translateX(-100%);
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
   }
   .sidebar-container.open {
-    display: block;
     transform: translateX(0);
-    transition: transform 0.3s ease-in-out;
   }
   .close-button {
     position: absolute;
