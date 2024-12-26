@@ -48,7 +48,7 @@ router.put("/change-password", ensureAuthenticated, changePassword);
 router.get("/advisor-users", ensureAuthenticated, isCoordinator, getAdvisorUsers);
 router.get("/check-auth", ensureAuthenticated, (req, res) => {
   res.status(200).json({
-    authenticated: true,
+    authenticated: !req.user.firstLogin,
     isStudent: req.user.isStudent,
     isAdvisor: req.user.isAdvisor,
     isJudge: req.user.isJudge,
