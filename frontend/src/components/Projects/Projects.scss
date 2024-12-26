@@ -179,3 +179,24 @@
     gap: 1rem;
   }
 }
+
+@media only screen and (max-width: 767px) and (orientation: portrait) {
+  /* Styles for phones in portrait mode */
+  .projects .list-projects {
+    grid-template-columns: 1fr; /* One project per row */
+    gap: 1rem; 
+    margin-top: 1rem;
+  }
+
+  .projects .project-overlay {
+    height: auto;
+    padding: 2rem;
+  }
+  .projects .project-info {
+    width: 100%;
+  }
+  .projects .project-description {
+    max-height: none;
+    overflow: visible; 
+  }
+}
