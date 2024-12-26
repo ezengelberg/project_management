@@ -40,9 +40,24 @@ const ProfilePage = () => {
   const radarChartRef = useRef(null);
   const statisticsChartInstance = useRef(null);
   const radarChartInstance = useRef(null);
-
   const [skillData, setSkillData] = useState([8, 6, 7, 9, 5]);
   const [tempSkillData, setTempSkillData] = useState([...skillData]);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const InterestsSVG = () => (
     <svg className="profile-svg" fill="#000000" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
@@ -191,10 +206,12 @@ const ProfilePage = () => {
                   <UserOutlined />
                   סוג משתמש:
                 </h3>
-                {user?.isCoordinator ? <Alert message="מנהל" type="success" /> : ""}
-                {user?.isAdvisor ? <Alert message="מנחה" type="info" /> : ""}
-                {user?.isJudge ? <Alert message="שופט" type="error" /> : ""}
-                {user?.isStudent ? <Alert message="סטודנט" type="warning" /> : ""}
+                <div className="user-type-labels">
+                  {user?.isCoordinator ? <Alert message="מנהל" type="success" /> : ""}
+                  {user?.isAdvisor ? <Alert message="מנחה" type="info" /> : ""}
+                  {user?.isJudge ? <Alert message="שופט" type="error" /> : ""}
+                  {user?.isStudent ? <Alert message="סטודנט" type="warning" /> : ""}
+                </div>
               </div>
             </div>
           )}
@@ -218,11 +235,13 @@ const ProfilePage = () => {
           </div>
         )}
         <div className="basic-statistics">
-          {(currentUser.isCoordinator || currentUser._id === userId) && <canvas ref={statisticsChartRef} />}
+          {(currentUser.isCoordinator || currentUser._id === userId) && windowSize.width > 626 && (
+            <canvas ref={statisticsChartRef} />
+          )}
         </div>
       </div>
       <div className="skills-statistics">
-        {currentUser.isCoordinator && (
+        {currentUser.isCoordinator && windowSize.width > 626 && (
           <>
             <canvas ref={radarChartRef} />
             <Space direction="vertical" style={{ width: "100%" }}>

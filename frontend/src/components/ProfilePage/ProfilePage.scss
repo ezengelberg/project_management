@@ -24,6 +24,10 @@
         display: flex;
         align-items: center;
         gap: 1rem;
+        .user-type-labels {
+          display: flex;
+          gap: 1rem;
+        }
       }
     }
 
@@ -143,6 +147,44 @@
         canvas {
           width: 80rem !important;
           height: 40rem !important;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 626px) {
+  .profile-page {
+    .profile-page-header {
+      .ant-avatar {
+        width: 20rem !important;
+        height: 20rem !important;
+      }
+      .ant-avatar-string {
+        .avatar-text {
+          font-size: 6rem;
+        }
+      }
+      .profile-page-header-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        .private-info {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          h3 {
+            margin: 0.5rem 0;
+          }
+        }
+        .user-type {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          .user-type-labels {
+            display: flex;
+            gap: 1rem;
+          }
         }
       }
     }
