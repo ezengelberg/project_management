@@ -87,9 +87,11 @@ const CheckSubmissions = () => {
               <strong>לא ניתן משוב</strong>
             </span>
           )}
-          <Tooltip title="הורד קובץ">
-            <DownloadOutlined className="icon" onClick={() => downloadFile(item.file, "submissions")} />
-          </Tooltip>
+          {item.fileNeeded && (
+            <Tooltip title="הורד קובץ">
+              <DownloadOutlined className="icon" onClick={() => downloadFile(item.file, "submissions")} />
+            </Tooltip>
+          )}
         </>
       );
     } else if (!item.isReviewed && !item.isGraded) {
@@ -107,9 +109,11 @@ const CheckSubmissions = () => {
             )}
             <p>{item.grade}</p>
           </div>
-          <Tooltip title="הורד קובץ">
-            <DownloadOutlined className="icon" onClick={() => downloadFile(item.file, "submissions")} />
-          </Tooltip>
+          {item.fileNeeded && (
+            <Tooltip title="הורד קובץ">
+              <DownloadOutlined className="icon" onClick={() => downloadFile(item.file, "submissions")} />
+            </Tooltip>
+          )}
         </>
       );
     }
@@ -171,7 +175,7 @@ const CheckSubmissions = () => {
                       </span>
                     </div>
                   }
-                  description="פה יהיה שם הקובץ"
+                  description={item.fileName ? item.fileName : "הגשה ללא קובץ"}
                 />
                 {windowSize.width > 626 && <div className="submission-details">{renderSubmissionDetails(item)}</div>}
               </Skeleton>
@@ -235,7 +239,7 @@ const CheckSubmissions = () => {
                       </span>
                     </div>
                   }
-                  description="פה יהיה שם הקובץ"
+                  description={item.fileName ? item.fileName : "הגשה ללא קובץ"}
                 />
                 <div className="submission-details">{renderSubmissionDetails(item)}</div>
               </Skeleton>
@@ -293,7 +297,7 @@ const CheckSubmissions = () => {
                       </span>
                     </div>
                   }
-                  description="פה יהיה שם הקובץ"
+                  description={item.fileName ? item.fileName : "הגשה ללא קובץ"}
                 />
                 <div className="submission-details">{renderSubmissionDetails(item)}</div>
               </Skeleton>
