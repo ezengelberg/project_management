@@ -388,6 +388,7 @@ const OverviewProjects = () => {
           return {
             ...project,
             isTerminated: false,
+            isTaken: false,
             terminationRecord: [],
           };
         }

@@ -2,6 +2,7 @@ import Project from "../models/projects.js";
 import User from "../models/users.js";
 import Notification from "../models/notifications.js";
 import Submission from "../models/submission.js";
+import Grade from "../models/grades.js";
 import Upload from "../models/uploads.js";
 import fs from "fs";
 import path from "path";
@@ -572,6 +573,22 @@ export const terminateProject = async (req, res) => {
     project.examJudges = [];
     project.isTerminated = true;
 
+    // Delete all related submissions and their files
+    const submissions = await Submission.find({ project: project._id });
+    for (const submission of submissions) {
+      if (submission.file) {
+        const file = await Upload.findById(submission.file);
+        if (file) {
+          const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+          await Upload.deleteOne({ _id: submission.file });
+        }
+      }
+      // Delete all grades related to the submission
+      await Grade.deleteMany({ _id: { $in: submission.grades } });
+      await submission.deleteOne();
+    }
+
     await project.save();
     res.status(200).send("Project terminated successfully");
   } catch (err) {
@@ -581,27 +598,9 @@ export const terminateProject = async (req, res) => {
 
 export const deleteProject = async (req, res) => {
   try {
-    console.log("deleting project");
     const project = await Project.findById(req.params.id);
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
-    }
-    console.log("found project");
-    console.log(project._id);
-    const submissions = await Submission.find({ project: project._id });
-    console.log(submissions.length);
-    for (const submission of submissions) {
-      if (submission.file) {
-        const file = await Upload.findById(submission.file);
-        if (file) {
-          const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
-          console.log(filePath);
-          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-          await Upload.deleteOne({ _id: submission.file });
-          console.log("deleted");
-        }
-      }
-      await submission.deleteOne();
     }
     await project.deleteOne();
     res.status(200).send("Project deleted successfully");

@@ -655,7 +655,6 @@ const Submissions = () => {
           </div>
         );
       },
-      width: "75%",
     },
   ];
 
