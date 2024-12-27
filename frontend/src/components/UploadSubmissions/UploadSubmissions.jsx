@@ -1,18 +1,46 @@
 import React, { useEffect, useState, useRef, forwardRef, useContext } from "react";
-import { Badge, Table, Tooltip, Modal, Upload, message, Divider } from "antd";
-import { UploadOutlined, DeleteOutlined, InboxOutlined, EyeOutlined, DownloadOutlined } from "@ant-design/icons";
+import { Badge, Table, Tooltip, Modal, Upload, message, Divider, Descriptions } from "antd";
+import {
+  UploadOutlined,
+  DeleteOutlined,
+  InboxOutlined,
+  EyeOutlined,
+  DownloadOutlined,
+  BarChartOutlined,
+} from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import axios from "axios";
 import "./UploadSubmissions.scss";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { downloadFile } from "../../utils/downloadFile";
 import { NotificationsContext } from "../../context/NotificationsContext";
+import GradeDistributionChart from "../../utils/GradeDistributionChart";
 
 const SafeTooltip = forwardRef(({ title, children }, ref) => (
   <Tooltip title={title}>
     <span ref={ref}>{children}</span>
   </Tooltip>
 ));
+
+const calculateStatistics = (grades, userGrade) => {
+  const sortedGrades = [...grades].sort((a, b) => a - b);
+  const totalGrades = grades.length;
+  const average = (grades.reduce((sum, grade) => sum + grade, 0) / totalGrades).toFixed(2);
+  const median = sortedGrades[Math.floor(totalGrades / 2)];
+  const lowest = sortedGrades[0];
+  const highest = sortedGrades[sortedGrades.length - 1];
+  const failPercentage = ((grades.filter((grade) => grade <= 54).length / totalGrades) * 100).toFixed(2);
+  const userRank = sortedGrades.indexOf(userGrade) + 1;
+
+  return {
+    average,
+    median,
+    lowest,
+    highest,
+    failPercentage,
+    userRank,
+  };
+};
 
 const UploadSubmissions = () => {
   const { fetchNotifications } = useContext(NotificationsContext);
@@ -31,6 +59,9 @@ const UploadSubmissions = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+  const [isGradeDistributionModalVisible, setIsGradeDistributionModalVisible] = useState(false);
+  const [gradeDistributionData, setGradeDistributionData] = useState([]);
+  const [additionalData, setAdditionalData] = useState({});
 
   useEffect(() => {
     const handleResize = () => {
@@ -58,6 +89,45 @@ const UploadSubmissions = () => {
   const showConfirmModal = (sub) => {
     setCurrentSubmission(sub);
     setIsConfirmModalVisible(true);
+  };
+
+  const showGradeDistributionModal = async (submissionId) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/grade-distribution/${submissionId}`,
+        {
+          withCredentials: true,
+        }
+      );
+      const {
+        distribution,
+        average,
+        median,
+        lowest,
+        highest,
+        failPercentage,
+        submissionName,
+        projectYear,
+        currentSubmissionFinalGrade,
+        numberOfGrades,
+        currentSubmissionGradeIndex,
+      } = response.data;
+      setGradeDistributionData(distribution);
+      setAdditionalData({
+        average,
+        median,
+        lowest,
+        highest,
+        failPercentage,
+        submissionName,
+        userGrade: currentSubmissionFinalGrade,
+        projectYear,
+        userRank: `${currentSubmissionGradeIndex + 1} מתוך ${numberOfGrades}`,
+      });
+      setIsGradeDistributionModalVisible(true);
+    } catch (error) {
+      console.error("Error fetching grade distribution:", error);
+    }
   };
 
   const { Dragger } = Upload;
@@ -258,7 +328,7 @@ const UploadSubmissions = () => {
           textToHighlight={text ? text.toString() : ""}
         />
       ),
-      width: windowSize.width > 1024 ? "27.5%" : windowSize.width / 3,
+      width: windowSize.width > 1200 ? "27.5%" : 400,
     },
     {
       title: "תאריך הגשה",
@@ -304,7 +374,7 @@ const UploadSubmissions = () => {
       },
       defaultSortOrder: "ascend",
       sortDirections: ["descend", "ascend"],
-      width: windowSize.width > 1024 ? "15%" : 200,
+      width: windowSize.width > 1200 ? "15%" : 200,
     },
     {
       title: "סטטוס הגשה",
@@ -403,16 +473,37 @@ const UploadSubmissions = () => {
               </a>
             </div>
           ) : record.editable === false ? (
-            <a>
-              <Tooltip title="לצפיה בציון">
-                <EyeOutlined
-                  className="edit-icon"
-                  onClick={() => {
-                    setGradeInfo(record);
-                  }}
-                />
-              </Tooltip>
-            </a>
+            <div className="icon-group">
+              <a>
+                <Tooltip title="צפיה בציון">
+                  <EyeOutlined
+                    className="edit-icon"
+                    onClick={() => {
+                      setGradeInfo(record);
+                    }}
+                  />
+                </Tooltip>
+              </a>
+              <Divider type="vertical" style={{ height: "1.9em" }} />
+              {record.fileNeeded && (
+                <>
+                  <a>
+                    <Tooltip title="הורדת קובץ מקור">
+                      <DownloadOutlined
+                        className="edit-icon"
+                        onClick={() => downloadFile(record.file, "submissions")}
+                      />
+                    </Tooltip>
+                  </a>
+                  <Divider type="vertical" style={{ height: "1.9em" }} />
+                </>
+              )}
+              <a>
+                <Tooltip className="edit-icon" title="כל הציונים">
+                  <BarChartOutlined onClick={() => showGradeDistributionModal(record._id)} />
+                </Tooltip>
+              </a>
+            </div>
           ) : record.fileNeeded ? (
             <span>
               תאריך הגשה עבר <br />
@@ -427,7 +518,7 @@ const UploadSubmissions = () => {
           )}
         </span>
       ),
-      width: windowSize.width > 1024 ? "15%" : 200,
+      width: windowSize.width > 1200 ? "15%" : 200,
     },
   ];
 
@@ -591,6 +682,14 @@ const UploadSubmissions = () => {
             </p>
           </Dragger>
         </div>
+      </Modal>
+      <Modal
+        title="התפלגות ציונים"
+        open={isGradeDistributionModalVisible}
+        onCancel={() => setIsGradeDistributionModalVisible(false)}
+        footer={null}
+        width={windowSize.width > 1600 ? "60%" : windowSize.width > 1200 ? "70%" : "100%"}>
+        <GradeDistributionChart data={gradeDistributionData} additionalData={additionalData} />
       </Modal>
       <Table
         dataSource={submissions}

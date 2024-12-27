@@ -760,3 +760,77 @@ export const getSpecificProjectSubmissions = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const getGradeDistribution = async (req, res) => {
+  try {
+    const submissionId = req.params.id;
+    const submission = await Submission.findById(submissionId).populate("project");
+
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    const projectYear = submission.project.year;
+    const submissionName = submission.name;
+    const currentSubmissionFinalGrade = submission.finalGrade;
+    const projects = await Project.find({ year: projectYear });
+    const projectIds = projects.map((project) => project._id);
+
+    const submissions = await Submission.find({
+      project: { $in: projectIds },
+      name: submissionName,
+    });
+
+    const gradeRanges = [
+      { range: "0-54", min: 0, max: 54 },
+      { range: "55-64", min: 55, max: 64 },
+      { range: "65-69", min: 65, max: 69 },
+      { range: "70-74", min: 70, max: 74 },
+      { range: "75-79", min: 75, max: 79 },
+      { range: "80-84", min: 80, max: 84 },
+      { range: "85-89", min: 85, max: 89 },
+      { range: "90-94", min: 90, max: 94 },
+      { range: "95-100", min: 95, max: 100 },
+    ];
+
+    const allGrades = submissions.map((submission) => submission.finalGrade).filter((grade) => grade !== null);
+    const totalGrades = allGrades.length;
+
+    const average = (allGrades.reduce((sum, grade) => sum + grade, 0) / totalGrades).toFixed(2);
+    const sortedGrades = [...allGrades].sort((a, b) => a - b);
+    const median = sortedGrades[Math.floor(totalGrades / 2)];
+    const lowest = sortedGrades[0];
+    const highest = sortedGrades[sortedGrades.length - 1];
+    const failPercentage = ((allGrades.filter((grade) => grade <= 54).length / totalGrades) * 100).toFixed(2);
+
+    const distribution = gradeRanges.map((range) => {
+      const count = allGrades.filter((grade) => grade >= range.min && grade <= range.max).length;
+      return {
+        range: range.range,
+        percentage: Math.round((count / totalGrades) * 100),
+        count,
+      };
+    });
+
+    const descendingGrades = [...sortedGrades].reverse();
+    const numberOfGrades = allGrades.length;
+    const currentSubmissionGradeIndex = descendingGrades.indexOf(currentSubmissionFinalGrade);
+
+    res.status(200).json({
+      distribution,
+      average,
+      median,
+      lowest,
+      highest,
+      failPercentage,
+      submissionName,
+      projectYear,
+      currentSubmissionFinalGrade,
+      numberOfGrades,
+      currentSubmissionGradeIndex,
+    });
+  } catch (error) {
+    console.error("Error fetching grade distribution:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};

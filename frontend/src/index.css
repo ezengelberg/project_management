@@ -159,6 +159,15 @@ hr {
 
 /* ------------------- Rich Text ------------------- */
 
+.grade-distribution-chart {
+  display: flex;
+}
+
+.bar-grade-chart {
+  margin-right: 2rem;
+  border-right: 1px solid #e4e4ed;
+}
+
 /* ------------------ Tablet/Phone ----------------- */
 
 .hamburger-button {
@@ -183,6 +192,9 @@ hr {
 @media screen and (max-width: 1200px) {
   html {
     font-size: 9px;
+  }
+  .ant-modal {
+    right: 0;
   }
 }
 
@@ -213,6 +225,14 @@ hr {
   }
   .ant-modal {
     right: 0;
+  }
+  .grade-distribution-chart {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .bar-grade-chart {
+    margin-right: 0;
+    border-right: none;
   }
 }
 
