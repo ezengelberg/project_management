@@ -522,16 +522,18 @@ export const getUserProject = async (req, res) => {
 export const getUserProjectStatistics = async (req, res) => {
   const userId = req.params.id;
   try {
-    const currentYear = new Date().getFullYear();
     const statistics = [];
+    const projects = await Project.find({ advisors: userId });
 
-    for (let year = currentYear; year >= currentYear - 4; year--) {
-      const projects = await Project.find({ advisors: userId, year: year });
-      const finishedProjects = projects.filter((project) => project.isFinished).length;
+    const years = [...new Set(projects.map((project) => project.year))].sort((a, b) => b.localeCompare(a)).slice(0, 5);
+
+    for (const year of years) {
+      const projectsInYear = projects.filter((project) => project.year === year);
+      const takenProjects = projectsInYear.filter((project) => project.isTaken).length;
       statistics.push({
         year: year,
-        projects: projects.length,
-        finishedProjects: finishedProjects,
+        projects: projectsInYear.length,
+        takenProjects: takenProjects,
       });
     }
 

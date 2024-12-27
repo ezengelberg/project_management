@@ -796,12 +796,12 @@ export const getGradeDistribution = async (req, res) => {
     const allGrades = submissions.map((submission) => submission.finalGrade).filter((grade) => grade !== null);
     const totalGrades = allGrades.length;
 
-    const average = (allGrades.reduce((sum, grade) => sum + grade, 0) / totalGrades).toFixed(2);
+    const average = allGrades.reduce((sum, grade) => sum + grade, 0) / totalGrades;
     const sortedGrades = [...allGrades].sort((a, b) => a - b);
     const median = sortedGrades[Math.floor(totalGrades / 2)];
     const lowest = sortedGrades[0];
     const highest = sortedGrades[sortedGrades.length - 1];
-    const failPercentage = ((allGrades.filter((grade) => grade <= 54).length / totalGrades) * 100).toFixed(2);
+    const failPercentage = (allGrades.filter((grade) => grade <= 54).length / totalGrades) * 100;
 
     const distribution = gradeRanges.map((range) => {
       const count = allGrades.filter((grade) => grade >= range.min && grade <= range.max).length;

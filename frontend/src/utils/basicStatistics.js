@@ -25,7 +25,7 @@ export const renderUserProjectStatisticsChart = (ctx, statistics) => {
 
   const labels = statistics.map((stat) => stat.year);
   const projectsData = statistics.map((stat) => stat.projects);
-  const finishedProjectsData = statistics.map((stat) => stat.finishedProjects);
+  const takenProjectsData = statistics.map((stat) => stat.takenProjects);
 
   userProjectStatisticsChart = new Chart(ctx, {
     type: "bar",
@@ -33,15 +33,15 @@ export const renderUserProjectStatisticsChart = (ctx, statistics) => {
       labels: labels,
       datasets: [
         {
-          label: "פרויקטים",
+          label: "כל הפרויקטים",
           data: projectsData,
           backgroundColor: "rgba(75, 192, 192, 0.2)",
           borderColor: "rgba(75, 192, 192, 1)",
           borderWidth: 1,
         },
         {
-          label: "פרויקטים שהושלמו",
-          data: finishedProjectsData,
+          label: "פרויקטים שנלקחו",
+          data: takenProjectsData,
           backgroundColor: "rgba(153, 102, 255, 0.2)",
           borderColor: "rgba(153, 102, 255, 1)",
           borderWidth: 1,
@@ -69,6 +69,7 @@ export const renderUserProjectStatisticsChart = (ctx, statistics) => {
       },
       scales: {
         x: {
+          grace: "5%",
           ticks: {
             font: {
               size: 14,

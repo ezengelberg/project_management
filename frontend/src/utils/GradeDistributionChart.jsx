@@ -25,7 +25,7 @@ const GradeDistributionChart = ({ data, additionalData }) => {
         scales: {
           y: {
             beginAtZero: true,
-            grace: "10%",
+            grace: "5%",
           },
         },
         plugins: {
