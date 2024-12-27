@@ -165,7 +165,6 @@ hr {
 
 .bar-grade-chart {
   margin-right: 2rem;
-  border-right: 1px solid #e4e4ed;
 }
 
 /* ------------------ Tablet/Phone ----------------- */
@@ -232,7 +231,6 @@ hr {
   }
   .bar-grade-chart {
     margin-right: 0;
-    border-right: none;
   }
 }
 
