@@ -77,10 +77,13 @@ const ManageProjects = () => {
         projectInfo: project,
         year: project.year,
         candidatesData: [],
+        isTerminated: project.isTerminated,
+        terminationRecord: project.terminationRecord,
       }));
 
       for (const project of projectData) {
         const candidatesData = [];
+        const terminationRecord = [];
         for (const stud of project.students) {
           try {
             const studentResponse = await axios.get(
@@ -126,10 +129,26 @@ const ManageProjects = () => {
           }
         }
 
+        for (const record of project.terminationRecord) {
+          try {
+            const studentResponse = await axios.get(
+              `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${record.student}`,
+              { withCredentials: true }
+            );
+            terminationRecord.push({
+              key: `terminated-${record.student}`,
+              name: studentResponse.data.name,
+              date: record.joinDate,
+              projectID: project.key,
+            });
+          } catch (error) {
+            console.error("Error fetching terminated student data:", error);
+          }
+        }
         project.candidatesData = candidatesData;
-
-        setProjects(projectData);
+        project.terminationRecord = terminationRecord;
       }
+      setProjects(projectData);
     } catch (error) {
       console.error("Error occurred:", error);
     }
@@ -588,8 +607,67 @@ const ManageProjects = () => {
   };
 
   const filteredProjects = projects.filter((project) => {
-    if (yearFilter === "all") return true;
-    return project.year === yearFilter;
+    if (yearFilter === "all") return !project.isTerminated;
+    return project.year === yearFilter && !project.isTerminated;
+  });
+
+  const terminatedProjectsColumns = [
+    {
+      title: "שם הפרויקט",
+      dataIndex: "title",
+      key: "title",
+      ...getColumnSearchProps("title"),
+      render: (title) => (
+        <Highlighter
+          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={
+            windowSize.width > 1600
+              ? title.length > 135
+                ? `${title.substring(0, 135)}...`
+                : title
+              : windowSize.width > 1200
+              ? title.length > 110
+                ? `${title.substring(0, 110)}...`
+                : title
+              : windowSize.width > 1024
+              ? title.length > 65
+                ? `${title.substring(0, 65)}...`
+                : title
+              : windowSize.width > 768
+              ? title.length > 60
+                ? `${title.substring(0, 60)}...`
+                : title
+              : title.length > 45
+              ? `${title.substring(0, 45)}...`
+              : title
+          }
+        />
+      ),
+      width: windowSize.width > 1200 ? "70%" : windowSize.width > 1024 ? 550 : windowSize.width > 768 ? 500 : 400,
+    },
+    {
+      title: "היסטורית סטודנטים",
+      dataIndex: "terminationRecord",
+      key: "terminationRecord",
+      render: (terminationRecord) =>
+        terminationRecord?.map((record, index) => (
+          <span key={record.key}>
+            {record.name.length > 40 ? (
+              <Tooltip title={record.name}>{record.name.substring(0, 40)}...</Tooltip>
+            ) : (
+              record.name
+            )}
+            {index < terminationRecord.length - 1 && <Divider type="vertical" style={{ borderColor: "black" }} />}
+          </span>
+        )),
+    },
+  ];
+
+  const terminatedProjects = projects.filter((project) => {
+    if (yearFilter === "all") return project.isTerminated;
+    return project.year === yearFilter && project.isTerminated;
   });
 
   const tabs = [
@@ -610,7 +688,15 @@ const ManageProjects = () => {
     {
       key: "2",
       label: "פרויקטים מושהים",
-      children: <p>nothing for now</p>,
+      children: (
+        <Table
+          columns={terminatedProjectsColumns}
+          dataSource={terminatedProjects}
+          scroll={{
+            x: "max-content",
+          }}
+        />
+      ),
     },
   ];
 

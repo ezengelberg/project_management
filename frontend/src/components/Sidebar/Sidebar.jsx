@@ -166,7 +166,8 @@ const Sidebar = () => {
             <li>
               <div
                 className={`sidebar-option ${isActive("/home") ? "active" : ""}`}
-                onClick={() => handleNavigate("/home")}>
+                onClick={() => handleNavigate("/home")}
+                onMouseDown={(e) => handleMouseDown(e, "/home")}>
                 <HomeOutlined />
                 <span>בית</span>
               </div>
@@ -175,7 +176,8 @@ const Sidebar = () => {
               <li>
                 <div
                   className={`sidebar-option ${isActive("/announcements") ? "active" : ""}`}
-                  onClick={() => handleNavigate("/announcements")}>
+                  onClick={() => handleNavigate("/announcements")}
+                  onMouseDown={(e) => handleMouseDown(e, "/announcements")}>
                   <MessageOutlined />
                   <span>הודעות</span>
                 </div>
@@ -185,7 +187,8 @@ const Sidebar = () => {
               <li>
                 <div
                   className={`sidebar-option ${isActive("/projects") ? "active" : ""}`}
-                  onClick={() => handleNavigate("/projects")}>
+                  onClick={() => handleNavigate("/projects")}
+                  onMouseDown={(e) => handleMouseDown(e, "/projects")}>
                   <ProjectOutlined />
                   <span>פרויקטים</span>
                 </div>
@@ -194,7 +197,8 @@ const Sidebar = () => {
             <li>
               <div
                 className={`sidebar-option ${isActive("/templates") ? "active" : ""}`}
-                onClick={() => handleNavigate("/templates")}>
+                onClick={() => handleNavigate("/templates")}
+                onMouseDown={(e) => handleMouseDown(e, "/templates")}>
                 <FileSearchOutlined />
                 <span> תבנית דוחות</span>
               </div>
@@ -203,7 +207,8 @@ const Sidebar = () => {
               <li>
                 <div
                   className={`sidebar-option ${isActive("/my-submissions") ? "active" : ""}`}
-                  onClick={() => handleNavigate("/my-submissions")}>
+                  onClick={() => handleNavigate("/my-submissions")}
+                  onMouseDown={(e) => handleMouseDown(e, "/my-submissions")}>
                   <ApartmentOutlined />
                   הגשות
                 </div>
@@ -230,17 +235,20 @@ const Sidebar = () => {
                   <ul>
                     <li
                       className={`${isActive("/create-project") ? "active" : ""}`}
-                      onClick={() => handleNavigate("/create-project")}>
+                      onClick={() => handleNavigate("/create-project")}
+                      onMouseDown={(e) => handleMouseDown(e, "/create-project")}>
                       הזנת פרויקט
                     </li>
                     <li
                       className={`${isActive("/list-projects") ? "active" : ""}`}
-                      onClick={() => handleNavigate("/list-projects")}>
+                      onClick={() => handleNavigate("/list-projects")}
+                      onMouseDown={(e) => handleMouseDown(e, "/list-projects")}>
                       סטטוס פרויקטים
                     </li>
                     <li
                       className={`${isActive("/submission-status") ? "active" : ""}`}
-                      onClick={() => handleNavigate("/submission-status")}>
+                      onClick={() => handleNavigate("/submission-status")}
+                      onMouseDown={(e) => handleMouseDown(e, "/submission-status")}>
                       סטטוס הגשות
                     </li>
                   </ul>
@@ -269,12 +277,14 @@ const Sidebar = () => {
                   <ul>
                     <li
                       className={`${isActive("/overview-projects") ? "active" : ""}`}
-                      onClick={() => handleNavigate("/overview-projects")}>
+                      onClick={() => handleNavigate("/overview-projects")}
+                      onMouseDown={(e) => handleMouseDown(e, "/overview-projects")}>
                       הצגת פרויקטים
                     </li>
                     <li
                       className={`sidebar-option ${isActive("/submissions") ? "active" : ""}`}
-                      onClick={() => handleNavigate("/submissions")}>
+                      onClick={() => handleNavigate("/submissions")}
+                      onMouseDown={(e) => handleMouseDown(e, "/submissions")}>
                       ניהול הגשות
                     </li>
                   </ul>
@@ -302,12 +312,14 @@ const Sidebar = () => {
                   <ul>
                     <li
                       className={`${isActive("/create-user") ? "active" : ""}`}
-                      onClick={() => handleNavigate("/create-user")}>
+                      onClick={() => handleNavigate("/create-user")}
+                      onMouseDown={(e) => handleMouseDown(e, "/create-user")}>
                       יצירת משתמשים
                     </li>
                     <li
                       className={`${isActive("/display-users") ? "active" : ""}`}
-                      onClick={() => handleNavigate("/display-users")}>
+                      onClick={() => handleNavigate("/display-users")}
+                      onMouseDown={(e) => handleMouseDown(e, "/display-users")}>
                       הצגת משתמשים
                     </li>
                   </ul>
@@ -318,7 +330,8 @@ const Sidebar = () => {
               <li>
                 <div
                   className={`sidebar-option ${isActive("/check-submissions") ? "active" : ""}`}
-                  onClick={() => handleNavigate("/check-submissions")}>
+                  onClick={() => handleNavigate("/check-submissions")}
+                  onMouseDown={(e) => handleMouseDown(e, "/check-submissions")}>
                   <JudgeSVG />
                   <span>בדיקת הגשות</span>
                 </div>
@@ -328,7 +341,8 @@ const Sidebar = () => {
               <li>
                 <div
                   className={`sidebar-option ${isActive("/more-information") ? "active" : ""}`}
-                  onClick={() => handleNavigate("/more-information")}>
+                  onClick={() => handleNavigate("/more-information")}
+                  onMouseDown={(e) => handleMouseDown(e, "/more-information")}>
                   <InfoCircleOutlined />
                   <span>מידע לסטודנט</span>
                 </div>
@@ -338,7 +352,8 @@ const Sidebar = () => {
               <li>
                 <div
                   className={`sidebar-option ${isActive("/system") ? "active" : ""}`}
-                  onClick={() => handleNavigate("/system")}>
+                  onClick={() => handleNavigate("/system")}
+                  onMouseDown={(e) => handleMouseDown(e, "/system")}>
                   <SettingOutlined />
                   <span>ניהול מערכת</span>
                 </div>
