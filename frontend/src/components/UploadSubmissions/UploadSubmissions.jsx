@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, forwardRef, useContext } from "react";
-import { Badge, Table, Tooltip, Modal, Upload, message, Divider, Descriptions } from "antd";
+import { Badge, Table, Tooltip, Modal, Upload, message, Divider } from "antd";
 import {
   UploadOutlined,
   DeleteOutlined,
@@ -21,26 +21,6 @@ const SafeTooltip = forwardRef(({ title, children }, ref) => (
     <span ref={ref}>{children}</span>
   </Tooltip>
 ));
-
-const calculateStatistics = (grades, userGrade) => {
-  const sortedGrades = [...grades].sort((a, b) => a - b);
-  const totalGrades = grades.length;
-  const average = (grades.reduce((sum, grade) => sum + grade, 0) / totalGrades).toFixed(2);
-  const median = sortedGrades[Math.floor(totalGrades / 2)];
-  const lowest = sortedGrades[0];
-  const highest = sortedGrades[sortedGrades.length - 1];
-  const failPercentage = ((grades.filter((grade) => grade <= 54).length / totalGrades) * 100).toFixed(2);
-  const userRank = sortedGrades.indexOf(userGrade) + 1;
-
-  return {
-    average,
-    median,
-    lowest,
-    highest,
-    failPercentage,
-    userRank,
-  };
-};
 
 const UploadSubmissions = () => {
   const { fetchNotifications } = useContext(NotificationsContext);
