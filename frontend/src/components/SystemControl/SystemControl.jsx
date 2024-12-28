@@ -389,9 +389,9 @@ const SystemControl = () => {
           </div>
           <div className="switch">
             <Tooltip title="פרויקטים שיש סטודנטים אבל המנחה לא סגר הרשמה">
-              <label className="switch-label">הפעל פרויקטים שלא הופעלו</label>
+              <label className="switch-label">התחל פרויקטים</label>
             </Tooltip>
-            <Button type="primary">הפעל</Button>
+            <Button type="primary">התחל</Button>
           </div>
           <div className="switch">
             <label className="switch-label">בחירת שנת מערכת</label>
