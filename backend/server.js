@@ -76,7 +76,7 @@ async function initializeConfig() {
       await Config.create({});
       console.log("Default configuration created");
     } else {
-      console.log("Configuration file already exists");
+      console.log("Configuration file loaded");
     }
   } catch (error) {
     console.error("Error initializing configuration:", error);

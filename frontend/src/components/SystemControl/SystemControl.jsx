@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./SystemControl.scss";
-import { Button, Switch, Form, Input, InputNumber, Table, Typography, message, Tooltip, Modal } from "antd";
+import { Button, Switch, Form, Input, InputNumber, Table, Typography, message, Tooltip, Modal, Select } from "antd";
 import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const SystemControl = () => {
-  const [createProject, setCreateProject] = useState(true);
-  const [registerToProjects, setRegisterToProjects] = useState(true);
   const [manageStudents, setManageStudents] = useState(true);
+  const [currentYear, setCurrentYear] = useState("");
+  const [years, setYears] = useState([]);
   const [form] = Form.useForm();
   const [editingKey, setEditingKey] = useState("");
   const [loading, setLoading] = useState(false);
@@ -70,9 +71,38 @@ const SystemControl = () => {
         withCredentials: true,
       });
       console.log(response.data);
-      setCreateProject(response.data.projectCreation);
-      setRegisterToProjects(response.data.projectRegistration);
       setManageStudents(response.data.projectStudentManage);
+      const currentYear = response.data.currentYear;
+      setCurrentYear(currentYear);
+
+      const today = new Date();
+      const currentHebrewDate = toJewishDate(today);
+      console.log(currentHebrewDate.year);
+      const currentHebrewYear = parseInt(currentHebrewDate.year, 10);
+
+      // // Calculate previous, current, and next years
+      const previousYear = currentHebrewYear - 1;
+      const nextYear = currentHebrewYear + 1;
+
+      // // Format years into Hebrew letters
+      const formattedCurrentYear = formatJewishDateInHebrew(currentHebrewDate).split(" ").pop().replace(/^ה/, ""); // Remove "ה" prefix if needed
+      console.log(formattedCurrentYear);
+
+      // Create new Date objects for previous and next years to avoid mutating 'today'
+      const previousDate = new Date(today);
+      previousDate.setFullYear(today.getFullYear() - 1);
+      const formattedPreviousYear = formatJewishDateInHebrew(toJewishDate(previousDate))
+        .split(" ")
+        .pop()
+        .replace(/^ה/, "");
+
+      const nextDate = new Date(today);
+      nextDate.setFullYear(today.getFullYear() + 1);
+      const formattedNextYear = formatJewishDateInHebrew(toJewishDate(nextDate)).split(" ").pop().replace(/^ה/, "");
+
+      // Set the years array
+      const yearsArray = [formattedNextYear, formattedCurrentYear, formattedPreviousYear];
+      setYears(yearsArray);
     } catch (error) {
       console.error("Error fetching configurations:", error);
       message.error("שגיאה בטעינת ההגדרות");
@@ -365,6 +395,30 @@ const SystemControl = () => {
               <label className="switch-label">הפעל פרויקטים שלא הופעלו</label>
             </Tooltip>
             <Button type="primary">הפעל</Button>
+          </div>
+          <div className="switch">
+            <label className="switch-label">בחירת שנת מערכת</label>
+            <Select
+              value={currentYear}
+              onChange={(value) => {
+                setCurrentYear(value);
+                try {
+                  axios.post(
+                    `${process.env.REACT_APP_BACKEND_URL}/api/config/update-config`,
+                    { currentYear: value },
+                    { withCredentials: true },
+                  );
+                } catch (error) {
+                  console.error("Error updating configuration:", error);
+                  message.error("שגיאה בעדכון ההגדרות");
+                }
+              }}>
+              {years.map((year) => (
+                <Select.Option key={year} value={year}>
+                  {year}
+                </Select.Option>
+              ))}
+            </Select>
           </div>
         </div>
         <div className="box publish-grades">
