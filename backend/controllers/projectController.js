@@ -4,6 +4,7 @@ import Notification from "../models/notifications.js";
 import Submission from "../models/submission.js";
 import Grade from "../models/grades.js";
 import Upload from "../models/uploads.js";
+import Config from "../models/config.js";
 import fs from "fs";
 import path from "path";
 
@@ -27,7 +28,11 @@ export const getActiveProjects = async (req, res) => {
 
 export const getAvailableProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ isTerminated: false, isFinished: false });
+    const config = await Config.findOne();
+    if (!config) {
+      return res.status(404).send({ message: "Config not found" });
+    }
+    const projects = await Project.find({ isTerminated: false, isFinished: false, year: config.currentYear });
     res.status(200).send(projects);
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -151,7 +156,7 @@ export const createProject = async (req, res) => {
           link: `/project/${savedProject._id}`,
         });
         notification.save();
-      })
+      }),
     );
 
     res.status(201).json({
@@ -334,7 +339,7 @@ export const approveCandidate = async (req, res) => {
       const { _id, ...candidateWithoutId } = candidate.toObject();
       project.students.push(candidateWithoutId);
       project.candidates = project.candidates.filter(
-        (candidate) => candidate.student.toString() !== user._id.toString()
+        (candidate) => candidate.student.toString() !== user._id.toString(),
       );
     }
     await project.save();
