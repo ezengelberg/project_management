@@ -76,7 +76,7 @@ const SystemControl = () => {
 
       const today = new Date();
       const currentHebrewDate = toJewishDate(today);
-      const currentHebrewYear = parseInt(currentHebrewDate.year, 10);
+      const currentHebrewYear = currentHebrewDate.year
 
       // // Calculate previous, current, and next years
       const previousYear = currentHebrewYear - 1;
