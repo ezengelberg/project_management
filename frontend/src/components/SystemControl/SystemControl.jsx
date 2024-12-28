@@ -460,6 +460,7 @@ const SystemControl = () => {
               )}
             </div>
           ))}
+          {Object.keys(submissionGroups).length === 0 && <p>אין הגשות זמינות לפרסום</p>}
         </div>
       </div>
       <Form form={form} component={false} loading={loading}>
