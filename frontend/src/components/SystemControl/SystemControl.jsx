@@ -70,14 +70,12 @@ const SystemControl = () => {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config/get-config`, {
         withCredentials: true,
       });
-      console.log(response.data);
       setManageStudents(response.data.projectStudentManage);
       const currentYear = response.data.currentYear;
       setCurrentYear(currentYear);
 
       const today = new Date();
       const currentHebrewDate = toJewishDate(today);
-      console.log(currentHebrewDate.year);
       const currentHebrewYear = parseInt(currentHebrewDate.year, 10);
 
       // // Calculate previous, current, and next years
@@ -86,7 +84,6 @@ const SystemControl = () => {
 
       // // Format years into Hebrew letters
       const formattedCurrentYear = formatJewishDateInHebrew(currentHebrewDate).split(" ").pop().replace(/^ה/, ""); // Remove "ה" prefix if needed
-      console.log(formattedCurrentYear);
 
       // Create new Date objects for previous and next years to avoid mutating 'today'
       const previousDate = new Date(today);
