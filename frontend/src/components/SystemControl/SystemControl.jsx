@@ -64,9 +64,25 @@ const SystemControl = () => {
     }
   };
 
+  const fetchConfigurations = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config/get-config`, {
+        withCredentials: true,
+      });
+      console.log(response.data);
+      setCreateProject(response.data.projectCreation);
+      setRegisterToProjects(response.data.projectRegistration);
+      setManageStudents(response.data.projectStudentManage);
+    } catch (error) {
+      console.error("Error fetching configurations:", error);
+      message.error("שגיאה בטעינת ההגדרות");
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     fetchGrades();
+    fetchConfigurations();
   }, []);
 
   useEffect(() => {
@@ -88,7 +104,7 @@ const SystemControl = () => {
           const group = groups[submissionName];
           const checkForGraded = group.filter((submission) => submission.isGraded || submission.isReviewed);
           const allGroups = checkForGraded.every((submission) =>
-            submission.gradesDetailed.every((grade) => grade.numericGrade !== undefined && grade.numericGrade !== null)
+            submission.gradesDetailed.every((grade) => grade.numericGrade !== undefined && grade.numericGrade !== null),
           );
           if (!allGroups) {
             acc[submissionName] = {
@@ -156,7 +172,7 @@ const SystemControl = () => {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/update-numeric-values`,
         { updatedValues, name },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       message.success("הציון עודכן בהצלחה");
       fetchGrades();
@@ -177,8 +193,8 @@ const SystemControl = () => {
         (submission) =>
           submission.isGraded === true &&
           submission.gradesDetailed.some(
-            (grade) => grade.editable === true && grade.grade !== null && grade.grade !== undefined
-          )
+            (grade) => grade.editable === true && grade.grade !== null && grade.grade !== undefined,
+          ),
       );
       if (gradedSubmissions.length === 0) {
         setLoading(false);
@@ -191,8 +207,8 @@ const SystemControl = () => {
         (submission) =>
           submission.isReviewed === true &&
           submission.gradesDetailed.some(
-            (grade) => grade.editable === true && grade.videoQuality !== undefined && grade.videoQuality !== null
-          )
+            (grade) => grade.editable === true && grade.videoQuality !== undefined && grade.videoQuality !== null,
+          ),
       );
       if (reviewedSubmissions.length === 0) {
         setLoading(false);
@@ -204,7 +220,7 @@ const SystemControl = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/publish-grades`,
         { submissionName, group },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       message.success("הציונים/ביקורות הזמינים פורסמו בהצלחה");
     } catch (error) {
@@ -222,7 +238,7 @@ const SystemControl = () => {
   const checkZeroGrades = (submissionName, group) => {
     const groupSubmissions = submissionGroups[submissionName].submissions.filter((submission) => submission.editable);
     const hasZeroGrade = groupSubmissions.some((submission) =>
-      submission.numericValues.some((grade) => grade.value === 0)
+      submission.numericValues.some((grade) => grade.value === 0),
     );
 
     if (hasZeroGrade) {
@@ -325,24 +341,69 @@ const SystemControl = () => {
           <h3 className="box-title">סוויטצ'ים להדלקה \ כיבוי מהירים</h3>
           <div className="switch">
             <label className="switch-label">הזנת פרויקטים חדשים</label>
-            <Switch checked={createProject} />
+            <Switch
+              checked={createProject}
+              onChange={() => {
+                setCreateProject(!createProject);
+                try {
+                  axios.post(
+                    `${process.env.REACT_APP_BACKEND_URL}/api/config/update-config`,
+                    { projectCreation: !createProject },
+                    { withCredentials: true },
+                  );
+                } catch (error) {
+                  console.error("Error updating project creation:", error);
+                  message.error("שגיאה בעדכון ההגדרה");
+                }
+              }}
+            />
           </div>
           <Tooltip title="רישום של הסטודנטים עצמם לפרויקט">
             <div className="switch">
               <label className="switch-label">רישום לפרויקטים</label>
-              <Switch checked={registerToProjects} />
+              <Switch
+                checked={registerToProjects}
+                onChange={() => {
+                  setRegisterToProjects(!registerToProjects);
+                  try {
+                    axios.post(
+                      `${process.env.REACT_APP_BACKEND_URL}/api/config/update-config`,
+                      { projectRegistration: !registerToProjects },
+                      { withCredentials: true },
+                    );
+                  } catch (error) {
+                    console.error("Error updating project registration:", error);
+                    message.error("שגיאה בעדכון ההגדרה");
+                  }
+                }}
+              />
             </div>
           </Tooltip>
           <Tooltip title="אישור, דחיה והסרה של סטודנטים מפרויקט">
             <div className="switch">
               <label className="switch-label">ניהול סטודנטים בפרויקט</label>
-              <Switch checked={manageStudents} />
+              <Switch
+                checked={manageStudents}
+                onChange={() => {
+                  setManageStudents(!manageStudents);
+                  try {
+                    axios.post(
+                      `${process.env.REACT_APP_BACKEND_URL}/api/config/update-config`,
+                      { projectStudentManage: !manageStudents },
+                      { withCredentials: true },
+                    );
+                  } catch (error) {
+                    console.error("Error updating project student manage:", error);
+                    message.error("שגיאה בעדכון ההגדרה");
+                  }
+                }}
+              />
             </div>
           </Tooltip>
-          <div className="switch">
+          {/* <div className="switch">
             <label className="switch-label">pending action</label>
             <Switch />
-          </div>
+          </div> */}
         </div>
         <div className="box publish-grades">
           <h3 className="box-title">פרסום ציונים/ביקורות</h3>
