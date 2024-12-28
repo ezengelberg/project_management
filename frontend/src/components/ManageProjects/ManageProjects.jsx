@@ -32,6 +32,8 @@ const ManageProjects = () => {
   const searchInput = useRef(null);
   const [yearFilter, setYearFilter] = useState("all");
   const [years, setYears] = useState([]);
+  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+  const [confirmModalContent, setConfirmModalContent] = useState({});
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -79,6 +81,7 @@ const ManageProjects = () => {
         candidatesData: [],
         isTerminated: project.isTerminated,
         terminationRecord: project.terminationRecord,
+        suitableFor: project.suitableFor,
       }));
 
       for (const project of projectData) {
@@ -246,6 +249,20 @@ const ManageProjects = () => {
     );
   };
 
+  const showConfirmModal = (title, onOk) => {
+    setConfirmModalContent({ title, onOk });
+    setIsConfirmModalVisible(true);
+  };
+
+  const handleConfirmModalOk = async () => {
+    await confirmModalContent.onOk();
+    setIsConfirmModalVisible(false);
+  };
+
+  const handleConfirmModalCancel = () => {
+    setIsConfirmModalVisible(false);
+  };
+
   const approveStudent = (record) => async () => {
     try {
       await axios.post(
@@ -268,17 +285,31 @@ const ManageProjects = () => {
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
           if (project.key === record.projectID) {
+            const updatedCandidatesData = project.candidatesData.map((candidate) => {
+              if (candidate.key === record.key) {
+                return {
+                  ...candidate,
+                  status: true,
+                };
+              }
+              return candidate;
+            });
+
+            const registeredCount = updatedCandidatesData.filter((candidate) => candidate.status).length;
+
+            if (
+              (project.suitableFor === "יחיד" && registeredCount === 1 && !project.isTaken) ||
+              (project.suitableFor === "זוג" && registeredCount === 2 && !project.isTaken) ||
+              (project.suitableFor === "יחיד / זוג" && registeredCount >= 1 && registeredCount <= 2 && !project.isTaken)
+            ) {
+              showConfirmModal("האם ברצונך לסגור את ההרשמה לפרויקט זה?", async () => {
+                await closeRegistration(project)();
+              });
+            }
+
             return {
               ...project,
-              candidatesData: project.candidatesData.map((candidate) => {
-                if (candidate.key === record.key) {
-                  return {
-                    ...candidate,
-                    status: true,
-                  };
-                }
-                return candidate;
-              }),
+              candidatesData: updatedCandidatesData,
             };
           }
           return project;
@@ -349,17 +380,31 @@ const ManageProjects = () => {
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
           if (project.key === record.projectID) {
+            const updatedCandidatesData = project.candidatesData.map((candidate) => {
+              if (candidate.key === record.key) {
+                return {
+                  ...candidate,
+                  status: false,
+                };
+              }
+              return candidate;
+            });
+
+            const registeredCount = updatedCandidatesData.filter((candidate) => candidate.status).length;
+
+            if (
+              (project.suitableFor === "יחיד" && registeredCount < 1 && project.isTaken) ||
+              (project.suitableFor === "זוג" && registeredCount < 2 && project.isTaken) ||
+              (project.suitableFor === "יחיד / זוג" && registeredCount < 2 && project.isTaken)
+            ) {
+              showConfirmModal("האם ברצונך לפתוח את ההרשמה לפרויקט זה?", async () => {
+                await closeRegistration(project)();
+              });
+            }
+
             return {
               ...project,
-              candidatesData: project.candidatesData.map((candidate) => {
-                if (candidate.key === record.key) {
-                  return {
-                    ...candidate,
-                    status: false,
-                  };
-                }
-                return candidate;
-              }),
+              candidatesData: updatedCandidatesData,
             };
           }
           return project;
@@ -392,21 +437,25 @@ const ManageProjects = () => {
           searchWords={[searchText]}
           autoEscape
           textToHighlight={
-            windowSize.width > 1600
-              ? title.length > 130
-                ? `${title.substring(0, 130)}...`
+            windowSize.width > 1920
+              ? title.length > 135
+                ? `${title.substring(0, 135)}...`
+                : title
+              : windowSize.width > 1600
+              ? title.length > 90
+                ? `${title.substring(0, 90)}...`
                 : title
               : windowSize.width > 1200
-              ? title.length > 85
-                ? `${title.substring(0, 85)}...`
+              ? title.length > 70
+                ? `${title.substring(0, 70)}...`
                 : title
               : windowSize.width > 1024
-              ? title.length > 65
-                ? `${title.substring(0, 65)}...`
+              ? title.length > 50
+                ? `${title.substring(0, 50)}...`
                 : title
               : windowSize.width > 768
-              ? title.length > 45
-                ? `${title.substring(0, 45)}...`
+              ? title.length > 40
+                ? `${title.substring(0, 40)}...`
                 : title
               : title.length > 35
               ? `${title.substring(0, 35)}...`
@@ -414,7 +463,28 @@ const ManageProjects = () => {
           }
         />
       ),
-      width: windowSize.width > 1600 ? "70%" : windowSize.width > 1200 ? "55%" : windowSize.width > 1024 ? 250 : 200,
+      width:
+        windowSize.width > 1920
+          ? "60%"
+          : windowSize.width > 1600
+          ? "50%"
+          : windowSize.width > 1200
+          ? "45%"
+          : windowSize.width > 1024
+          ? 250
+          : 200,
+    },
+    {
+      title: "מתאים ל...",
+      dataIndex: "suitableFor",
+      key: "suitableFor",
+      filters: [
+        { text: "יחיד", value: "יחיד" },
+        { text: "זוג", value: "זוג" },
+        { text: "יחיד / זוג", value: "יחיד / זוג" },
+      ],
+      onFilter: (value, record) => record.suitableFor === value,
+      width: windowSize.width > 1600 ? "10%" : windowSize.width > 1200 ? "12%" : 150,
     },
     {
       title: "מספר רשומים",
@@ -423,7 +493,7 @@ const ManageProjects = () => {
       render: (registered) => registered,
       sorter: (a, b) => a.registered - b.registered,
       sortDirections: ["descend", "ascend"],
-      width: windowSize.width > 1600 ? "10%" : windowSize.width > 1200 ? "15%" : 150,
+      width: windowSize.width > 1600 ? "15%" : windowSize.width > 1200 ? "13%" : 150,
     },
     {
       title: "פעולות",
@@ -449,7 +519,7 @@ const ManageProjects = () => {
         { text: "פרויקט פתוח להרשמה", value: false },
       ],
       onFilter: (value, record) => record.isTaken === value,
-      width: windowSize.width > 1600 ? "20%" : windowSize.width > 1200 ? "30%" : 300,
+      width: windowSize.width > 1600 ? "25%" : windowSize.width > 1200 ? "30%" : 300,
     },
   ];
 
@@ -721,6 +791,14 @@ const ManageProjects = () => {
 
   return (
     <div>
+      <Modal
+        title={confirmModalContent.title}
+        open={isConfirmModalVisible}
+        onOk={handleConfirmModalOk}
+        onCancel={handleConfirmModalCancel}
+        okText="כן"
+        cancelText="לא"
+      />
       <div className="upper-table-options">
         <Modal
           title={`עריכת פרויקט: ${editProjectData["title"]}`}
