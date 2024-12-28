@@ -179,6 +179,11 @@
       align-items: center;
     }
   }
+  .projects .list-projects {
+    grid-template-columns: repeat(2, 1fr); /* 2 projects per row */
+    gap: 1rem;
+    margin-top: 1rem;
+  }
 }
 
 /* Styles for tablets in landscape mode (width <= 1279px) */
