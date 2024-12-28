@@ -93,7 +93,7 @@ const ManageProjects = () => {
               `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${stud.student}`,
               {
                 withCredentials: true,
-              }
+              },
             );
             candidatesData.push({
               key: `student-${stud.student}`,
@@ -112,11 +112,11 @@ const ManageProjects = () => {
           try {
             const studentResponse = await axios.get(
               `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${candidate.student}`,
-              { withCredentials: true }
+              { withCredentials: true },
             );
             const hasProjectResponse = await axios.get(
               `${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${candidate.student}`,
-              { withCredentials: true }
+              { withCredentials: true },
             );
             candidatesData.push({
               key: `candidate-${candidate.student}`,
@@ -136,7 +136,7 @@ const ManageProjects = () => {
           try {
             const studentResponse = await axios.get(
               `${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${record.student}`,
-              { withCredentials: true }
+              { withCredentials: true },
             );
             terminationRecord.push({
               key: `terminated-${record.student}`,
@@ -209,15 +209,22 @@ const ManageProjects = () => {
 
   const closeRegistration = (record) => async () => {
     try {
-      await axios.post(
+      const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/switch-registration`,
         {
           projectID: record.key,
         },
         {
           withCredentials: true,
-        }
+        },
       );
+      if (response.data.hasSubmission) {
+        message.open({
+          type: "warning",
+          content: "לא ניתן סטטוס הרשמה לפרויקט עם הגשות פתוחות",
+        });
+        return;
+      }
       if (record.isTaken) {
         message.open({
           type: "info",
@@ -245,7 +252,7 @@ const ManageProjects = () => {
           };
         }
         return project;
-      })
+      }),
     );
   };
 
@@ -273,7 +280,7 @@ const ManageProjects = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
 
       message.open({
@@ -313,7 +320,7 @@ const ManageProjects = () => {
             };
           }
           return project;
-        })
+        }),
       );
     } catch (error) {
       message.open({
@@ -334,7 +341,7 @@ const ManageProjects = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "info",
@@ -352,7 +359,7 @@ const ManageProjects = () => {
             };
           }
           return project;
-        })
+        }),
       );
     } catch (error) {
       console.error("Error occurred:", error);
@@ -369,7 +376,7 @@ const ManageProjects = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
 
       message.open({
@@ -408,7 +415,7 @@ const ManageProjects = () => {
             };
           }
           return project;
-        })
+        }),
       );
       fetchNotifications();
     } catch (error) {
@@ -544,7 +551,7 @@ const ManageProjects = () => {
         { title, description, year, suitableFor, type, externalEmail, continues },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -568,7 +575,7 @@ const ManageProjects = () => {
                   continues,
                 },
               }
-            : project // Return the original project if not edited
+            : project, // Return the original project if not edited
       );
       setProjects(projectUpdate);
       handleCancel();

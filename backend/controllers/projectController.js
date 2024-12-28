@@ -391,6 +391,10 @@ export const switchProjectRegistration = async (req, res) => {
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
+    const submission = await Submission.findOne({ project: project._id });
+    if (submission) {
+      return res.status(200).send({ message: "Project has a submission, cannot switch registration", hasSubmission: true });
+    }
     project.isTaken = !project.isTaken;
     await project.save();
     res.status(200).send("Project registration switched successfully");
