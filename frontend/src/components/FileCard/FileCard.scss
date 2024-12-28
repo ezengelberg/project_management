@@ -88,6 +88,10 @@
   height: 80% !important;
   overflow-y: auto;
 
+  .ant-descriptions-header {
+    margin: 2rem 0 0;
+  }
+
   .edited-title-modal-item {
     display: flex;
     flex-direction: column;
@@ -98,7 +102,7 @@
   }
 
   .ant-descriptions-item-content {
-    max-width: 50rem;
+    width: 50%;
   }
   .edited-description-modal-item {
     display: flex;
@@ -148,6 +152,15 @@
     .file-card-meta {
       .file-description {
         max-height: 67px;
+      }
+    }
+  }
+  .edit-record-modal {
+    .edited-title-modal-item,
+    .edited-description-modal-item,
+    .ant-descriptions-item-content {
+      span {
+        font-size: 1.4rem;
       }
     }
   }

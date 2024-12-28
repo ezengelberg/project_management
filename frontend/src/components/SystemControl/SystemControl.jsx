@@ -338,72 +338,34 @@ const SystemControl = () => {
       <h1 className="system-title">לוח בקרת מערכת</h1>
       <div className="control-options">
         <div className="box switches">
-          <h3 className="box-title">סוויטצ'ים להדלקה \ כיבוי מהירים</h3>
+          <h3 className="box-title">ניהול פרויקטים</h3>
           <div className="switch">
-            <label className="switch-label">הזנת פרויקטים חדשים</label>
+            <Tooltip title="אישור, דחיה והסרה של סטודנטים מפרויקט">
+              <label className="switch-label">ניהול סטודנטים בפרויקט</label>
+            </Tooltip>
             <Switch
-              checked={createProject}
+              checked={manageStudents}
               onChange={() => {
-                setCreateProject(!createProject);
                 try {
+                  setManageStudents(!manageStudents);
                   axios.post(
                     `${process.env.REACT_APP_BACKEND_URL}/api/config/update-config`,
-                    { projectCreation: !createProject },
+                    { projectStudentManage: !manageStudents },
                     { withCredentials: true },
                   );
                 } catch (error) {
-                  console.error("Error updating project creation:", error);
-                  message.error("שגיאה בעדכון ההגדרה");
+                  console.error("Error updating configuration:", error);
+                  message.error("שגיאה בעדכון ההגדרות");
                 }
               }}
             />
           </div>
-          <Tooltip title="רישום של הסטודנטים עצמם לפרויקט">
-            <div className="switch">
-              <label className="switch-label">רישום לפרויקטים</label>
-              <Switch
-                checked={registerToProjects}
-                onChange={() => {
-                  setRegisterToProjects(!registerToProjects);
-                  try {
-                    axios.post(
-                      `${process.env.REACT_APP_BACKEND_URL}/api/config/update-config`,
-                      { projectRegistration: !registerToProjects },
-                      { withCredentials: true },
-                    );
-                  } catch (error) {
-                    console.error("Error updating project registration:", error);
-                    message.error("שגיאה בעדכון ההגדרה");
-                  }
-                }}
-              />
-            </div>
-          </Tooltip>
-          <Tooltip title="אישור, דחיה והסרה של סטודנטים מפרויקט">
-            <div className="switch">
-              <label className="switch-label">ניהול סטודנטים בפרויקט</label>
-              <Switch
-                checked={manageStudents}
-                onChange={() => {
-                  setManageStudents(!manageStudents);
-                  try {
-                    axios.post(
-                      `${process.env.REACT_APP_BACKEND_URL}/api/config/update-config`,
-                      { projectStudentManage: !manageStudents },
-                      { withCredentials: true },
-                    );
-                  } catch (error) {
-                    console.error("Error updating project student manage:", error);
-                    message.error("שגיאה בעדכון ההגדרה");
-                  }
-                }}
-              />
-            </div>
-          </Tooltip>
-          {/* <div className="switch">
-            <label className="switch-label">pending action</label>
-            <Switch />
-          </div> */}
+          <div className="switch">
+            <Tooltip title="פרויקטים שיש סטודנטים אבל המנחה לא סגר הרשמה">
+              <label className="switch-label">הפעל פרויקטים שלא הופעלו</label>
+            </Tooltip>
+            <Button type="primary">הפעל</Button>
+          </div>
         </div>
         <div className="box publish-grades">
           <h3 className="box-title">פרסום ציונים/ביקורות</h3>

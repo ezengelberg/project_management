@@ -15,8 +15,6 @@ router.get("/get-config", ensureAuthenticated, isCoordinator, async (req, res) =
 
 router.post("/update-config", ensureAuthenticated, isCoordinator, async (req, res) => {
     const config = await Config.findOne();
-    // console.log(req.body);
-    // console.log(config);
     if(!config) {
         res.status(404);
         throw new Error("Config not found");

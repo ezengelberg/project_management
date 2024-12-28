@@ -28,15 +28,13 @@
       }
     }
     .switches {
-      width: fit-content;
       .switch {
         display: flex;
         gap: 1.5rem;
         align-items: center;
+        justify-content: space-between;
         margin-bottom: 1rem;
-        .switch-label {
-          width: 17rem;
-        }
+        width: 100%;
       }
     }
   }

@@ -8,7 +8,7 @@ import {
   EllipsisOutlined,
   HistoryOutlined,
 } from "@ant-design/icons";
-import { Tooltip, Modal, Card, message, Divider, Descriptions } from "antd";
+import { Tooltip, Modal, Card, message, Descriptions } from "antd";
 import axios from "axios";
 import { processContent } from "../../utils/htmlProcessor";
 import { downloadFile } from "../../utils/downloadFile";
@@ -92,75 +92,6 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
     );
   };
 
-  const items = editRecord.flatMap((record, index) => {
-    const itemList = [
-      {
-        key: `${index}-title`,
-        label: `כותרת`,
-        children: (
-          <div className="edited-title-modal-item">
-            <div>
-              <span>
-                <strong>ישן:</strong>
-              </span>
-              <p>{record.oldTitle}</p>
-            </div>
-            <div>
-              <span>
-                <strong>חדש:</strong>
-              </span>
-              <p>{record.newTitle}</p>
-            </div>
-          </div>
-        ),
-      },
-      {
-        key: `${index}-description`,
-        label: `תיאור`,
-        children: (
-          <>
-            <div className="edited-description-modal-item">
-              <span>
-                <strong>ישן:</strong>
-              </span>
-              <div dangerouslySetInnerHTML={{ __html: processContent(record.oldDescription) }} />
-            </div>
-            <div className="edited-description-modal-item">
-              <span>
-                <strong>חדש:</strong>
-              </span>
-              <div dangerouslySetInnerHTML={{ __html: processContent(record.newDescription) }} />
-            </div>
-          </>
-        ),
-      },
-      {
-        key: `${index}-editInfo`,
-        label: `פרטי עריכה`,
-        children: (
-          <div>
-            <span>
-              <strong>נערך על ידי:</strong>
-            </span>
-            <p>{record.editedBy.name}</p>
-            <p>{new Date(record.editDate).toLocaleString("he-IL")}</p>
-          </div>
-        ),
-      },
-    ];
-
-    if (index < editRecord.length - 1) {
-      itemList.push({
-        key: `${index}-divider`,
-        label: "",
-        children: <Divider />,
-        span: 3,
-      });
-    }
-
-    return itemList;
-  });
-
   return (
     <div>
       <Card
@@ -224,7 +155,50 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
         open={showHistory}
         onCancel={() => SetShowHistory(false)}
         footer={null}>
-        <Descriptions bordered items={items} />
+        {editRecord.map((record, index) => (
+          <Descriptions key={index} bordered title={`עריכה ${index + 1}`}>
+            <Descriptions.Item label="כותרת">
+              <div className="edited-title-modal-item">
+                <div>
+                  <span>
+                    <strong>ישן:</strong>
+                  </span>
+                  <p>{record.oldTitle}</p>
+                </div>
+                <div>
+                  <span>
+                    <strong>חדש:</strong>
+                  </span>
+                  <p>{record.newTitle}</p>
+                </div>
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="תיאור" span={2}>
+              <div className="edited-description-modal-item">
+                <span>
+                  <strong>ישן:</strong>
+                </span>
+                <div dangerouslySetInnerHTML={{ __html: processContent(record.oldDescription) }} />
+              </div>
+              <div className="edited-description-modal-item">
+                <span>
+                  <strong>חדש:</strong>
+                </span>
+                <div dangerouslySetInnerHTML={{ __html: processContent(record.newDescription) }} />
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="פרטי עריכה" span={2}>
+              <div>
+                <span>
+                  <strong>נערך על ידי:</strong>
+                </span>
+                <p>
+                  {record.editedBy.name} - {new Date(record.editDate).toLocaleString("he-IL")}
+                </p>
+              </div>
+            </Descriptions.Item>
+          </Descriptions>
+        ))}
       </Modal>
     </div>
   );
