@@ -76,7 +76,7 @@ const SystemControl = () => {
 
       const today = new Date();
       const currentHebrewDate = toJewishDate(today);
-      const currentHebrewYear = currentHebrewDate.year
+      const currentHebrewYear = currentHebrewDate.year;
 
       // // Calculate previous, current, and next years
       const previousYear = currentHebrewYear - 1;
@@ -131,7 +131,7 @@ const SystemControl = () => {
           const group = groups[submissionName];
           const checkForGraded = group.filter((submission) => submission.isGraded || submission.isReviewed);
           const allGroups = checkForGraded.every((submission) =>
-            submission.gradesDetailed.every((grade) => grade.numericGrade !== undefined && grade.numericGrade !== null),
+            submission.gradesDetailed.every((grade) => grade.numericGrade !== undefined && grade.numericGrade !== null)
           );
           if (!allGroups) {
             acc[submissionName] = {
@@ -199,7 +199,7 @@ const SystemControl = () => {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/update-numeric-values`,
         { updatedValues, name },
-        { withCredentials: true },
+        { withCredentials: true }
       );
       message.success("הציון עודכן בהצלחה");
       fetchGrades();
@@ -220,8 +220,8 @@ const SystemControl = () => {
         (submission) =>
           submission.isGraded === true &&
           submission.gradesDetailed.some(
-            (grade) => grade.editable === true && grade.grade !== null && grade.grade !== undefined,
-          ),
+            (grade) => grade.editable === true && grade.grade !== null && grade.grade !== undefined
+          )
       );
       if (gradedSubmissions.length === 0) {
         setLoading(false);
@@ -234,8 +234,8 @@ const SystemControl = () => {
         (submission) =>
           submission.isReviewed === true &&
           submission.gradesDetailed.some(
-            (grade) => grade.editable === true && grade.videoQuality !== undefined && grade.videoQuality !== null,
-          ),
+            (grade) => grade.editable === true && grade.videoQuality !== undefined && grade.videoQuality !== null
+          )
       );
       if (reviewedSubmissions.length === 0) {
         setLoading(false);
@@ -247,7 +247,7 @@ const SystemControl = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/publish-grades`,
         { submissionName, group },
-        { withCredentials: true },
+        { withCredentials: true }
       );
       message.success("הציונים/ביקורות הזמינים פורסמו בהצלחה");
     } catch (error) {
@@ -265,7 +265,7 @@ const SystemControl = () => {
   const checkZeroGrades = (submissionName, group) => {
     const groupSubmissions = submissionGroups[submissionName].submissions.filter((submission) => submission.editable);
     const hasZeroGrade = groupSubmissions.some((submission) =>
-      submission.numericValues.some((grade) => grade.value === 0),
+      submission.numericValues.some((grade) => grade.value === 0)
     );
 
     if (hasZeroGrade) {
@@ -360,6 +360,22 @@ const SystemControl = () => {
     };
   });
 
+  const handleStartProjects = async (year) => {
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/start-projects-coordinator`,
+        { year },
+        { withCredentials: true }
+      );
+      message.success("הפרויקטים הופעלו בהצלחה");
+    } catch (error) {
+      if (error.response.status !== 304) {
+        console.error("Error starting projects:", error);
+      }
+      message.error("אין פרויקטים זמינים להפעלה");
+    }
+  };
+
   return (
     <div className="system">
       <h1 className="system-title">לוח בקרת מערכת</h1>
@@ -378,7 +394,7 @@ const SystemControl = () => {
                   axios.post(
                     `${process.env.REACT_APP_BACKEND_URL}/api/config/update-config`,
                     { projectStudentManage: !manageStudents },
-                    { withCredentials: true },
+                    { withCredentials: true }
                   );
                 } catch (error) {
                   console.error("Error updating configuration:", error);
@@ -391,7 +407,9 @@ const SystemControl = () => {
             <Tooltip title="פרויקטים שיש סטודנטים אבל המנחה לא סגר הרשמה">
               <label className="switch-label">התחל פרויקטים</label>
             </Tooltip>
-            <Button type="primary">התחל</Button>
+            <Button type="primary" onClick={() => handleStartProjects(currentYear)}>
+              התחל
+            </Button>
           </div>
           <div className="switch">
             <label className="switch-label">בחירת שנת מערכת</label>
@@ -403,7 +421,7 @@ const SystemControl = () => {
                   axios.post(
                     `${process.env.REACT_APP_BACKEND_URL}/api/config/update-config`,
                     { currentYear: value },
-                    { withCredentials: true },
+                    { withCredentials: true }
                   );
                 } catch (error) {
                   console.error("Error updating configuration:", error);

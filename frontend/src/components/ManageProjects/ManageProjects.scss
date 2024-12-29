@@ -31,3 +31,25 @@
     fill: #1677ff;
   }
 }
+
+.manage-projects-edit-record-modal {
+  height: 80% !important;
+  overflow-y: auto;
+
+  .ant-descriptions-header {
+    margin: 2rem 0 0;
+  }
+
+  .edited-title-modal-item {
+    display: flex;
+    flex-direction: column;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  .ant-descriptions-item-content {
+    width: 50%;
+  }
+}
