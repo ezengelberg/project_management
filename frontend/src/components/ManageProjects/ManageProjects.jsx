@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
-import { Badge, Table, Tooltip, Switch, message, Divider, Modal, Form, Input, Select, Tabs } from "antd";
+import { Badge, Table, Tooltip, Switch, message, Divider, Modal, Form, Input, Select, Tabs, Descriptions } from "antd";
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -7,6 +7,7 @@ import {
   EditOutlined,
   CloseOutlined,
   CheckOutlined,
+  HistoryOutlined,
 } from "@ant-design/icons";
 import { Editor } from "primereact/editor";
 import DOMPurify from "dompurify";
@@ -38,6 +39,8 @@ const ManageProjects = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+  const [showHistory, setShowHistory] = useState(false);
+  const [editRecord, setEditRecord] = useState([]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -431,6 +434,11 @@ const ManageProjects = () => {
     setIsEditing(true);
   };
 
+  const handleShowHistory = (record) => {
+    setEditRecord(record.projectInfo.editRecord);
+    setShowHistory(true);
+  };
+
   const columns = [
     {
       title: "שם הפרויקט",
@@ -445,12 +453,12 @@ const ManageProjects = () => {
           autoEscape
           textToHighlight={
             windowSize.width > 1920
-              ? title.length > 135
-                ? `${title.substring(0, 135)}...`
+              ? title.length > 130
+                ? `${title.substring(0, 130)}...`
                 : title
               : windowSize.width > 1600
-              ? title.length > 90
-                ? `${title.substring(0, 90)}...`
+              ? title.length > 80
+                ? `${title.substring(0, 80)}...`
                 : title
               : windowSize.width > 1200
               ? title.length > 70
@@ -472,11 +480,11 @@ const ManageProjects = () => {
       ),
       width:
         windowSize.width > 1920
-          ? "60%"
+          ? "55%"
           : windowSize.width > 1600
           ? "50%"
           : windowSize.width > 1200
-          ? "45%"
+          ? 450
           : windowSize.width > 1024
           ? 250
           : 200,
@@ -491,7 +499,7 @@ const ManageProjects = () => {
         { text: "יחיד / זוג", value: "יחיד / זוג" },
       ],
       onFilter: (value, record) => record.suitableFor === value,
-      width: windowSize.width > 1600 ? "10%" : windowSize.width > 1200 ? "12%" : 150,
+      width: windowSize.width > 1600 ? "10%" : windowSize.width > 1200 ? 150 : 150,
     },
     {
       title: "מספר רשומים",
@@ -500,7 +508,7 @@ const ManageProjects = () => {
       render: (registered) => registered,
       sorter: (a, b) => a.registered - b.registered,
       sortDirections: ["descend", "ascend"],
-      width: windowSize.width > 1600 ? "15%" : windowSize.width > 1200 ? "13%" : 150,
+      width: windowSize.width > 1920 ? "10%" : windowSize.width > 1600 ? "13%" : windowSize.width > 1200 ? 150 : 150,
     },
     {
       title: "פעולות",
@@ -515,6 +523,10 @@ const ManageProjects = () => {
             />
           </Tooltip>
           <Divider type="vertical" />
+          <Tooltip title="היסטוריית עריכות">
+            <HistoryOutlined onClick={() => handleShowHistory(record)} />
+          </Tooltip>
+          <Divider type="vertical" />
           <Tooltip title={record.isTaken ? "פתח להרשמה" : "סגור להרשמה"}>
             <Switch checked={!record.isTaken} onChange={closeRegistration(record)} />
           </Tooltip>
@@ -526,7 +538,7 @@ const ManageProjects = () => {
         { text: "פרויקט פתוח להרשמה", value: false },
       ],
       onFilter: (value, record) => record.isTaken === value,
-      width: windowSize.width > 1600 ? "25%" : windowSize.width > 1200 ? "30%" : 300,
+      width: windowSize.width > 1920 ? "25%" : windowSize.width > 1600 ? "28%" : windowSize.width > 1200 ? 350 : 400,
     },
   ];
 
@@ -953,6 +965,138 @@ const ManageProjects = () => {
         </Select>
       </div>
       <Tabs items={tabs} defaultActiveKey="1" />
+      <Modal
+        className="manage-projects-edit-record-modal"
+        width={windowSize.width > 1600 ? "70%" : windowSize.width > 1200 ? "80%" : "90%"}
+        title="היסטורית עריכות"
+        open={showHistory}
+        onCancel={() => setShowHistory(false)}
+        footer={null}>
+        {editRecord.map((record, index) => (
+          <Descriptions key={index} bordered title={`עריכה ${index + 1}`} column={windowSize.width > 768 ? 2 : 1}>
+            <Descriptions.Item label="כותרת" span={1}>
+              <div className="edited-title-modal-item">
+                <div>
+                  <span>
+                    <strong>ישן:</strong>
+                  </span>
+                  <p>{record.oldTitle}</p>
+                </div>
+                <div>
+                  <span>
+                    <strong>חדש:</strong>
+                  </span>
+                  <p>{record.newTitle}</p>
+                </div>
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="תיאור" span={2}>
+              <div className="edited-description-modal-item">
+                <span>
+                  <strong>ישן:</strong>
+                </span>
+                <div dangerouslySetInnerHTML={{ __html: record.oldDescription }} />
+              </div>
+              <div className="edited-description-modal-item">
+                <span>
+                  <strong>חדש:</strong>
+                </span>
+                <div dangerouslySetInnerHTML={{ __html: record.newDescription }} />
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="שנה" span={1}>
+              <div className="edited-year-modal-item">
+                <div>
+                  <span>
+                    <strong>ישן:</strong>
+                  </span>
+                  <p>{record.oldYear}</p>
+                </div>
+                <div>
+                  <span>
+                    <strong>חדש:</strong>
+                  </span>
+                  <p>{record.newYear}</p>
+                </div>
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="מתאים ל" span={1}>
+              <div className="edited-suitableFor-modal-item">
+                <div>
+                  <span>
+                    <strong>ישן:</strong>
+                  </span>
+                  <p>{record.oldSuitableFor}</p>
+                </div>
+                <div>
+                  <span>
+                    <strong>חדש:</strong>
+                  </span>
+                  <p>{record.newSuitableFor}</p>
+                </div>
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="סוג" span={1}>
+              <div className="edited-type-modal-item">
+                <div>
+                  <span>
+                    <strong>ישן:</strong>
+                  </span>
+                  <p>{record.oldType}</p>
+                </div>
+                <div>
+                  <span>
+                    <strong>חדש:</strong>
+                  </span>
+                  <p>{record.newType}</p>
+                </div>
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="מייל גורם חיצוני" span={2}>
+              <div className="edited-externalEmail-modal-item">
+                <div>
+                  <span>
+                    <strong>ישן:</strong>
+                  </span>
+                  <p>{record.oldExternalEmail}</p>
+                </div>
+                <div>
+                  <span>
+                    <strong>חדש:</strong>
+                  </span>
+                  <p>{record.newExternalEmail}</p>
+                </div>
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="ממשיך" span={1}>
+              <div className="edited-continues-modal-item">
+                <div>
+                  <span>
+                    <strong>ישן:</strong>
+                  </span>
+                  <p>{record.oldContinues}</p>
+                </div>
+                <div>
+                  <span>
+                    <strong>חדש:</strong>
+                  </span>
+                  <p>{record.newContinues}</p>
+                </div>
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="פרטי עריכה" span={2}>
+              <div>
+                <span>
+                  <strong>נערך על ידי:</strong>
+                </span>
+                <p>
+                  {record.editedBy.name} - {new Date(record.editDate).toLocaleString("he-IL")}
+                </p>
+              </div>
+            </Descriptions.Item>
+          </Descriptions>
+        ))}
+      </Modal>
     </div>
   );
 };

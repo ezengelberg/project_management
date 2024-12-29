@@ -427,35 +427,36 @@ export const updateProject = async (req, res) => {
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
     const { title, description, year, suitableFor, type, externalEmail, continues } = req.body;
     if (!title || !description || !year || !suitableFor || !type) {
       return res.status(400).send({ message: "Missing required fields" });
     }
-    const updatedFields = [];
-    const oldFields = { title: project.title, description: project.description, year: project.year };
-    if (title !== project.title) {
-      updatedFields.push({ field: "title", oldValue: oldFields.title, newValue: title });
-    }
-    if (description !== project.description) {
-      updatedFields.push({ field: "description", oldValue: oldFields.description, newValue: description });
-    }
-    if (year !== project.year) {
-      updatedFields.push({ field: "year", oldValue: oldFields.year, newValue: year });
-    }
-    if (suitableFor !== project.suitableFor) {
-      updatedFields.push({ field: "suitableFor", oldValue: project.suitableFor, newValue: suitableFor });
-    }
-    if (type !== project.type) {
-      updatedFields.push({ field: "type", oldValue: project.type, newValue: type });
-    }
-    if (externalEmail !== project.externalEmail) {
-      updatedFields.push({ field: "externalEmail", oldValue: project.externalEmail, newValue: externalEmail });
-    }
-    if (continues !== project.continues) {
-      updatedFields.push({ field: "continues", oldValue: project.continues, newValue: continues });
-    }
 
-    project.updateRecords.push({ date: new Date(), changes: updatedFields });
+    const updatedFields = {
+      oldTitle: project.title,
+      newTitle: title !== project.title ? title : "שדה לא שונה",
+      oldDescription: project.description,
+      newDescription: description !== project.description ? description : "שדה לא שונה",
+      oldYear: project.year,
+      newYear: year !== project.year ? year : "שדה לא שונה",
+      oldSuitableFor: project.suitableFor,
+      newSuitableFor: suitableFor !== project.suitableFor ? suitableFor : "שדה לא שונה",
+      oldType: project.type,
+      newType: type !== project.type ? type : "שדה לא שונה",
+      oldExternalEmail: project.externalEmail ? project.externalEmail : "לא הוזן",
+      newExternalEmail: externalEmail !== project.externalEmail ? externalEmail : "שדה לא שונה",
+      oldContinues: project.continues ? "כן" : "לא",
+      newContinues: continues !== project.continues ? (continues ? "כן" : "לא") : "שדה לא שונה",
+      editDate: new Date(),
+      editedBy: { name: user.name, id: user.id },
+    };
+
+    project.editRecord.push(updatedFields);
 
     project.title = title;
     project.description = description;

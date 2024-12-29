@@ -37,6 +37,28 @@ const projectSchema = new mongoose.Schema({
       changes: { type: Object, required: true },
     },
   ],
+  editRecord: [
+    {
+      oldTitle: { type: String },
+      newTitle: { type: String },
+      oldDescription: { type: String },
+      newDescription: { type: String },
+      oldSuitableFor: { type: String },
+      newSuitableFor: { type: String },
+      oldType: { type: String },
+      newType: { type: String },
+      oldExternalEmail: { type: String },
+      newExternalEmail: { type: String },
+      oldContinues: { type: String },
+      newContinues: { type: String },
+      oldYear: { type: String },
+      newYear: { type: String },
+      editDate: { type: Date, default: Date.now },
+      editedBy: {
+        name: { type: String },
+      },
+    },
+  ],
 });
 
 // Apply the option to disable _id for sub-documents within `candidates`
