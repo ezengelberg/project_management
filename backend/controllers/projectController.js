@@ -156,7 +156,7 @@ export const createProject = async (req, res) => {
           link: `/project/${savedProject._id}`,
         });
         notification.save();
-      }),
+      })
     );
 
     res.status(201).json({
@@ -339,7 +339,7 @@ export const approveCandidate = async (req, res) => {
       const { _id, ...candidateWithoutId } = candidate.toObject();
       project.students.push(candidateWithoutId);
       project.candidates = project.candidates.filter(
-        (candidate) => candidate.student.toString() !== user._id.toString(),
+        (candidate) => candidate.student.toString() !== user._id.toString()
       );
     }
     await project.save();
@@ -393,7 +393,9 @@ export const switchProjectRegistration = async (req, res) => {
     }
     const submission = await Submission.findOne({ project: project._id });
     if (submission) {
-      return res.status(200).send({ message: "Project has a submission, cannot switch registration", hasSubmission: true });
+      return res
+        .status(200)
+        .send({ message: "Project has a submission, cannot switch registration", hasSubmission: true });
     }
     project.isTaken = !project.isTaken;
     await project.save();
@@ -721,6 +723,24 @@ export const getProjectYears = async (req, res) => {
   try {
     const years = await Project.distinct("year");
     res.status(200).send(years);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const startProjectsCoordinator = async (req, res) => {
+  try {
+    const projects = await Project.find({ year: req.body.year, isTaken: false });
+    if (projects.length === 0) {
+      return res.status(304).send({ message: "No projects found" });
+    }
+    projects.forEach((project) => {
+      if (project.advisors.length !== 0 && project.students.length !== 0 && !project.isTaken) {
+        project.isTaken = true;
+      }
+    });
+    await Promise.all(projects.map((project) => project.save()));
+    res.status(200).send("Projects started successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
