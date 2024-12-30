@@ -235,13 +235,13 @@ const ProfilePage = () => {
           </div>
         )}
         <div className="basic-statistics">
-          {(currentUser.isCoordinator || currentUser._id === userId) && windowSize.width > 626 && (
+          {(currentUser.isCoordinator || currentUser._id === userId) && windowSize.width > 517 && (
             <canvas ref={statisticsChartRef} />
           )}
         </div>
       </div>
       <div className="skills-statistics">
-        {currentUser.isCoordinator && windowSize.width > 626 && (
+        {currentUser.isCoordinator && windowSize.width > 517 && (
           <>
             <canvas ref={radarChartRef} />
             <Space direction="vertical" style={{ width: "100%" }}>
