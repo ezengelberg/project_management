@@ -53,9 +53,9 @@ export const createSubmission = async (req, res) => {
               link: "/my-submissions",
             });
             await notification.save();
-          })
+          }),
         );
-      })
+      }),
     );
     res.status(201).json({ message: "Submissions created successfully" });
   } catch (error) {
@@ -103,9 +103,9 @@ export const createSpecificSubmission = async (req, res) => {
               link: "/my-submissions",
             });
             await notification.save();
-          })
+          }),
         );
-      })
+      }),
     );
     console.log("Submissions created successfully");
     res.status(201).json({ message: "Submissions created successfully" });
@@ -139,7 +139,7 @@ export const getAllProjectSubmissions = async (req, res) => {
                   journalActive: grade.journalActive,
                   commits: grade.commits,
                 };
-              })
+              }),
             );
             return {
               key: submission._id,
@@ -156,7 +156,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               finalGrade: submission.finalGrade,
               file: submission.file,
             };
-          })
+          }),
         );
         return {
           key: project._id,
@@ -165,7 +165,7 @@ export const getAllProjectSubmissions = async (req, res) => {
           year: project.year,
           submissions: submissionsWithGrades,
         };
-      })
+      }),
     );
 
     let resolvedProjectsList = await Promise.all(projectsList);
@@ -208,11 +208,11 @@ export const getAllSubmissions = async (req, res) => {
                 editable: gradeInfo ? gradeInfo.editable : null,
                 overridden: submission.overridden,
               };
-            })
+            }),
           ),
           key: submission._id,
         };
-      })
+      }),
     );
     res.status(200).json(submissionsWithDetails);
   } catch (error) {
@@ -247,9 +247,9 @@ export const getStudentSubmissions = async (req, res) => {
               journalActive: grade.journalActive,
               commits: grade.commits,
             };
-          })
+          }),
         ),
-      }))
+      })),
     ).then((result) => result.sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)));
 
     res.status(200).json(submissionsWithDetails);
@@ -356,11 +356,11 @@ export const copyJudges = async (req, res) => {
           project.advisors.map(async (advisor) => {
             const newGrade = new Grade({ judge: advisor });
             return await newGrade.save();
-          })
+          }),
         );
         submission.grades = newGrades;
         await submission.save();
-      })
+      }),
     );
   } catch (error) {
     console.log(error);
@@ -390,8 +390,22 @@ export const assignJudgesAutomatically = async (req, res) => {
     workload[advisor].quota += 3;
   });
 
+  // Get all judges and assign them a workload
+  const judges = await User.find({ isJudge: true });
+  judges.forEach((judge) => {
+    if (!workload[judge._id]) {
+      workload[judge._id] = { projects: 0, quota: 0, assigned: 0 };
+    }
+  });
+
   // Get all submissions for active projects and shuffle them
   const submissions = await Submission.find({ project: { $in: activeProjectIds } });
+  const totalGrades = submissions.reduce((acc, submission) => acc + submission.grades.length, 0);
+
+  // Check if there are enough judges for the assignment
+  if (submissions.length * 3 - totalGrades > workload.reduce(acc, (judge) => acc + judge.quota - judge.assigned, 0))
+    return res.status(500).json({ message: "Not enough judges for the assignment" });
+
   for (const submission of submissions) {
     // Use Promise.all to handle all grades for the submission in parallel
     const currentJudges = await Promise.all(
@@ -401,12 +415,9 @@ export const assignJudgesAutomatically = async (req, res) => {
 
         if (workload[advisor]) {
           workload[advisor].assigned++;
-        } else {
-          console.warn(`Advisor ${advisor} not found in workload!`);
         }
-
         return advisor;
-      })
+      }),
     );
     // Calculate remaining slots for judges
     const remainingSlots = Math.max(0, 3 - currentJudges.length);
@@ -427,8 +438,14 @@ export const assignJudgesAutomatically = async (req, res) => {
         .map((judge) => ({
           judge,
           ratio: workload[judge].assigned / workload[judge].quota,
+          quota: workload[judge].quota,
         }))
-        .sort((a, b) => a.ratio - b.ratio || Math.random() - 0.5)
+        .sort((a, b) => {
+          if (a.ratio === 0 && b.ratio === 0) {
+            return b.quota - a.quota; // Sort by largest quota first if both have ratio 0
+          }
+          return a.ratio - b.ratio || Math.random() - 0.5;
+        })
         .map((item) => item.judge);
       for (let i = 0; i < remainingSlots && shuffledJudges.length > 0; i++) {
         const selectedJudge = shuffledJudges.pop();
@@ -486,7 +503,7 @@ export const updateJudgesInSubmission = async (req, res) => {
             message: `הוסרת משפיטת: "${submission.name}" עבור פרויקט: "${submission.project.title}"`,
           });
           await notification.save();
-        })
+        }),
       );
     }
 
@@ -495,7 +512,7 @@ export const updateJudgesInSubmission = async (req, res) => {
 
     // Find new judges to add
     const newJudges = validJudges.filter(
-      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID)
+      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID),
     );
 
     if (newJudges.length !== 0) {
@@ -510,7 +527,7 @@ export const updateJudgesInSubmission = async (req, res) => {
           });
           await notification.save();
           return newGrade._id;
-        })
+        }),
       );
       submission.grades = [...submission.grades, ...newGrades];
     }
@@ -548,7 +565,7 @@ export const updateSubmissionFile = async (req, res) => {
             : `הועלה קובץ עבור: "${submission.name}" ע"י ${req.user.name}`,
         });
         await notification.save();
-      })
+      }),
     );
 
     res.status(200).json({ message: "Submission updated successfully", submission });
@@ -609,7 +626,7 @@ export const deleteActiveSubmissions = async (req, res) => {
           }
         }
         await Submission.deleteOne({ _id: submission._id });
-      })
+      }),
     );
 
     res.status(200).json({ message: "Active submissions deleted successfully" });
@@ -639,7 +656,7 @@ export const updateSubmissionInformation = async (req, res) => {
           submission.name = req.body.SubmissionName;
           await submission.save();
         }
-      })
+      }),
     );
 
     console.log("Submissions updated successfully");
@@ -731,7 +748,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
               journalActive: grade.journalActive,
               commits: grade.commits,
             };
-          })
+          }),
         );
         return {
           key: submission._id,
@@ -751,7 +768,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
           file: submission.file,
           fileNeeded: submission.fileNeeded,
         };
-      })
+      }),
     );
     res.status(200).json(submissionsWithDetails);
   } catch (error) {
