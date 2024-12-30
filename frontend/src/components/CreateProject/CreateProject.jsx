@@ -210,6 +210,12 @@ const CreateProject = () => {
         }
       );
       message.success("הפרויקט נוצר בהצלחה");
+
+      setStudentsNoProject((prevStudents) =>
+        prevStudents.filter(
+          (student) => !finalValues.students.some((selectedStudent) => selectedStudent.id === student.id)
+        )
+      );
       setProjectCreated(true);
       setProjectCreatedId(response.data.project._id);
       form.resetFields();
