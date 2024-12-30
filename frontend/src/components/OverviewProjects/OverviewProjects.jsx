@@ -6,7 +6,7 @@ import { DeleteOutlined, RollbackOutlined, SearchOutlined } from "@ant-design/ic
 import axios from "axios";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
-import { NotificationsContext } from "../../context/NotificationsContext";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const OverviewProjects = () => {

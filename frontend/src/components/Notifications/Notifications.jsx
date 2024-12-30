@@ -1,22 +1,18 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import "./Notifications.scss";
-import { Tooltip, List, Skeleton, Modal, Tabs, message } from "antd";
+import { Tooltip, List, Skeleton, Tabs, message } from "antd";
 import { CloseOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { NotificationsContext } from "../../context/NotificationsContext";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const Notifications = () => {
   const navigate = useNavigate();
   const { newNotifications, oldNotifications, markNotificationAsRead, deleteNotification } =
     useContext(NotificationsContext);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [notificationToDelete, setNotificationToDelete] = useState(null);
 
-  const handleDeleteNotification = async () => {
-    await deleteNotification(notificationToDelete);
+  const handleDeleteNotification = async (notificationId) => {
+    await deleteNotification(notificationId);
     message.success("ההתראה נמחקה בהצלחה");
-    setConfirmDelete(false);
-    setNotificationToDelete(null);
   };
 
   const handleNotificationClick = (notification) => {
@@ -86,12 +82,7 @@ const Notifications = () => {
                   })}
                 />
                 <Tooltip title="מחק התראה">
-                  <DeleteOutlined
-                    onClick={() => {
-                      setConfirmDelete(true);
-                      setNotificationToDelete(item._id);
-                    }}
-                  />
+                  <DeleteOutlined onClick={() => handleDeleteNotification(item._id)} />
                 </Tooltip>
               </Skeleton>
             </List.Item>
@@ -104,16 +95,6 @@ const Notifications = () => {
   return (
     <div className="notifications-page">
       <Tabs defaultActiveKey="1" items={items} />
-      <Modal
-        title="מחיקת התראה"
-        open={confirmDelete}
-        onOk={handleDeleteNotification}
-        onCancel={() => setConfirmDelete(false)}
-        okText="מחק"
-        okButtonProps={{ danger: true }}
-        cancelText="ביטול">
-        <p>האם אתה בטוח שברצונך למחוק התראה זו?</p>
-      </Modal>
     </div>
   );
 };

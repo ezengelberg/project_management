@@ -22,7 +22,7 @@ import { handleMouseDown } from "../../utils/mouseDown";
 import StudentSubmissions from "../UploadSubmissions/UploadSubmissions";
 import AdvisorSubmissionsStatus from "../SubmissionsStatus/SubmissionsStatus";
 import SubmissionsManagement from "../Submissions/Submissions";
-import { NotificationsContext } from "../../context/NotificationsContext";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const Homepage = () => {
   const navigate = useNavigate();

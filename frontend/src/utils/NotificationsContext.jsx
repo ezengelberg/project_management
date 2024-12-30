@@ -57,10 +57,6 @@ export const NotificationsProvider = ({ children }) => {
       await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/delete/${notificationId}`, {
         withCredentials: true,
       });
-      setUnreadCount((prevCount) => prevCount - 1);
-      setNewNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification._id !== notificationId)
-      );
       setOldNotifications((prevNotifications) =>
         prevNotifications.filter((notification) => notification._id !== notificationId)
       );

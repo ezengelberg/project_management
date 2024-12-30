@@ -15,7 +15,7 @@ import axios from "axios";
 import "./ManageProjects.scss";
 import Highlighter from "react-highlight-words";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
-import { NotificationsContext } from "../../context/NotificationsContext";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const ManageProjects = () => {

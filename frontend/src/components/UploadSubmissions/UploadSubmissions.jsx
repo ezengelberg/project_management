@@ -13,7 +13,7 @@ import axios from "axios";
 import "./UploadSubmissions.scss";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { downloadFile } from "../../utils/downloadFile";
-import { NotificationsContext } from "../../context/NotificationsContext";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 import GradeDistributionChart from "../../utils/GradeDistributionChart";
 
 const SafeTooltip = forwardRef(({ title, children }, ref) => (

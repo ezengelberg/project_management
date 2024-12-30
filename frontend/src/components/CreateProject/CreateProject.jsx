@@ -7,7 +7,7 @@ import { Switch, Button, Form, Input, Select, message, FloatButton } from "antd"
 import { Editor } from "primereact/editor";
 import DOMPurify from "dompurify";
 import { handleMouseDown } from "../../utils/mouseDown";
-import { NotificationsContext } from "../../context/NotificationsContext";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const CreateProject = () => {

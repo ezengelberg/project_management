@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Tooltip, Avatar, Badge, Popover, Divider } from "antd";
 import { LogoutOutlined, BellOutlined, CloseOutlined, MessageOutlined } from "@ant-design/icons";
 import { handleMouseDown } from "../../utils/mouseDown";
-import { NotificationsContext } from "../../context/NotificationsContext";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const HeaderMenu = () => {
   const navigate = useNavigate();

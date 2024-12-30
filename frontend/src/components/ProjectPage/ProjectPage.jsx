@@ -5,7 +5,7 @@ import { Tooltip, message, Spin } from "antd";
 import { UserOutlined, LoadingOutlined } from "@ant-design/icons";
 import "./ProjectPage.scss";
 import { processContent } from "../../utils/htmlProcessor";
-import { NotificationsContext } from "../../context/NotificationsContext";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const ProjectPage = () => {
   const { projectID } = useParams();
