@@ -388,7 +388,6 @@ export const assignJudgesAutomatically = async (req, res) => {
     }
     workload[advisor].projects++;
     workload[advisor].quota += 3;
-    console.log(advisor);
   });
 
   // Get all submissions for active projects and shuffle them
@@ -440,7 +439,7 @@ export const assignJudgesAutomatically = async (req, res) => {
         await newGrade.save();
         const notification = new Notification({
           user: selectedJudge,
-          message: `מונתה לשפיטת: "${submission.name}" עבור פרויקט: "${submission.project.title}"`,
+          message: `מונתה לשפיטת: "${submission.name}", עבור פרויקט: "${submission.project.title}"`,
         });
         await notification.save();
         submission.grades.push(newGrade._id);
