@@ -53,9 +53,9 @@ export const createSubmission = async (req, res) => {
               link: "/my-submissions",
             });
             await notification.save();
-          }),
+          })
         );
-      }),
+      })
     );
     res.status(201).json({ message: "Submissions created successfully" });
   } catch (error) {
@@ -103,9 +103,9 @@ export const createSpecificSubmission = async (req, res) => {
               link: "/my-submissions",
             });
             await notification.save();
-          }),
+          })
         );
-      }),
+      })
     );
     console.log("Submissions created successfully");
     res.status(201).json({ message: "Submissions created successfully" });
@@ -139,7 +139,7 @@ export const getAllProjectSubmissions = async (req, res) => {
                   journalActive: grade.journalActive,
                   commits: grade.commits,
                 };
-              }),
+              })
             );
             return {
               key: submission._id,
@@ -156,7 +156,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               finalGrade: submission.finalGrade,
               file: submission.file,
             };
-          }),
+          })
         );
         return {
           key: project._id,
@@ -165,7 +165,7 @@ export const getAllProjectSubmissions = async (req, res) => {
           year: project.year,
           submissions: submissionsWithGrades,
         };
-      }),
+      })
     );
 
     let resolvedProjectsList = await Promise.all(projectsList);
@@ -208,11 +208,11 @@ export const getAllSubmissions = async (req, res) => {
                 editable: gradeInfo ? gradeInfo.editable : null,
                 overridden: submission.overridden,
               };
-            }),
+            })
           ),
           key: submission._id,
         };
-      }),
+      })
     );
     res.status(200).json(submissionsWithDetails);
   } catch (error) {
@@ -247,9 +247,9 @@ export const getStudentSubmissions = async (req, res) => {
               journalActive: grade.journalActive,
               commits: grade.commits,
             };
-          }),
+          })
         ),
-      })),
+      }))
     ).then((result) => result.sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)));
 
     res.status(200).json(submissionsWithDetails);
@@ -356,11 +356,11 @@ export const copyJudges = async (req, res) => {
           project.advisors.map(async (advisor) => {
             const newGrade = new Grade({ judge: advisor });
             return await newGrade.save();
-          }),
+          })
         );
         submission.grades = newGrades;
         await submission.save();
-      }),
+      })
     );
   } catch (error) {
     console.log(error);
@@ -387,6 +387,7 @@ export const assignJudgesAutomatically = async (req, res) => {
       workload[advisor] = { projects: 0, quota: 0, assigned: 0 };
     }
     workload[advisor].projects++;
+    workload[advisor].assigned++;
     workload[advisor].quota += 3;
   });
 
@@ -402,8 +403,14 @@ export const assignJudgesAutomatically = async (req, res) => {
   const submissions = await Submission.find({ project: { $in: activeProjectIds } });
   const totalGrades = submissions.reduce((acc, submission) => acc + submission.grades.length, 0);
 
+  // Convert workload object to an array of values
+  const workloadArray = Object.values(workload);
+
   // Check if there are enough judges for the assignment
-  if (submissions.length * 3 - totalGrades > workload.reduce(acc, (judge) => acc + judge.quota - judge.assigned, 0))
+  if (
+    submissions.length * 3 - totalGrades >
+    workloadArray.reduce((acc, judge) => acc + judge.quota - judge.assigned, 0)
+  )
     return res.status(500).json({ message: "Not enough judges for the assignment" });
 
   for (const submission of submissions) {
@@ -412,15 +419,12 @@ export const assignJudgesAutomatically = async (req, res) => {
       submission.grades.map(async (grade) => {
         const gradeInfo = await Grade.findById(grade);
         const advisor = gradeInfo.judge.toString();
-
-        if (workload[advisor]) {
-          workload[advisor].assigned++;
-        }
         return advisor;
-      }),
+      })
     );
     // Calculate remaining slots for judges
     const remainingSlots = Math.max(0, 3 - currentJudges.length);
+    console.log("Remaining slots", remainingSlots);
     if (remainingSlots > 0) {
       const potentialJudges = Object.keys(workload).filter((judge) => {
         return (
@@ -441,17 +445,18 @@ export const assignJudgesAutomatically = async (req, res) => {
           quota: workload[judge].quota,
         }))
         .sort((a, b) => {
-          if (a.ratio === 0 && b.ratio === 0) {
-            return b.quota - a.quota; // Sort by largest quota first if both have ratio 0
+          if (a.ratio === b.ratio) {
+            return a.quota - b.quota; // Sort by largest quota first
           }
-          return a.ratio - b.ratio || Math.random() - 0.5;
+          return b.ratio - a.ratio;
         })
         .map((item) => item.judge);
       for (let i = 0; i < remainingSlots && shuffledJudges.length > 0; i++) {
         const selectedJudge = shuffledJudges.pop();
         currentJudges.push(selectedJudge);
         workload[selectedJudge].assigned++;
-
+        console.log("Assigned judge", selectedJudge, "to submission", submission._id);
+        console.log(workload);
         const newGrade = new Grade({ judge: selectedJudge });
         await newGrade.save();
         const notification = new Notification({
@@ -503,7 +508,7 @@ export const updateJudgesInSubmission = async (req, res) => {
             message: `הוסרת משפיטת: "${submission.name}" עבור פרויקט: "${submission.project.title}"`,
           });
           await notification.save();
-        }),
+        })
       );
     }
 
@@ -512,7 +517,7 @@ export const updateJudgesInSubmission = async (req, res) => {
 
     // Find new judges to add
     const newJudges = validJudges.filter(
-      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID),
+      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID)
     );
 
     if (newJudges.length !== 0) {
@@ -527,7 +532,7 @@ export const updateJudgesInSubmission = async (req, res) => {
           });
           await notification.save();
           return newGrade._id;
-        }),
+        })
       );
       submission.grades = [...submission.grades, ...newGrades];
     }
@@ -565,7 +570,7 @@ export const updateSubmissionFile = async (req, res) => {
             : `הועלה קובץ עבור: "${submission.name}" ע"י ${req.user.name}`,
         });
         await notification.save();
-      }),
+      })
     );
 
     res.status(200).json({ message: "Submission updated successfully", submission });
@@ -599,8 +604,6 @@ export const deleteSubmission = async (req, res) => {
 };
 
 export const deleteActiveSubmissions = async (req, res) => {
-  console.log("deleting");
-  console.log("req.body", req.body);
   try {
     const activeProjects = await Project.find({
       isTerminated: false,
@@ -621,12 +624,11 @@ export const deleteActiveSubmissions = async (req, res) => {
           if (file) {
             const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
             if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-            console.log("file deleted");
             await Upload.deleteOne({ _id: submission.file });
           }
         }
         await Submission.deleteOne({ _id: submission._id });
-      }),
+      })
     );
 
     res.status(200).json({ message: "Active submissions deleted successfully" });
@@ -656,10 +658,9 @@ export const updateSubmissionInformation = async (req, res) => {
           submission.name = req.body.SubmissionName;
           await submission.save();
         }
-      }),
+      })
     );
 
-    console.log("Submissions updated successfully");
     res.status(200).json({ message: "Submissions updated successfully" });
   } catch (error) {
     console.error(error);
@@ -748,7 +749,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
               journalActive: grade.journalActive,
               commits: grade.commits,
             };
-          }),
+          })
         );
         return {
           key: submission._id,
@@ -768,7 +769,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
           file: submission.file,
           fileNeeded: submission.fileNeeded,
         };
-      }),
+      })
     );
     res.status(200).json(submissionsWithDetails);
   } catch (error) {
