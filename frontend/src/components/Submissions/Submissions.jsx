@@ -47,7 +47,7 @@ const Submissions = () => {
   const [gradeToOverride, setGradeToOverride] = useState(null);
   const [submissionData, setSubmissionData] = useState([]);
   const [submissionDetails, setSubmissionDetails] = useState([]);
-  const [submissionType, setSubmissionType] = useState(null);
+  const [submissionType, setSubmissionType] = useState("proposalReport");
   const [showReview, setShowReview] = useState(null);
   const [deleteAllSubmissions, setDeleteAllSubmissions] = useState(false);
   const [deleteAllSubmissionsConfirm, setDeleteAllSubmissionsConfirm] = useState(null);
@@ -324,6 +324,7 @@ const Submissions = () => {
       formAll.resetFields();
       setAllSubmissions(false);
       fetchSubmissions();
+      setSubmissionType("proposalReport");
     }
   };
 
@@ -451,6 +452,7 @@ const Submissions = () => {
       formSpecific.resetFields();
       setSpecificSubmission(false);
       fetchSubmissions();
+      setSubmissionType("proposalReport");
     }
   };
 
@@ -1236,7 +1238,7 @@ const Submissions = () => {
           layout="vertical"
           form={formAll} // Ensure this line is present
         >
-          <Form.Item label="סוג הגשה" name="submissionType" hasFeedback>
+          <Form.Item label="סוג הגשה" name="submissionType" initialValue={"proposalReport"} hasFeedback>
             <Radio.Group
               optionType="button"
               buttonStyle="solid"
@@ -1309,7 +1311,7 @@ const Submissions = () => {
         }}>
         <Form layout="vertical" form={formSpecific}>
           {/* סוג הגשה */}
-          <Form.Item label="סוג הגשה" name="submissionType" hasFeedback>
+          <Form.Item label="סוג הגשה" name="submissionType" initialValue={"proposalReport"} hasFeedback>
             <Radio.Group
               optionType="button"
               buttonStyle="solid"
