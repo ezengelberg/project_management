@@ -46,3 +46,12 @@ export const deleteNotification = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const clearAllNotifications = async (req, res) => {
+  try {
+    await Notification.updateMany({ user: req.user._id }, { read: true });
+    res.status(200).json({ message: "All notifications marked as read" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};

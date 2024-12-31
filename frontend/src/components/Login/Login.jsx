@@ -1,15 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Login.scss";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
-import { Alert, Form, Input, Button, message } from "antd";
-import { EyeInvisibleOutlined, EyeOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import { Alert, Form, Input, Button, message, Checkbox } from "antd";
+import { ArrowRightOutlined } from "@ant-design/icons";
 
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [tempUserData, setTempUserData] = useState(null);
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -18,6 +19,18 @@ const Login = () => {
   const [changePasswordForm] = Form.useForm();
   const [loginForm] = Form.useForm();
   const [forgotPasswordForm] = Form.useForm();
+
+  // useEffect(() => {
+  //   const user = JSON.parse(localStorage.getItem("user"));
+  //   if (user && user.rememberMe) {
+  //     const cookie = document.cookie.split("; ").find((row) => row.startsWith("connect.sid="));
+  //     if (!cookie) {
+  //       localStorage.removeItem("user");
+  //     } else {
+  //       navigate("/home");
+  //     }
+  //   }
+  // }, [navigate]);
 
   const EmailSvg = () => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -69,6 +82,7 @@ const Login = () => {
           {
             email: lowerCaseEmail,
             password,
+            rememberMe,
           },
           { withCredentials: true }
         );
@@ -104,15 +118,19 @@ const Login = () => {
   const handleChangePassword = async (values) => {
     setLoading(true);
     try {
+      const updateData = {
+        oldPassword: tempUserData.id,
+        newPassword: values.newPassword,
+      };
+
+      if (tempUserData.isAdvisor) {
+        updateData.interests = values.interests;
+      }
+
       // Change password
-      await axios.put(
-        `${process.env.REACT_APP_BACKEND_URL}/api/user/change-password`,
-        {
-          oldPassword: tempUserData.id,
-          newPassword: values.newPassword,
-        },
-        { withCredentials: true }
-      );
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/user/change-password`, updateData, {
+        withCredentials: true,
+      });
 
       // Update the user data to reflect password change
       const updatedUserData = {
@@ -179,6 +197,11 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </Form.Item>
+            <Form.Item name="remember" valuePropName="checked" label={null}>
+              <Checkbox checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)}>
+                זכור אותי
+              </Checkbox>
+            </Form.Item>
             <a className="forgot-password" onClick={() => setShowForgotPassword(true)}>
               שכחת סיסמה?
             </a>
@@ -209,12 +232,8 @@ const Login = () => {
                 message: "הסיסמה חייבת להכיל אות גדולה, אות קטנה, מספר ותו מיוחד",
               },
             ]}>
-            <Input.Password
-              placeholder="הכנס סיסמה חדשה"
-              iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
-            />
+            <Input.Password placeholder="הכנס סיסמה חדשה" />
           </Form.Item>
-
           <Form.Item
             name="confirmPassword"
             label="אימות סיסמה"
@@ -231,11 +250,17 @@ const Login = () => {
                 },
               }),
             ]}>
-            <Input.Password
-              placeholder="אמת סיסמה"
-              iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
-            />
+            <Input.Password placeholder="אמת סיסמה" />
           </Form.Item>
+          {tempUserData?.isAdvisor && (
+            <Form.Item
+              name="interests"
+              label="תחומי עניין (ניתן לשנות אחר כך בפרופיל)"
+              hasFeedback
+              rules={[{ required: true, message: "חובה להזין תחומי עניין" }]}>
+              <Input placeholder="הכנס תחומי עניין" />
+            </Form.Item>
+          )}
           <Form.Item className="change-password-button">
             <Button type="primary" htmlType="submit" loading={loading}>
               שנה סיסמה

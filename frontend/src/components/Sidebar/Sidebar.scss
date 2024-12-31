@@ -39,6 +39,12 @@
               fill: white;
             }
           }
+
+          .logout-icon {
+            svg {
+              fill: #ff4d4f;
+            }
+          }
         }
         .active {
           background-color: #1677ff;
@@ -104,4 +110,30 @@
   margin: 0 !important;
   width: 2.2rem;
   height: 2.2rem;
+}
+
+@media screen and (max-width: 1024px) {
+  .sidebar-container {
+    position: relative;
+    display: block;
+    position: absolute;
+    right: 0;
+    z-index: 1000;
+    height: 100%;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+  }
+  .sidebar-container.open {
+    transform: translateX(0);
+  }
+  .close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    z-index: 1001;
+  }
 }

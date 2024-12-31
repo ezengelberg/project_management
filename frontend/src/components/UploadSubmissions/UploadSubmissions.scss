@@ -46,15 +46,16 @@
 
   .reviews {
     margin-top: 1rem;
-    display: flex;
     width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     .review-container {
       display: flex;
-      width: calc(100%/3 - 1rem);
+      width: 100%;
       .review {
         display: flex;
         flex-direction: column;
-        // gap: 0.5rem;
+        width: 100%;
         .review-item {
           display: flex;
           flex-direction: column;
@@ -62,7 +63,26 @@
             font-weight: bold;
             color: #525252;
           }
+          .review-content {
+            word-break: break-word;
+          }
         }
+      }
+    }
+  }
+}
+
+.icon-group {
+  display: flex;
+  gap: 1rem;
+}
+
+@media screen and (max-width: 626px) {
+  .grade-info {
+    .reviews {
+      grid-template-columns: repeat(1, 1fr);
+      .review-container {
+        flex-direction: column;
       }
     }
   }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -25,13 +25,16 @@ import {
 import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
+import { NotificationsContext } from "../../utils/NotificationsContext";
+import { downloadFile } from "../../utils/downloadFile";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const Submissions = () => {
   const navigate = useNavigate();
   const { TextArea } = Input;
   const { Option } = Select;
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [formAll] = Form.useForm();
-  const [formJudges] = Form.useForm();
   const [editSubmission] = Form.useForm();
   const [editSpecificSubmission] = Form.useForm();
   const [formSpecific] = Form.useForm();
@@ -40,12 +43,11 @@ const Submissions = () => {
   const [allSubmissions, setAllSubmissions] = useState(false);
   const [specificSubmission, setSpecificSubmission] = useState(false);
   const [editSubmissions, setEditSubmissions] = useState(false);
-  const [copyJudges, setCopyJudges] = useState(false);
   const [gradeFormOpen, setGradeFormOpen] = useState(false);
   const [gradeToOverride, setGradeToOverride] = useState(null);
   const [submissionData, setSubmissionData] = useState([]);
   const [submissionDetails, setSubmissionDetails] = useState([]);
-  const [submissionType, setSubmissionType] = useState(null);
+  const [submissionType, setSubmissionType] = useState("proposalReport");
   const [showReview, setShowReview] = useState(null);
   const [deleteAllSubmissions, setDeleteAllSubmissions] = useState(false);
   const [deleteAllSubmissionsConfirm, setDeleteAllSubmissionsConfirm] = useState(null);
@@ -56,13 +58,24 @@ const Submissions = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
-  const [filters, setSelectedFilters] = useState({
-    submitted: false,
-    notSubmitted: false,
-    waitingCheck: false,
-    waitingPublish: false,
-    finalGrade: false,
+  const [yearFilter, setYearFilter] = useState("all");
+  const [years, setYears] = useState([]);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
   });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const fetchActiveProjects = async () => {
     try {
@@ -75,15 +88,28 @@ const Submissions = () => {
     }
   };
 
+  const fetchYears = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
+        withCredentials: true,
+      });
+      setYears(response.data.sort((a, b) => b.localeCompare(a)));
+      const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
+      const currentHebrewYearIndex = response.data.indexOf(currentHebrewYear);
+      setYearFilter(currentHebrewYearIndex !== -1 ? response.data[currentHebrewYearIndex] : response.data[0]);
+    } catch (error) {
+      console.error("Error fetching years:", error);
+    }
+  };
+
   const fetchSubmissions = async () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
           withCredentials: true,
-        },
+        }
       );
-
       response.data.map((project) => {
         project.submissions.map((submission) => {
           submission.isLate = new Date(submission.submissionDate) < new Date(submission.uploadDate);
@@ -99,18 +125,18 @@ const Submissions = () => {
               submission.submissions.map((sub) => ({
                 name: sub.name,
                 info: sub.info,
-              })),
+              }))
             )
             .map((sub) => [
               sub.name, // Use the name as key
               sub, // Keep the object with name and info as the value
-            ]),
+            ])
         ).values(),
       ];
 
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
-          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
+          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission
         );
 
         if (!existing) return submission;
@@ -123,7 +149,6 @@ const Submissions = () => {
         // If one has info, return the one with info
         return submission.info ? submission : existing;
       });
-
       setSubmissionDetails(filteredSubmissionDetails);
     } catch (error) {
       console.error("Error fetching submissions:", error);
@@ -134,44 +159,54 @@ const Submissions = () => {
   useEffect(() => {
     fetchSubmissions();
     fetchActiveProjects();
+    fetchYears();
   }, []);
 
-  const handleJudgeCopy = async (values) => {
+  const assignJudgesAutomatically = async () => {
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/submission/copy-judges`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/assign-judge-auto`,
         {
-          sourceSubmission: values.sourceSubmission,
-          destinationSubmission: values.destinationSubmission,
+          submissionYear: yearFilter,
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
-        content: "העתקת השופטים הושלמה בהצלחה",
+        content: "השופטים הוקצו בהצלחה",
       });
     } catch (error) {
-      console.error("Error copying judges:", error);
-    } finally {
-      formJudges.resetFields();
-      setCopyJudges(false);
-      fetchSubmissions();
+      console.error("Error assigning judges automatically:", error);
+      message.open({
+        type: "error",
+        content: "מחסור בשופטים להקצאה אוטומטית",
+      });
     }
   };
 
   const overrideGrade = async (values) => {
     try {
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/grade/update/${gradeToOverride.key}`,
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/grade/change-final-grade/${submissionInfo?.submission?.key}`,
         {
-          grade: values.newGrade,
+          newGrade: values.newGrade,
+          comment: values.comment,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
+      message.open({
+        type: "success",
+        content: "הציון עודכן בהצלחה",
+      });
     } catch (error) {
       console.error("Error overriding grade:", error);
+    } finally {
+      gradeForm.resetFields();
+      setGradeFormOpen(false);
+      setSubmissionInfo(null);
+      fetchSubmissions();
     }
   };
 
@@ -181,7 +216,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -201,10 +236,11 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-active-submissions`,
         {
           submissionName: values.submissionName,
+          submissionYear: yearFilter,
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "info",
@@ -223,26 +259,31 @@ const Submissions = () => {
       let name = "";
       let isGraded = false;
       let isReviewed = false;
+      let fileNeeded = false;
       switch (submissionType) {
         case "proposalReport":
           name = "דוח הצעה";
           isGraded = submissionOptions.find((option) => option.value === "proposalReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "proposalReport").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "proposalReport").fileNeeded;
           break;
         case "alphaReport":
           name = "דוח אלפה";
           isGraded = submissionOptions.find((option) => option.value === "alphaReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "alphaReport").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "alphaReport").fileNeeded;
           break;
         case "finalReport":
           name = "דוח סופי";
           isGraded = submissionOptions.find((option) => option.value === "finalReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "finalReport").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "finalReport").fileNeeded;
           break;
         case "finalExam":
           name = "מבחן סוף";
           isGraded = submissionOptions.find((option) => option.value === "finalExam").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "finalExam").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "finalExam").fileNeeded;
           break;
         default: // other...
           name = values.submissionName || "ללא שם";
@@ -252,6 +293,9 @@ const Submissions = () => {
           isReviewed = Array.isArray(values.submissionChecklist)
             ? values.submissionChecklist.includes("isReviewed")
             : false;
+          fileNeeded = Array.isArray(values.submissionChecklist)
+            ? values.submissionChecklist.includes("fileNeeded")
+            : false;
           break;
       }
       const response = await axios.post(
@@ -260,29 +304,27 @@ const Submissions = () => {
           name: name,
           submissionDate: values.submissionDate,
           submissionInfo: values.submissionInfo,
+          submissionYear: yearFilter,
           isGraded: isGraded,
           isReviewed: isReviewed,
+          fileNeeded: fileNeeded,
         },
         {
           withCredentials: true,
-        },
+        }
       );
-      if (submissionDetails.some((submission) => submission.name === name)) {
-        message.open({
-          type: "warning",
-          content: "הגשה עם שם זה כבר קיימת לחלק מהפרויקטים",
-        });
-      }
       message.open({
         type: "success",
         content: "הגשה נפתחה בהצלחה",
       });
+      fetchNotifications();
     } catch (error) {
       console.error("Error creating submission:", error);
     } finally {
       formAll.resetFields();
       setAllSubmissions(false);
       fetchSubmissions();
+      setSubmissionType("proposalReport");
     }
   };
 
@@ -297,10 +339,13 @@ const Submissions = () => {
           isReviewed: Array.isArray(values.submissionChecklist)
             ? values.submissionChecklist.includes("isReviewed")
             : false,
+          fileNeeded: Array.isArray(values.submissionChecklist)
+            ? values.submissionChecklist.includes("fileNeeded")
+            : false,
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
@@ -322,10 +367,11 @@ const Submissions = () => {
           SubmissionName: values.SubmissionName,
           submissionDate: values.submissionDate,
           submissionInfo: values.submissionInfo,
+          submissionYear: yearFilter,
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -345,7 +391,7 @@ const Submissions = () => {
       let name = "";
       let isGraded = false;
       let isReviewed = false;
-
+      let fileNeeded = false;
       switch (values.submissionType) {
         case "proposalReport":
           name = "דוח הצעה";
@@ -375,6 +421,9 @@ const Submissions = () => {
           isReviewed = Array.isArray(values.submissionChecklist)
             ? values.submissionChecklist.includes("isReviewed")
             : false;
+          fileNeeded = Array.isArray(values.submissionChecklist)
+            ? values.submissionChecklist.includes("fileNeeded")
+            : false;
           break;
       }
       const response = await axios.post(
@@ -386,21 +435,24 @@ const Submissions = () => {
           projects: values.projects,
           isGraded: isGraded,
           isReviewed: isReviewed,
+          fileNeeded: fileNeeded,
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
         content: "הגשה נפתחה בהצלחה",
       });
+      fetchNotifications();
     } catch (error) {
       console.error("Error creating submission:", error);
     } finally {
       formSpecific.resetFields();
       setSpecificSubmission(false);
       fetchSubmissions();
+      setSubmissionType("proposalReport");
     }
   };
 
@@ -419,17 +471,6 @@ const Submissions = () => {
       .validateFields()
       .then((values) => {
         handleOkAll(values);
-      })
-      .catch((info) => {
-        console.log("Validate Failed:", info);
-      });
-  };
-
-  const onOkHandlerJudges = () => {
-    formJudges
-      .validateFields()
-      .then((values) => {
-        handleJudgeCopy(values);
       })
       .catch((info) => {
         console.log("Validate Failed:", info);
@@ -474,9 +515,10 @@ const Submissions = () => {
 
   const columns = [
     {
-      title: "שם הפרוייקט",
+      title: "שם הפרויקט",
       dataIndex: "title",
       key: "title",
+      fixed: windowSize.width > 626 && "left",
       ...getColumnSearchProps("title"),
       sorter: (a, b) => {
         // Safely handle undefined values in sorting
@@ -489,8 +531,18 @@ const Submissions = () => {
       render: (text, record) => {
         // Ensure text exists before rendering Highlighter
         const title = record.title || "";
-        const displayText = title.length > 65 ? `${title.substring(0, 65)}...` : title;
-
+        const displayText =
+          windowSize.width > 1200
+            ? title.length > 65
+              ? `${title.substring(0, 65)}...`
+              : title
+            : windowSize.width > 1024
+            ? title.length > 45
+              ? `${title.substring(0, 45)}...`
+              : title
+            : title.length > 35
+            ? `${title.substring(0, 35)}...`
+            : title;
         return (
           <a
             onClick={() => navigate(`/project/${record.projectid}`)}
@@ -504,7 +556,7 @@ const Submissions = () => {
           </a>
         );
       },
-      width: "25%",
+      width: (windowSize.width - 220) / 3,
     },
     {
       title: "הגשות",
@@ -544,31 +596,46 @@ const Submissions = () => {
                         : ""}
                     </span>
                     <div className="table-col-info">
-                      <Badge
-                        color={sub.submitted ? (sub.isLate ? "darkgreen" : "green") : "orange"}
-                        text={
-                          sub.submitted
-                            ? `הוגש${
-                                sub.isLate
-                                  ? ` באיחור - ${Math.ceil(
-                                      (new Date(sub.uploadDate) - new Date(sub.submissionDate)) / (1000 * 60 * 60 * 24),
-                                    )} ימים`
-                                  : ""
-                              }`
-                            : "ממתין להגשה"
-                        }
-                      />
+                      {sub.fileNeeded ? (
+                        <Badge
+                          color={sub.submitted ? (sub.isLate ? "darkgreen" : "green") : "orange"}
+                          text={
+                            sub.submitted
+                              ? `הוגש${
+                                  sub.isLate
+                                    ? ` באיחור - ${Math.ceil(
+                                        (new Date(sub.uploadDate) - new Date(sub.submissionDate)) /
+                                          (1000 * 60 * 60 * 24)
+                                      )} ימים`
+                                    : ""
+                                }`
+                              : "ממתין להגשה"
+                          }
+                        />
+                      ) : (
+                        <Badge color="green" text="לא נדרש קובץ" />
+                      )}
+                      {sub.submitted && sub.file && (
+                        <Button
+                          color="primary"
+                          variant="filled"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            downloadFile(sub.file, "submissions");
+                          }}>
+                          הורד הגשה
+                        </Button>
+                      )}
                       <div>
                         {waitingCheck && sub.submitted ? (
                           <Badge color="blue" text="מחכה לבדיקה" />
-                        ) : !waitingCheck && sub.submitted ? (
-                          <Badge color="purple" text="מחכה לפרסום" />
                         ) : (
-                          sub.editable !== null &&
-                          sub.isGraded && (
+                          !sub.editable &&
+                          sub.isGraded &&
+                          !waitingCheck && (
                             <Badge
                               color="pink"
-                              text={`ציון סופי: ${sub.overridden?.newGrade ? sub.overridden.newGrade : sub.finalGrade}`}
+                              text={`ציון סופי: ${sub?.finalGrade ? sub.finalGrade : sub.overridden?.newGrade}`}
                             />
                           )
                         )}
@@ -584,28 +651,14 @@ const Submissions = () => {
           </div>
         );
       },
-      width: "75%",
-      filters: [
-        { text: "הוגש", value: "submitted" },
-        { text: "לא הוגש", value: "notSubmitted" },
-        { text: "מחכה לבדיקה", value: "waitingCheck" },
-        { text: "מחכה לפרסום", value: "waitingPublish" },
-        { text: "פורסם", value: "finalGrade" },
-      ],
-      onFilter: (value) => {
-        setSelectedFilters((prevFilters) => ({
-          ...prevFilters,
-          [value]: !prevFilters[value],
-        }));
-      },
     },
   ];
 
   const submissionOptions = [
-    { label: "דוח הצעה", value: "proposalReport", isGraded: false, isReviewed: false },
-    { label: "דוח אלפה", value: "alphaReport", isGraded: true, isReviewed: true },
-    { label: "דוח סופי", value: "finalReport", isGraded: false, isReviewed: true },
-    { label: "מבחן סוף", value: "finalExam", isGraded: true, isReviewed: false },
+    { label: "דוח הצעה", value: "proposalReport", isGraded: false, isReviewed: false, fileNeeded: true },
+    { label: "דוח אלפה", value: "alphaReport", isGraded: true, isReviewed: true, fileNeeded: true },
+    { label: "דוח סופי", value: "finalReport", isGraded: false, isReviewed: true, fileNeeded: true },
+    { label: "מבחן סוף", value: "finalExam", isGraded: true, isReviewed: false, fileNeeded: false },
     { label: "אחר", value: "other" },
   ];
 
@@ -647,18 +700,56 @@ const Submissions = () => {
     },
   ];
 
+  const filteredSubmissionData = submissionData.filter(
+    (project) => yearFilter === "all" || project.year === yearFilter
+  );
+
   return (
     <div>
       <div className="action-buttons">
-        <Button type="primary" onClick={() => setAllSubmissions(true)}>
+        <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px", marginRight: "10px" }}>
+          <Select.Option value="all">כל השנים</Select.Option>
+          {years.map((year) => (
+            <Select.Option key={year} value={year}>
+              {year}
+            </Select.Option>
+          ))}
+        </Select>
+        <Button
+          type="primary"
+          onClick={() => {
+            if (
+              projects.filter((project) => project.students.length !== 0 && project.advisors.length !== 0).length === 0
+            ) {
+              message.open({
+                type: "warning",
+                content: "אין פרויקטים פעילים עם סטודנטים ומנחים",
+              });
+              return;
+            }
+            setAllSubmissions(true);
+          }}>
           פתיחת הגשה חדשה
         </Button>
-        <Button type="primary" onClick={() => setSpecificSubmission(true)}>
+        <Button
+          type="primary"
+          onClick={() => {
+            if (
+              projects.filter((project) => project.students.length !== 0 && project.advisors.length !== 0).length === 0
+            ) {
+              message.open({
+                type: "warning",
+                content: "אין פרויקטים פעילים עם סטודנטים ומנחים",
+              });
+              return;
+            }
+            setSpecificSubmission(true);
+          }}>
           פתיחת הגשה לפרויקטים נבחרים
         </Button>
         {/* work in progress, doesn't work */}
-        <Button type="primary" onClick={() => setCopyJudges(true)}>
-          העתקת שופטים
+        <Button type="primary" onClick={() => assignJudgesAutomatically()}>
+          הקצאת שופטים אוטומטית
         </Button>
         <div className="action-buttons-end">
           <Button type="primary" onClick={() => setEditSubmissions(true)}>
@@ -669,16 +760,19 @@ const Submissions = () => {
           </Button>
         </div>
       </div>
-      <Table columns={columns} dataSource={submissionData} />
+      <Table columns={columns} dataSource={filteredSubmissionData} scroll={{ x: "max-content" }} />
       <Modal
-        title={`האם הינך בטוח שברצונך למחוק את ההגשה ${deleteAllSubmissionsConfirm?.submissionName} לכולם?`}
+        title={`אישור מחיקה`}
         open={deleteAllSubmissionsConfirm !== null}
         okText="מחק"
         cancelText="ביטול"
+        okButtonProps={{ danger: true }}
         onOk={() => {
           handleOkDelete(deleteAllSubmissionsConfirm);
         }}
-        onCancel={() => setDeleteAllSubmissionsConfirm(null)}></Modal>
+        onCancel={() => setDeleteAllSubmissionsConfirm(null)}>
+        {`האם אתה בטוח שברצונך למחוק את כל ההגשות עם שם ${deleteAllSubmissionsConfirm?.submissionName} מהשנה ${yearFilter}?`}
+      </Modal>
       <Modal
         title="מחיקת הגשות"
         open={deleteAllSubmissions}
@@ -701,7 +795,10 @@ const Submissions = () => {
         }}>
         <Form layout="vertical" form={deleteSubmissionsForm}>
           <p>
-            <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - המחיקה מוחקת את כל ההגשות עם שם זה
+            <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - המחיקה מוחקת את כל ההגשות עם שם זה עבור השנה{" "}
+            <Tooltip title="ניתן לשנות בחירה ב dropdown">
+              <span style={{ textDecoration: "underline" }}>{yearFilter}</span>
+            </Tooltip>
           </p>
           <Form.Item
             label="בחר הגשה"
@@ -804,6 +901,7 @@ const Submissions = () => {
             <Checkbox.Group>
               <Checkbox value="isGraded">מתן ציון</Checkbox>
               <Checkbox value="isReviewed">מתן משוב</Checkbox>
+              <Checkbox value="fileNeeded">נדרש קובץ</Checkbox>
             </Checkbox.Group>
           </Form.Item>
         </Form>
@@ -841,6 +939,7 @@ const Submissions = () => {
                           submissionChecklist: [
                             submissionInfo.submission.isGraded ? "isGraded" : null,
                             submissionInfo.submission.isReviewed ? "isReviewed" : null,
+                            submissionInfo.submission.fileNeeded ? "fileNeeded" : null,
                           ].filter((value) => value !== null),
                         });
                         setSpecificSubmissionInfo(submissionInfo);
@@ -880,7 +979,7 @@ const Submissions = () => {
                               ? ` באיחור - ${Math.ceil(
                                   (new Date(submissionInfo.submission.uploadDate) -
                                     new Date(submissionInfo.submission.submissionDate)) /
-                                    (1000 * 60 * 60 * 24),
+                                    (1000 * 60 * 60 * 24)
                                 )} ימים`
                               : ""
                           }`
@@ -930,9 +1029,18 @@ const Submissions = () => {
                 <div className="detail-item">
                   <div className="detail-item-header">ציון סופי</div>
                   <div className="detail-item-content">
-                    {submissionInfo.submission?.overridden?.newGrade
-                      ? submissionInfo.submission?.overridden?.newGrade
-                      : submissionInfo?.submission?.finalGrade}
+                    <div className="changeable-content">
+                      {submissionInfo.submission?.overridden?.newGrade
+                        ? submissionInfo.submission?.overridden?.newGrade
+                        : submissionInfo?.submission?.finalGrade}
+                      <a
+                        onClick={() => {
+                          setGradeFormOpen(true);
+                          gradeForm.setFieldsValue({ oldGrade: submissionInfo?.submission?.finalGrade });
+                        }}>
+                        <EditOutlined />
+                      </a>
+                    </div>
                   </div>
                 </div>
               )}
@@ -996,7 +1104,7 @@ const Submissions = () => {
         )}
       </Modal>
       <Modal
-        title="שנה ציון"
+        title={`שינוי ציון לפרויקט ${submissionInfo?.project?.title} - ${submissionInfo?.submission?.name}`}
         open={gradeFormOpen}
         okText="ערוך ציון"
         cancelText="סגור"
@@ -1007,9 +1115,12 @@ const Submissions = () => {
           setGradeToOverride(null);
         }}>
         <Form layout="vertical" form={gradeForm}>
+          <p>ניתן להכניס ציון בין 0 ל-100</p>
+          <Divider />
           <Form.Item label="ציון קודם" name="oldGrade">
             <Input disabled />
           </Form.Item>
+          <Divider />
           <Form.Item
             label="ציון חדש"
             name="newGrade"
@@ -1021,6 +1132,9 @@ const Submissions = () => {
               },
             ]}>
             <InputNumber className="input-field-override-grade" min={0} max={100} />
+          </Form.Item>
+          <Form.Item name="comment">
+            <Input.TextArea placeholder="הכנס סיבה לעדכון הציון" rows={4} />
           </Form.Item>
         </Form>
       </Modal>
@@ -1110,55 +1224,6 @@ const Submissions = () => {
         </Form>
       </Modal>
       <Modal
-        title="העתקת שופטים"
-        open={copyJudges}
-        okText="העתק שופטים"
-        cancelText="סגור"
-        onOk={() => onOkHandlerJudges()}
-        onCancel={() => {
-          formJudges.resetFields();
-          setCopyJudges(false);
-        }}>
-        <Form layout="vertical" form={formJudges}>
-          <Form.Item
-            label="הגשת מקור"
-            name="sourceSubmission"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה לבחור הגשת מקור",
-              },
-            ]}>
-            <Select placeholder="בחר הגשת מקור">
-              {submissionDetails.map((submission, index) => (
-                <Option key={index} value={submission.name}>
-                  {submission.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item
-            label="הגשת יעד"
-            name="destinationSubmission"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה לבחור הגשת יעד",
-              },
-            ]}>
-            <Select placeholder="בחר הגשת יעד">
-              {submissionDetails.map((submission, index) => (
-                <Option key={index} value={submission.name}>
-                  {submission.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
-      <Modal
         title="פתיחת הגשה חדשה לכולם"
         open={allSubmissions}
         okText="יצירת הגשה"
@@ -1173,7 +1238,7 @@ const Submissions = () => {
           layout="vertical"
           form={formAll} // Ensure this line is present
         >
-          <Form.Item label="סוג הגשה" name="submissionType" hasFeedback>
+          <Form.Item label="סוג הגשה" name="submissionType" initialValue={"proposalReport"} hasFeedback>
             <Radio.Group
               optionType="button"
               buttonStyle="solid"
@@ -1227,6 +1292,7 @@ const Submissions = () => {
               <Checkbox.Group>
                 <Checkbox value="isGraded">מתן ציון</Checkbox>
                 <Checkbox value="isReviewed">מתן משוב</Checkbox>
+                <Checkbox value="fileNeeded">נדרש קובץ</Checkbox>
               </Checkbox.Group>
             </Form.Item>
           )}
@@ -1245,7 +1311,7 @@ const Submissions = () => {
         }}>
         <Form layout="vertical" form={formSpecific}>
           {/* סוג הגשה */}
-          <Form.Item label="סוג הגשה" name="submissionType" hasFeedback>
+          <Form.Item label="סוג הגשה" name="submissionType" initialValue={"proposalReport"} hasFeedback>
             <Radio.Group
               optionType="button"
               buttonStyle="solid"
@@ -1306,23 +1372,25 @@ const Submissions = () => {
             <TextArea rows={4} />
           </Form.Item>
 
-          {/* פרוייקטים */}
+          {/* פרויקטים */}
           <Form.Item
-            label="פרוייקטים"
+            label="פרויקטים"
             name="projects"
             hasFeedback
             rules={[
               {
                 required: true,
-                message: "חובה לבחור פרוייקטים",
+                message: "חובה לבחור פרויקטים",
               },
             ]}>
-            <Select mode="multiple" placeholder="בחר פרוייקטים">
-              {projects.map((project) => (
-                <Select.Option key={project._id} value={project._id}>
-                  {project.title}
-                </Select.Option>
-              ))}
+            <Select mode="multiple" placeholder="בחר פרויקטים">
+              {projects
+                .filter((project) => project.students.length != 0 && project.advisors.length != 0)
+                .map((project) => (
+                  <Select.Option key={project._id} value={project._id}>
+                    {project.title}
+                  </Select.Option>
+                ))}
             </Select>
           </Form.Item>
 
@@ -1331,6 +1399,7 @@ const Submissions = () => {
               <Checkbox.Group>
                 <Checkbox value="isGraded">מתן ציון</Checkbox>
                 <Checkbox value="isReviewed">מתן משוב</Checkbox>
+                <Checkbox value="fileNeeded">נדרש קובץ</Checkbox>
               </Checkbox.Group>
             </Form.Item>
           )}

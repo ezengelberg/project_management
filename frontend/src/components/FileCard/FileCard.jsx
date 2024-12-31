@@ -8,10 +8,10 @@ import {
   EllipsisOutlined,
   HistoryOutlined,
 } from "@ant-design/icons";
-import { Tooltip, Modal, Card, message, Divider, Descriptions } from "antd";
+import { Tooltip, Modal, Card, message, Descriptions } from "antd";
 import axios from "axios";
 import { processContent } from "../../utils/htmlProcessor";
-import { downloadFile } from "../../utils/downloadFile"; // Import the downloadFile utility function
+import { downloadFile } from "../../utils/downloadFile";
 
 const FileCard = ({ file, onEdit, onDelete, destination }) => {
   const [isDescriptionModalVisible, setIsDescriptionModalVisible] = useState(false);
@@ -44,7 +44,7 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
 
   const handleDownload = async () => {
     try {
-      await downloadFile(file._id, destination); // Use the downloadFile utility function
+      await downloadFile(file._id, destination);
     } catch (error) {
       console.error("Error downloading file:", error);
     }
@@ -92,66 +92,6 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
     );
   };
 
-  const items = editRecord.flatMap((record, index) => {
-    const itemList = [
-      {
-        key: `${index}-title`,
-        label: `כותרת`,
-        children: (
-          <div className="edited-title-modal-item">
-            <div>
-              <strong>ישנה:</strong> {record.oldTitle}
-            </div>
-            <div>
-              <strong>חדשה:</strong> {record.newTitle}
-            </div>
-          </div>
-        ),
-      },
-      {
-        key: `${index}-description`,
-        label: `תיאור`,
-        children: (
-          <>
-            <div className="edited-description-modal-item">
-              <strong>ישן:</strong>
-              <div dangerouslySetInnerHTML={{ __html: processContent(record.oldDescription) }} />
-            </div>
-            <div className="edited-description-modal-item">
-              <strong>חדש:</strong>
-              <div dangerouslySetInnerHTML={{ __html: processContent(record.newDescription) }} />
-            </div>
-          </>
-        ),
-      },
-      {
-        key: `${index}-editInfo`,
-        label: `פרטי עריכה`,
-        children: (
-          <>
-            <div>
-              <strong>תאריך עריכה:</strong> {new Date(record.editDate).toLocaleString("he-IL")}
-            </div>
-            <div>
-              <strong>נערך על ידי:</strong> {record.editedBy.name} (ת.ז: {record.editedBy.id})
-            </div>
-          </>
-        ),
-      },
-    ];
-
-    if (index < editRecord.length - 1) {
-      itemList.push({
-        key: `${index}-divider`,
-        label: "",
-        children: <Divider />,
-        span: 3,
-      });
-    }
-
-    return itemList;
-  });
-
   return (
     <div>
       <Card
@@ -182,12 +122,7 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
           <Tooltip title="הורדה">
             <DownloadOutlined key="download" className="action-icon" onClick={handleDownload} />
           </Tooltip>,
-        ]}
-        style={{
-          height: "230px",
-          minWidth: "450px",
-          maxWidth: "450px",
-        }}>
+        ]}>
         <Card.Meta
           className="file-card-meta"
           avatar={<FileOutlined className="file-icon" />}
@@ -220,7 +155,50 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
         open={showHistory}
         onCancel={() => SetShowHistory(false)}
         footer={null}>
-        <Descriptions bordered items={items} />
+        {editRecord.map((record, index) => (
+          <Descriptions key={index} bordered title={`עריכה ${index + 1}`}>
+            <Descriptions.Item label="כותרת">
+              <div className="edited-title-modal-item">
+                <div>
+                  <span>
+                    <strong>ישן:</strong>
+                  </span>
+                  <p>{record.oldTitle}</p>
+                </div>
+                <div>
+                  <span>
+                    <strong>חדש:</strong>
+                  </span>
+                  <p>{record.newTitle}</p>
+                </div>
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="תיאור" span={2}>
+              <div className="edited-description-modal-item">
+                <span>
+                  <strong>ישן:</strong>
+                </span>
+                <div dangerouslySetInnerHTML={{ __html: processContent(record.oldDescription) }} />
+              </div>
+              <div className="edited-description-modal-item">
+                <span>
+                  <strong>חדש:</strong>
+                </span>
+                <div dangerouslySetInnerHTML={{ __html: processContent(record.newDescription) }} />
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="פרטי עריכה" span={2}>
+              <div>
+                <span>
+                  <strong>נערך על ידי:</strong>
+                </span>
+                <p>
+                  {record.editedBy.name} - {new Date(record.editDate).toLocaleString("he-IL")}
+                </p>
+              </div>
+            </Descriptions.Item>
+          </Descriptions>
+        ))}
       </Modal>
     </div>
   );

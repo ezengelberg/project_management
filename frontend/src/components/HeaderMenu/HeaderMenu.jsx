@@ -1,50 +1,38 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import "./HeaderMenu.scss";
+import axios from "axios";
 import collegeLogo from "../../assets/CollegeLogo.png";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { Tooltip, Avatar, Badge, Popover, Divider } from "antd";
-import { LogoutOutlined, CommentOutlined, CloseOutlined } from "@ant-design/icons";
+import { LogoutOutlined, BellOutlined, CloseOutlined, MessageOutlined } from "@ant-design/icons";
 import { handleMouseDown } from "../../utils/mouseDown";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const HeaderMenu = () => {
   const navigate = useNavigate();
+  const { newNotifications, unreadCount, markNotificationAsRead, markAllNotificationsAsRead } =
+    useContext(NotificationsContext);
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
   });
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
-
-  const fetchNotifications = async () => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications`, {
-        withCredentials: true,
-      });
-      setUnreadNotifications(response.data.length);
-      setNotifications(response.data.reverse().slice(0, 5)); // Reverse to show latest notifications first
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-    }
-  };
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
 
   useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  const markNotificationAsRead = async (notificationId) => {
-    try {
-      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/read/${notificationId}`, null, {
-        withCredentials: true,
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
       });
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification._id !== notificationId)
-      );
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
-    }
-  };
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleNotificationClick = (notification) => {
     if (notification.link) {
@@ -52,6 +40,16 @@ const HeaderMenu = () => {
       markNotificationAsRead(notification._id);
       hide();
     }
+  };
+
+  const handleNotificationClose = (e, notificationId) => {
+    e.stopPropagation();
+    markNotificationAsRead(notificationId);
+  };
+
+  const handleNotificationClear = () => {
+    markAllNotificationsAsRead();
+    hide();
   };
 
   const hide = () => {
@@ -75,10 +73,13 @@ const HeaderMenu = () => {
 
   const content = (
     <div className="headermenu-popover-content">
-      {notifications.length > 0 ? (
-        notifications.map((notification, index) => (
+      {newNotifications.length > 0 ? (
+        newNotifications.slice(0, 5).map((notification, index) => (
           <div className="notification-list" key={index}>
-            <CloseOutlined className="notification-close" onClick={() => markNotificationAsRead(notification._id)} />
+            <CloseOutlined
+              className="notification-close"
+              onClick={(e) => handleNotificationClose(e, notification._id)}
+            />
             {notification.link ? (
               <div className="notification-with-link">
                 <a onClick={() => handleNotificationClick(notification)}>
@@ -129,36 +130,47 @@ const HeaderMenu = () => {
 
   return (
     <div className="header-container">
-      <div className="site-upper-header-right">
-        <img src={collegeLogo} alt="collage logo" className="collage-logo" onClick={() => navigate("/home")} />
-        <h1>מערכת לניהול פרויקטים</h1>
-      </div>
+      <img src={collegeLogo} alt="collage logo" className="collage-logo" onClick={() => navigate("/home")} />
       <div className="site-upper-header-left">
         <Popover
           content={content}
-          title={<div style={{ textAlign: "center" }}>התראות אחרונות</div>}
+          title={
+            <div className="notification-header-menu">
+              <p>התראות אחרונות</p>
+              <a onClick={() => markAllNotificationsAsRead()}>נקה הכל</a>
+            </div>
+          }
           trigger="click"
           open={open}
           onOpenChange={handleOpenChange}>
-          <Badge count={unreadNotifications} style={{ transform: "translate(90%, -50%)" }}>
+          <Badge
+            count={unreadCount}
+            style={{ transform: unreadCount > 9 ? "translate(60%, -50%)" : "translate(100%, -50%)" }}>
             <Tooltip title="התראות" placement="right">
-              <CommentOutlined className="notification-icon" />
+              <BellOutlined className="notification-icon" />
             </Tooltip>
           </Badge>
         </Popover>
+        <Badge count={50} style={{ transform: "translate(60%, -50%)" }}>
+          <Tooltip title="הודעות מערכת">
+            <MessageOutlined className="notification-icon" />
+          </Tooltip>
+        </Badge>
         <Tooltip title="פרופיל">
           <Avatar
             className="avatar-icon"
             size="large"
-            onClick={() => navigate(`/profile/${user.id}`)}
-            onMouseDown={(e) => handleMouseDown(e, `/profile/${user.id}`)}>
+            onClick={() => navigate(`/profile/${user._id}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/profile/${user._id}`)}>
             {user.name && user.name[0]}
             {user.name && user.name.split(" ")[1] ? user.name.split(" ")[1][0] : ""}
           </Avatar>
         </Tooltip>
-        <Tooltip title="התנתק">
-          <LogoutOutlined className="logout-icon" onClick={handleLogout} />
-        </Tooltip>
+        {windowSize.width > 768 && (
+          <Tooltip title="התנתק">
+            <LogoutOutlined className="logout-icon" onClick={handleLogout} />
+          </Tooltip>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import "./OverviewProjects.scss";
 import { useNavigate } from "react-router-dom";
 import { Tabs, Table, Modal, Select, Button, message, Tooltip, Input, InputNumber, Space, Divider, Badge } from "antd";
@@ -6,9 +6,12 @@ import { DeleteOutlined, RollbackOutlined, SearchOutlined } from "@ant-design/ic
 import axios from "axios";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
+import { NotificationsContext } from "../../utils/NotificationsContext";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const OverviewProjects = () => {
   const navigate = useNavigate();
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [projects, setProjects] = useState([]);
   const [users, setUsers] = useState([]);
   const [usersWithoutProjects, setUsersWithoutProjects] = useState([]);
@@ -38,6 +41,22 @@ const OverviewProjects = () => {
   const [isChangeGradeModalOpen, setIsChangeGradeModalOpen] = useState(false);
   const [newGrade, setNewGrade] = useState(null);
   const [updateComment, setUpdateComment] = useState("");
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -51,13 +70,16 @@ const OverviewProjects = () => {
 
         const activeUsers = usersRes.data.filter((user) => !user.suspended);
         setProjects(projectsRes.data);
-        setUsers(activeUsers);
+        setUsers(usersRes.data);
         setSubmissions(submissionsRes.data);
 
-        const years = Array.from(new Set(projectsRes.data.map((project) => project.year))).sort((a, b) => b - a);
+        const years = Array.from(new Set(projectsRes.data.map((project) => project.year))).sort((a, b) =>
+          b.localeCompare(a)
+        );
         setYears(years);
-        const currentYearIndex = years.indexOf(new Date().getFullYear());
-        setYearFilter(currentYearIndex !== -1 ? years[currentYearIndex] : years[0]);
+        const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
+        const currentHebrewYearIndex = years.indexOf(currentHebrewYear);
+        setYearFilter(currentHebrewYearIndex !== -1 ? years[currentHebrewYearIndex] : years[0]);
 
         // Filter users without projects
         const usersWithProject = new Set(
@@ -114,6 +136,7 @@ const OverviewProjects = () => {
       setSelectedStudents([]);
       setSelectedProject(null);
       message.success("סטודנטים נוספו בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error adding students:", error);
       message.error("שגיאה בהוספת סטודנטים");
@@ -153,6 +176,7 @@ const OverviewProjects = () => {
       setSelectedStudents([]);
       setSelectedProject(null);
       message.success("סטודנטים עודכנו בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error updating students:", error);
       message.error("שגיאה בעדכון סטודנטים");
@@ -191,6 +215,7 @@ const OverviewProjects = () => {
       setSelectedAdvisor(null);
       setSelectedProject(null);
       message.success("המנחה נוסף בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error adding advisor:", error);
       message.error("שגיאה בהוספת מנחה");
@@ -225,6 +250,7 @@ const OverviewProjects = () => {
       setSelectedAdvisor(null);
       setSelectedProject(null);
       message.success("המנחה עודכן בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error updating advisor:", error);
       message.error("שגיאה בעדכון מנחה");
@@ -285,6 +311,7 @@ const OverviewProjects = () => {
       setIsJudgesModalOpen(false);
       setSelectedSubmission(null);
       message.success("השופטים עודכנו בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error updating judges:", error);
       message.error("שגיאה בעדכון שופטים");
@@ -321,6 +348,7 @@ const OverviewProjects = () => {
       setIsTerminateModalOpen(false);
       setSelectedProject(null);
       message.success("הפרויקט הופסק בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error terminating project:", error);
       message.error("שגיאה בהפסקת הפרויקט");
@@ -360,6 +388,7 @@ const OverviewProjects = () => {
           return {
             ...project,
             isTerminated: false,
+            isTaken: false,
             terminationRecord: [],
           };
         }
@@ -471,8 +500,6 @@ const OverviewProjects = () => {
     setLoading(false);
   };
 
-  const handleAssignJudgesAutomatically = async () => {};
-
   const handleChangeGrade = async () => {
     if (newGrade === null) {
       message.error("יש לבחור ציון חדש");
@@ -490,6 +517,7 @@ const OverviewProjects = () => {
       setNewGrade(null);
       setUpdateComment("");
       message.success("הציון עודכן בהצלחה!");
+      fetchNotifications();
     } catch (error) {
       console.error("Error changing grade:", error);
       message.error("שגיאה בשינוי הציון");
@@ -549,10 +577,17 @@ const OverviewProjects = () => {
           ))}
         </div>
       ),
-      width: `${100 / projectSubmissions.length}%`,
     }));
 
-    return <Table columns={expandColumns} dataSource={[{ key: record._id }]} pagination={false} bordered={true} />;
+    return (
+      <Table
+        columns={expandColumns}
+        dataSource={[{ key: record._id }]}
+        pagination={false}
+        bordered={true}
+        scroll={{ x: "max-content" }}
+      />
+    );
   };
 
   const filteredTakenProjects = projects.filter((p) => {
@@ -560,18 +595,13 @@ const OverviewProjects = () => {
     if (takenFilter === "missingJudges") {
       return p.alphaReportJudges.length < 3 || p.finalReportJudges.length < 3 || p.examJudges.length < 3;
     }
-    return true;
-  });
-
-  const filteredOpenProjects = projects.filter((p) => {
-    if (p.isTaken || p.isFinished || p.isTerminated) return false;
     if (yearFilter === "") return true;
     if (yearFilter === "all") return true;
     return p.year === yearFilter;
   });
 
-  const filteredFinishedProjects = projects.filter((p) => {
-    if (!p.isFinished || p.isTerminated) return false;
+  const filteredOpenProjects = projects.filter((p) => {
+    if (p.isTaken || p.isFinished || p.isTerminated) return false;
     if (yearFilter === "") return true;
     if (yearFilter === "all") return true;
     return p.year === yearFilter;
@@ -590,6 +620,7 @@ const OverviewProjects = () => {
         title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
+        fixed: windowSize.width > 626 && "left",
         ...getColumnSearchProps("title"),
         render: (text, record) => (
           <a
@@ -599,11 +630,40 @@ const OverviewProjects = () => {
               highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
               searchWords={[searchText]}
               autoEscape
-              textToHighlight={text.length > 65 ? `${text.substring(0, 65)}...` : text}
+              textToHighlight={
+                windowSize.width > 1920
+                  ? text.length > 75
+                    ? `${text.substring(0, 75)}...`
+                    : text
+                  : windowSize.width > 1600
+                  ? text.length > 60
+                    ? `${text.substring(0, 60)}...`
+                    : text
+                  : windowSize.width > 1200
+                  ? text.length > 45
+                    ? `${text.substring(0, 45)}...`
+                    : text
+                  : windowSize.width > 1024
+                  ? text.length > 30
+                    ? `${text.substring(0, 30)}...`
+                    : text
+                  : text.length > 25
+                  ? `${text.substring(0, 25)}...`
+                  : text
+              }
             />
           </a>
         ),
-        width: "25%",
+        width:
+          windowSize.width > 1920
+            ? "30%"
+            : windowSize.width > 1600
+            ? 500
+            : windowSize.width > 1200
+            ? 400
+            : windowSize.width > 1024
+            ? 300
+            : 250,
         sorter: (a, b) => a.title.localeCompare(b.title),
         defaultSortOrder: "ascend",
         sortDirections: ["descend", "ascend"],
@@ -627,7 +687,9 @@ const OverviewProjects = () => {
                         highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
                         searchWords={[searchText]}
                         autoEscape
-                        textToHighlight={advisorUser.name}
+                        textToHighlight={
+                          advisorUser.name.length > 20 ? `${advisorUser.name.substring(0, 20)}...` : advisorUser.name
+                        }
                       />
                     </a>
                   ) : null;
@@ -635,7 +697,16 @@ const OverviewProjects = () => {
               : "לא משוייך מנחה"}
           </div>
         ),
-        width: "15%",
+        width:
+          windowSize.width > 1920
+            ? "15%"
+            : windowSize.width > 1600
+            ? 250
+            : windowSize.width > 1200
+            ? 200
+            : windowSize.width > 1024
+            ? 150
+            : 130,
         sorter: (a, b) => {
           const advisorA = users.find((u) => u._id === a.advisors[0]);
           const advisorB = users.find((u) => u._id === b.advisors[0]);
@@ -657,7 +728,11 @@ const OverviewProjects = () => {
                       <a
                         onClick={() => navigate(`/profile/${student}`)}
                         onMouseDown={(e) => handleMouseDown(e, `/profile/${student}`)}>
-                        {studentUser.name}
+                        {studentUser.name.length > 20 ? (
+                          <Tooltip title={studentUser.name}>{studentUser.name.substring(0, 20)}...</Tooltip>
+                        ) : (
+                          studentUser.name
+                        )}
                       </a>
                       {index !== students.length - 1 && students.length > 1 && (
                         <Divider type="vertical" style={{ borderColor: "black" }} />
@@ -668,7 +743,16 @@ const OverviewProjects = () => {
               : "לא משוייכים סטודנטים"}
           </div>
         ),
-        width: "15%",
+        width:
+          windowSize.width > 1920
+            ? "15%"
+            : windowSize.width > 1600
+            ? 250
+            : windowSize.width > 1200
+            ? 250
+            : windowSize.width > 1024
+            ? 230
+            : 210,
         filters: [
           { text: "ללא סטודנטים", value: "ללא סטודנטים" },
           { text: "סטודנט אחד", value: "סטודנט אחד" },
@@ -690,7 +774,16 @@ const OverviewProjects = () => {
         title: "מתאים ל...",
         dataIndex: "suitableFor",
         key: "suitableFor",
-        width: "10%",
+        width:
+          windowSize.width > 1920
+            ? "10%"
+            : windowSize.width > 1600
+            ? 150
+            : windowSize.width > 1200
+            ? 130
+            : windowSize.width > 1024
+            ? 130
+            : 130,
         sorter: (a, b) => a.suitableFor.localeCompare(b.suitableFor),
         sortDirections: ["descend", "ascend"],
         filters: [
@@ -704,7 +797,16 @@ const OverviewProjects = () => {
         title: "סוג",
         dataIndex: "type",
         key: "type",
-        width: "10%",
+        width:
+          windowSize.width > 1920
+            ? "10%"
+            : windowSize.width > 1600
+            ? 200
+            : windowSize.width > 1200
+            ? 150
+            : windowSize.width > 1024
+            ? 150
+            : 150,
         ...getColumnSearchProps("type"),
         sorter: (a, b) => a.type.localeCompare(b.type),
         sortDirections: ["descend", "ascend"],
@@ -765,7 +867,16 @@ const OverviewProjects = () => {
             </Button>
           </div>
         ),
-        width: "20%",
+        width:
+          windowSize.width > 1920
+            ? "20%"
+            : windowSize.width > 1600
+            ? 350
+            : windowSize.width > 1200
+            ? 250
+            : windowSize.width > 1024
+            ? 200
+            : 150,
       },
     ],
     taken: [
@@ -773,6 +884,7 @@ const OverviewProjects = () => {
         title: "שם הפרויקט",
         dataIndex: "title",
         key: "title",
+        fixed: windowSize.width > 626 && "left",
         ...getColumnSearchProps("title"),
         render: (text, record) => (
           <a
@@ -782,11 +894,40 @@ const OverviewProjects = () => {
               highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
               searchWords={[searchText]}
               autoEscape
-              textToHighlight={text.length > 65 ? `${text.substring(0, 65)}...` : text}
+              textToHighlight={
+                windowSize.width > 1920
+                  ? text.length > 60
+                    ? `${text.substring(0, 60)}...`
+                    : text
+                  : windowSize.width > 1600
+                  ? text.length > 55
+                    ? `${text.substring(0, 55)}...`
+                    : text
+                  : windowSize.width > 1200
+                  ? text.length > 45
+                    ? `${text.substring(0, 45)}...`
+                    : text
+                  : windowSize.width > 1024
+                  ? text.length > 30
+                    ? `${text.substring(0, 30)}...`
+                    : text
+                  : text.length > 25
+                  ? `${text.substring(0, 25)}...`
+                  : text
+              }
             />
           </a>
         ),
-        width: "25%",
+        width:
+          windowSize.width > 1920
+            ? "25%"
+            : windowSize.width > 1600
+            ? 350
+            : windowSize.width > 1200
+            ? 250
+            : windowSize.width > 1024
+            ? 200
+            : 150,
         sorter: (a, b) => a.title.localeCompare(b.title),
         defaultSortOrder: "ascend",
         sortDirections: ["descend", "ascend"],
@@ -810,7 +951,9 @@ const OverviewProjects = () => {
                         highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
                         searchWords={[searchText]}
                         autoEscape
-                        textToHighlight={advisorUser.name}
+                        textToHighlight={
+                          advisorUser.name.length > 20 ? `${advisorUser.name.substring(0, 20)}...` : advisorUser.name
+                        }
                       />
                     </a>
                   ) : null;
@@ -818,7 +961,16 @@ const OverviewProjects = () => {
               : "לא משוייך מנחה"}
           </div>
         ),
-        width: "11%",
+        width:
+          windowSize.width > 1920
+            ? "11%"
+            : windowSize.width > 1600
+            ? 250
+            : windowSize.width > 1200
+            ? 200
+            : windowSize.width > 1024
+            ? 150
+            : 130,
         sorter: (a, b) => {
           const advisorA = users.find((u) => u._id === a.advisors[0]);
           const advisorB = users.find((u) => u._id === b.advisors[0]);
@@ -840,7 +992,7 @@ const OverviewProjects = () => {
                       <a
                         onClick={() => navigate(`/profile/${student}`)}
                         onMouseDown={(e) => handleMouseDown(e, `/profile/${student}`)}>
-                        {studentUser.name}
+                        {studentUser.name.length > 20 ? `${studentUser.name.substring(0, 20)}...` : studentUser.name}
                       </a>
                       {index !== students.length - 1 && students.length > 1 && (
                         <Divider type="vertical" style={{ borderColor: "black" }} />
@@ -851,7 +1003,16 @@ const OverviewProjects = () => {
               : "לא משוייכים סטודנטים"}
           </div>
         ),
-        width: "15%",
+        width:
+          windowSize.width > 1920
+            ? "15%"
+            : windowSize.width > 1600
+            ? 250
+            : windowSize.width > 1200
+            ? 250
+            : windowSize.width > 1024
+            ? 230
+            : 210,
         filters: [
           { text: "ללא סטודנטים", value: "ללא סטודנטים" },
           { text: "סטודנט אחד", value: "סטודנט אחד" },
@@ -873,7 +1034,16 @@ const OverviewProjects = () => {
         title: "סוג",
         dataIndex: "type",
         key: "type",
-        width: "13%",
+        width:
+          windowSize.width > 1920
+            ? "13%"
+            : windowSize.width > 1600
+            ? 200
+            : windowSize.width > 1200
+            ? 150
+            : windowSize.width > 1024
+            ? 150
+            : 150,
         ...getColumnSearchProps("type"),
         sorter: (a, b) => a.type.localeCompare(b.type),
         sortDirections: ["descend", "ascend"],
@@ -890,7 +1060,7 @@ const OverviewProjects = () => {
                 <div key={submission._id} className="inner-table-order">
                   {submission.isGraded && (
                     <div className="show-grade">
-                      {submission.name} -{" "}
+                      {`${submission.name.length > 18 ? submission.name.substring(0, 18) + "..." : submission.name} - `}
                       {submission.overridden ? (
                         <div className="overridden-grade">
                           <Badge color="green" />
@@ -912,7 +1082,7 @@ const OverviewProjects = () => {
                   )}
                   {submission.isReviewed && !submission.isGraded && (
                     <p>
-                      {submission.name} -{" "}
+                      {`${submission.name.length > 18 ? submission.name.substring(0, 18) + "..." : submission.name} - `}
                       {!submission.editable ? (
                         <Badge color="green" text="פורסם משוב" />
                       ) : (
@@ -925,7 +1095,7 @@ const OverviewProjects = () => {
             </div>
           );
         },
-        width: "16%",
+        width: windowSize.width > 1920 ? "20%" : 350,
       },
       {
         title: "פעולות",
@@ -992,150 +1162,16 @@ const OverviewProjects = () => {
             </Button>
           </div>
         ),
-        width: "20%",
-      },
-    ],
-    finished: [
-      {
-        title: "שם הפרויקט",
-        dataIndex: "title",
-        key: "title",
-        ...getColumnSearchProps("title"),
-        render: (text, record) => (
-          <a
-            onClick={() => navigate(`/project/${record._id}`)}
-            onMouseDown={(e) => handleMouseDown(e, `/project/${record._id}`)}>
-            <Highlighter
-              highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-              searchWords={[searchText]}
-              autoEscape
-              textToHighlight={text.length > 65 ? `${text.substring(0, 65)}...` : text}
-            />
-          </a>
-        ),
-        width: "25%",
-        sorter: (a, b) => a.title.localeCompare(b.title),
-        sortDirections: ["descend", "ascend"],
-      },
-      {
-        title: "מנחה",
-        dataIndex: "advisors",
-        key: "advisors",
-        ...getColumnSearchProps("advisors"),
-        render: (advisors) => (
-          <div>
-            {advisors.length > 0
-              ? advisors.map((advisor) => {
-                  const advisorUser = users.find((u) => u._id === advisor);
-                  return advisorUser ? (
-                    <a
-                      key={advisor}
-                      onClick={() => navigate(`/profile/${advisor}`)}
-                      onMouseDown={(e) => handleMouseDown(e, `/profile/${advisor}`)}>
-                      {advisorUser.name}
-                    </a>
-                  ) : null;
-                })
-              : "לא משוייך מנחה"}
-          </div>
-        ),
-        width: "15%",
-        sorter: (a, b) => {
-          const advisorA = users.find((u) => u._id === a.advisors[0]);
-          const advisorB = users.find((u) => u._id === b.advisors[0]);
-          return advisorA && advisorB ? advisorA.name.localeCompare(advisorB.name) : 0;
-        },
-        sortDirections: ["descend", "ascend"],
-      },
-      {
-        title: "סטודנטים",
-        dataIndex: "students",
-        key: "students",
-        render: (students) => (
-          <div className="projects-student-list">
-            {students.length > 0
-              ? students.map(({ student }, index) => {
-                  const studentUser = users.find((u) => u._id === student);
-                  return studentUser ? (
-                    <React.Fragment key={`student-${index}`}>
-                      <a
-                        onClick={() => navigate(`/profile/${student}`)}
-                        onMouseDown={(e) => handleMouseDown(e, `/profile/${student}`)}>
-                        {studentUser.name}
-                      </a>
-                      {index !== students.length - 1 && students.length > 1 && (
-                        <Divider type="vertical" style={{ borderColor: "black" }} />
-                      )}
-                    </React.Fragment>
-                  ) : null;
-                })
-              : "לא משוייכים סטודנטים"}
-          </div>
-        ),
-        width: "20%",
-        filters: [
-          { text: "ללא סטודנטים", value: "ללא סטודנטים" },
-          { text: "סטודנט אחד", value: "סטודנט אחד" },
-          { text: "שני סטודנטים", value: "שני סטודנטים" },
-        ],
-        onFilter: (value, record) => {
-          if (value === "ללא סטודנטים") {
-            return record.students.length === 0;
-          }
-          if (value === "סטודנט אחד") {
-            return record.students.length === 1;
-          }
-          if (value === "שני סטודנטים") {
-            return record.students.length === 2;
-          }
-        },
-      },
-      {
-        title: "סוג",
-        dataIndex: "type",
-        key: "type",
-        width: "15%",
-        ...getColumnSearchProps("type"),
-        sorter: (a, b) => a.type.localeCompare(b.type),
-        sortDirections: ["descend", "ascend"],
-      },
-      {
-        title: "ציונים",
-        dataIndex: "grades",
-        key: "grades",
-        render: (_, record) => {
-          const projectSubmissions = submissions.filter((submission) => submission.project === record._id);
-          return (
-            <div>
-              {projectSubmissions.map((submission) => (
-                <div key={submission._id} className="inner-table-order">
-                  <p>
-                    {submission.name} - {submission.finalGrade ? submission.finalGrade : "לא שוקלל ציון"}
-                  </p>
-                </div>
-              ))}
-            </div>
-          );
-        },
-        width: "20%",
-      },
-      {
-        title: "פעולות",
-        key: "actions",
-        render: (_, record) => (
-          <a>
-            <Tooltip title="מחק מהמערכת">
-              <DeleteOutlined
-                style={{ fontSize: "25px" }}
-                onClick={() => {
-                  setSelectedProject(record);
-                  setIsDeleteProjectModalOpen(true);
-                }}
-              />
-            </Tooltip>
-          </a>
-        ),
-        width: "5%",
+        width:
+          windowSize.width > 1920
+            ? "16%"
+            : windowSize.width > 1600
+            ? 350
+            : windowSize.width > 1200
+            ? 250
+            : windowSize.width > 1024
+            ? 200
+            : 150,
       },
     ],
     terminated: [
@@ -1191,7 +1227,7 @@ const OverviewProjects = () => {
         sortDirections: ["descend", "ascend"],
       },
       {
-        title: "סטודנטים",
+        title: "היסטורית סטודנטים",
         dataIndex: "terminationRecord",
         key: "terminationRecord",
         render: (terminationRecord) => (
@@ -1315,7 +1351,13 @@ const OverviewProjects = () => {
               שיבוץ מנחים אוטומטי
             </Button>
           </div>
-          <Table columns={columns.open} dataSource={filteredOpenProjects} loading={loading} rowKey="_id" />
+          <Table
+            columns={columns.open}
+            dataSource={filteredOpenProjects}
+            loading={loading}
+            rowKey="_id"
+            scroll={{ x: "max-content" }}
+          />
         </>
       ),
     },
@@ -1358,13 +1400,18 @@ const OverviewProjects = () => {
       children: (
         <>
           <div className="upper-table-options">
+            <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px" }}>
+              <Select.Option value="all">כל השנים</Select.Option>
+              {years.map((year) => (
+                <Select.Option key={year} value={year}>
+                  {year}
+                </Select.Option>
+              ))}
+            </Select>
             <Select value={takenFilter} onChange={setTakenFilter} style={{ width: "200px" }}>
               <Select.Option value="all">כל הפרויקטים</Select.Option>
               <Select.Option value="missingJudges">פרויקטים שחסר שופטים</Select.Option>
             </Select>
-            <Button type="primary" onClick={handleAssignJudgesAutomatically} loading={loading}>
-              שיבוץ שופטים אוטומטי
-            </Button>
           </div>
           <Table
             columns={columns.taken}
@@ -1375,51 +1422,8 @@ const OverviewProjects = () => {
               expandedRowRender,
               defaultExpandedRowKeys: [],
             }}
-          />
-        </>
-      ),
-    },
-    {
-      key: "finished",
-      label: (
-        <div className="lable-with-icon">
-          <svg className="tab-icon" viewBox="0 0 32 32" version="1.1" fill="#000000">
-            <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-            <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-            <g id="SVGRepo_iconCarrier">
-              <title>checkmark-circle</title>
-              <desc>Created with Sketch Beta.</desc>
-              <defs></defs>
-              <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
-                <g id="Icon-Set" transform="translate(-100.000000, -1139.000000)" fill="#000000">
-                  <path
-                    d="M122.027,1148.07 C121.548,1147.79 120.937,1147.96 120.661,1148.43 L114.266,1159.51 L110.688,1156.21 C110.31,1155.81 109.677,1155.79 109.274,1156.17 C108.871,1156.54 108.85,1157.18 109.228,1157.58 L113.8,1161.8 C114.177,1162.2 114.81,1162.22 115.213,1161.84 C115.335,1161.73 122.393,1149.43 122.393,1149.43 C122.669,1148.96 122.505,1148.34 122.027,1148.07 L122.027,1148.07 Z M116,1169 C108.268,1169 102,1162.73 102,1155 C102,1147.27 108.268,1141 116,1141 C123.732,1141 130,1147.27 130,1155 C130,1162.73 123.732,1169 116,1169 L116,1169 Z M116,1139 C107.164,1139 100,1146.16 100,1155 C100,1163.84 107.164,1171 116,1171 C124.836,1171 132,1163.84 132,1155 C132,1146.16 124.836,1139 116,1139 L116,1139 Z"
-                    id="checkmark-circle"></path>
-                </g>
-              </g>
-            </g>
-          </svg>
-          <span>פרויקטים שהושלמו</span>
-        </div>
-      ),
-      children: (
-        <>
-          <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px", marginBottom: "10px" }}>
-            <Select.Option value="all">כל השנים</Select.Option>
-            {years.map((year) => (
-              <Select.Option key={year} value={year}>
-                {year}
-              </Select.Option>
-            ))}
-          </Select>
-          <Table
-            columns={columns.finished}
-            dataSource={filteredFinishedProjects}
-            loading={loading}
-            rowKey="_id"
-            expandable={{
-              expandedRowRender,
-              defaultExpandedRowKeys: [],
+            scroll={{
+              x: "max-content",
             }}
           />
         </>
@@ -1456,7 +1460,13 @@ const OverviewProjects = () => {
               </Select.Option>
             ))}
           </Select>
-          <Table columns={columns.terminated} dataSource={filteredTerminatedProjects} loading={loading} rowKey="_id" />
+          <Table
+            columns={columns.terminated}
+            dataSource={filteredTerminatedProjects}
+            loading={loading}
+            rowKey="_id"
+            scroll={{ x: "max-content" }}
+          />
         </>
       ),
     },
@@ -1465,7 +1475,6 @@ const OverviewProjects = () => {
   return (
     <div>
       <Tabs items={tabs} />
-
       {/* Add Students Modal */}
       <Modal
         open={isAddStudentsModalOpen}
@@ -1492,7 +1501,6 @@ const OverviewProjects = () => {
           />
         </div>
       </Modal>
-
       {/* Update Students Modal */}
       <Modal
         open={isUpdateStudentsModalOpen}
@@ -1520,7 +1528,6 @@ const OverviewProjects = () => {
           />
         </div>
       </Modal>
-
       {/* Add Advisor Modal */}
       <Modal
         open={isAddAdvisorModalOpen}
@@ -1546,7 +1553,6 @@ const OverviewProjects = () => {
           />
         </div>
       </Modal>
-
       {/* Update Advisors Modal */}
       <Modal
         open={isUpdateAdvisorsModalOpen}
@@ -1560,7 +1566,7 @@ const OverviewProjects = () => {
         okText="עדכן מנחה"
         cancelText="ביטול">
         <div className="modal-select-input">
-          <p>בחר עד 3 שופטים לפרויקט:</p>
+          <p>בחר מנחה לפרויקט:</p>
           <Select
             value={selectedAdvisor}
             onChange={setSelectedAdvisor}
@@ -1600,11 +1606,11 @@ const OverviewProjects = () => {
                 label: user.name,
                 value: user._id,
               }))}
+              disabled={submission.editable}
             />
           </div>
         ))}
       </Modal>
-
       {/* Terminate Project Modal */}
       <Modal
         open={isTerminateModalOpen}
@@ -1621,7 +1627,6 @@ const OverviewProjects = () => {
           <p>אתה בטוח שברצונך להפסיק את הפרויקט?</p>
         </div>
       </Modal>
-
       {/* Change Grade Modal */}
       <Modal
         open={isChangeGradeModalOpen}
@@ -1663,7 +1668,6 @@ const OverviewProjects = () => {
           />
         </div>
       </Modal>
-
       {/* Delete Project Modal */}
       <Modal
         open={isDeleteProjectModalOpen}
@@ -1684,7 +1688,6 @@ const OverviewProjects = () => {
           </p>
         </div>
       </Modal>
-
       {/* Restore Project Modal */}
       <Modal
         open={isRestoreProjectModalOpen}

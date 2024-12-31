@@ -233,6 +233,7 @@ const Templates = () => {
             </div>
           )}
           <div className="template-content">
+            {templateFiles.length === 0 && <h2>לא הועלו עדיין קבצים</h2>}
             {templateFiles.map((file) => (
               <FileCard
                 key={file._id}

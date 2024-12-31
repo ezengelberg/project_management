@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const projectSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
-  year: { type: Number, required: true },
+  year: { type: String, required: true },
   suitableFor: { type: String, required: true },
   type: { type: String, required: true },
   externalEmail: { type: String, required: false },
@@ -35,6 +35,28 @@ const projectSchema = new mongoose.Schema({
     {
       date: { type: Date, default: Date.now },
       changes: { type: Object, required: true },
+    },
+  ],
+  editRecord: [
+    {
+      oldTitle: { type: String },
+      newTitle: { type: String },
+      oldDescription: { type: String },
+      newDescription: { type: String },
+      oldSuitableFor: { type: String },
+      newSuitableFor: { type: String },
+      oldType: { type: String },
+      newType: { type: String },
+      oldExternalEmail: { type: String },
+      newExternalEmail: { type: String },
+      oldContinues: { type: String },
+      newContinues: { type: String },
+      oldYear: { type: String },
+      newYear: { type: String },
+      editDate: { type: Date, default: Date.now },
+      editedBy: {
+        name: { type: String },
+      },
     },
   ],
 });

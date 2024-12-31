@@ -8,8 +8,10 @@
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.22.3",
     "axios": "^1.7.7",
+    "chart.js": "^4.4.7",
     "dayjs": "^1.11.13",
     "dompurify": "^3.1.7",
+    "jewish-date": "^2.0.17",
     "papaparse": "^5.4.1",
     "primereact": "^10.8.4",
     "quill": "^2.0.2",
@@ -46,6 +48,7 @@
     ]
   },
   "devDependencies": {
+    "@types/dompurify": "^3.0.5",
     "css-loader": "^7.1.2",
     "sass": "^1.80.2",
     "sass-loader": "^16.0.2",

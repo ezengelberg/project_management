@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Projects.scss";
-import { Tooltip } from "antd";
 import ProjectBox from "./ProjectBox";
 import { LoadingOutlined } from "@ant-design/icons";
 
@@ -13,22 +12,24 @@ const Projects = () => {
     const grabProjects = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/available-projects`, {
-          withCredentials: true
+          withCredentials: true,
         });
 
         const projectsWithFavorites = await Promise.all(
-          response.data.map(async (project) => {
-            const responsePerProject = await axios.get(
-              `${process.env.REACT_APP_BACKEND_URL}/api/user/ensure-favorite/${project._id}`,
-              {
-                withCredentials: true
-              }
-            );
-            return {
-              ...project,
-              isFavorite: responsePerProject.data.favorite
-            };
-          })
+          response.data
+            .filter((project) => project.advisors.length > 0)
+            .map(async (project) => {
+              const responsePerProject = await axios.get(
+                `${process.env.REACT_APP_BACKEND_URL}/api/user/ensure-favorite/${project._id}`,
+                {
+                  withCredentials: true,
+                }
+              );
+              return {
+                ...project,
+                isFavorite: responsePerProject.data.favorite,
+              };
+            })
         );
         setProjects(sortProjects(projectsWithFavorites)); // Set sorted projects
         setIsLoading(false);
@@ -58,7 +59,7 @@ const Projects = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/user/toggle-favorite`,
         {
-          projectId: project._id
+          projectId: project._id,
         },
         { withCredentials: true }
       );
@@ -102,7 +103,7 @@ const Projects = () => {
               top: "50%",
               left: "50%",
               fontSize: "50px",
-              transform: "translate(-50%, -50%)"
+              transform: "translate(-50%, -50%)",
             }}>
             <LoadingOutlined />
           </div>
@@ -122,7 +123,7 @@ const Projects = () => {
                 />
               ))
             ) : (
-              <p>אין פרויקטים זמינים כרגע</p>
+              <h3>אין פרויקטים זמינים כרגע</h3>
             )}
           </div>
         </div>

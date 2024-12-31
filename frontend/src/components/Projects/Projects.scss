@@ -164,18 +164,45 @@
   }
 }
 
-@media only screen and (min-width: 1280px) and (max-width: 1600px) and (-webkit-min-device-pixel-ratio: 2) {
-  /* Styles for MacBook Pro 13" M1 with Retina display */
+/* Styles for MacBook Pro 13" M1 with Retina display */
+@media only screen and (max-width: 1600px) and (-webkit-min-device-pixel-ratio: 2) {
   .project-actions {
     justify-content: center;
     align-items: center;
+    gap: 1rem;
+
     .project-advisors-list {
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-    display: flex;
-    flex-direction: column;
+  }
+  .projects .list-projects {
+    grid-template-columns: repeat(2, 1fr); /* 2 projects per row */
     gap: 1rem;
+    margin-top: 1rem;
+  }
+}
+
+/* Styles for phones in portrait mode (width <= 767px and portrait orientation) */
+@media only screen and (max-width: 767px) and (orientation: portrait) {
+  .projects .list-projects {
+    grid-template-columns: 1fr; /* One project per row */
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .projects .project-overlay {
+    height: auto;
+    padding: 2rem;
+  }
+
+  .projects .project-info {
+    width: 100%;
+  }
+
+  .projects .project-description {
+    max-height: none;
+    overflow: visible;
   }
 }

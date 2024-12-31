@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./SystemControl.scss";
-import { Button, Switch, Form, Input, InputNumber, Table, Typography, message, Tooltip } from "antd";
-import { CloseCircleOutlined, EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
+import { Button, Switch, Form, Input, InputNumber, Table, Typography, message, Tooltip, Modal, Select } from "antd";
+import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const SystemControl = () => {
-  const [createProject, setCreateProject] = useState(true);
-  const [registerToProjects, setRegisterToProjects] = useState(true);
   const [manageStudents, setManageStudents] = useState(true);
+  const [currentYear, setCurrentYear] = useState("");
+  const [years, setYears] = useState([]);
   const [form] = Form.useForm();
   const [editingKey, setEditingKey] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,6 +31,25 @@ const SystemControl = () => {
   const [submissions, setSubmissions] = useState([]);
   const [submissionGroups, setSubmissionGroups] = useState({});
   const [groupsData, setGroupsData] = useState([]);
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [currentSubmissionName, setCurrentSubmissionName] = useState("");
+  const [currentGroup, setCurrentGroup] = useState("");
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const fetchGrades = async () => {
     try {
@@ -45,9 +65,51 @@ const SystemControl = () => {
     }
   };
 
+  const fetchConfigurations = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config/get-config`, {
+        withCredentials: true,
+      });
+      setManageStudents(response.data.projectStudentManage);
+      const currentYear = response.data.currentYear;
+      setCurrentYear(currentYear);
+
+      const today = new Date();
+      const currentHebrewDate = toJewishDate(today);
+      const currentHebrewYear = currentHebrewDate.year;
+
+      // // Calculate previous, current, and next years
+      const previousYear = currentHebrewYear - 1;
+      const nextYear = currentHebrewYear + 1;
+
+      // // Format years into Hebrew letters
+      const formattedCurrentYear = formatJewishDateInHebrew(currentHebrewDate).split(" ").pop().replace(/^ה/, ""); // Remove "ה" prefix if needed
+
+      // Create new Date objects for previous and next years to avoid mutating 'today'
+      const previousDate = new Date(today);
+      previousDate.setFullYear(today.getFullYear() - 1);
+      const formattedPreviousYear = formatJewishDateInHebrew(toJewishDate(previousDate))
+        .split(" ")
+        .pop()
+        .replace(/^ה/, "");
+
+      const nextDate = new Date(today);
+      nextDate.setFullYear(today.getFullYear() + 1);
+      const formattedNextYear = formatJewishDateInHebrew(toJewishDate(nextDate)).split(" ").pop().replace(/^ה/, "");
+
+      // Set the years array
+      const yearsArray = [formattedNextYear, formattedCurrentYear, formattedPreviousYear];
+      setYears(yearsArray);
+    } catch (error) {
+      console.error("Error fetching configurations:", error);
+      message.error("שגיאה בטעינת ההגדרות");
+    }
+  };
+
   useEffect(() => {
     setLoading(true);
     fetchGrades();
+    fetchConfigurations();
   }, []);
 
   useEffect(() => {
@@ -150,7 +212,9 @@ const SystemControl = () => {
 
   const publishGradesForSubmissions = async (submissionName, group) => {
     setLoading(true);
-    const groupSubmissions = submissionGroups[submissionName].submissions;
+    setConfirmModalVisible(false);
+    const groupSubmissions = submissionGroups[submissionName].submissions.filter((submission) => submission.editable);
+
     if (groupSubmissions[0].isGraded) {
       const gradedSubmissions = groupSubmissions.filter(
         (submission) =>
@@ -198,15 +262,41 @@ const SystemControl = () => {
     }
   };
 
+  const checkZeroGrades = (submissionName, group) => {
+    const groupSubmissions = submissionGroups[submissionName].submissions.filter((submission) => submission.editable);
+    const hasZeroGrade = groupSubmissions.some((submission) =>
+      submission.numericValues.some((grade) => grade.value === 0)
+    );
+
+    if (hasZeroGrade) {
+      setCurrentSubmissionName(submissionName);
+      setCurrentGroup(group);
+      setConfirmModalVisible(true);
+      setLoading(false);
+      return;
+    }
+    publishGradesForSubmissions(submissionName, group);
+  };
+
   const columns = [
     {
       title: "הגשה",
       dataIndex: "name",
       key: "name",
-      render: (text) => <span>{text}</span>, // Ensure group names show up
+      fixed: windowSize.width > 626 && "left",
+      render: (text) => (
+        <span>{text.length > 40 ? <Tooltip title={text}>{text.substring(0, 40)}...</Tooltip> : text}</span>
+      ),
       sorter: (a, b) => a.name.localeCompare(b.name),
       defaultSortOrder: "ascend",
-      width: "10%",
+      width:
+        windowSize.width > 1920
+          ? "15%"
+          : windowSize.width <= 1920 && windowSize.width > 1024
+          ? 300
+          : windowSize.width > 768
+          ? 250
+          : 150,
     },
     ...Object.keys(letterToNumber).map((letter) => ({
       title: <p style={{ direction: "ltr", margin: "0", textAlign: "right" }}>{letter}</p>,
@@ -215,7 +305,12 @@ const SystemControl = () => {
       editable: true,
       render: (text) => (text !== null ? text : ""),
       sorter: (a, b) => (a[letter] || 0) - (b[letter] || 0),
-      width: `${85 / Object.keys(letterToNumber).length}%`,
+      width:
+        windowSize.width > 1920
+          ? `${80 / Object.keys(letterToNumber).length}%`
+          : windowSize.width <= 1920 && windowSize.width > 1024
+          ? 120
+          : 120,
     })),
     {
       title: "פעולות",
@@ -246,7 +341,7 @@ const SystemControl = () => {
           </Typography.Link>
         );
       },
-      width: "5%",
+      width: windowSize.width > 1920 ? "5%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 100 : 100,
     },
   ];
 
@@ -265,38 +360,81 @@ const SystemControl = () => {
     };
   });
 
+  const handleStartProjects = async (year) => {
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/start-projects-coordinator`,
+        { year },
+        { withCredentials: true }
+      );
+      message.success("הפרויקטים הופעלו בהצלחה");
+    } catch (error) {
+      if (error.response.status !== 304) {
+        console.error("Error starting projects:", error);
+      }
+      message.error("אין פרויקטים זמינים להפעלה");
+    }
+  };
+
   return (
     <div className="system">
       <h1 className="system-title">לוח בקרת מערכת</h1>
       <div className="control-options">
         <div className="box switches">
-          <h3 className="box-title">סוויטצ'ים להדלקה \ כיבוי מהירים</h3>
+          <h3 className="box-title">ניהול פרויקטים</h3>
           <div className="switch">
-            <label className="switch-label">הזנת פרויקטים חדשים</label>
-            <Switch checked={createProject} />
-          </div>
-          <Tooltip title="רישום של הסטודנטים עצמם לפרוייקט">
-            <div className="switch">
-              <label className="switch-label">רישום לפרויקטים</label>
-              <Switch checked={registerToProjects} />
-            </div>
-          </Tooltip>
-          <Tooltip title="אישור, דחיה והסרה של סטודנטים מפרויקט">
-            <div className="switch">
+            <Tooltip title="אישור, דחיה והסרה של סטודנטים מפרויקט">
               <label className="switch-label">ניהול סטודנטים בפרויקט</label>
-              <Switch checked={manageStudents} />
-            </div>
-          </Tooltip>
-          <div className="switch">
-            <label className="switch-label">pending action</label>
-            <Switch />
+            </Tooltip>
+            <Switch
+              checked={manageStudents}
+              onChange={() => {
+                try {
+                  setManageStudents(!manageStudents);
+                  axios.post(
+                    `${process.env.REACT_APP_BACKEND_URL}/api/config/update-config`,
+                    { projectStudentManage: !manageStudents },
+                    { withCredentials: true }
+                  );
+                } catch (error) {
+                  console.error("Error updating configuration:", error);
+                  message.error("שגיאה בעדכון ההגדרות");
+                }
+              }}
+            />
           </div>
-        </div>
-        <div className="box finish-projects">
-          <h3 className="box-title">סיים פרויקטים</h3>
-          <Tooltip title="סיים את כל הפרוייקטים">
-            <Button className="end-projects" shape="circle" type="primary" icon={<CloseCircleOutlined />}></Button>
-          </Tooltip>
+          <div className="switch">
+            <Tooltip title="פרויקטים שיש סטודנטים אבל המנחה לא סגר הרשמה">
+              <label className="switch-label">התחל פרויקטים</label>
+            </Tooltip>
+            <Button type="primary" onClick={() => handleStartProjects(currentYear)}>
+              התחל
+            </Button>
+          </div>
+          <div className="switch">
+            <label className="switch-label">בחירת שנת מערכת</label>
+            <Select
+              value={currentYear}
+              onChange={(value) => {
+                setCurrentYear(value);
+                try {
+                  axios.post(
+                    `${process.env.REACT_APP_BACKEND_URL}/api/config/update-config`,
+                    { currentYear: value },
+                    { withCredentials: true }
+                  );
+                } catch (error) {
+                  console.error("Error updating configuration:", error);
+                  message.error("שגיאה בעדכון ההגדרות");
+                }
+              }}>
+              {years.map((year) => (
+                <Select.Option key={year} value={year}>
+                  {year}
+                </Select.Option>
+              ))}
+            </Select>
+          </div>
         </div>
         <div className="box publish-grades">
           <h3 className="box-title">פרסום ציונים/ביקורות</h3>
@@ -304,18 +442,32 @@ const SystemControl = () => {
             <div key={submissionName} className="publish-button">
               {submissionGroups[submissionName].status === "graded" && (
                 <>
-                  <label>פרסם ציונים זמינים עבור {submissionName}</label>
+                  <label>
+                    פרסם ציונים זמינים עבור{" "}
+                    {submissionName.length > 20 ? (
+                      <Tooltip title={submissionName}>{submissionName.substring(0, 20)}...</Tooltip>
+                    ) : (
+                      submissionName
+                    )}
+                  </label>
                   <Button
                     type="primary"
                     loading={loading}
-                    onClick={() => publishGradesForSubmissions(submissionName, submissionName)}>
+                    onClick={() => checkZeroGrades(submissionName, submissionName)}>
                     פרסם ציונים
                   </Button>
                 </>
               )}
               {submissionGroups[submissionName].status === "reviewed" && (
                 <>
-                  <label>פרסם משובים זמינים עבור {submissionName}</label>
+                  <label>
+                    פרסם משובים זמינים עבור{" "}
+                    {submissionName.length > 20 ? (
+                      <Tooltip title={submissionName}>{submissionName.substring(0, 20)}...</Tooltip>
+                    ) : (
+                      submissionName
+                    )}
+                  </label>
                   <Button
                     type="primary"
                     loading={loading}
@@ -326,6 +478,7 @@ const SystemControl = () => {
               )}
             </div>
           ))}
+          {Object.keys(submissionGroups).length === 0 && <p>אין הגשות זמינות לפרסום</p>}
         </div>
       </div>
       <Form form={form} component={false} loading={loading}>
@@ -341,8 +494,20 @@ const SystemControl = () => {
           columns={mergedColumns}
           rowClassName="editable-row"
           pagination={false}
+          scroll={{
+            x: "max-content",
+          }}
         />
       </Form>
+      <Modal
+        title={`פרסום ציונים ל${currentGroup}`}
+        open={confirmModalVisible}
+        onOk={() => publishGradesForSubmissions(currentSubmissionName, currentGroup)}
+        onCancel={() => setConfirmModalVisible(false)}
+        okText="אשר"
+        cancelText="בטל">
+        <p>ישנם ציונים עם ערך נומרי של 0. האם אתה בטוח שברצונך לפרסם את הציונים?</p>
+      </Modal>
     </div>
   );
 };

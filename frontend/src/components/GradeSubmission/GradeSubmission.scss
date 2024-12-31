@@ -15,6 +15,10 @@
     flex-direction: column;
     align-items: center;
     gap: 3rem;
+
+    h2 {
+      word-break: break-word;
+    }
   }
 
   #gradeProject {
@@ -44,5 +48,29 @@
         padding: 2rem 2rem;
       }
     }
+  }
+}
+
+@media screen and (max-width: 1600px) {
+  .grade-project-container {
+    width: 70%;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .grade-project-container {
+    width: 80%;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .grade-project-container {
+    width: 90%;
+  }
+}
+
+@media screen and (max-width: 626px) {
+  .grade-project-container {
+    width: 100%;
   }
 }

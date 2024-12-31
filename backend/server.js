@@ -14,6 +14,10 @@ import projectRoute from "./routes/projectRoute.js";
 import uploadsRoute from "./routes/uploadsRoute.js";
 import submissionRoute from "./routes/submissionRoute.js";
 import gradeRoute from "./routes/gradeRoute.js";
+import gradeStructureRoute from "./routes/gradeStructureRoute.js";
+import randomRoute from "./routes/randomRoute.js";
+import configRoute from "./routes/configRoute.js";
+import Config from "./models/config.js";
 
 // Load environment variables and allows to use .env file
 dotenv.config();
@@ -28,13 +32,13 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
-      collectionName: "sessions"
+      collectionName: "sessions",
     }),
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
-      secure: false // Set to true if using HTTPS
-    }
-  })
+      secure: false, // Set to true if using HTTPS
+    },
+  }),
 );
 
 app.use(passport.initialize());
@@ -43,7 +47,7 @@ app.use(passport.session());
 // Allow cross-origin requests
 const corsOptions = {
   origin: true, // Allow all origins for Development purposes only
-  credentials: true // Allow cookies and credentials
+  credentials: true, // Allow cookies and credentials
 };
 
 app.use(cors(corsOptions));
@@ -55,14 +59,34 @@ app.use("/api/user", userRoute);
 app.use("/api/project", projectRoute);
 app.use("/api/submission", submissionRoute);
 app.use("/api/grade", gradeRoute);
+app.use("/api/grade-structure", gradeStructureRoute);
 app.use("/api/uploads", uploadsRoute);
+app.use("/api/random", randomRoute);
+app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
 app.get("/", (req, res) => {
   res.send("Hello World! Nothing to see here yet!");
 });
 
+async function initializeConfig() {
+  try {
+    const config = await Config.findOne();
+    if (!config) {
+      await Config.create({});
+      console.log("Default configuration created");
+    } else {
+      console.log("Configuration file loaded");
+    }
+  } catch (error) {
+    console.error("Error initializing configuration:", error);
+  }
+}
+
 app.listen(server_port, () => {
-  connectDB();
+  // awaiting for mongoDB connection before initializing config
+  connectDB().then(() => {
+    initializeConfig();
+  });
   console.log(`Server is running at http://localhost:${server_port}`);
 });

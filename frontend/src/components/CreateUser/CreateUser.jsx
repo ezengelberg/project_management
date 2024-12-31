@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./CreateUser.scss";
 import { DeleteOutlined, InboxOutlined } from "@ant-design/icons";
 import axios from "axios";
@@ -10,6 +10,22 @@ const { Dragger } = Upload;
 const CreateUser = () => {
   const [form] = Form.useForm();
   const [users, setUsers] = useState([]);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const onFinish = async (values) => {
     try {
@@ -21,11 +37,11 @@ const CreateUser = () => {
         isStudent: values.role.includes("student"),
         isAdvisor: values.role.includes("advisor"),
         isJudge: values.role.includes("judge"),
-        isCoordinator: values.role.includes("coordinator")
+        isCoordinator: values.role.includes("coordinator"),
       };
 
       await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/register`, registerValues, {
-        withCredentials: true
+        withCredentials: true,
       });
       message.success("משתמש נוצר בהצלחה");
       form.resetFields();
@@ -44,17 +60,16 @@ const CreateUser = () => {
   const handleSubmitCSV = async (users) => {
     try {
       const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/register-multiple`, users, {
-        withCredentials: true
+        withCredentials: true,
       });
       message.success("משתמשים נוצרו בהצלחה");
-      console.log(response.data.existingUsers);
       if (response.data.existingUsers.length > 0) {
         message.warning(
           `המשתמשים הבאים כבר קיימים במערכת: ${response.data.existingUsers.map((user) => user.email).join(", ")}`
         );
       }
-      const usersData = users.filter(
-        (user) => response.data.existingUsers.some((existingUser) => existingUser.email === user.email)
+      const usersData = users.filter((user) =>
+        response.data.existingUsers.some((existingUser) => existingUser.email === user.email)
       );
       setUsers(usersData);
     } catch (error) {
@@ -81,21 +96,21 @@ const CreateUser = () => {
             lastName: row["שם משפחה"],
             name: `${row["שם פרטי"]} ${row["שם משפחה"]}`,
             id: row["ת.ז."],
-            role: ["isStudent"]
+            role: ["isStudent"],
           }))
           .filter((row) => row.email && row.firstName && row.lastName); // Filter out rows with undefined or empty values
 
-        console.log(parsedData); // Processed CSV data with English keys
         setUsers(parsedData);
-      }
+      },
     });
     return false;
   };
 
   const handleRemoveUser = (record) => {
-    const filteredUsers = users.filter((user) => user.email !== record.email);
+    const filteredUsers = users.filter((user) => user.id !== record.id);
     setUsers(filteredUsers);
   };
+
   const props = {
     name: "file",
     maxCount: 1,
@@ -104,31 +119,33 @@ const CreateUser = () => {
     customRequest: ({ onSuccess }) => {
       onSuccess("ok");
     },
-    showUploadList: false
+    showUploadList: false,
   };
 
   const roleOptions = [
     { label: "סטודנט", value: "isStudent" },
     { label: "מנחה", value: "isAdvisor" },
     { label: "שופט", value: "isJudge" },
-    { label: "מנהל", value: "isCoordinator" }
+    { label: "מנהל", value: "isCoordinator" },
   ];
 
   const columns = [
     {
       title: "שם מלא",
       dataIndex: "name",
-      key: "name"
+      key: "name",
+      fixed: windowSize.width > 626 && "left",
+      render: (text) => <div>{text.length > 45 ? text.substring(0, 45) + "..." : text}</div>,
     },
     {
       title: "ת.ז.",
       dataIndex: "id",
-      key: "id"
+      key: "id",
     },
     {
       title: "אימייל",
       dataIndex: "email",
-      key: "email"
+      key: "email",
     },
     {
       title: "תפקיד",
@@ -150,7 +167,7 @@ const CreateUser = () => {
             }}
           />
         </div>
-      )
+      ),
     },
     {
       title: "פעולות",
@@ -163,14 +180,13 @@ const CreateUser = () => {
               description={`האם ברצונך להסיר את ${record.name}?`}
               okText="הסר"
               cancelText="בטל"
-              onConfirm={() => handleRemoveUser(record)}
-              onOpenChange={() => console.log("open change")}>
+              onConfirm={() => handleRemoveUser(record)}>
               <DeleteOutlined />
             </Popconfirm>
           </Tooltip>
         </span>
-      )
-    }
+      ),
+    },
   ];
   return (
     <div className="create-user">
@@ -183,8 +199,8 @@ const CreateUser = () => {
           rules={[
             {
               required: true,
-              message: "חובה להזין שם מלא"
-            }
+              message: "חובה להזין שם מלא",
+            },
           ]}>
           <Input />
         </Form.Item>
@@ -195,9 +211,9 @@ const CreateUser = () => {
           rules={[
             {
               required: true,
-              message: "חובה להזין ת.ז."
+              message: "חובה להזין ת.ז.",
             },
-            { pattern: /^\d{9}$/, message: "תעודת זהות חייבת להכיל 9 ספרות" }
+            { pattern: /^\d{9}$/, message: "תעודת זהות חייבת להכיל 9 ספרות" },
           ]}>
           <Input />
         </Form.Item>
@@ -208,12 +224,12 @@ const CreateUser = () => {
           rules={[
             {
               required: true,
-              message: "חובה להזין כתובת מייל"
+              message: "חובה להזין כתובת מייל",
             },
             {
               type: "email",
-              message: "נא להזין כתובת מייל תקינה"
-            }
+              message: "נא להזין כתובת מייל תקינה",
+            },
           ]}>
           <Input />
         </Form.Item>
@@ -223,8 +239,8 @@ const CreateUser = () => {
           rules={[
             {
               required: true,
-              message: "חובה לבחור תפקיד"
-            }
+              message: "חובה לבחור תפקיד",
+            },
           ]}>
           <Select mode="multiple">
             <Select.Option value="student">סטודנט</Select.Option>
@@ -253,7 +269,13 @@ const CreateUser = () => {
         </Dragger>
         {users.length > 0 && (
           <div className="users-csv">
-            <Table columns={columns} dataSource={users} />
+            <Table
+              columns={columns}
+              dataSource={users}
+              scroll={{
+                x: "max-content",
+              }}
+            />
             <Button type="primary" className="submit-csv" onClick={() => handleSubmitCSV(users)}>
               צור משתמשים
             </Button>

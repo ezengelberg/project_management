@@ -7,7 +7,6 @@ import {
   approveCandidate,
   removeStudentFromProject,
   switchProjectRegistration,
-  getProjectsStatus,
   updateProject,
   getAvailableProjects,
   getProject,
@@ -23,6 +22,8 @@ import {
   restoreProject,
   assignAdvisorsAutomatically,
   getActiveProjects,
+  getProjectYears,
+  startProjectsCoordinator,
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../middleware/auth.js";
 
@@ -41,7 +42,6 @@ router.post("/remove-candidate", ensureAuthenticated, removeCandidateFromProject
 router.post("/approve-candidate", ensureAuthenticated, isAdvisorOrCoordinator, approveCandidate);
 router.post("/remove-student", ensureAuthenticated, isAdvisorOrCoordinator, removeStudentFromProject);
 router.post("/switch-registration", ensureAuthenticated, isAdvisorOrCoordinator, switchProjectRegistration);
-router.get("/status", getProjectsStatus);
 router.put("/edit-project/:id", ensureAuthenticated, isAdvisorOrCoordinator, updateProject);
 router.post("/add-advisor", ensureAuthenticated, isCoordinator, addAdvisorToProject);
 router.post("/add-student", ensureAuthenticated, isCoordinator, addStudentToProject);
@@ -51,5 +51,7 @@ router.put("/terminate-project", ensureAuthenticated, isCoordinator, terminatePr
 router.delete("/delete-project/:id", ensureAuthenticated, isCoordinator, deleteProject);
 router.put("/restore-project/:id", ensureAuthenticated, isCoordinator, restoreProject);
 router.post("/assign-advisors-automatically", ensureAuthenticated, isCoordinator, assignAdvisorsAutomatically);
+router.put("/start-projects-coordinator", ensureAuthenticated, isCoordinator, startProjectsCoordinator);
+router.get("/years", getProjectYears);
 
 export default router;

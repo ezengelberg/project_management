@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./ShowAllUsers.scss";
 import axios from "axios";
-import { Space, Table, Tag, Avatar, Modal, Form, Input, Select, message, Tooltip, Switch } from "antd";
+import { Space, Table, Tag, Avatar, Modal, Form, Input, Select, message, Tooltip, Switch, Tabs } from "antd";
 import { EditOutlined, UserDeleteOutlined, UserAddOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
@@ -33,6 +33,22 @@ const ShowAllUsers = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,8 +84,13 @@ const ShowAllUsers = () => {
           projectInfo: studentProjectMap.get(user._id),
         }));
 
+        const suspendedUsersWithProjects = suspendedUsersData.map((user) => ({
+          ...user,
+          projectInfo: studentProjectMap.get(user._id),
+        }));
+
         setUsers(usersWithProjects);
-        setSuspendedUsers(suspendedUsersData);
+        setSuspendedUsers(suspendedUsersWithProjects);
       } catch (error) {
         console.error("Error occurred:", error.response?.data?.message || error.message);
       } finally {
@@ -119,12 +140,13 @@ const ShowAllUsers = () => {
       title: "שם",
       dataIndex: "name",
       key: "name",
+      fixed: windowSize.width > 626 && "left",
       ...getColumnSearchProps("name"),
       render: (text, record) => (
         <a
           className="column-name"
-          onClick={() => navigate(`/profile/${record.userId}`)}
-          onMouseDown={(e) => handleMouseDown(e, `/profile/${record.userId}`)}>
+          onClick={() => navigate(`/profile/${record.key}`)}
+          onMouseDown={(e) => handleMouseDown(e, `/profile/${record.key}`)}>
           <Avatar size="medium">
             {text[0].toUpperCase()}
             {text.split(" ")[1] ? text.split(" ")[1][0].toUpperCase() : ""}
@@ -133,7 +155,17 @@ const ShowAllUsers = () => {
             highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
             searchWords={[searchText]}
             autoEscape
-            textToHighlight={text ? text.toString() : ""}
+            textToHighlight={
+              windowSize.width > 1920
+                ? text.length > 40
+                  ? `${text.slice(0, 40)}...`
+                  : text
+                : windowSize.width <= 1920
+                ? text.length > 25
+                  ? `${text.slice(0, 25)}...`
+                  : text
+                : text
+            }
           />
         </a>
       ),
@@ -143,7 +175,7 @@ const ShowAllUsers = () => {
       sorter: (a, b) => a.name.localeCompare(b.name),
       defaultSortOrder: "ascend",
       sortDirections: ["descend", "ascend"],
-      width: "20%",
+      width: windowSize.width > 1920 ? "20%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 300,
     },
     {
       title: "ת.ז.",
@@ -155,7 +187,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.userId - b.userId,
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 120 : 120,
     },
     {
       title: "תאריך הרשמה",
@@ -167,7 +199,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => new Date(a.registerDate) - new Date(b.registerDate),
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 170 : 170,
     },
     {
       title: "פרויקט נבחר",
@@ -200,7 +232,7 @@ const ShowAllUsers = () => {
         }
         return record.projectId === null;
       },
-      width: "20%",
+      width: windowSize.width > 1920 ? "20%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 250 : 250,
     },
     {
       title: "תפקיד",
@@ -231,7 +263,7 @@ const ShowAllUsers = () => {
         }
         return false;
       },
-      width: "15%",
+      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 150 : 150,
     },
     {
       title: "אימייל",
@@ -243,7 +275,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.email.localeCompare(b.email),
       sortDirections: ["descend", "ascend"],
-      width: "15%",
+      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 200,
     },
     {
       title: "פעולות",
@@ -283,7 +315,7 @@ const ShowAllUsers = () => {
           </a>
         </Space>
       ),
-      width: "5%",
+      width: windowSize.width > 1920 ? "5%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 100 : 100,
     },
   ];
 
@@ -362,7 +394,7 @@ const ShowAllUsers = () => {
       const response = await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/user/suspend-user/${suspensionDetails.key}`,
         {
-          reason: values.reason,
+          reason: values.reason || "לא ניתנה סיבה",
         },
         { withCredentials: true }
       );
@@ -373,7 +405,7 @@ const ShowAllUsers = () => {
 
         const newSuspendedUser = {
           ...suspendedUser,
-          suspendedReason: values.reason,
+          suspendedReason: values.reason || "לא ניתנה סיבה",
           suspendedAt: new Date(),
         };
 
@@ -402,12 +434,13 @@ const ShowAllUsers = () => {
       title: "שם",
       dataIndex: "name",
       key: "name",
+      fixed: windowSize.width > 626 && "left",
       ...getColumnSearchProps("name"),
       render: (text, record) => (
         <a
           className="column-name"
-          onClick={() => navigate(`/profile/${record.userId}`)}
-          onMouseDown={(e) => handleMouseDown(e, `/profile/${record.userId}`)}>
+          onClick={() => navigate(`/profile/${record.key}`)}
+          onMouseDown={(e) => handleMouseDown(e, `/profile/${record.key}`)}>
           <Avatar size="medium">
             {text[0].toUpperCase()}
             {text.split(" ")[1] ? text.split(" ")[1][0].toUpperCase() : ""}
@@ -416,7 +449,17 @@ const ShowAllUsers = () => {
             highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
             searchWords={[searchText]}
             autoEscape
-            textToHighlight={text ? text.toString() : ""}
+            textToHighlight={
+              windowSize.width > 1920
+                ? text.length > 40
+                  ? `${text.slice(0, 40)}...`
+                  : text
+                : windowSize.width <= 1920
+                ? text.length > 25
+                  ? `${text.slice(0, 25)}...`
+                  : text
+                : text
+            }
           />
         </a>
       ),
@@ -426,7 +469,7 @@ const ShowAllUsers = () => {
       sorter: (a, b) => a.name.localeCompare(b.name),
       defaultSortOrder: "ascend",
       sortDirections: ["descend", "ascend"],
-      width: "15%",
+      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 300,
     },
     {
       title: "ת.ז.",
@@ -438,7 +481,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.userId - b.userId,
       sortDirections: ["descend", "ascend"],
-      width: "8%",
+      width: windowSize.width > 1920 ? "8%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 120 : 120,
     },
     {
       title: "תאריך הרשמה",
@@ -450,7 +493,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => new Date(a.registerDate) - new Date(b.registerDate),
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 170 : 170,
     },
     {
       title: "פרויקט נבחר",
@@ -483,7 +526,7 @@ const ShowAllUsers = () => {
         }
         return record.projectId === null;
       },
-      width: "20%",
+      width: windowSize.width > 1920 ? "20%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 250 : 250,
     },
     {
       title: "תפקיד",
@@ -510,7 +553,7 @@ const ShowAllUsers = () => {
         }
         return false;
       },
-      width: "10%",
+      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 150 : 150,
     },
     {
       title: "אימייל",
@@ -522,7 +565,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.email.localeCompare(b.email),
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 200,
     },
     {
       title: "סיבת השעיה",
@@ -548,7 +591,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.suspensionReason.localeCompare(b.suspensionReason),
       sortDirections: ["descend", "ascend"],
-      width: "15%",
+      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 200,
     },
     {
       title: "תאריך השעיה",
@@ -560,7 +603,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => new Date(a.suspensionDate) - new Date(b.suspensionDate),
       sortDirections: ["descend", "ascend"],
-      width: "10%",
+      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 170 : 170,
     },
     {
       title: "פעולות",
@@ -583,7 +626,7 @@ const ShowAllUsers = () => {
           </a>
         </Space>
       ),
-      width: "5%",
+      width: windowSize.width > 1920 ? "5%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 100 : 100,
     },
   ];
 
@@ -659,16 +702,40 @@ const ShowAllUsers = () => {
     setSuspensionDetails({});
   };
 
+  const tabs = [
+    {
+      key: "1",
+      label: "משתמשים רשומים",
+      children: (
+        <Table
+          columns={columns}
+          dataSource={dataSource}
+          loading={loading}
+          scroll={{
+            x: "max-content",
+          }}
+        />
+      ),
+    },
+    {
+      key: "2",
+      label: "משתמשים מושעים",
+      children: (
+        <Table
+          columns={suspendedColumns}
+          dataSource={suspendedDataSource}
+          loading={loading}
+          scroll={{
+            x: "max-content",
+          }}
+        />
+      ),
+    },
+  ];
+
   return (
     <div>
-      <div className="active-users">
-        <h2>משתמשים רשומים</h2>
-        <Table columns={columns} dataSource={dataSource} style={{ minHeight: "770px" }} loading={loading} />
-      </div>
-      <div className="deleted-users">
-        <h2>משתמשים מושעים</h2>
-        <Table columns={suspendedColumns} dataSource={suspendedDataSource} loading={loading} />
-      </div>
+      <Tabs items={tabs} defaultActiveKey="1" />
       <Modal
         title={`עריכת משתמש: ${editUserDetails.name}`}
         open={isEditing}
@@ -740,16 +807,16 @@ const ShowAllUsers = () => {
       </Modal>
 
       <Modal
-        title={<h2 className="suspend-title">השעית משתמש: {suspensionDetails.name}</h2>}
+        title={<h3 className="suspend-title">השעית משתמש: {suspensionDetails.name}</h3>}
         open={isSuspending}
         onOk={() => handleSuspend()}
         onCancel={() => handleCancelSuspend()}
         okText="השעה"
         okButtonProps={{ danger: true }}
         cancelText="בטל"
-        width={700}>
+        width={500}>
         <Form form={suspensionForm} layout="vertical" name="suspention_form">
-          <Form.Item label="סיבת השעיה" name="reason" rules={[{ required: true, message: "חובה להזין סיבת השעיה" }]}>
+          <Form.Item label="סיבת השעיה" name="reason">
             <Input.TextArea rows={6} placeholder="נא לפרט את סיבת ההשעיה..." />
           </Form.Item>
         </Form>

@@ -4,6 +4,9 @@
   flex-direction: column;
   justify-content: space-between;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  height: 23rem;
+  min-width: 45rem;
+  max-width: 45rem;
 
   .action-icon {
     font-size: 1.8rem !important;
@@ -29,7 +32,7 @@
       width: 100%;
       font-size: 1.5rem;
       word-break: break-word;
-      max-height: 100px;
+      max-height: 77px;
       overflow: hidden;
       position: relative;
 
@@ -41,8 +44,7 @@
       position: absolute;
       bottom: 0;
       right: 0;
-      height: 1.5rem;
-      background: linear-gradient(to bottom, transparent, white 50%);
+      height: 1.7rem;
       width: 100%;
 
       span {
@@ -50,7 +52,8 @@
       }
 
       .ellipsis-icon {
-        font-size: 1.7rem;
+        font-size: 3rem;
+        color: #1677ff;
         transition: 0.2s ease-in-out all;
 
         &:hover {
@@ -85,15 +88,98 @@
   height: 80% !important;
   overflow-y: auto;
 
-  .ant-descriptions-item-content {
-    max-width: 20rem;
+  .ant-descriptions-header {
+    margin: 2rem 0 0;
   }
-  .edited-description-modal-item {
+
+  .edited-title-modal-item {
     display: flex;
-    gap: 1rem;
+    flex-direction: column;
 
     p {
       margin: 0;
+    }
+  }
+
+  .ant-descriptions-item-content {
+    width: 50%;
+  }
+  .edited-description-modal-item {
+    display: flex;
+    flex-direction: column;
+
+    p {
+      margin: 0;
+    }
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .file-card {
+    .file-card-meta {
+      .file-title {
+        font-size: 1.5rem;
+      }
+      .file-description {
+        font-size: 1.3rem;
+      }
+    }
+    .file-original-name {
+      bottom: 25%;
+    }
+    .upload-date {
+      bottom: 25%;
+    }
+  }
+  .edit-record-modal {
+    width: 90% !important;
+  }
+  .edit-record-modal {
+    p {
+      font-size: 1.3rem;
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .file-card {
+    .file-original-name {
+      bottom: 26%;
+    }
+    .upload-date {
+      bottom: 26%;
+    }
+    .file-card-meta {
+      .file-description {
+        max-height: 67px;
+      }
+    }
+  }
+  .edit-record-modal {
+    .edited-title-modal-item,
+    .edited-description-modal-item,
+    .ant-descriptions-item-content {
+      span {
+        font-size: 1.4rem;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 626px) {
+  .file-card {
+    .file-original-name {
+      bottom: 29%;
+      font-size: 1.4rem;
+    }
+    .upload-date {
+      bottom: 29%;
+      font-size: 1.4rem;
+    }
+    .file-card-meta {
+      .file-description {
+        max-height: 46px;
+      }
     }
   }
 }

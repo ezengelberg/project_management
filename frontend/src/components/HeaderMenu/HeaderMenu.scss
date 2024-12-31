@@ -6,17 +6,9 @@
     cursor: pointer;
   }
 
-  .site-upper-header-right {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    gap: 4rem;
-    max-width: 80%;
-    margin-right: 2rem;
-  }
-
-  .site-upper-header-right .collage-logo {
+  .collage-logo {
     width: 20rem;
+    margin-right: 2rem;
     cursor: pointer;
   }
 
@@ -83,7 +75,7 @@
     .notification-close {
       position: absolute;
       left: 1%;
-      top: -10%;
+      top: 0;
       cursor: pointer;
       transition: 0.2s all linear;
 
@@ -102,6 +94,38 @@
       margin: 0 0 1.4rem;
       color: rgba(0, 0, 0, 0.45);
       font-size: 1.2rem;
+    }
+  }
+}
+
+.notification-header-menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 30rem;
+
+  p {
+    margin: 0;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .header-container {
+    .collage-logo {
+      margin-right: 5rem;
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .header-container {
+    .site-upper-header-left {
+      gap: 3rem;
+      top: 1%;
+    }
+    .avatar-icon {
+      width: 35px;
+      height: 35px;
     }
   }
 }

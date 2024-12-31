@@ -114,15 +114,20 @@ export const createAdmin = async (req, res) => {
 
 export const loginUser = (req, res, next) => {
   req.body.email = req.body.email.toLowerCase();
-  passport.authenticate("local", (err, user, info) => {
+  passport.authenticate("local", async (err, user, info) => {
     if (err) return next(err);
     if (!user) return res.status(401).send(info.message);
     if (user.suspended) return res.status(403).send("User is suspended");
 
-    req.login(user, (err) => {
+    req.login(user, async (err) => {
       if (err) return next(err);
       const userObj = user.toObject();
       delete userObj.password;
+
+      // Update rememberMe field
+      user.rememberMe = req.body.rememberMe || false;
+      await user.save();
+
       res.status(200).json(userObj);
     });
   })(req, res, next);
@@ -185,12 +190,16 @@ export const getAdvisorUsers = async (req, res) => {
 };
 
 export const checkUserHasProject = async (req, res) => {
-  const user = req.user;
-  const projects = await Project.find({ "students.student": user._id });
-  if (projects.length > 0) {
-    res.status(200).send({ hasProject: true });
-  } else {
-    res.status(200).send({ hasProject: false });
+  const userId = req.params.userId;
+  try {
+    const projects = await Project.find({ "students.student": userId });
+    if (projects.length > 0) {
+      res.status(200).send({ hasProject: true });
+    } else {
+      res.status(200).send({ hasProject: false });
+    }
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };
 
@@ -250,7 +259,7 @@ export const getUser = async (req, res) => {
 
 export const changePassword = async (req, res) => {
   const user = req.user;
-  const { oldPassword, newPassword } = req.body;
+  const { oldPassword, newPassword, interests } = req.body;
   try {
     const match = await bcrypt.compare(oldPassword, user.password);
     if (!match) {
@@ -263,6 +272,9 @@ export const changePassword = async (req, res) => {
     user.password = hashedPassword;
     user.firstLogin = false;
     user.updatedAt = new Date();
+    if (user.isAdvisor && interests !== undefined) {
+      user.interests = interests;
+    }
     await user.save();
     res.status(200).send("Password changed successfully");
   } catch (err) {
@@ -278,7 +290,6 @@ export const getUserProfile = async (req, res) => {
     }
     const userObj = user.toObject();
     delete userObj.password;
-    delete userObj.id;
     res.status(200).send(userObj);
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -324,6 +335,22 @@ export const ensureFavoriteProject = async (req, res) => {
     res.status(200).send({ favorite: true });
   } else {
     res.status(200).send({ favorite: false });
+  }
+};
+
+export const userEditProfile = async (req, res) => {
+  const userId = req.user._id;
+  const { name, email, interests } = req.body;
+  try {
+    const user = await User.findById(userId);
+    if (name !== undefined) user.name = name;
+    if (email !== undefined) user.email = email;
+    if (interests !== undefined) user.interests = interests;
+    user.updatedAt = new Date();
+    await user.save();
+    res.status(200).send("Profile updated successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };
 
@@ -382,12 +409,12 @@ export const suspendUser = async (req, res) => {
     user.suspended = true;
     user.suspendedAt = new Date();
     user.suspendedBy = req.user._id;
-    user.suspendedReason = req.body.reason;
+    user.suspendedReason = req.body.reason || "לא ניתנה סיבה";
     user.updatedAt = new Date();
     user.suspensionRecords.push({
       suspendedBy: req.user._id,
       suspendedAt: new Date(),
-      reason: req.body.reason,
+      reason: req.body.reason || "לא ניתנה סיבה",
     });
 
     await user.save();
@@ -420,7 +447,39 @@ export const unsuspendUser = async (req, res) => {
 export const deleteSuspendedUser = async (req, res) => {
   const { userId } = req.params;
   try {
-    const user = await User.findByIdAndDelete(userId).orFail();
+    const user = await User.findById(userId).orFail();
+
+    // Find project IDs the user is associated with
+    const projectIds = await Project.find({
+      $or: [{ "students.student": userId }, { advisors: userId }],
+    }).distinct("_id");
+
+    // Remove user from projects
+    await Project.updateMany({ "students.student": userId }, { $pull: { students: { student: userId } } });
+    await Project.updateMany({ advisors: userId }, { $pull: { advisors: userId } });
+
+    // Remove user from submissions
+    await Submission.updateMany({ uploadedBy: userId }, { $unset: { uploadedBy: "" } });
+    await Submission.updateMany({ "grades.judge": userId }, { $pull: { grades: { judge: userId } } });
+
+    await user.deleteOne();
+
+    // Check projects and update isTaken if necessary
+    const projects = await Project.find({ _id: { $in: projectIds } });
+
+    for (const project of projects) {
+      const studentCount = project.students.length;
+      const advisorCount = project.advisors.length;
+      const openSubmissions = await Submission.countDocuments({ project: project._id });
+
+      if (studentCount === 0 || advisorCount === 0) {
+        if (openSubmissions === 0) {
+          project.isTaken = false;
+          await project.save();
+        }
+      }
+    }
+
     res.status(200).send("User deleted successfully");
   } catch (err) {
     res.status(404).send("User not found");
@@ -455,6 +514,30 @@ export const getUserProject = async (req, res) => {
       return res.status(204).send({ message: "No project found for the user" });
     }
     res.status(200).send(project);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const getUserProjectStatistics = async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const statistics = [];
+    const projects = await Project.find({ advisors: userId });
+
+    const years = [...new Set(projects.map((project) => project.year))].sort((a, b) => b.localeCompare(a)).slice(0, 5);
+
+    for (const year of years) {
+      const projectsInYear = projects.filter((project) => project.year === year);
+      const takenProjects = projectsInYear.filter((project) => project.isTaken).length;
+      statistics.push({
+        year: year,
+        projects: projectsInYear.length,
+        takenProjects: takenProjects,
+      });
+    }
+
+    res.status(200).json(statistics);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

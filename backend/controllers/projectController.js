@@ -1,7 +1,12 @@
-import mongoose from "mongoose";
 import Project from "../models/projects.js";
 import User from "../models/users.js";
 import Notification from "../models/notifications.js";
+import Submission from "../models/submission.js";
+import Grade from "../models/grades.js";
+import Upload from "../models/uploads.js";
+import Config from "../models/config.js";
+import fs from "fs";
+import path from "path";
 
 export const getProjects = async (req, res) => {
   try {
@@ -21,21 +26,13 @@ export const getActiveProjects = async (req, res) => {
   }
 };
 
-export const getProjectsStatus = async (req, res) => {
-  try {
-    const projects = await Project.find();
-    const numOfTakenProjects = projects.filter((project) => project.isTaken).length;
-    const numOfOpenProjects = projects.filter((project) => !project.isTake).length;
-    const numOfFinishedProjects = projects.filter((project) => project.isFinished).length;
-    res.status(200).send({ numOfOpenProjects, numOfTakenProjects, numOfFinishedProjects });
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
-};
-
 export const getAvailableProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ isTerminated: false, isFinished: false });
+    const config = await Config.findOne();
+    if (!config) {
+      return res.status(404).send({ message: "Config not found" });
+    }
+    const projects = await Project.find({ isTerminated: false, isFinished: false, year: config.currentYear });
     res.status(200).send(projects);
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -274,12 +271,11 @@ export const addCandidateToProject = async (req, res) => {
 
     const notification = new Notification({
       user: user._id,
-      message: `התווספת כמתמודד לפרויקט: ${project.title}<br /><span style={"color: red"}>שים לב כי עליך לקבל אישור מהמנחה של הפרויקט</span>`,
+      message: `התווספת כמתמודד לפרויקט: ${project.title} שים לב כי עליך לקבל אישור מהמנחה של הפרויקט`,
       link: `/project/${project._id}`,
     });
     notification.save();
 
-    console.log(`Candidate ${req.user.name} added successfully`);
     res.status(201).send("Candidate added successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -355,10 +351,8 @@ export const approveCandidate = async (req, res) => {
     });
     notification.save();
 
-    console.log(`Candidate ${user.name} approved successfully`);
     res.status(200).send(`Candidate ${candidate.student} approved successfully`);
   } catch (err) {
-    console.log(err.message);
     res.status(500).send({ message: err.message });
   }
 };
@@ -378,7 +372,6 @@ export const removeStudentFromProject = async (req, res) => {
     project.students = project.students.filter((student) => student.student.toString() !== userid.toString());
     project.candidates.push(student);
     await project.save();
-    console.log(`Student ${user.name} moved back to candidates successfully`);
 
     const notification = new Notification({
       user: user._id,
@@ -398,9 +391,14 @@ export const switchProjectRegistration = async (req, res) => {
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
+    const submission = await Submission.findOne({ project: project._id });
+    if (submission) {
+      return res
+        .status(200)
+        .send({ message: "Project has a submission, cannot switch registration", hasSubmission: true });
+    }
     project.isTaken = !project.isTaken;
     await project.save();
-    console.log(`Project registration switched successfully`);
     res.status(200).send("Project registration switched successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -429,35 +427,36 @@ export const updateProject = async (req, res) => {
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
     const { title, description, year, suitableFor, type, externalEmail, continues } = req.body;
     if (!title || !description || !year || !suitableFor || !type) {
       return res.status(400).send({ message: "Missing required fields" });
     }
-    const updatedFields = [];
-    const oldFields = { title: project.title, description: project.description, year: project.year };
-    if (title !== project.title) {
-      updatedFields.push({ field: "title", oldValue: oldFields.title, newValue: title });
-    }
-    if (description !== project.description) {
-      updatedFields.push({ field: "description", oldValue: oldFields.description, newValue: description });
-    }
-    if (year !== project.year) {
-      updatedFields.push({ field: "year", oldValue: oldFields.year, newValue: year });
-    }
-    if (suitableFor !== project.suitableFor) {
-      updatedFields.push({ field: "suitableFor", oldValue: project.suitableFor, newValue: suitableFor });
-    }
-    if (type !== project.type) {
-      updatedFields.push({ field: "type", oldValue: project.type, newValue: type });
-    }
-    if (externalEmail !== project.externalEmail) {
-      updatedFields.push({ field: "externalEmail", oldValue: project.externalEmail, newValue: externalEmail });
-    }
-    if (continues !== project.continues) {
-      updatedFields.push({ field: "continues", oldValue: project.continues, newValue: continues });
-    }
 
-    project.updateRecords.push({ date: new Date(), changes: updatedFields });
+    const updatedFields = {
+      oldTitle: project.title,
+      newTitle: title !== project.title ? title : "שדה לא שונה",
+      oldDescription: project.description,
+      newDescription: description !== project.description ? description : "שדה לא שונה",
+      oldYear: project.year,
+      newYear: year !== project.year ? year : "שדה לא שונה",
+      oldSuitableFor: project.suitableFor,
+      newSuitableFor: suitableFor !== project.suitableFor ? suitableFor : "שדה לא שונה",
+      oldType: project.type,
+      newType: type !== project.type ? type : "שדה לא שונה",
+      oldExternalEmail: project.externalEmail ? project.externalEmail : "לא הוזן",
+      newExternalEmail: externalEmail !== project.externalEmail ? externalEmail : "שדה לא שונה",
+      oldContinues: project.continues ? "כן" : "לא",
+      newContinues: continues !== project.continues ? (continues ? "כן" : "לא") : "שדה לא שונה",
+      editDate: new Date(),
+      editedBy: { name: user.name, id: user.id },
+    };
+
+    project.editRecord.push(updatedFields);
 
     project.title = title;
     project.description = description;
@@ -521,6 +520,16 @@ export const updateAdvisorInProject = async (req, res) => {
       return res.status(400).send({ message: "Invalid advisor ID" });
     }
 
+    const currentAdvisor = project.advisors[0];
+    if (currentAdvisor !== advisorID) {
+      const notification = new Notification({
+        user: currentAdvisor,
+        message: `הוסרת כמנחה של פרויקט: ${project.title}`,
+        link: `/project/${project._id}`,
+      });
+      notification.save();
+    }
+
     project.advisors = [advisorID];
 
     if (project.advisors.length === 0) {
@@ -553,7 +562,7 @@ export const terminateProject = async (req, res) => {
       ...project.students.map(async (student) => {
         const notification = new Notification({
           user: student.student,
-          message: `הפרויקט ${project.title} בו אתה רשום בוטל`,
+          message: `הפרויקט: ${project.title} בו אתה רשום בוטל`,
           link: `/project/${project._id}`,
         });
         await notification.save();
@@ -561,7 +570,7 @@ export const terminateProject = async (req, res) => {
       ...project.advisors.map(async (advisor) => {
         const notification = new Notification({
           user: advisor,
-          message: `הפרויקט ${project.title} שאתה מנחה בוטל`,
+          message: `הפרויקט: ${project.title} שאתה מנחה בוטל`,
           link: `/project/${project._id}`,
         });
         await notification.save();
@@ -575,6 +584,22 @@ export const terminateProject = async (req, res) => {
     project.finalReportJudges = [];
     project.examJudges = [];
     project.isTerminated = true;
+
+    // Delete all related submissions and their files
+    const submissions = await Submission.find({ project: project._id });
+    for (const submission of submissions) {
+      if (submission.file) {
+        const file = await Upload.findById(submission.file);
+        if (file) {
+          const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+          await Upload.deleteOne({ _id: submission.file });
+        }
+      }
+      // Delete all grades related to the submission
+      await Grade.deleteMany({ _id: { $in: submission.grades } });
+      await submission.deleteOne();
+    }
 
     await project.save();
     res.status(200).send("Project terminated successfully");
@@ -690,6 +715,33 @@ export const assignAdvisorsAutomatically = async (req, res) => {
 
     await Promise.all(projects.map((project) => project.save()));
     res.status(200).send("Advisors assigned successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const getProjectYears = async (req, res) => {
+  try {
+    const years = await Project.distinct("year");
+    res.status(200).send(years);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const startProjectsCoordinator = async (req, res) => {
+  try {
+    const projects = await Project.find({ year: req.body.year, isTaken: false });
+    if (projects.length === 0) {
+      return res.status(304).send({ message: "No projects found" });
+    }
+    projects.forEach((project) => {
+      if (project.advisors.length !== 0 && project.students.length !== 0 && !project.isTaken) {
+        project.isTaken = true;
+      }
+    });
+    await Promise.all(projects.map((project) => project.save()));
+    res.status(200).send("Projects started successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

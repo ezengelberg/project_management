@@ -1,16 +1,54 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./CreateProject.scss";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
-import { Switch, Button, Form, Input, InputNumber, Select, message, FloatButton } from "antd";
+import { Switch, Button, Form, Input, Select, message, FloatButton } from "antd";
 import { Editor } from "primereact/editor";
 import DOMPurify from "dompurify";
 import { handleMouseDown } from "../../utils/mouseDown";
+import { NotificationsContext } from "../../utils/NotificationsContext";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const CreateProject = () => {
   const { Option } = Select;
+  const { fetchNotifications } = useContext(NotificationsContext);
   const currentYear = new Date().getFullYear();
+  const previousYear = currentYear - 1;
+  const nextYear = currentYear + 1;
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date(currentYear, 10, 10)))
+    .split(" ")
+    .pop()
+    .replace(/^ה/, "");
+
+  const previousHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date(previousYear, 10, 10)))
+    .split(" ")
+    .pop()
+    .replace(/^ה/, "");
+
+  const nextHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date(nextYear, 10, 10)))
+    .split(" ")
+    .pop()
+    .replace(/^ה/, "");
+
+  const [selectedYear, setSelectedYear] = useState("");
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const [advisorUsers, setAdvisorUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState({});
@@ -146,6 +184,10 @@ const CreateProject = () => {
     return div.innerHTML;
   };
 
+  const handleYearChange = (value) => {
+    setSelectedYear(value);
+  };
+
   const onFinish = async (values) => {
     const processedDescription = processEditorContent(values.description);
     const finalValues = {
@@ -168,10 +210,17 @@ const CreateProject = () => {
         }
       );
       message.success("הפרויקט נוצר בהצלחה");
+
+      setStudentsNoProject((prevStudents) =>
+        prevStudents.filter(
+          (student) => !finalValues.students.some((selectedStudent) => selectedStudent.id === student.id)
+        )
+      );
       setProjectCreated(true);
       setProjectCreatedId(response.data.project._id);
       form.resetFields();
       setIsOtherType(false);
+      fetchNotifications();
     } catch (error) {
       console.error("Error occurred:", error.response?.data?.message);
       if (error.response?.data?.message === "This Project already exists in that year") {
@@ -195,14 +244,8 @@ const CreateProject = () => {
         className="create-project-form"
         form={form}
         name="createProject"
-        labelCol={{
-          span: 4,
-        }}
-        initialValues={{
-          remember: true,
-          year: currentYear,
-        }}
-        onFinish={onFinish}>
+        onFinish={onFinish}
+        layout={windowSize.width > 1024 ? "horizontal" : "vertical"}>
         <Form.Item
           className="create-project-form-item"
           label="כותרת"
@@ -233,7 +276,7 @@ const CreateProject = () => {
 
         <Form.Item
           className="create-project-form-item"
-          label="שנה"
+          label="שנת לימודים"
           name="year"
           hasFeedback
           rules={[
@@ -242,7 +285,11 @@ const CreateProject = () => {
               message: "חובה להזין שנה",
             },
           ]}>
-          <InputNumber />
+          <Select value={selectedYear} onChange={handleYearChange}>
+            <Option value={nextHebrewYear}>{nextHebrewYear}</Option>
+            <Option value={currentHebrewYear}>{currentHebrewYear}</Option>
+            <Option value={previousHebrewYear}>{previousHebrewYear}</Option>
+          </Select>
         </Form.Item>
 
         <Form.Item
@@ -420,7 +467,18 @@ const CreateProject = () => {
               </div>
             }
             style={{
-              insetInlineEnd: 150,
+              insetInlineEnd:
+                windowSize.width > 1600
+                  ? 150
+                  : windowSize.width > 1200
+                  ? 90
+                  : windowSize.width > 1024
+                  ? 800
+                  : windowSize.width > 768
+                  ? 800
+                  : windowSize.width > 626
+                  ? 550
+                  : 250,
             }}
           />
         </div>

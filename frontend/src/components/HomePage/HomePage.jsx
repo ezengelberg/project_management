@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./HomePage.scss";
 import axios from "axios";
 import { Statistic, Alert, Calendar } from "antd";
@@ -22,20 +22,35 @@ import { handleMouseDown } from "../../utils/mouseDown";
 import StudentSubmissions from "../UploadSubmissions/UploadSubmissions";
 import AdvisorSubmissionsStatus from "../SubmissionsStatus/SubmissionsStatus";
 import SubmissionsManagement from "../Submissions/Submissions";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const Homepage = () => {
   const navigate = useNavigate();
+  const { newNotifications, markNotificationAsRead, fetchNotifications } = useContext(NotificationsContext);
   const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
   });
-  const [numOfOpenProjects, setNumOfOpenProjects] = useState(0);
-  const [numOfTakenProjects, setNumOfTakenProjects] = useState(0);
-  const [numOfFinishedProjects, setNumOfFinishedProjects] = useState(0);
   const [value, setValue] = useState(() => dayjs());
   const [selectedValue, setSelectedValue] = useState(() => dayjs());
-  const [notifications, setNotifications] = useState([]);
   const [userProject, setUserProject] = useState(null);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const CreateProjectSVG = () => (
     <svg className="special-icons" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000000">
       <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
@@ -101,29 +116,6 @@ const Homepage = () => {
   useEffect(() => {
     dayjs.locale("he");
     dayjs.extend(localeData);
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/status`, {
-          withCredentials: true,
-        });
-        setNumOfOpenProjects(response.data.numOfOpenProjects);
-        setNumOfTakenProjects(response.data.numOfTakenProjects);
-        setNumOfFinishedProjects(response.data.numOfFinishedProjects);
-      } catch (error) {
-        console.error("Error occurred:", error);
-      }
-    };
-
-    const fetchNotifications = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications`, {
-          withCredentials: true,
-        });
-        setNotifications(response.data.reverse().slice(0, 3)); // Reverse to show latest notifications first
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
-    };
 
     const fetchUserProject = async () => {
       try {
@@ -136,9 +128,8 @@ const Homepage = () => {
       }
     };
 
-    fetchData();
-    fetchNotifications();
     fetchUserProject();
+    fetchNotifications();
   }, []);
 
   const onSelect = (newValue) => {
@@ -167,33 +158,19 @@ const Homepage = () => {
     return monthLables[month];
   };
 
-  const formatter = (value) => <CountUp end={value} separator="," />;
-
-  const markNotificationAsRead = async (notificationId, link = null) => {
-    try {
-      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/read/${notificationId}`, null, {
-        withCredentials: true,
-      });
-      setNotifications((prevNotifications) =>
-        prevNotifications.filter((notification) => notification._id !== notificationId)
-      );
-      if (link) {
-        navigate(link);
-      }
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
+  const handleNotificationClick = (notification) => {
+    if (notification.link) {
+      navigate(notification.link);
+      markNotificationAsRead(notification._id);
     }
+  };
+
+  const handleNotificationClose = (notificationId) => {
+    markNotificationAsRead(notificationId);
   };
 
   return (
     <div className="home-page">
-      {currentUser.isCoordinator && (
-        <div className="home-page-statistics">
-          <Statistic title="פרויקטים פתוחים" value={numOfOpenProjects} formatter={formatter} />
-          <Statistic title="פרויקטים לקוחים" value={numOfTakenProjects} formatter={formatter} />
-          <Statistic title="פרויקטים שהושלמו" value={numOfFinishedProjects} formatter={formatter} />
-        </div>
-      )}
       <div className="home-page-info">
         <div className="home-page-quick-links">
           <h2>קישורים מהירים</h2>
@@ -307,18 +284,28 @@ const Homepage = () => {
             </span>
           </div>
           <div className="home-page-notifications-list">
-            {notifications.length === 0 ? (
+            {newNotifications.length === 0 ? (
               <p style={{ fontSize: "20px" }}>אין התראות חדשות</p>
             ) : (
-              notifications.map((notification) => (
+              newNotifications.slice(0, 3).map((notification) => (
                 <Alert
                   key={notification._id}
                   description={
                     <div className="notification-list-message">
                       {notification.link ? (
-                        <a onClick={() => markNotificationAsRead(notification._id, notification.link)}>
+                        <a onClick={() => handleNotificationClick(notification)}>
                           <p>
-                            {notification.message}
+                            {windowSize.width > 1200
+                              ? notification.message.length > 125
+                                ? `${notification.message.slice(0, 125)}...`
+                                : notification.message
+                              : windowSize.width > 1024
+                              ? notification.message.length > 115
+                                ? `${notification.message.slice(0, 115)}...`
+                                : notification.message
+                              : notification.message.length > 90
+                              ? `${notification.message.slice(0, 90)}...`
+                              : notification.message}
                             <br />
                             <span className="notification-list-date">
                               {new Date(notification.createdAt).toLocaleString("he-IL", {
@@ -333,7 +320,17 @@ const Homepage = () => {
                         </a>
                       ) : (
                         <p>
-                          {notification.message}
+                          {windowSize.width > 1200
+                            ? notification.message.length > 125
+                              ? `${notification.message.slice(0, 125)}...`
+                              : notification.message
+                            : windowSize.width > 1024
+                            ? notification.message.length > 115
+                              ? `${notification.message.slice(0, 115)}...`
+                              : notification.message
+                            : notification.message.length > 105
+                            ? `${notification.message.slice(0, 105)}...`
+                            : notification.message}
                           <br />
                           <span className="notification-list-date">
                             {new Date(notification.createdAt).toLocaleString("he-IL", {
@@ -348,7 +345,7 @@ const Homepage = () => {
                       )}
                       <CloseOutlined
                         className="notification-list-close-icon"
-                        onClick={() => markNotificationAsRead(notification._id)}
+                        onClick={() => handleNotificationClose(notification._id)}
                       />
                     </div>
                   }

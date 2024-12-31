@@ -5,8 +5,9 @@ import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { useNavigate } from "react-router-dom";
-import { Table, Divider, Badge, Button, Tooltip } from "antd";
+import { Table, Divider, Badge, Button, Tooltip, Select } from "antd";
 import { downloadFile } from "../../utils/downloadFile";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const SubmissionsStatus = () => {
   const navigate = useNavigate();
@@ -14,58 +15,93 @@ const SubmissionsStatus = () => {
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
+  const [yearFilter, setYearFilter] = useState("all");
+  const [years, setYears] = useState([]);
   const searchInput = useRef(null);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
 
   useEffect(() => {
-    setLoading(true);
-    try {
-      axios
-        .get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects/`, {
-          withCredentials: true,
-        })
-        .then(async (res) => {
-          const projects = res.data.projects.filter((project) => project.students.length > 0);
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
 
-          const submissionsPromises = projects.map((project) =>
-            axios.get(
-              `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-specific-project-submissions/${project._id}`,
-              {
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [projectsResponse, yearsResponse] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects/`, {
+            withCredentials: true,
+          }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
+            withCredentials: true,
+          }),
+        ]);
+
+        const projects = projectsResponse.data.projects.filter((project) => project.students.length > 0);
+
+        const submissionsPromises = projects.map((project) =>
+          axios.get(
+            `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-specific-project-submissions/${project._id}`,
+            {
+              withCredentials: true,
+            }
+          )
+        );
+
+        const studentPromises = projects.map((project) =>
+          Promise.all(
+            project.students.map((student) =>
+              axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${student.student}`, {
                 withCredentials: true,
-              }
-            )
-          );
-
-          const studentPromises = projects.map((project) =>
-            Promise.all(
-              project.students.map((student) =>
-                axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${student.student}`, {
-                  withCredentials: true,
-                })
-              )
-            )
-          );
-
-          const submissionsResponses = await Promise.all(submissionsPromises);
-          const studentResponses = await Promise.all(studentPromises);
-
-          const projectsWithSubmissionsAndStudents = projects.map((project, index) => ({
-            ...project,
-            submissions: submissionsResponses[index].data
-              .map((submission) => {
-                const { grades, ...rest } = submission;
-                return rest;
               })
-              .sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)),
-            students: studentResponses[index].map((response) => response.data),
-          }));
+            )
+          )
+        );
 
-          setProjects(projectsWithSubmissionsAndStudents);
-          setLoading(false);
-        });
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
-    }
+        const [submissionsResponses, studentResponses] = await Promise.all([
+          Promise.all(submissionsPromises),
+          Promise.all(studentPromises),
+        ]);
+
+        const projectsWithSubmissionsAndStudents = projects.map((project, index) => ({
+          ...project,
+          submissions: submissionsResponses[index].data
+            .map((submission) => {
+              const { grades, ...rest } = submission;
+              return rest;
+            })
+            .sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)),
+          students: studentResponses[index].map((response) => response.data),
+        }));
+
+        setProjects(projectsWithSubmissionsAndStudents);
+        setYears(yearsResponse.data.sort((a, b) => b.localeCompare(a)));
+
+        const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
+        const currentHebrewYearIndex = yearsResponse.data.indexOf(currentHebrewYear);
+        setYearFilter(
+          currentHebrewYearIndex !== -1 ? yearsResponse.data[currentHebrewYearIndex] : yearsResponse.data[0]
+        );
+
+        setLoading(false);
+      } catch (error) {
+        console.log(error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
@@ -83,7 +119,9 @@ const SubmissionsStatus = () => {
     getColumnSearchPropsUtil(dataIndex, searchInput, handleSearch, handleReset, searchText);
 
   const getBadgeStatus = (submission) => {
-    if (!submission.submitted) {
+    if (!submission.fileNeeded) {
+      return { color: "green", text: "לא נדרש קובץ" };
+    } else if (!submission.submitted) {
       return { color: "red", text: "לא הוגש" };
     } else if (submission.submitted && new Date(submission.submissionDate) < new Date(submission.uploadDate)) {
       return {
@@ -102,7 +140,17 @@ const SubmissionsStatus = () => {
       title: "שם פרויקט",
       dataIndex: "projectName",
       key: "projectName",
-      width: "25%",
+      fixed: windowSize.width > 626 && "left",
+      width:
+        windowSize.width > 1600
+          ? "30%"
+          : windowSize.width > 1200
+          ? "25%"
+          : windowSize.width > 1024
+          ? 330
+          : windowSize.width > 768
+          ? 300
+          : 200,
       ...getColumnSearchProps("projectName"),
       render: (text, record) => (
         <a
@@ -113,8 +161,20 @@ const SubmissionsStatus = () => {
             searchWords={[searchText]}
             autoEscape
             textToHighlight={
-              record.projectName && record.projectName.length > 50
-                ? `${record.projectName.slice(0, 50)}...`
+              windowSize.width > 1600
+                ? record.projectName && record.projectName.length > 60
+                  ? `${record.projectName.slice(0, 60)}...`
+                  : record.projectName
+                : windowSize.width > 1200
+                ? record.projectName && record.projectName.length > 50
+                  ? `${record.projectName.slice(0, 50)}...`
+                  : record.projectName
+                : windowSize.width > 1024
+                ? record.projectName && record.projectName.length > 35
+                  ? `${record.projectName.slice(0, 35)}...`
+                  : record.projectName
+                : record.projectName && record.projectName.length > 30
+                ? `${record.projectName.slice(0, 30)}...`
                 : record.projectName
             }
           />
@@ -128,12 +188,26 @@ const SubmissionsStatus = () => {
       title: "שם סטודנט",
       dataIndex: "studentName",
       key: "studentName",
-      width: "20%",
+      width: windowSize.width > 1600 ? "15%" : windowSize.width > 1200 ? "10%" : windowSize.width > 1024 ? 150 : 150,
       render: (text, record) => (
         <div className="submission-status-students">
           {record.students.map((student, index) => (
             <div key={index}>
-              {student.name}
+              {windowSize.width > 1600
+                ? student.name.length > 30
+                  ? (student.name = student.name.substring(0, 30) + "...")
+                  : student.name
+                : windowSize.width > 1200
+                ? student.name.length > 20
+                  ? (student.name = student.name.substring(0, 20) + "...")
+                  : student.name
+                : windowSize.width > 1024
+                ? student.name.length > 15
+                  ? (student.name = student.name.substring(0, 15) + "...")
+                  : student.name
+                : student.name.length > 15
+                ? (student.name = student.name.substring(0, 15) + "...")
+                : student.name}
               {index !== record.students.length - 1 && record.students.length > 1 && (
                 <Divider type="vertical" style={{ borderColor: "black" }} />
               )}
@@ -151,7 +225,7 @@ const SubmissionsStatus = () => {
       title: "הגשות",
       dataIndex: "submissions",
       key: "submissions",
-      width: "55%",
+      width: windowSize.width > 1600 ? "55%" : windowSize.width > 1200 ? "65%" : windowSize.width > 1024 ? 500 : 500,
       render: (text, record) => (
         <div className="submission-status-submissions">
           {record.submissions.map((submission, index) => (
@@ -179,13 +253,14 @@ const SubmissionsStatus = () => {
                 <div className="submission-late-status">
                   {submission.submissionDate &&
                     new Date(submission.submissionDate) < new Date() &&
+                    submission.fileNeeded &&
                     !submission.submitted &&
                     `הגשה באיחור! - ${Math.ceil(
                       (new Date() - new Date(submission.submissionDate)) / (1000 * 60 * 60 * 24)
                     )} ימים`}
                 </div>
                 <Badge color={getBadgeStatus(submission).color} text={getBadgeStatus(submission).text} />
-                {submission.isReviewed && submission.submitted && submission.file && (
+                {submission.submitted && submission.file && (
                   <Button color="primary" variant="filled" onClick={() => downloadFile(submission.file, "submissions")}>
                     הורד הגשה
                   </Button>
@@ -213,18 +288,34 @@ const SubmissionsStatus = () => {
     },
   ];
 
-  const dataSource = projects.map((project) => {
+  const filteredProjects = projects.filter((project) => {
+    if (yearFilter === "all") return true;
+    return project.year === yearFilter;
+  });
+
+  const dataSource = filteredProjects.map((project) => {
     return {
       key: project._id,
       projectName: project.title,
       students: project.students,
+      projectYear: project.year,
       submissions: project.submissions,
     };
   });
 
   return (
     <div className="submission-status-container">
-      <Table columns={columns} dataSource={dataSource} loading={loading} />
+      <div className="upper-table-options">
+        <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px" }}>
+          <Select.Option value="all">כל השנים</Select.Option>
+          {years.map((year) => (
+            <Select.Option key={year} value={year}>
+              {year}
+            </Select.Option>
+          ))}
+        </Select>
+      </div>
+      <Table columns={columns} dataSource={dataSource} loading={loading} scroll={{ x: "max-content" }} />
     </div>
   );
 };

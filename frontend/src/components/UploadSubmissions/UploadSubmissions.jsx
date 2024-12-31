@@ -1,10 +1,20 @@
-import React, { useEffect, useState, useRef, forwardRef } from "react";
+import React, { useEffect, useState, useRef, forwardRef, useContext } from "react";
 import { Badge, Table, Tooltip, Modal, Upload, message, Divider } from "antd";
-import { UploadOutlined, DeleteOutlined, InboxOutlined, EyeOutlined } from "@ant-design/icons";
+import {
+  UploadOutlined,
+  DeleteOutlined,
+  InboxOutlined,
+  EyeOutlined,
+  DownloadOutlined,
+  BarChartOutlined,
+} from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import axios from "axios";
 import "./UploadSubmissions.scss";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
+import { downloadFile } from "../../utils/downloadFile";
+import { NotificationsContext } from "../../utils/NotificationsContext";
+import GradeDistributionChart from "../../utils/GradeDistributionChart";
 
 const SafeTooltip = forwardRef(({ title, children }, ref) => (
   <Tooltip title={title}>
@@ -13,6 +23,7 @@ const SafeTooltip = forwardRef(({ title, children }, ref) => (
 ));
 
 const UploadSubmissions = () => {
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [submissions, setSubmissions] = useState([]);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -24,6 +35,25 @@ const UploadSubmissions = () => {
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
   const [gradeInfo, setGradeInfo] = useState(null);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+  const [isGradeDistributionModalVisible, setIsGradeDistributionModalVisible] = useState(false);
+  const [gradeDistributionData, setGradeDistributionData] = useState([]);
+  const [additionalData, setAdditionalData] = useState({});
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const showUploadModal = (sub) => {
     setCurrentSubmission(sub);
@@ -39,6 +69,45 @@ const UploadSubmissions = () => {
   const showConfirmModal = (sub) => {
     setCurrentSubmission(sub);
     setIsConfirmModalVisible(true);
+  };
+
+  const showGradeDistributionModal = async (submissionId) => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/grade-distribution/${submissionId}`,
+        {
+          withCredentials: true,
+        }
+      );
+      const {
+        distribution,
+        average,
+        median,
+        lowest,
+        highest,
+        failPercentage,
+        submissionName,
+        projectYear,
+        currentSubmissionFinalGrade,
+        numberOfGrades,
+        currentSubmissionGradeIndex,
+      } = response.data;
+      setGradeDistributionData(distribution);
+      setAdditionalData({
+        average,
+        median,
+        lowest,
+        highest,
+        failPercentage,
+        submissionName,
+        userGrade: currentSubmissionFinalGrade,
+        projectYear,
+        userRank: `${currentSubmissionGradeIndex + 1} מתוך ${numberOfGrades}`,
+      });
+      setIsGradeDistributionModalVisible(true);
+    } catch (error) {
+      console.error("Error fetching grade distribution:", error);
+    }
   };
 
   const { Dragger } = Upload;
@@ -80,7 +149,7 @@ const UploadSubmissions = () => {
       // Send POST request to delete the file & remove its' schema reference
       await axios.delete(
         `${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete/${currentSubmission.file}?destination=submissions`,
-        { withCredentials: true },
+        { withCredentials: true }
       );
       // POST request to remove file form submission schema
       await axios.post(
@@ -89,14 +158,15 @@ const UploadSubmissions = () => {
           file: null,
           sentFromDelete: true,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
       const submissionsUpdated = submissions.map((submission) =>
-        submission._id === currentSubmission._id ? { ...submission, file: null } : submission,
+        submission._id === currentSubmission._id ? { ...submission, file: null } : submission
       );
       setSubmissions(submissionsUpdated);
       message.info(`הגשה עבור ${currentSubmission.name} נמחקה בהצלחה`);
       setIsConfirmModalVisible(false);
+      fetchNotifications();
     } catch (error) {
       console.error(error);
     }
@@ -119,13 +189,12 @@ const UploadSubmissions = () => {
         data.map(async (submission) => {
           const projectResponse = await axios.get(
             `${process.env.REACT_APP_BACKEND_URL}/api/project/get-project/${submission.project}`,
-            { withCredentials: true },
+            { withCredentials: true }
           );
           const projectName = projectResponse.data.title;
           return { ...submission, projectName };
-        }),
+        })
       );
-
       setSubmissions(submissionsWithProjectNames);
     } catch (error) {
       console.error("Error fetching submissions:", error);
@@ -180,7 +249,7 @@ const UploadSubmissions = () => {
             "X-Filename-Encoding": "url",
           },
           withCredentials: true,
-        },
+        }
       );
       // Show success message and reset file
       const uploadedFile = response.data.files[0]._id;
@@ -190,16 +259,14 @@ const UploadSubmissions = () => {
         {
           file: uploadedFile,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
 
-      const submissionsUpdated = submissions.map((submission) =>
-        submission._id === currentSubmission._id ? { ...submission, file: uploadedFile } : submission,
-      );
-      setSubmissions(submissionsUpdated);
+      fetchPendingSubmissions();
       setFile(null); // Clear the selected file
       closeModal(); // Close the modal
       message.success(`הגשה עבור ${currentSubmission.name} הועלתה בהצלחה`);
+      fetchNotifications();
     } catch (error) {
       console.error("Error occurred:", error);
       if (error.response?.status === 500 || error.response?.status === 409) {
@@ -231,6 +298,7 @@ const UploadSubmissions = () => {
       title: "שם ההגשה",
       dataIndex: "submissionName",
       key: "submissionName",
+      fixed: windowSize.width > 626 && "left",
       ...getColumnSearchProps("submissionName"),
       render: (text) => (
         <Highlighter
@@ -240,12 +308,13 @@ const UploadSubmissions = () => {
           textToHighlight={text ? text.toString() : ""}
         />
       ),
-      width: "22.5%",
+      width: windowSize.width > 1200 ? "27.5%" : 400,
     },
     {
       title: "תאריך הגשה",
       dataIndex: "submissionDate",
       key: "submissionDate",
+      fixed: windowSize.width > 626 && "left",
       render: (text, record) => {
         const submissionDate = new Date(record.submissionDate);
         const isPastDue = submissionDate < new Date();
@@ -253,16 +322,21 @@ const UploadSubmissions = () => {
         return (
           <SafeTooltip
             title={`${
-              !record.file && isPastDue
+              record.fileNeeded && !record.file && isPastDue
                 ? "תאריך ההגשה עבר, ההגשה באיחור"
-                : !record.file && isDateClose
+                : record.fileNeeded && !record.file && isDateClose
                 ? "תאריך הגשה מתקרב"
                 : ""
             }`}>
             <span
               style={{
-                color: !record.file && isPastDue ? "red" : !record.file && isDateClose ? "#f58623" : "inherit",
-                fontWeight: !record.file && (isPastDue || isDateClose) ? "bold" : "normal",
+                color:
+                  record.fileNeeded && !record.file && isPastDue
+                    ? "red"
+                    : record.fileNeeded && !record.file && isDateClose
+                    ? "#f58623"
+                    : "inherit",
+                fontWeight: record.fileNeeded && !record.file && (isPastDue || isDateClose) ? "bold" : "normal",
               }}>
               {submissionDate.toLocaleString("he-IL", {
                 hour: "2-digit",
@@ -280,7 +354,7 @@ const UploadSubmissions = () => {
       },
       defaultSortOrder: "ascend",
       sortDirections: ["descend", "ascend"],
-      width: "20%",
+      width: windowSize.width > 1200 ? "15%" : 200,
     },
     {
       title: "סטטוס הגשה",
@@ -291,16 +365,20 @@ const UploadSubmissions = () => {
         const days = Math.ceil((new Date(record.uploadDate) - new Date(record.submissionDate)) / (1000 * 60 * 60 * 24));
         return (
           <span>
-            {record.file ? (
-              isLate ? (
-                <SafeTooltip title={`2 נקודות קנס על כל יום איחור - סה"כ ${days * 2} נקודות`}>
-                  <Badge color={"darkgreen"} text={`הוגש באיחור - ${days} ימים`} />
-                </SafeTooltip>
+            {record.fileNeeded ? (
+              record.file ? (
+                isLate ? (
+                  <SafeTooltip title={`2 נקודות קנס על כל יום איחור - סה"כ ${days * 2} נקודות`}>
+                    <Badge color={"darkgreen"} text={`הוגש באיחור - ${days} ימים`} />
+                  </SafeTooltip>
+                ) : (
+                  <Badge color={"green"} text={"הוגש"} />
+                )
               ) : (
-                <Badge color={"green"} text={"הוגש"} />
+                <Badge color="orange" text="לא הוגש" />
               )
             ) : (
-              <Badge color="orange" text="לא הוגש" />
+              <Badge color="green" text="לא נדרש קובץ" />
             )}
           </span>
         );
@@ -314,14 +392,21 @@ const UploadSubmissions = () => {
           text: "לא הוגש",
           value: "לא הוגש",
         },
+        {
+          text: "לא נדרש קובץ",
+          value: "לא נדרש קובץ",
+        },
       ],
       onFilter: (value, record) => {
         if (value === "הוגש") {
           return record.file;
         }
-        return !record.file;
+        if (value === "לא הוגש") {
+          return !record.file && record.fileNeeded;
+        }
+        return !record.fileNeeded;
       },
-      width: "22.5%",
+      width: windowSize.width > 626 ? "17.5%" : 300,
     },
     {
       title: "הנחיות",
@@ -354,31 +439,66 @@ const UploadSubmissions = () => {
       key: "action",
       render: (text, record) => (
         <span>
-          {!record.file ? (
+          {!record.file && record.fileNeeded ? (
             <a>
               <UploadOutlined className="edit-icon" onClick={() => showUploadModal(record)} />
             </a>
-          ) : new Date(record.submissionDate) > new Date() ? (
-            <a>
-              <DeleteOutlined className="edit-icon" onClick={() => showConfirmModal(record)} />
-            </a>
+          ) : new Date(record.submissionDate) > new Date() && record.fileNeeded ? (
+            <div className="icon-group">
+              <a>
+                <DownloadOutlined className="edit-icon" onClick={() => downloadFile(record.file, "submissions")} />
+              </a>
+              <a>
+                <DeleteOutlined className="edit-icon" onClick={() => showConfirmModal(record)} />
+              </a>
+            </div>
           ) : record.editable === false ? (
-            <a>
-              <Tooltip title="לצפיה בציון">
-                <EyeOutlined
-                  className="edit-icon"
-                  onClick={() => {
-                    setGradeInfo(record);
-                  }}
-                />
+            <div className="icon-group">
+              <a>
+                <Tooltip title="צפיה בציון">
+                  <EyeOutlined
+                    className="edit-icon"
+                    onClick={() => {
+                      setGradeInfo(record);
+                    }}
+                  />
+                </Tooltip>
+              </a>
+              <Divider type="vertical" style={{ height: "1.9em" }} />
+              {record.fileNeeded && (
+                <>
+                  <a>
+                    <Tooltip title="הורדת קובץ מקור">
+                      <DownloadOutlined
+                        className="edit-icon"
+                        onClick={() => downloadFile(record.file, "submissions")}
+                      />
+                    </Tooltip>
+                  </a>
+                  <Divider type="vertical" style={{ height: "1.9em" }} />
+                </>
+              )}
+              <a>
+                <Tooltip className="edit-icon" title="כל הציונים">
+                  <BarChartOutlined onClick={() => showGradeDistributionModal(record._id)} />
+                </Tooltip>
+              </a>
+            </div>
+          ) : record.fileNeeded ? (
+            <span>
+              תאריך הגשה עבר <br />
+              <Tooltip title="לחץ להורדת קובץ מקור">
+                <a style={{ fontWeight: "bold" }} onClick={() => downloadFile(record.file, "submissions")}>
+                  הורדת קובץ מקור
+                </a>
               </Tooltip>
-            </a>
+            </span>
           ) : (
-            "תאריך הגשה עבר"
+            <span>הגשה ללא קובץ</span>
           )}
         </span>
       ),
-      width: "10%",
+      width: windowSize.width > 1200 ? "15%" : 200,
     },
   ];
 
@@ -387,7 +507,17 @@ const UploadSubmissions = () => {
       <Modal
         title={`צפיה בציון`}
         open={gradeInfo != null}
-        width="40%"
+        width={
+          windowSize.width > 1600
+            ? "40%"
+            : windowSize.width > 1200
+            ? "50%"
+            : windowSize.width > 1024
+            ? "65%"
+            : windowSize.width > 768
+            ? "80%"
+            : "90%"
+        }
         cancelText="סגור"
         onCancel={() => setGradeInfo(null)}
         okButtonProps={{ style: { display: "none" } }}>
@@ -415,14 +545,14 @@ const UploadSubmissions = () => {
                 </div>
               </div>
               {Math.ceil(
-                (new Date(gradeInfo?.uploadDate) - new Date(gradeInfo?.submissionDate)) / (1000 * 60 * 60 * 24),
+                (new Date(gradeInfo?.uploadDate) - new Date(gradeInfo?.submissionDate)) / (1000 * 60 * 60 * 24)
               ) > 0 && (
                 <Tooltip title="2 נקודות על כל יום איחור" placement="rightTop">
                   <div className="detail-item">
                     <div className="detail-item-header">נקודות קנס:</div>
                     <div className="detail-item-content" style={{ color: "red", fontWeight: "bold" }}>
                       {Math.ceil(
-                        (new Date(gradeInfo?.uploadDate) - new Date(gradeInfo?.submissionDate)) / (1000 * 60 * 60 * 24),
+                        (new Date(gradeInfo?.uploadDate) - new Date(gradeInfo?.submissionDate)) / (1000 * 60 * 60 * 24)
                       ) * 2}
                     </div>
                   </div>
@@ -430,7 +560,7 @@ const UploadSubmissions = () => {
               )}
             </>
           )}
-
+          <Divider />
           {gradeInfo?.isReviewed && (
             <div className="reviews">
               {gradeInfo.grades.map((grade, index) => (
@@ -451,7 +581,10 @@ const UploadSubmissions = () => {
                     </div>
                   </div>
                   {index !== gradeInfo.grades.length - 1 && gradeInfo.grades.length > 1 && (
-                    <Divider type="vertical" style={{ height: "100%", margin: "0 5px" }} />
+                    <Divider
+                      type={windowSize.width > 626 ? "vertical" : "horizontal"}
+                      style={{ height: windowSize.width > 626 && "100%", margin: windowSize.width > 626 && "0 5px" }}
+                    />
                   )}
                 </div>
               ))}
@@ -462,7 +595,19 @@ const UploadSubmissions = () => {
       <Modal
         title={`מחיקת הגשה עבור ${currentSubmission?.name}`}
         open={isConfirmModalVisible}
-        width="15%"
+        width={
+          windowSize.width > 1600
+            ? "15%"
+            : windowSize.width > 1200
+            ? "25%"
+            : windowSize.width > 1024
+            ? "30%"
+            : windowSize.width > 768
+            ? "40%"
+            : windowSize.width > 626
+            ? "50%"
+            : "90%"
+        }
         okText="אשר מחיקה"
         okButtonProps={{ danger: true }}
         cancelText="סגור"
@@ -478,7 +623,17 @@ const UploadSubmissions = () => {
         okText="העלה הגשה"
         cancelText="ביטול"
         okButtonProps={{ disabled: !file }}
-        width="30%">
+        width={
+          windowSize.width > 1600
+            ? "30%"
+            : windowSize.width > 1200
+            ? "50%"
+            : windowSize.width > 1024
+            ? "60%"
+            : windowSize.width > 768
+            ? "80%"
+            : "90%"
+        }>
         <div className="submission-modal">
           {currentSubmission?.submissionInfo && (
             <div className="submission-info">
@@ -508,7 +663,21 @@ const UploadSubmissions = () => {
           </Dragger>
         </div>
       </Modal>
-      <Table dataSource={submissions} columns={columns} />
+      <Modal
+        title="התפלגות ציונים"
+        open={isGradeDistributionModalVisible}
+        onCancel={() => setIsGradeDistributionModalVisible(false)}
+        footer={null}
+        width={windowSize.width > 1600 ? "60%" : windowSize.width > 1200 ? "70%" : "100%"}>
+        <GradeDistributionChart data={gradeDistributionData} additionalData={additionalData} />
+      </Modal>
+      <Table
+        dataSource={submissions}
+        columns={columns}
+        scroll={{
+          x: "max-content",
+        }}
+      />
     </div>
   );
 };

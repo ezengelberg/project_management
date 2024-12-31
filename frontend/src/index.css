@@ -31,6 +31,7 @@ body {
   flex: 7;
   display: flex;
   flex-direction: column;
+  width: calc(100% - 22rem);
 }
 
 .header-container {
@@ -72,16 +73,6 @@ hr {
   font-size: 2.5rem;
 }
 
-.button-large {
-  font-size: 2.2rem;
-  font-weight: 600;
-  padding: 2rem 7rem;
-  text-align: center;
-  border-radius: 10rem;
-  border: 0;
-  cursor: pointer;
-}
-
 .form-input-group {
   position: relative;
   display: flex;
@@ -114,6 +105,10 @@ hr {
   left: 0;
   transform: translateY(-50%);
   font-size: 1.5rem !important;
+}
+
+.ant-modal {
+  right: 3.5%;
 }
 
 /* ------------------- Rich Text ------------------- */
@@ -164,12 +159,118 @@ hr {
 
 /* ------------------- Rich Text ------------------- */
 
-.ant-modal {
-  right: 3.5%;
+.grade-distribution-chart {
+  display: flex;
 }
 
-@media (max-width: 640px) {
+.bar-grade-chart {
+  margin-right: 2rem;
+}
+
+/* ------------------ Tablet/Phone ----------------- */
+
+.hamburger-button {
+  display: none;
+  position: absolute;
+  top: 1.5rem;
+  right: 1rem;
+  width: 5rem;
+  height: 5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+@media screen and (max-width: 1600px) {
+  html {
+    font-size: 9px;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  html {
+    font-size: 9px;
+  }
+  .ant-modal {
+    right: 0;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  html {
+    font-size: 8.5px;
+  }
+  .sidebar-container {
+    display: none;
+  }
+  .hamburger-button {
+    display: block;
+  }
+  .ant-modal {
+    right: 0;
+  }
+}
+
+@media screen and (max-width: 768px) {
   html {
     font-size: 8px;
   }
+  .sidebar-container {
+    display: none;
+  }
+  .hamburger-button {
+    display: block;
+  }
+  .ant-modal {
+    right: 0;
+  }
+  .grade-distribution-chart {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .bar-grade-chart {
+    margin-right: 0;
+  }
 }
+
+@media screen and (max-width: 626px) {
+  html {
+    font-size: 7px;
+  }
+  h2 {
+    font-size: 2.7rem;
+  }
+  .sidebar-container {
+    display: none;
+  }
+  .hamburger-button {
+    display: block;
+  }
+  .ant-modal {
+    right: 0;
+  }
+  .ant-list-pagination .ant-pagination-item {
+    min-width: unset;
+  }
+  .ant-pagination .ant-pagination-item {
+    min-width: unset;
+  }
+  .ant-upload .ant-upload-drag-container p.ant-upload-text {
+    font-size: 1.7rem;
+  }
+  .ant-upload .ant-upload-drag-container p.ant-upload-hint {
+    font-size: 1.7rem;
+  }
+  .ant-upload-drag p.ant-upload-drag-icon .anticon {
+    font-size: 5rem !important;
+  }
+  .ant-table {
+    font-size: 1.8rem !important;
+  }
+  .ant-badge.ant-badge-status .ant-badge-status-text {
+    font-size: 1.8rem;
+  }
+}
+
+/* ------------------ Tablet/Phone ----------------- */
