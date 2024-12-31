@@ -10,7 +10,8 @@ import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const HeaderMenu = () => {
   const navigate = useNavigate();
-  const { newNotifications, unreadCount, markNotificationAsRead } = useContext(NotificationsContext);
+  const { newNotifications, unreadCount, markNotificationAsRead, markAllNotificationsAsRead } =
+    useContext(NotificationsContext);
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
@@ -44,6 +45,11 @@ const HeaderMenu = () => {
   const handleNotificationClose = (e, notificationId) => {
     e.stopPropagation();
     markNotificationAsRead(notificationId);
+  };
+
+  const handleNotificationClear = () => {
+    markAllNotificationsAsRead();
+    hide();
   };
 
   const hide = () => {
@@ -128,7 +134,12 @@ const HeaderMenu = () => {
       <div className="site-upper-header-left">
         <Popover
           content={content}
-          title={<div style={{ textAlign: "center" }}>התראות אחרונות</div>}
+          title={
+            <div className="notification-header-menu">
+              <p>התראות אחרונות</p>
+              <a onClick={() => markAllNotificationsAsRead()}>נקה הכל</a>
+            </div>
+          }
           trigger="click"
           open={open}
           onOpenChange={handleOpenChange}>

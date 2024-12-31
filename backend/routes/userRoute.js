@@ -31,8 +31,9 @@ import {
   markAllNotificationsAsRead,
   markNotificationAsRead,
   deleteNotification,
+  clearAllNotifications,
 } from "../controllers/notificationController.js";
-import { ensureAuthenticated, isAdvisor, isCoordinator } from "../middleware/auth.js";
+import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -76,5 +77,6 @@ router.get("/notifications/all", ensureAuthenticated, getAllNotifications);
 router.put("/notifications/read", ensureAuthenticated, markAllNotificationsAsRead);
 router.put("/notifications/read/:notificationId", ensureAuthenticated, markNotificationAsRead);
 router.delete("/notifications/delete/:notificationId", ensureAuthenticated, deleteNotification);
+router.put("/notifications/clear", ensureAuthenticated, clearAllNotifications);
 
 export default router;

@@ -52,6 +52,21 @@ export const NotificationsProvider = ({ children }) => {
     }
   };
 
+  const markAllNotificationsAsRead = async () => {
+    try {
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/clear`, null, {
+        withCredentials: true,
+      });
+      setUnreadCount(0);
+      setNewNotifications([]);
+      setOldNotifications((prevNotifications) =>
+        prevNotifications.map((notification) => ({ ...notification, read: true }))
+      );
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    }
+  };
+
   const deleteNotification = async (notificationId) => {
     try {
       await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/user/notifications/delete/${notificationId}`, {
@@ -76,6 +91,7 @@ export const NotificationsProvider = ({ children }) => {
         setNewNotifications,
         setOldNotifications,
         fetchNotifications,
+        markAllNotificationsAsRead,
       }}>
       {children}
     </NotificationsContext.Provider>

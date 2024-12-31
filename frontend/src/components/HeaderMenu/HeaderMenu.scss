@@ -98,6 +98,17 @@
   }
 }
 
+.notification-header-menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 30rem;
+
+  p {
+    margin: 0;
+  }
+}
+
 @media screen and (max-width: 1024px) {
   .header-container {
     .collage-logo {
