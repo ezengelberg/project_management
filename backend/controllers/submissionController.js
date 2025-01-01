@@ -595,6 +595,12 @@ export const deleteSubmission = async (req, res) => {
         await Upload.deleteOne({ _id: submission.file });
       }
     }
+    const grades = await Grade.find({ _id: { $in: submission.grades } });
+    await Promise.all(
+      grades.map(async (grade) => {
+        await grade.deleteOne({ _id: grade._id });
+      }),
+    );
     await Submission.deleteOne({ _id: submission._id });
     res.status(200).json({ message: "Submission deleted successfully" });
   } catch (error) {
