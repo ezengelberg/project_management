@@ -134,6 +134,8 @@ const Submissions = () => {
         ).values(),
       ];
 
+      console.log(submissionDetails);
+
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
           (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
@@ -574,6 +576,7 @@ const Submissions = () => {
                 (sub.isReviewed &&
                   sub.editable === false &&
                   grades.some((grade) => grade.videoQuality === undefined || grade.videoQuality === undefined));
+              console.log(waitingCheck);
               return (
                 <div className="table-col-div" key={index}>
                   <div
@@ -628,7 +631,7 @@ const Submissions = () => {
                         </Button>
                       )}
                       <div>
-                        {waitingCheck && sub.submitted ? (
+                        {waitingCheck && (sub.submitted || !sub.fileNeeded) ? (
                           <Badge color="blue" text="מחכה לבדיקה" />
                         ) : !waitingCheck &&
                           ((sub.isGraded && sub.finalGrade === null) || (sub.isReviewed && sub.editable === true)) ? (
