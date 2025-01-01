@@ -155,6 +155,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               overridden: submission.overridden,
               finalGrade: submission.finalGrade,
               file: submission.file,
+              editable: submission.editable,
             };
           }),
         );
