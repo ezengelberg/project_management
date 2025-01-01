@@ -134,8 +134,6 @@ const Submissions = () => {
         ).values(),
       ];
 
-      console.log(submissionDetails);
-
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
           (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
@@ -574,9 +572,12 @@ const Submissions = () => {
               const waitingCheck =
                 (sub.isGraded && grades.some((grade) => grade.grade === null)) ||
                 (sub.isReviewed &&
-                  sub.editable === false &&
-                  grades.some((grade) => grade.videoQuality === undefined || grade.videoQuality === undefined));
-              console.log(waitingCheck);
+                  grades.some(
+                    (grade) =>
+                      grade.videoQuality === undefined ||
+                      grade.workQuality === undefined ||
+                      grade.writingQuality === undefined,
+                  ));
               return (
                 <div className="table-col-div" key={index}>
                   <div
