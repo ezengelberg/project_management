@@ -648,6 +648,7 @@ const Submissions = () => {
                             />
                           )
                         )}
+                        {sub?.isReviewed && !sub?.isGraded && !sub.editable && <Badge color="pink" text="משוב פורסם" />}
                       </div>
                     </div>
                   </div>
