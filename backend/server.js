@@ -48,9 +48,15 @@ app.use(passport.session());
 const corsOptions = {
   origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
   credentials: true, // Allow cookies and credentials
+  sameSite: "none", // Required for cross-origin cookies
 };
 
+// Apply CORS globally
 app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options("*", cors(corsOptions));
+
 // Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); // Middleware to parse URL-encoded bodies
@@ -88,5 +94,5 @@ app.listen(server_port, () => {
   connectDB().then(() => {
     initializeConfig();
   });
-  console.log(`Server is running at http://localhost:${server_port}`);
+  console.log(`Server is running at port: ${server_port}`);
 });
