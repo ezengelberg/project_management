@@ -8,6 +8,7 @@ import {
   updateFile,
   getSpecificFileInfo,
   getFiles,
+  deleteAllFiles,
 } from "../controllers/uploadsController.js";
 import { ensureAuthenticated } from "../middleware/auth.js";
 
@@ -39,5 +40,6 @@ router.put("/update/:id", ensureAuthenticated, updateFile);
 router.delete("/delete/:id", ensureAuthenticated, deleteFile);
 router.get("/download/:id", ensureAuthenticated, downloadFile);
 router.get("/info/:id", ensureAuthenticated, getSpecificFileInfo);
+router.delete("/delete-all", ensureAuthenticated, deleteAllFiles);
 
 export default router;

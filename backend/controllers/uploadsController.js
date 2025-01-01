@@ -192,3 +192,20 @@ export const downloadFile = async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 };
+
+export const deleteAllFiles = async (req, res) => {
+  try {
+    const files = await Upload.find();
+    for (const file of files) {
+      const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+    await Upload.deleteMany();
+    res.status(200).json({ message: "All files deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting files:", error);
+    res.status(500).json({ message: "Failed to delete files" });
+  }
+};

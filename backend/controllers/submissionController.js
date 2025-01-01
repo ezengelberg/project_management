@@ -851,3 +851,28 @@ export const getGradeDistribution = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const deleteAllSubmissions = async (req, res) => {
+  try {
+    const submissions = await Submission.find();
+    for (const submission of submissions) {
+      // Delete associated grades
+      await Grade.deleteMany({ _id: { $in: submission.grades } });
+
+      // Delete associated file
+      if (submission.file) {
+        const file = await Upload.findById(submission.file);
+        if (file) {
+          const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+          await Upload.deleteOne({ _id: submission.file });
+        }
+      }
+    }
+    await Submission.deleteMany();
+    res.status(200).json({ message: "All submissions deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting submissions:", error);
+    res.status(500).json({ message: "Failed to delete submissions" });
+  }
+};

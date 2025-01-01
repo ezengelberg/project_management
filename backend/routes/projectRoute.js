@@ -24,6 +24,7 @@ import {
   getActiveProjects,
   getProjectYears,
   startProjectsCoordinator,
+  deleteAllProjects,
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../middleware/auth.js";
 
@@ -53,5 +54,6 @@ router.put("/restore-project/:id", ensureAuthenticated, isCoordinator, restorePr
 router.post("/assign-advisors-automatically", ensureAuthenticated, isCoordinator, assignAdvisorsAutomatically);
 router.put("/start-projects-coordinator", ensureAuthenticated, isCoordinator, startProjectsCoordinator);
 router.get("/years", getProjectYears);
+router.delete("/delete-all", ensureAuthenticated, isCoordinator, deleteAllProjects);
 
 export default router;

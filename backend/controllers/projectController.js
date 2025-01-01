@@ -746,3 +746,38 @@ export const startProjectsCoordinator = async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 };
+
+export const deleteAllProjects = async (req, res) => {
+  try {
+    const projects = await Project.find();
+    for (const project of projects) {
+      // Detach students and advisors
+      project.students = [];
+      project.advisors = [];
+      await project.save();
+
+      // Delete associated submissions
+      const submissions = await Submission.find({ project: project._id });
+      for (const submission of submissions) {
+        // Delete associated grades
+        await Grade.deleteMany({ _id: { $in: submission.grades } });
+
+        // Delete associated file
+        if (submission.file) {
+          const file = await Upload.findById(submission.file);
+          if (file) {
+            const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            await Upload.deleteOne({ _id: submission.file });
+          }
+        }
+      }
+      await Submission.deleteMany({ project: project._id });
+    }
+    await Project.deleteMany();
+    res.status(200).json({ message: "All projects deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting projects:", error);
+    res.status(500).json({ message: "Failed to delete projects" });
+  }
+};
