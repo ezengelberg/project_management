@@ -14,17 +14,17 @@ router.get("/get-config", ensureAuthenticated, isCoordinator, async (req, res) =
 });
 
 router.post("/update-config", ensureAuthenticated, isCoordinator, async (req, res) => {
-    const config = await Config.findOne();
-    if(!config) {
-        res.status(404);
-        throw new Error("Config not found");
-    } else {
-        for (const [key, value] of Object.entries(req.body)) {
-            config[key] = value;
-        }
-        await config.save();
-        res.status(200).json("Configuration file updated successfully");
+  const config = await Config.findOne();
+  if (!config) {
+    res.status(404);
+    throw new Error("Config not found");
+  } else {
+    for (const [key, value] of Object.entries(req.body)) {
+      config[key] = value;
     }
+    await config.save();
+    res.status(200).json("Configuration file updated successfully");
+  }
 });
 
 export default router;

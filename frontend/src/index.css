@@ -153,6 +153,7 @@ hr {
 .ql-font,
 .ql-align,
 .ql-code-block,
+.ql-image,
 .ql-list[value="bullet"] {
   display: none !important;
 }

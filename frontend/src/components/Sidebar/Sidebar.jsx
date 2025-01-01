@@ -14,6 +14,7 @@ import {
   MessageOutlined,
   CloseOutlined,
   LogoutOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -364,6 +365,17 @@ const Sidebar = () => {
                 <div className="sidebar-option" onClick={handleLogout}>
                   <LogoutOutlined className="logout-icon" />
                   <span>התנתקות</span>
+                </div>
+              </li>
+            )}
+            {user.isCoordinator && (
+              <li>
+                <div
+                  className={`sidebar-option ${isActive("/delete-all") ? "active" : ""}`}
+                  onClick={() => handleNavigate("/delete-all")}
+                  onMouseDown={(e) => handleMouseDown(e, "/delete-all")}>
+                  <DeleteOutlined />
+                  <span>מחיקת מערכת</span>
                 </div>
               </li>
             )}

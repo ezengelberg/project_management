@@ -24,6 +24,7 @@ import {
   getUserProject,
   userEditProfile,
   getUserProjectStatistics,
+  deleteAllUsers,
 } from "../controllers/userController.js";
 import {
   getUnreadNotifications,
@@ -70,6 +71,7 @@ router.get("/advisors-for-users-info", ensureAuthenticated, getAdvisorsForUsersI
 router.get("/user-project", ensureAuthenticated, getUserProject);
 router.put("/user-edit-profile/:id", ensureAuthenticated, userEditProfile);
 router.get("/get-user-project-statistics/:id", ensureAuthenticated, getUserProjectStatistics);
+router.delete("/delete-all", ensureAuthenticated, isCoordinator, deleteAllUsers);
 
 // Notifications
 router.get("/notifications", ensureAuthenticated, getUnreadNotifications);

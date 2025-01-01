@@ -227,3 +227,27 @@
     }
   }
 }
+
+@media screen and (max-width: 1600px) {
+  .project-container {
+    width: 80%;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .project-container {
+    width: 85%;
+  }
+}
+
+@media screen and (max-width: 1024) {
+
+}
+
+@media screen and (max-width: 626px) {
+  .project-profile-info-emails {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}

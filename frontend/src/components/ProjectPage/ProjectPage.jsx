@@ -27,7 +27,7 @@ const ProjectPage = () => {
           `${process.env.REACT_APP_BACKEND_URL}/api/project/check-if-candidate/${projectID}`,
           {
             withCredentials: true,
-          }
+          },
         );
         setIsCandidate(response.data.isCandidate);
       } catch (error) {
@@ -63,7 +63,7 @@ const ProjectPage = () => {
           `${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${user._id}`,
           {
             withCredentials: true,
-          }
+          },
         );
         setHasProject(response.data.hasProject);
       } catch (error) {
@@ -80,6 +80,7 @@ const ProjectPage = () => {
           withCredentials: true,
         });
         setProjectData(response.data);
+        console.log(response.data);
       } catch (error) {
         console.error("Error occurred:", error);
       }
@@ -107,7 +108,7 @@ const ProjectPage = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/remove-candidate`,
         { projectID: projectID, userID: userID },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       setTimeout(() => {
         message.open({
@@ -137,7 +138,7 @@ const ProjectPage = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/add-candidate`,
         { projectID: projectID },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       setTimeout(() => {
         message.open({
@@ -195,7 +196,7 @@ const ProjectPage = () => {
           </Tooltip>
         </div>
         <div className="project-profile-info-item project-profile-info-emails">
-          <div className="project-profile-info-title">אימייל המרצה ליצירת קשר:</div>
+          <div className="project-profile-info-title">אימייל המנחה ליצירת קשר:</div>
           <div className="project-profile-info-text project-profile-info-email">
             {advisors.map((advisor, index) => (
               <Tooltip key={index} title="לחץ להעתקה">
@@ -211,6 +212,22 @@ const ProjectPage = () => {
             {advisors.length === 0 && <div>אין מנחה לפרויקט זה כרגע</div>}
           </div>
         </div>
+        {projectData.externalEmail && (
+          <div className="project-profile-info-item project-profile-info-emails">
+            <div className="project-profile-info-title">אימייל גורם חיצוני:</div>
+            <div className="project-profile-info-text project-profile-info-email">
+              <Tooltip title="לחץ להעתקה">
+                <div
+                  className="advisor-email"
+                  onClick={() => {
+                    copyToClipboard();
+                  }}>
+                  {projectData?.externalEmail}
+                </div>
+              </Tooltip>
+            </div>
+          </div>
+        )}
         {!hasProject && user.isStudent ? (
           isCandidate ? (
             <div className="project-unsignup-button" onClick={() => Unsignup()}>

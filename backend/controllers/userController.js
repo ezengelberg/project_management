@@ -4,6 +4,13 @@ import Submission from "../models/submission.js";
 import bcrypt from "bcryptjs";
 import passport from "passport";
 import mongoose from "mongoose";
+import Grade from "../models/grades.js";
+import Upload from "../models/uploads.js";
+import Notification from "../models/notifications.js";
+import GradeStructure from "../models/gradeStructure.js";
+import Random from "../models/random.js";
+import fs from "fs";
+import path from "path";
 
 export const registerUser = async (req, res) => {
   try {
@@ -540,5 +547,48 @@ export const getUserProjectStatistics = async (req, res) => {
     res.status(200).json(statistics);
   } catch (err) {
     res.status(500).send({ message: err.message });
+  }
+};
+
+export const deleteAllUsers = async (req, res) => {
+  try {
+    const currentUserId = req.user._id;
+
+    // Delete all users except the current user
+    await User.deleteMany({ _id: { $ne: currentUserId } });
+
+    // Delete all projects
+    await Project.deleteMany();
+
+    // Delete all submissions and associated grades
+    const submissions = await Submission.find();
+    for (const submission of submissions) {
+      await Grade.deleteMany({ _id: { $in: submission.grades } });
+    }
+    await Submission.deleteMany();
+
+    // Delete all uploads and associated files
+    const uploads = await Upload.find();
+    for (const upload of uploads) {
+      const filePath = path.join(process.cwd(), `uploads/${upload.destination}`, upload.filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+    await Upload.deleteMany();
+
+    // Delete notifications
+    await Notification.deleteMany();
+
+    // Delete grade structures
+    await GradeStructure.deleteMany();
+
+    // Delete random texts
+    await Random.deleteMany();
+
+    res.status(200).json({ message: "All users and related data deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting users and related data:", error);
+    res.status(500).json({ message: "Failed to delete users and related data" });
   }
 };

@@ -25,6 +25,7 @@ import UploadSubmissions from "./components/UploadSubmissions/UploadSubmissions"
 import Notifications from "./components/Notifications/Notifications";
 import SubmissionsStatus from "./components/SubmissionsStatus/SubmissionsStatus";
 import ProfilePage from "./components/ProfilePage/ProfilePage";
+import DeleteAll from "./components/DeleteAll/DeleteAll";
 
 function App() {
   return (
@@ -181,6 +182,14 @@ const MainLayout = () => {
                 element={
                   <ProtectedRoute privileges={["coordinator"]}>
                     <SystemControl />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/delete-all"
+                element={
+                  <ProtectedRoute privileges={["coordinator"]}>
+                    <DeleteAll />
                   </ProtectedRoute>
                 }
               />

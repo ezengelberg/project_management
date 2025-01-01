@@ -108,7 +108,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
           withCredentials: true,
-        }
+        },
       );
       response.data.map((project) => {
         project.submissions.map((submission) => {
@@ -125,18 +125,18 @@ const Submissions = () => {
               submission.submissions.map((sub) => ({
                 name: sub.name,
                 info: sub.info,
-              }))
+              })),
             )
             .map((sub) => [
               sub.name, // Use the name as key
               sub, // Keep the object with name and info as the value
-            ])
+            ]),
         ).values(),
       ];
 
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
-          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission
+          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
         );
 
         if (!existing) return submission;
@@ -171,7 +171,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -194,7 +194,7 @@ const Submissions = () => {
           newGrade: values.newGrade,
           comment: values.comment,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       message.open({
         type: "success",
@@ -216,7 +216,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -240,7 +240,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "info",
@@ -311,7 +311,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -345,7 +345,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
@@ -371,7 +371,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -439,7 +439,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -567,12 +567,17 @@ const Submissions = () => {
         return (
           <div className="table-row">
             {submissions.map((sub, index) => {
+              console.log(sub);
               const grades = sub.grades || [];
               const waitingCheck =
                 (sub.isGraded && grades.some((grade) => grade.grade === null)) ||
                 (sub.isReviewed &&
-                  sub.editable === false &&
-                  grades.some((grade) => grade.videoQuality === undefined || grade.videoQuality === undefined));
+                  grades.some(
+                    (grade) =>
+                      grade.videoQuality === undefined ||
+                      grade.workQuality === undefined ||
+                      grade.writingQuality === undefined,
+                  ));
               return (
                 <div className="table-col-div" key={index}>
                   <div
@@ -605,7 +610,7 @@ const Submissions = () => {
                                   sub.isLate
                                     ? ` באיחור - ${Math.ceil(
                                         (new Date(sub.uploadDate) - new Date(sub.submissionDate)) /
-                                          (1000 * 60 * 60 * 24)
+                                          (1000 * 60 * 60 * 24),
                                       )} ימים`
                                     : ""
                                 }`
@@ -627,11 +632,15 @@ const Submissions = () => {
                         </Button>
                       )}
                       <div>
-                        {waitingCheck && sub.submitted ? (
+                        {waitingCheck && (sub.submitted || !sub.fileNeeded) ? (
                           <Badge color="blue" text="מחכה לבדיקה" />
+                        ) : !waitingCheck &&
+                          ((sub.isGraded && sub.finalGrade === null) || (sub.isReviewed && sub.editable === true)) ? (
+                          <Badge color="purple" text="מחכה לפרסום" />
                         ) : (
                           !sub.editable &&
                           sub.isGraded &&
+                          sub.finalGrade !== null &&
                           !waitingCheck && (
                             <Badge
                               color="pink"
@@ -701,7 +710,7 @@ const Submissions = () => {
   ];
 
   const filteredSubmissionData = submissionData.filter(
-    (project) => yearFilter === "all" || project.year === yearFilter
+    (project) => yearFilter === "all" || project.year === yearFilter,
   );
 
   return (
@@ -979,7 +988,7 @@ const Submissions = () => {
                               ? ` באיחור - ${Math.ceil(
                                   (new Date(submissionInfo.submission.uploadDate) -
                                     new Date(submissionInfo.submission.submissionDate)) /
-                                    (1000 * 60 * 60 * 24)
+                                    (1000 * 60 * 60 * 24),
                                 )} ימים`
                               : ""
                           }`
