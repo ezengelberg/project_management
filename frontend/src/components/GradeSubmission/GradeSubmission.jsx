@@ -41,6 +41,10 @@ const GradeSubmission = () => {
         setLoading(false);
       } catch (error) {
         console.error("Error fetching project data:", error);
+        if (error.response.status === 403) {
+          message.error("אין לך הרשאה לגשת לדף זה");
+          navigate(-1);
+        }
         message.error("שגיאה בטעינת נתוני הפרויקט");
         setLoading(false);
       }
