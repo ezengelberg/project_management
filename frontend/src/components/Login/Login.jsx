@@ -186,7 +186,7 @@ const Login = () => {
               label="סיסמה"
               rules={[
                 { required: true, message: "חובה להזין סיסמה" },
-                //   { min: 8, message: "הסיסמה חייבת להכיל לפחות 8 תווים" },
+                { min: 8, message: "הסיסמה חייבת להכיל לפחות 8 תווים" },
               ]}
               hasFeedback>
               <Input.Password
