@@ -80,7 +80,6 @@ const ProjectPage = () => {
           withCredentials: true,
         });
         setProjectData(response.data);
-        console.log(response.data);
       } catch (error) {
         console.error("Error occurred:", error);
       }

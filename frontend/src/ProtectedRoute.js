@@ -19,7 +19,6 @@ const ProtectedRoute = ({ children, privileges = [] }) => {
 
         if (response.data.authenticated) {
           setIsAuthenticated(true);
-          console.log("DEV: Authenticated");
 
           // Map user roles to privileges
           const { isStudent, isAdvisor, isJudge, isCoordinator } = response.data;
@@ -35,16 +34,13 @@ const ProtectedRoute = ({ children, privileges = [] }) => {
           const userHasPrivilege = privileges.some((role) => userRoles[role]);
           setHasPrivilege(userHasPrivilege);
           if (!userHasPrivilege) {
-            console.log("DEV: User lacks the required privileges");
             navigate("/home");
           }
         } else {
           setIsAuthenticated(false);
-          console.log("DEV: NOT authenticated, verification failed");
         }
       } catch (error) {
         setIsAuthenticated(false);
-        console.log("DEV: Error during authentication check", error);
       } finally {
         setIsLoading(false);
       }

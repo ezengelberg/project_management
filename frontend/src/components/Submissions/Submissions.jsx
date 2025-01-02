@@ -567,7 +567,6 @@ const Submissions = () => {
         return (
           <div className="table-row">
             {submissions.map((sub, index) => {
-              console.log(sub);
               const grades = sub.grades || [];
               const waitingCheck =
                 (sub.isGraded && grades.some((grade) => grade.grade === null)) ||

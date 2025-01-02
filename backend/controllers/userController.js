@@ -49,29 +49,23 @@ export const registerUser = async (req, res) => {
 
 export const registerMultiple = async (req, res) => {
   try {
-    console.log("Registering multiple users");
     const users = req.body;
     const existingUsers = [];
     for (const user of users) {
-      console.log("printing user");
       const { name, email, id, role } = user;
       const lowerCaseEmail = email.toLowerCase();
       delete user.key;
       delete user.role;
-      console.log(user);
       const userByEmail = await User.findOne({ email: lowerCaseEmail });
       if (userByEmail) {
         existingUsers.push(user);
         continue;
       }
-      console.log("email not found");
       const userById = await User.findOne({ id: id });
       if (userById) {
         existingUsers.push(user);
         continue;
       }
-      console.log("id not found");
-      console.log(role);
       const newUser = new User({
         ...user,
         email: lowerCaseEmail,
@@ -96,7 +90,6 @@ export const createAdmin = async (req, res) => {
   try {
     const user = await User.findOne({ email: "admin@jce.ac" });
     if (!user) {
-      console.log("user not found");
       const hashedPassword = await bcrypt.hash("U*P0!ps#1N&p", 10);
       const newUser = new User({
         name: "משתמש על",
@@ -111,8 +104,7 @@ export const createAdmin = async (req, res) => {
         isCoordinator: true,
       });
       await newUser.save();
-      console.log("user created");
-    } else console.log("user found");
+    }
     res.status(201).send("Admin user created successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -121,7 +113,6 @@ export const createAdmin = async (req, res) => {
 
 export const loginUser = (req, res, next) => {
   req.body.email = req.body.email.toLowerCase();
-  console.log("attempting connect")
   passport.authenticate("local", async (err, user, info) => {
     if (err) return next(err);
     if (!user) return res.status(401).send(info.message);
@@ -156,7 +147,6 @@ export const logoutUser = (req, res, next) => {
       return res.status(500).json({ message: "Error logging out" });
     }
 
-    // console.log
     // Destroy the session in the store
     req.session.destroy((err) => {
       if (err) {

@@ -24,7 +24,6 @@ export const isCoordinator = (req, res, next) => {
 
 export const isAdvisor = (req, res, next) => {
   if (req.user.isAdvisor) {
-    console.log("User is an advisor");
     return next();
   } else {
     res.status(403).send("Forbidden: User is not an advisor");
