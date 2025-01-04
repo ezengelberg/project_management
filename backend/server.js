@@ -39,7 +39,7 @@ app.use(
       secure: false, // Set to true if using HTTPS
       // sameSite: "none", // Required for cross-origin cookies
     },
-  }),
+  })
 );
 
 app.use(passport.initialize());
@@ -47,7 +47,7 @@ app.use(passport.session());
 
 // Allow cross-origin requests
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
+  origin: process.env.NODE_ENV === "production" ? process.env.CORS_ORIGIN_PROD : process.env.CORS_ORIGIN_DEV, // Allow multiple origins based on environment
   credentials: true, // Allow cookies and credentials
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
   allowedHeaders: ["Content-Type", "Authorization"], // Explicitly allow these headers
