@@ -1115,7 +1115,7 @@ const Submissions = () => {
                     : "ממתין להגשה"}
                 </div>
               </div>
-              {submissionInfo.submission.finalGrade && (
+              {submissionInfo.submission.finalGrade != null && (
                 <div className="detail-item">
                   <div className="detail-item-header">ציון סופי</div>
                   <div className="detail-item-content">
