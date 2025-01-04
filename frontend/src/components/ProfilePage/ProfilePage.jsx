@@ -176,7 +176,6 @@ const ProfilePage = () => {
 
   const handleConfirmSkillChange = () => {
     setSkillData(tempSkillData);
-    console.log("New skill data:", tempSkillData);
   };
 
   return (
@@ -286,7 +285,6 @@ const ProfilePage = () => {
             .validateFields()
             .then(handleEditDetails)
             .catch((info) => {
-              console.log("Validate Failed:", info);
             });
         }}
         okText="שמור"

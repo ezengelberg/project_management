@@ -18,7 +18,6 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const destination = req.query.destination; // Use
     const uploadPath = `./uploads/${destination}`;
-    console.log(uploadPath);
 
     // Create directory if it doesn't exist
     if (!fs.existsSync(uploadPath)) {

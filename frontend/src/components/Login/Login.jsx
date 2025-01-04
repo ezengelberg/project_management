@@ -72,9 +72,11 @@ const Login = () => {
     try {
       const lowerCaseEmail = email.toLowerCase();
       if (process.env.REACT_APP_ROOT_USER === lowerCaseEmail && process.env.REACT_APP_ROOT_PASSWORD === password) {
-        console.log("Creating admin user");
         await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/create-admin`, {
           withCredentials: true,
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          },
         });
       } else {
         const result = await axios.post(
@@ -84,7 +86,7 @@ const Login = () => {
             password,
             rememberMe,
           },
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
         const userData = result.data;

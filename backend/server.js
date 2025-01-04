@@ -39,7 +39,7 @@ app.use(
       secure: false, // Set to true if using HTTPS
       // sameSite: "none", // Required for cross-origin cookies
     },
-  }),
+  })
 );
 
 app.use(passport.initialize());
