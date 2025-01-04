@@ -158,7 +158,7 @@ const CreateUser = () => {
             defaultValue={record.role || ["isStudent"]}
             onChange={(checkedValues) => {
               const updatedUsers = users.map((user) => {
-                if (user.email === record.email) {
+                if (user.email === record.email && user.id === record.id) {
                   return { ...user, role: checkedValues };
                 }
                 return user;
