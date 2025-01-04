@@ -686,7 +686,9 @@ const Submissions = () => {
       dataIndex: "grade",
       key: "grade",
       render: (text, record) => (
-        <Space className="grade-table">{record.grade !== null ? record.grade : "טרם נבדק"}</Space>
+        <Space className="grade-table">
+          {record.isGraded ? (record.grade !== null ? record.grade : "טרם נבדק") : "לא נדרש ציון"}
+        </Space>
       ),
     },
     {
@@ -695,18 +697,14 @@ const Submissions = () => {
       key: "comments",
       render: (text, record) => (
         <Space>
-          {record.grade !== null ? (
-            submissionInfo.submission.isReviewed ? (
-              <a href="#">
-                <Tooltip title="לצפיה במשוב">
-                  <EyeOutlined style={{ fontSize: "2.5rem" }} onClick={() => setShowReview(record)} />
-                </Tooltip>
-              </a>
-            ) : (
-              <span>הגשה ללא משוב</span>
-            )
+          {record.isReviewed && !record.editable ? (
+            <a href="#">
+              <Tooltip title="לצפיה במשוב">
+                <EyeOutlined style={{ fontSize: "2.5rem" }} onClick={() => setShowReview(record)} />
+              </Tooltip>
+            </a>
           ) : (
-            "טרם נבדק"
+            <span>הגשה ללא משוב</span>
           )}
         </Space>
       ),
@@ -1143,6 +1141,8 @@ const Submissions = () => {
                 dataSource={submissionInfo?.submission?.grades.map((grade, index) => ({
                   ...grade,
                   key: grade._id || index,
+                  isReviewed: submissionInfo?.submission?.isReviewed,
+                  isGraded: submissionInfo?.submission?.isGraded,
                 }))}
                 pagination={false}
               />
