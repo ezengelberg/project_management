@@ -151,11 +151,11 @@ const HeaderMenu = () => {
             </Tooltip>
           </Badge>
         </Popover>
-        <Badge count={50} style={{ transform: "translate(60%, -50%)" }}>
+        {/* <Badge count={50} style={{ transform: "translate(60%, -50%)" }}>
           <Tooltip title="הודעות מערכת">
             <MessageOutlined className="notification-icon" />
           </Tooltip>
-        </Badge>
+        </Badge> */}
         <Tooltip title="פרופיל">
           <Avatar
             className="avatar-icon"
