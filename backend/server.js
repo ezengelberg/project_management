@@ -53,10 +53,8 @@ const corsOptions = {
 };
 
 // Apply CORS globally
-app.use(cors(corsOptions));
-
-// Handle preflight requests
-app.options("*", cors(corsOptions));
+// app.use(cors(corsOptions));
+app.use(cors());
 
 // Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
 app.use(bodyParser.json());
