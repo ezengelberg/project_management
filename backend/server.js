@@ -28,7 +28,7 @@ const server_port = process.env.SERVER_PORT || 3000;
 // Allow cross-origin requests
 const corsOptions = {
   origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
-  credentials: true, // Allow cookies and credentials
+  credentials: false, // Allow cookies and credentials
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
 };
 
@@ -47,7 +47,7 @@ app.use(
     }),
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
-      secure: true, // Set to true if using HTTPS
+      secure: false, // Set to true if using HTTPS
       sameSite: "None", // Required for cross-origin cookies
     },
   }),
