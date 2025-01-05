@@ -27,7 +27,8 @@ const server_port = process.env.SERVER_PORT || 3000;
 
 // Allow cross-origin requests
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
+  // origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
+  origin: "*", // Allow all origins for Development purposes only
   credentials: false, // Allow cookies and credentials
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
 };

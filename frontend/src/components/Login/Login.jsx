@@ -87,11 +87,11 @@ const Login = () => {
             rememberMe,
           },
           {
-            withCredentials: true,
+            withCredentials: false,
             headers: {
               "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "http://project-management.jce.ac",
-              "Access-Control-Allow-Credentials": true,
+              // "Access-Control-Allow-Origin": "https://project-management.jce.ac",
+              // "Access-Control-Allow-Credentials": true,
             },
           },
         );
