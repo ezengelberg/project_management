@@ -38,7 +38,7 @@ app.use(cors(corsOptions));
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET, // Set a strong secret in .env
+    secret: process.env.SESSION_SECRET, // Set a strong secret in .env file
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
