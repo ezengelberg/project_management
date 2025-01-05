@@ -25,6 +25,17 @@ dotenv.config();
 const app = express();
 const server_port = process.env.SERVER_PORT || 3000;
 
+// Allow cross-origin requests
+const corsOptions = {
+  // origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
+  origin: true, // Allow all origins for Development purposes only
+  credentials: true, // Allow cookies and credentials
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+};
+
+// Apply CORS globally
+app.use(cors(corsOptions));
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET, // Set a strong secret in .env
@@ -36,7 +47,7 @@ app.use(
     }),
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
-      secure: false, // Set to true if using HTTPS
+      secure: true, // Set to true if using HTTPS
       sameSite: "None", // Required for cross-origin cookies
     },
   })
@@ -45,16 +56,6 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Allow cross-origin requests
-const corsOptions = {
-  origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
-  credentials: true, // Allow cookies and credentials
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
-};
-
-// Apply CORS globally
-// app.use(cors(corsOptions));
-app.use(cors());
 
 // Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
 app.use(bodyParser.json());

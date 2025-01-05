@@ -86,7 +86,6 @@ const Login = () => {
             password,
             rememberMe,
           },
-          { withCredentials: true },
         );
 
         const userData = result.data;
