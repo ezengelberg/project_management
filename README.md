@@ -9,5 +9,21 @@
 <b>Project Advisor:</b><br />
 • Eli Engelberg
 
-## Project Overview
-This Project Management Website is designed to streamline the management of projects within the software engineering department or college. It provides an end-to-end solution for project lifecycle management, from project creation to final evaluation. The system caters to both students, who can apply for projects, and project providers, who can post and manage their projects. Additionally, it includes functionality for assigning judges to projects randomly for unbiased evaluations.
+
+## Overview
+This **Project Management Website** is designed to streamline the management of projects within a software engineering department or college. It provides an end-to-end solution for the project lifecycle, from creation to final evaluation. The system caters to both students, who can apply for projects, and project providers, who can post and manage their projects. Additionally, it includes functionality for assigning judges to projects randomly to ensure unbiased evaluations.
+
+
+## Features
+- **Project Posting and Management**: Project providers can create, update, and manage project listings.
+- **Student Applications**: Students can browse available projects and apply to those that match their interests.
+- **Judge Assignment**: The system randomly assigns judges to projects to maintain impartiality during evaluations.
+- **Project Lifecycle Tracking**: Monitor the progress of projects from inception to completion.
+
+
+## Technologies Used
+- **Frontend**: React.js
+- **Backend**: Node.js with Express.js
+- **Database**: MongoDB
+- **Containerization**: Docker
+- **Version Control**: Git
