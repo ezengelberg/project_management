@@ -38,6 +38,7 @@ const SystemControl = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+  const [refreshSubmissions, setRefreshSubmissions] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -151,7 +152,7 @@ const SystemControl = () => {
     };
 
     fetchSubmissions();
-  }, []);
+  }, [refreshSubmissions]);
 
   const isEditing = (record) => record.key === editingKey;
 
@@ -203,6 +204,7 @@ const SystemControl = () => {
       );
       message.success("הציון עודכן בהצלחה");
       fetchGrades();
+      setRefreshSubmissions((prev) => !prev);
       setEditingKey("");
     } catch (error) {
       console.error("Error updating grade:", error);
@@ -250,6 +252,8 @@ const SystemControl = () => {
         { withCredentials: true }
       );
       message.success("הציונים/ביקורות הזמינים פורסמו בהצלחה");
+      fetchGrades();
+      setRefreshSubmissions((prev) => !prev);
     } catch (error) {
       console.error("Error ending judging period:", error);
       if (error.response.status === 400) {

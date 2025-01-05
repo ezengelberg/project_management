@@ -37,7 +37,7 @@ app.use(
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
       secure: false, // Set to true if using HTTPS
-      // sameSite: "none", // Required for cross-origin cookies
+      sameSite: "None", // Required for cross-origin cookies
     },
   })
 );
@@ -50,7 +50,6 @@ const corsOptions = {
   origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
   credentials: true, // Allow cookies and credentials
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
-  allowedHeaders: ["Content-Type", "Authorization"], // Explicitly allow these headers
 };
 
 // Apply CORS globally
