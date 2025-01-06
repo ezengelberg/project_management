@@ -27,14 +27,9 @@ const server_port = process.env.SERVER_PORT || 3000;
 
 app.use((req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.originalUrl}`);
-  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", `${process.env.CORS_ORIGIN}`);
   res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS");
   next();
-});
-
-app.use((err, req, res, next) => {
-  console.error("Error:", err.stack || err.message);
-  res.status(500).json({ error: "Internal Server Error" });
 });
 
 // Allow cross-origin requests
@@ -52,7 +47,7 @@ const sessionStore = MongoStore.create({
   mongoUrl: process.env.NODE_ENV === "production" ? process.env.MONGO_URI : process.env.MONGO_URI_LOCAL,
   collectionName: "sessions",
   ttl: 24 * 60 * 60, // 1 day
-  autoRemove: 'native'
+  autoRemove: "native",
 });
 
 app.use(
@@ -61,13 +56,13 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: sessionStore,
-    name: 'sessionId',
+    name: "sessionId",
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
       secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // Use Lax for local development
-      httpOnly: true,  // This prevents JavaScript access
-      domain: process.env.NODE_ENV === "production" ? new URL(process.env.CORS_ORIGIN).hostname : undefined
+      httpOnly: true, // This prevents JavaScript access
+      domain: process.env.NODE_ENV === "production" ? new URL(process.env.CORS_ORIGIN).hostname : undefined,
     },
   }),
 );
@@ -91,6 +86,11 @@ app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
 app.get("/", (req, res) => {
   res.send("Hello World! Nothing to see here yet!");
+});
+
+app.use((err, req, res, next) => {
+  console.error("Error:", err.stack || err.message);
+  res.status(500).json({ error: "Internal Server Error" });
 });
 
 async function initializeConfig() {
