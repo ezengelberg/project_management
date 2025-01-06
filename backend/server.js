@@ -25,6 +25,12 @@ dotenv.config();
 const app = express();
 const server_port = process.env.SERVER_PORT || 3000;
 
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS");
+  next();
+});
+
 // Allow cross-origin requests
 const corsOptions = {
   // origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
@@ -48,14 +54,14 @@ app.use(
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
       secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // Use Lax for local development
+      // sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // Use Lax for local development
+      sameSite: "None", // Use Lax for local development
     },
-  })
+  }),
 );
 
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 // Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
 app.use(bodyParser.json());
