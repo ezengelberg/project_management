@@ -86,14 +86,7 @@ const Login = () => {
             password,
             rememberMe,
           },
-          {
-            withCredentials: false,
-            headers: {
-              "Content-Type": "application/json",
-              // "Access-Control-Allow-Origin": "https://project-management.jce.ac",
-              // "Access-Control-Allow-Credentials": true,
-            },
-          },
+          { withCredentials: true },
         );
 
         const userData = result.data;
