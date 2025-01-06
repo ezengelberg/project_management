@@ -104,7 +104,8 @@ export const createAdmin = async (req, res) => {
         isCoordinator: true,
       });
       await newUser.save();
-    }
+      console.log("Admin user created successfully");
+    } else console.log("Admin user already exists");
     res.status(201).send("Admin user created successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -112,6 +113,7 @@ export const createAdmin = async (req, res) => {
 };
 
 export const loginUser = (req, res, next) => {
+  console.log("Login attempt for email:", req.body.email);
   req.body.email = req.body.email.toLowerCase();
   passport.authenticate("local", async (err, user, info) => {
     if (err) return next(err);
