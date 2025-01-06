@@ -33,7 +33,7 @@ app.use((req, res, next) => {
 
 // Allow cross-origin requests
 const corsOptions = {
-  origin: true, // Allow all origins for Development purposes only
+  origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
   credentials: true, // Allow cookies and credentials
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
 };
