@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
-import { HDate } from "@hebcal/core";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 // Function to calculate and format the current Jewish year
 const getDefaultJewishYear = () => {
-  const today = new HDate().renderGematriya(true);
-  const jewishYear = today.split(" ")[2];
+  const today = formatJewishDateInHebrew(toJewishDate(new Date()));
+  const jewishYear = today.split(" ").pop().replace(/^ה/, "");
   return jewishYear;
 };
 
