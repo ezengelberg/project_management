@@ -26,9 +26,15 @@ const app = express();
 const server_port = process.env.SERVER_PORT || 3000;
 
 app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.originalUrl}`);
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS");
   next();
+});
+
+app.use((err, req, res, next) => {
+  console.error("Error:", err.stack || err.message);
+  res.status(500).json({ error: "Internal Server Error" });
 });
 
 // Allow cross-origin requests
@@ -41,7 +47,7 @@ const corsOptions = {
 // Apply CORS globally
 app.use(cors(corsOptions));
 
-  // origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
+// origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
 app.use(
   session({
     secret: process.env.SESSION_SECRET, // Set a strong secret in .env file
