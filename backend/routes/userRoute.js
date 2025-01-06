@@ -49,6 +49,7 @@ router.get("/get-user-info/:id", ensureAuthenticated, getUserProfile);
 router.put("/change-password", ensureAuthenticated, changePassword);
 router.get("/advisor-users", ensureAuthenticated, isCoordinator, getAdvisorUsers);
 router.get("/check-auth", ensureAuthenticated, (req, res) => {
+  console.log("returning auth details")
   res.status(200).json({
     authenticated: !req.user.firstLogin,
     isStudent: req.user.isStudent,
