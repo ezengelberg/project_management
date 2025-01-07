@@ -49,8 +49,14 @@ app.use(cors(corsOptions));
 const sessionStore = MongoStore.create({
   mongoUrl: process.env.NODE_ENV === "production" ? process.env.MONGO_URI : process.env.MONGO_URI_LOCAL,
   collectionName: "sessions",
-  ttl: 24 * 60 * 60, // 1 day
+  ttl: 24 * 60 * 60, // Time to live - 1 day
   autoRemove: "native",
+  stringify: false
+});
+
+// Add session store error handling
+sessionStore.on('error', function(error) {
+  console.error('Session Store Error:', error);
 });
 
 app.use(
@@ -69,6 +75,21 @@ app.use(
     },
   }),
 );
+
+// Add this BEFORE passport middleware
+app.use((req, res, next) => {
+  if (req.session && !req.session.regenerate) {
+    req.session.regenerate = (cb) => {
+      cb();
+    };
+  }
+  if (req.session && !req.session.save) {
+    req.session.save = (cb) => {
+      cb();
+    };
+  }
+  next();
+});
 
 app.use(passport.initialize());
 app.use(passport.session());

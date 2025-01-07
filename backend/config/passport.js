@@ -4,28 +4,25 @@ import bcrypt from "bcryptjs";
 import User from "../models/users.js";
 
 passport.use(
-  new LocalStrategy(
-    { usernameField: "email" },
-    async (email, password, done) => {
-      try {
-        console.log("🔍 Attempting authentication for email:", email);
-        const user = await User.findOne({ email: email });
-        if (!user) {
-          return done(null, false, { message: "אימייל או סיסמה לא נכונים." });
-        }
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-          console.log("❌ Password is incorrect");
-          return done(null, false, { message: "אימייל או סיסמה לא נכונים." });
-        }
-        console.log("✅ User authenticated successfully:", user.email);
-        return done(null, user);
-      } catch (err) {
-        console.error("❌ Authentication error:", err);
-        return done(err);
+  new LocalStrategy({ usernameField: "email" }, async (email, password, done) => {
+    try {
+      console.log("🔍 Attempting authentication for email:", email);
+      const user = await User.findOne({ email: email });
+      if (!user) {
+        return done(null, false, { message: "אימייל או סיסמה לא נכונים." });
       }
-    },
-  ),
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        console.log("❌ Password is incorrect");
+        return done(null, false, { message: "אימייל או סיסמה לא נכונים." });
+      }
+      console.log("✅ User authenticated successfully:", user.email);
+      return done(null, user);
+    } catch (err) {
+      console.error("❌ Authentication error:", err);
+      return done(err);
+    }
+  }),
 );
 
 passport.serializeUser((user, done) => {
@@ -33,9 +30,9 @@ passport.serializeUser((user, done) => {
     console.log("🔵 Serializing user:", {
       id: user._id.toString(),
       email: user.email,
-      sessionID: user._id.toString()
+      sessionID: user._id.toString(),
     });
-    
+
     // Store the string version of the ID
     const userId = user._id.toString();
     console.log("📝 Stored user ID in session:", userId);
@@ -47,31 +44,24 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser(async (id, done) => {
+  console.log("Deserializing attempt for id:", id);
   try {
-    console.log("🔄 Attempting to deserialize user with id:", id);
-    console.log("Session user ID type:", typeof id);
-
     if (!id) {
-      console.error("❌ No ID provided for deserialization");
+      console.error("No ID provided for deserialization");
       return done(null, false);
     }
 
-    const user = await User.findById(id).select('-password');
-    
+    const user = await User.findById(id).select("-password");
     if (!user) {
-      console.log("❌ No user found during deserialization for id:", id);
+      console.error("No user found for id:", id);
       return done(null, false);
     }
 
-    console.log("✅ Successfully deserialized user:", {
-      id: user._id,
-      email: user.email
-    });
-
-    done(null, user);
+    console.log("Successfully deserialized user:", user.email);
+    return done(null, user);
   } catch (err) {
-    console.error("❌ Deserialization error:", err, "for ID:", id);
-    done(err);
+    console.error("Deserialization error:", err);
+    return done(err);
   }
 });
 
@@ -82,7 +72,7 @@ const checkPassportState = (req, res, next) => {
     hasSession: !!req.session,
     sessionPassport: req.session?.passport,
     isAuthenticated: req.isAuthenticated(),
-    user: req.user ? { id: req.user._id, email: req.user.email } : 'none'
+    user: req.user ? { id: req.user._id, email: req.user.email } : "none",
   });
   next();
 };

@@ -113,9 +113,6 @@ export const createAdmin = async (req, res) => {
 };
 
 export const loginUser = (req, res, next) => {
-  console.log("Attempting to login user:", req.body.email);
-  console.log("User session ID:", req.sessionID);
-  console.log("User:", req.user);
   passport.authenticate("local", async (err, user, info) => {
     if (err) {
       console.error("Authentication error:", err);
@@ -123,36 +120,32 @@ export const loginUser = (req, res, next) => {
     }
 
     if (!user) {
-      console.log("Authentication failed:", info.message);
       return res.status(401).send(info.message);
     }
 
-    req.login(user, async (err) => {
+    req.login(user, (err) => {
       if (err) {
         console.error("Login error:", err);
         return next(err);
       }
 
-      // Force session save to ensure it's stored
+      // Force session save
+      req.session.passport = { user: user._id.toString() };
       req.session.save((err) => {
         if (err) {
           console.error("Session save error:", err);
           return next(err);
         }
 
+        console.log("Session after login:", {
+          id: req.sessionID,
+          passport: req.session.passport,
+          cookie: req.session.cookie,
+        });
+
         const userObj = user.toObject();
         delete userObj.password;
-
-        // Update rememberMe field
-        user.rememberMe = req.body.rememberMe || false;
-
-        user
-          .save()
-          .then(() => {
-            console.log("Login successful for:", userObj.email);
-            res.status(200).json(userObj);
-          })
-          .catch((err) => next(err));
+        res.status(200).json(userObj);
       });
     });
   })(req, res, next);
