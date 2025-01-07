@@ -135,7 +135,7 @@ app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
 app.get("/", (req, res) => {
-  res.send(`Hello world! ${process.env.NODE_ENV === "production"}`);
+  res.send(`Hello world! DEV: 5 ${process.env.NODE_ENV === "production"}`);
 });
 
 app.use((err, req, res, next) => {
