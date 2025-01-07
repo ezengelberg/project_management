@@ -51,7 +51,8 @@ router.get("/advisor-users", ensureAuthenticated, isCoordinator, getAdvisorUsers
 router.get("/check-auth", ensureAuthenticated, (req, res) => {
   console.log("returning auth details")
   res.status(200).json({
-    authenticated: !req.user.firstLogin,
+    // authenticated: !req.user.firstLogin,
+    authenticated: true,
     isStudent: req.user.isStudent,
     isAdvisor: req.user.isAdvisor,
     isJudge: req.user.isJudge,
@@ -60,7 +61,7 @@ router.get("/check-auth", ensureAuthenticated, (req, res) => {
 });
 router.get("/privileges", ensureAuthenticated, getPrivileges);
 router.get("/get-user-name/:id", ensureAuthenticated, getUserName);
-router.get("/get-user", ensureAuthenticated, getUser);
+router.get("/get-user", getUser);
 router.get("/users-no-projects", ensureAuthenticated, getUsersNoProjects);
 router.get("/all-users", ensureAuthenticated, isCoordinator, getAllUsers);
 router.put("/edit-user-coordinator/:userId", ensureAuthenticated, isCoordinator, editUserCoordinator);
