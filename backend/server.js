@@ -75,15 +75,8 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  console.log("Request Debug:", {
-    host: req.get("host"),
-    origin: req.get("origin"),
-    protocol: req.protocol,
-    secure: req.secure,
-    xForwardedProto: req.get("x-forwarded-proto"),
-    cookies: req.cookies,
-    sessionID: req.sessionID,
-  });
+  console.log("Session ID:", req.sessionID);
+  console.log("Session Passport:", req.session.passport);
   next();
 });
 
@@ -135,7 +128,7 @@ app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
 app.get("/", (req, res) => {
-  res.send(`Hello world! DEV: 5 ${process.env.NODE_ENV === "production"}`);
+  res.send(`Hello world! DEV: 6 ${process.env.NODE_ENV === "production"}`);
 });
 
 app.use((err, req, res, next) => {
