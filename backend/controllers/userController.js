@@ -143,7 +143,7 @@ export const loginUser = (req, res, next) => {
     
         const userObj = user.toObject();
         delete userObj.password;
-        res.status(200).json(userObj, req.user);
+        res.status(200).json(userObj, { message: "Login successful", user: req.user});
       });
     });
   })(req, res, next);
