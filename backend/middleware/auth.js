@@ -4,19 +4,11 @@ export const ensureAuthenticated = (req, res, next) => {
   console.log("Session:", req.session);
   console.log("User:", req.user);
   console.log("Is Authenticated:", req.isAuthenticated());
-  if (!req.session) {
-    console.log("No session found");
-    return res.status(401).json({ error: "No session found" });
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: "Unauthorized access" });
   }
-
-  if (req.isAuthenticated()) {
-    console.log("User is authenticated");
-    return next();
-  }
-
-  console.log("User is not authenticated");
-  res.status(401).json({ error: "Please login to continue" });
-
+  console.log("User is authenticated");
+  next();
 };
 
 export const isStudent = (req, res, next) => {

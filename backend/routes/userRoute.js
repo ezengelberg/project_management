@@ -58,6 +58,7 @@ router.get("/check-auth", ensureAuthenticated, (req, res) => {
     isCoordinator: req.user.isCoordinator,
   });
 });
+
 router.get("/privileges", ensureAuthenticated, getPrivileges);
 router.get("/get-user-name/:id", ensureAuthenticated, getUserName);
 router.get("/get-user", ensureAuthenticated, getUser);

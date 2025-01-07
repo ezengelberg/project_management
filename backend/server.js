@@ -64,13 +64,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: sessionStore,
-    name: "sessionId",
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
       secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // Use Lax for local development
-      httpOnly: false, // This prevents JavaScript access
-      // domain: process.env.NODE_ENV === "production" ? new URL(process.env.CORS_ORIGIN).hostname : undefined,
     },
   }),
 );

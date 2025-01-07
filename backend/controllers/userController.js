@@ -128,21 +128,19 @@ export const loginUser = (req, res, next) => {
         console.error("Login error:", err);
         return next(err);
       }
-
-      // Force session save
-      req.session.passport = { user: user._id.toString() };
+    
       req.session.save((err) => {
         if (err) {
           console.error("Session save error:", err);
           return next(err);
         }
-
+    
         console.log("Session after login:", {
           id: req.sessionID,
           passport: req.session.passport,
           cookie: req.session.cookie,
         });
-
+    
         const userObj = user.toObject();
         delete userObj.password;
         res.status(200).json(userObj);
