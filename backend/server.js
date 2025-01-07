@@ -10,6 +10,8 @@ import { checkPassportState } from "./config/passport.js";
 import { connectDB } from "./config/db.js";
 import MongoStore from "connect-mongo";
 
+import User from "./models/users.js";
+
 import userRoute from "./routes/userRoute.js";
 import projectRoute from "./routes/projectRoute.js";
 import uploadsRoute from "./routes/uploadsRoute.js";
