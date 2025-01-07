@@ -5,8 +5,7 @@ import bodyParser from "body-parser";
 
 import session from "express-session";
 import passport from "./config/passport.js";
-import { checkPassportState } from './config/passport.js';
-
+import { checkPassportState } from "./config/passport.js";
 
 import { connectDB } from "./config/db.js";
 import MongoStore from "connect-mongo";
@@ -39,7 +38,7 @@ const corsOptions = {
   origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
   credentials: true, // Allow cookies and credentials
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
-  optionsSuccessStatus: 204,  // Add this
+  optionsSuccessStatus: 204, // Add this
 };
 
 // Apply CORS globally
@@ -51,12 +50,12 @@ const sessionStore = MongoStore.create({
   collectionName: "sessions",
   ttl: 24 * 60 * 60, // Time to live - 1 day
   autoRemove: "native",
-  stringify: false
+  stringify: false,
 });
 
 // Add session store error handling
-sessionStore.on('error', function(error) {
-  console.error('Session Store Error:', error);
+sessionStore.on("error", function (error) {
+  console.error("Session Store Error:", error);
 });
 
 app.use(
@@ -70,23 +69,22 @@ app.use(
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
       secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // Use Lax for local development
-      domain: process.env.NODE_ENV === "production" ? new URL(process.env.CORS_ORIGIN).hostname : undefined,
+      httpOnly: false, // This prevents JavaScript access
+      // domain: process.env.NODE_ENV === "production" ? new URL(process.env.CORS_ORIGIN).hostname : undefined,
     },
   }),
 );
 
-// Add this BEFORE passport middleware
 app.use((req, res, next) => {
-  if (req.session && !req.session.regenerate) {
-    req.session.regenerate = (cb) => {
-      cb();
-    };
-  }
-  if (req.session && !req.session.save) {
-    req.session.save = (cb) => {
-      cb();
-    };
-  }
+  console.log("Request Debug:", {
+    host: req.get("host"),
+    origin: req.get("origin"),
+    protocol: req.protocol,
+    secure: req.secure,
+    xForwardedProto: req.get("x-forwarded-proto"),
+    cookies: req.cookies,
+    sessionID: req.sessionID,
+  });
   next();
 });
 
