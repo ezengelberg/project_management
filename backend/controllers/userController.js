@@ -128,7 +128,7 @@ export const loginUser = (req, res, next) => {
       // Update rememberMe field
       user.rememberMe = req.body.rememberMe || false;
       await user.save();
-      console.log("User logged in:", userObj);
+      console.log("User logged in:", userObj.email);
 
       res.status(200).json(userObj);
     });
