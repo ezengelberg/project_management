@@ -9,6 +9,7 @@ passport.use(
       console.log("🔍 Attempting authentication for email:", email);
       const user = await User.findOne({ email: email });
       if (!user) {
+        console.log("❌ User not found");
         return done(null, false, { message: "אימייל או סיסמה לא נכונים." });
       }
       const isMatch = await bcrypt.compare(password, user.password);
@@ -51,12 +52,8 @@ passport.serializeUser((user, done) => {
         email: user.email,
       });
 
-      // Store a user object with relevant session data
-      const sessionData = {
-        id: user._id.toString(),
-        email: user.email,
-      };
-      done(null, sessionData);
+      // Store the user ID or minimal session data
+      done(null, user._id.toString()); // Store only the ID here, or you can store a minimal session object if needed
     } catch (error) {
       console.error("❌ Serialization error:", error);
       done(error);
@@ -67,7 +64,7 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id, done) => {
   try {
     console.log("🔵 Deserializing user with ID:", id);
-    const user = await User.findById(id).select("-password"); // Fetch user without the password
+    const user = await User.findById(id).select("-password"); // Only fetch necessary user info
     done(null, user);
   } catch (error) {
     console.error("❌ Deserialization error:", error);
