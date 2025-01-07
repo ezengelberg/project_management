@@ -32,6 +32,7 @@ app.use((req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.originalUrl}`);
   res.header("Access-Control-Allow-Origin", `${process.env.CORS_ORIGIN}`);
   res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
   res.header("Access-Control-Allow-Credentials", "true");
   next();
 });
@@ -129,7 +130,7 @@ app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
 app.get("/", (req, res) => {
-  res.send("Hello World! Nothing to see here yet! DEV: 3 ", process.env.NODE_ENV === "production");
+  res.send("Hello World! Nothing to see here yet! DEV: 4 ", process.env.NODE_ENV === "production");
 });
 
 app.use((err, req, res, next) => {
