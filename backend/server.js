@@ -85,6 +85,34 @@ app.use((req, res, next) => {
   next();
 });
 
+passport.serializeUser((user, done) => {
+  process.nextTick(() => {
+    try {
+      console.log("🔵 Serializing user:", {
+        id: user._id.toString(),
+        email: user.email,
+      });
+
+      // Store the user ID or minimal session data
+      done(null, user._id.toString()); // Store only the ID here, or you can store a minimal session object if needed
+    } catch (error) {
+      console.error("❌ Serialization error:", error);
+      done(error);
+    }
+  });
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    console.log("🔵 Deserializing user with ID:", id);
+    const user = await User.findById(id).select("-password"); // Only fetch necessary user info
+    done(null, user);
+  } catch (error) {
+    console.error("❌ Deserialization error:", error);
+    done(error);
+  }
+});
+
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(checkPassportState);
