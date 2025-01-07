@@ -129,8 +129,7 @@ app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
 app.get("/", (req, res) => {
-  res.send("Hello World! Nothing to see here yet! DEV: 2");
-  res.send("Cookie secure:", process.env.NODE_ENV === "production");
+  res.send("Hello World! Nothing to see here yet! DEV: 3 ", process.env.NODE_ENV === "production");
 });
 
 app.use((err, req, res, next) => {
