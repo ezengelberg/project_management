@@ -33,7 +33,6 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", `${process.env.CORS_ORIGIN}`);
   res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
-  res.header("Access-Control-Allow-Credentials", "true");
   next();
 });
 
@@ -42,11 +41,17 @@ const corsOptions = {
   origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
   credentials: true, // Allow cookies and credentials
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+  allowedHeaders: ["Content-Type", "Authorization"],
+  preflightContinue: false, // Respond to OPTIONS automatically
   optionsSuccessStatus: 204, // Add this
 };
 
 // Apply CORS globally
 app.use(cors(corsOptions));
+
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1); // Trust the first proxy (e.g., Cloudflare or NGINX)
+}
 
 app.use(
   session({
