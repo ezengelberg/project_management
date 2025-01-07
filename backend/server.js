@@ -102,6 +102,7 @@ passport.deserializeUser(async (id, done) => {
   try {
     console.log("🔵 Deserializing user with ID:", id);
     const user = await User.findById(id).select("-password"); // Only fetch necessary user info
+    console.log("🔑 User deserialized:", user.email);
     done(null, user);
   } catch (error) {
     console.error("❌ Deserialization error:", error);
@@ -128,7 +129,8 @@ app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
 app.get("/", (req, res) => {
-  res.send("Hello World! Nothing to see here yet! DEV: 1");
+  res.send("Hello World! Nothing to see here yet! DEV: 2");
+  res.send("Cookie secure:", process.env.NODE_ENV === "production");
 });
 
 app.use((err, req, res, next) => {
