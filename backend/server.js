@@ -37,6 +37,7 @@ const corsOptions = {
   origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
   credentials: true, // Allow cookies and credentials
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+  optionsSuccessStatus: 204,  // Add this
 };
 
 // Apply CORS globally
