@@ -1,49 +1,91 @@
 import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local"; // Import Strategy as LocalStrategy for usernameField and passwordField
+import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
 import User from "../models/users.js";
 
 passport.use(
   new LocalStrategy(
-    { usernameField: "email" }, // Specify that we're using 'email' instead of 'username'
+    { usernameField: "email" },
     async (email, password, done) => {
       try {
-        console.log("searching for user with email:", email);
+        console.log("🔍 Attempting authentication for email:", email);
         const user = await User.findOne({ email: email });
         if (!user) {
           return done(null, false, { message: "אימייל או סיסמה לא נכונים." });
         }
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-          console.log("Password is incorrect");
+          console.log("❌ Password is incorrect");
           return done(null, false, { message: "אימייל או סיסמה לא נכונים." });
         }
-        console.log("User found:", user);
+        console.log("✅ User authenticated successfully:", user.email);
         return done(null, user);
       } catch (err) {
+        console.error("❌ Authentication error:", err);
         return done(err);
       }
     },
   ),
 );
 
-// Serialize user to store in session
 passport.serializeUser((user, done) => {
-  console.log("Serializing user:", user._id.toString());
-  done(null, user._id.toString());
+  try {
+    console.log("🔵 Serializing user:", {
+      id: user._id.toString(),
+      email: user.email,
+      sessionID: user._id.toString()
+    });
+    
+    // Store the string version of the ID
+    const userId = user._id.toString();
+    console.log("📝 Stored user ID in session:", userId);
+    done(null, userId);
+  } catch (error) {
+    console.error("❌ Serialization error:", error);
+    done(error);
+  }
 });
 
-// Deserialize user from session
 passport.deserializeUser(async (id, done) => {
-  console.log("Deserializing user with id:", id);
   try {
-    const user = await User.findById(id);
-    console.log("User deserialized:", user);
+    console.log("🔄 Attempting to deserialize user with id:", id);
+    console.log("Session user ID type:", typeof id);
+
+    if (!id) {
+      console.error("❌ No ID provided for deserialization");
+      return done(null, false);
+    }
+
+    const user = await User.findById(id).select('-password');
+    
+    if (!user) {
+      console.log("❌ No user found during deserialization for id:", id);
+      return done(null, false);
+    }
+
+    console.log("✅ Successfully deserialized user:", {
+      id: user._id,
+      email: user.email
+    });
+
     done(null, user);
   } catch (err) {
-    console.error("Error during deserialization:", err);
+    console.error("❌ Deserialization error:", err, "for ID:", id);
     done(err);
   }
 });
 
+// Add a middleware to check passport's state
+const checkPassportState = (req, res, next) => {
+  console.log("🔍 Passport State Check:", {
+    sessionID: req.sessionID,
+    hasSession: !!req.session,
+    sessionPassport: req.session?.passport,
+    isAuthenticated: req.isAuthenticated(),
+    user: req.user ? { id: req.user._id, email: req.user.email } : 'none'
+  });
+  next();
+};
+
+export { checkPassportState };
 export default passport;

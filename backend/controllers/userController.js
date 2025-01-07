@@ -113,6 +113,9 @@ export const createAdmin = async (req, res) => {
 };
 
 export const loginUser = (req, res, next) => {
+  console.log("Attempting to login user:", req.body.email);
+  console.log("User session ID:", req.sessionID);
+  console.log("User:", req.user);
   passport.authenticate("local", async (err, user, info) => {
     if (err) {
       console.error("Authentication error:", err);
