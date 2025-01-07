@@ -112,42 +112,72 @@ export const createAdmin = async (req, res) => {
   }
 };
 
-export const loginUser = (req, res, next) => {
+export const loginUser = (req, res) => {
   passport.authenticate("local", async (err, user, info) => {
     if (err) {
-      console.error("Authentication error:", err);
-      return next(err);
+      return next(err); // Handle errors
     }
 
     if (!user) {
-      return res.status(401).send(info.message);
+      return res.status(401).json({ message: "Authentication failed", error: info });
     }
 
     req.login(user, (err) => {
       if (err) {
         console.error("Login error:", err);
-        return next(err);
+        return res.status(500).send({ message: "Login error" });
       }
-    
+
       req.session.save((err) => {
         if (err) {
           console.error("Session save error:", err);
-          return next(err);
+          return res.status(500).send({ message: "Session save error" });
         }
-    
-        console.log("Session after login:", {
-          id: req.sessionID,
-          passport: req.session.passport,
-          cookie: req.session.cookie,
-        });
-    
+
         const userObj = user.toObject();
         delete userObj.password;
-        res.status(200).json(userObj, { message: "Login successful", user: req.user});
+        res.status(200).json({ userObj, message: "Login successful" });
       });
     });
-  })(req, res, next);
+  })(req, res);
 };
+
+// export const loginUser = (req, res, next) => {
+//   passport.authenticate("local", async (err, user, info) => {
+//     if (err) {
+//       console.error("Authentication error:", err);
+//       return next(err);
+//     }
+
+//     if (!user) {
+//       return res.status(401).send(info.message);
+//     }
+
+//     req.login(user, (err) => {
+//       if (err) {
+//         console.error("Login error:", err);
+//         return next(err);
+//       }
+
+//       req.session.save((err) => {
+//         if (err) {
+//           console.error("Session save error:", err);
+//           return next(err);
+//         }
+
+//         console.log("Session after login:", {
+//           id: req.sessionID,
+//           passport: req.session.passport,
+//           cookie: req.session.cookie,
+//         });
+
+//         const userObj = user.toObject();
+//         delete userObj.password;
+//         res.status(200).json(userObj, { message: "Login successful", user: req.user});
+//       });
+//     });
+//   })(req, res, next);
+// };
 
 export const logoutUser = (req, res, next) => {
   if (!req.session) {
