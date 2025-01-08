@@ -112,7 +112,7 @@ export const createAdmin = async (req, res) => {
   }
 };
 
-export const loginUser = (req, res) => {
+export const loginUser = async (req, res) => {
   passport.authenticate("local", async (err, user, info) => {
     if (err) {
       return next(err); // Handle errors
@@ -136,7 +136,7 @@ export const loginUser = (req, res) => {
 
         const userObj = user.toObject();
         delete userObj.password;
-        res.status(200).json({ userObj, message: "Login successful", auth: req.user });
+        res.status(200).json(userObj);
       });
     });
   })(req, res);

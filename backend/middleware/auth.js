@@ -1,13 +1,13 @@
 export const ensureAuthenticated = (req, res, next) => {
-  console.log("Checking authentication:");
-  console.log("Session ID:", req.sessionID);
-  console.log("Session:", req.session);
-  console.log("User:", req.user);
-  console.log("Is Authenticated:", req.isAuthenticated());
   if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: "Unauthorized access", req: req, user: req.user });
+    console.log("Authentication failed:", {
+      sessionID: req.sessionID,
+      session: req.session,
+      user: req.user,
+      headers: req.headers,
+    });
+    return res.status(401).json({ error: "Unauthorized access" });
   }
-  console.log("User is authenticated");
   next();
 };
 
