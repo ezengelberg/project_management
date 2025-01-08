@@ -40,7 +40,7 @@ const corsOptions = {
   origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
   credentials: true, // Allow cookies and credentials
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-file-name", "x-file-type", "x-file-size", "x-filename-encoding"],
   preflightContinue: false, // Respond to OPTIONS automatically
   optionsSuccessStatus: 204, // Add this
 };
@@ -60,15 +60,12 @@ app.use(
     store: MongoStore.create({
       mongoUrl: process.env.NODE_ENV === "production" ? process.env.MONGO_URI : process.env.MONGO_URI_LOCAL,
       collectionName: "sessions",
-      ttl: 24 * 60 * 60, // Time to live - 1 day
-      autoRemove: "native",
-      stringify: false,
     }),
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
-      secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // Use Lax for local development
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax", // Use Lax for local development
     },
   }),
 );
