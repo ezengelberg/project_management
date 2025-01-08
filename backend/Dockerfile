@@ -9,7 +9,6 @@ COPY package.json ./
 
 # Install dependencies
 RUN npm install
-RUN npm install jewish-date --save
 # Copy the rest of the backend code
 COPY . .
 

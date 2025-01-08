@@ -1,5 +1,4 @@
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 import bodyParser from "body-parser";
 
@@ -22,8 +21,15 @@ import randomRoute from "./routes/randomRoute.js";
 import configRoute from "./routes/configRoute.js";
 import Config from "./models/config.js";
 
-// Load environment variables and allows to use .env file
+import dotenv from 'dotenv'
+
 dotenv.config();
+
+const mongoUri = process.env.MONGO_URI;
+if (!mongoUri) {
+  console.error('MONGO_URI is not defined in environment variables');
+  process.exit(1);
+}
 
 const app = express();
 const server_port = process.env.SERVER_PORT || 3000;
@@ -51,6 +57,8 @@ app.use(cors(corsOptions));
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1); // Trust the first proxy (e.g., Cloudflare or NGINX)
 }
+console.log('MONGO_URI:', process.env.MONGO_URI);
+console.log('MONGO_URI_LOCAL:', process.env.MONGO_URI_LOCAL);
 
 app.use(
   session({
@@ -58,7 +66,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.NODE_ENV === "production" ? process.env.MONGO_URI : process.env.MONGO_URI_LOCAL,
+      mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
       ttl: 24 * 60 * 60, // Time to live - 1 day (in seconds)
     }),
