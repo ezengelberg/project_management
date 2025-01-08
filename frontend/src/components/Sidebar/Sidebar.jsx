@@ -284,6 +284,12 @@ const Sidebar = () => {
                       הצגת פרויקטים
                     </li>
                     <li
+                      className={`${isActive("/groups") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/groups")}
+                      onMouseDown={(e) => handleMouseDown(e, "/groups")}>
+                      קבוצות
+                    </li>
+                    <li
                       className={`sidebar-option ${isActive("/submissions") ? "active" : ""}`}
                       onClick={() => handleNavigate("/submissions")}
                       onMouseDown={(e) => handleMouseDown(e, "/submissions")}>

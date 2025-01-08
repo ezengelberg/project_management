@@ -26,6 +26,7 @@ import Notifications from "./components/Notifications/Notifications";
 import SubmissionsStatus from "./components/SubmissionsStatus/SubmissionsStatus";
 import ProfilePage from "./components/ProfilePage/ProfilePage";
 import DeleteAll from "./components/DeleteAll/DeleteAll";
+import Groups from "./components/Groups/Groups";
 
 function App() {
   return (
@@ -133,6 +134,14 @@ const MainLayout = () => {
                 element={
                   <ProtectedRoute privileges={["coordinator"]}>
                     <OverviewProjects />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/groups"
+                element={
+                  <ProtectedRoute privileges={["coordinator"]}>
+                    <Groups />
                   </ProtectedRoute>
                 }
               />

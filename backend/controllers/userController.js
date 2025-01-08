@@ -1,4 +1,5 @@
 import User from "../models/users.js";
+import dotenv from "dotenv";
 import Project from "../models/projects.js";
 import Submission from "../models/submission.js";
 import bcrypt from "bcryptjs";
@@ -11,6 +12,8 @@ import GradeStructure from "../models/gradeStructure.js";
 import Random from "../models/random.js";
 import fs from "fs";
 import path from "path";
+
+dotenv.config();
 
 export const registerUser = async (req, res) => {
   try {
@@ -90,7 +93,7 @@ export const createAdmin = async (req, res) => {
   try {
     const user = await User.findOne({ email: "admin@jce.ac" });
     if (!user) {
-      const hashedPassword = await bcrypt.hash("U*P0!ps#1N&p", 10);
+      const hashedPassword = await bcrypt.hash(process.env.ADMIN_USER_PASSWORD, 10);
       const newUser = new User({
         name: "משתמש על",
         email: "admin@jce.ac",
