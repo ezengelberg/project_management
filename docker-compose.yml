@@ -6,7 +6,7 @@ services:
     ports:
       - "4000:4000"
     volumes:
-      - uploads_data:/app/uploads
+      - uploads_data:/uploads
     depends_on:
       - mongo
 
@@ -16,13 +16,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-      
+
   mongo:
     image: mongo
     ports:
-      - "27017:27017"  # Expose MongoDB default port
+      - "27017:27017"
     volumes:
-      - mongo_data:/data/db  # Persist MongoDB data
+      - mongo_data:/data/db # Persist MongoDB data
 
 volumes:
   mongo_data:
