@@ -127,7 +127,7 @@ app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
 app.get("/", (req, res) => {
-  res.send(`Version DEV: 12`);
+  res.send(`Version DEV: 13`);
 });
 
 async function initializeConfig() {
