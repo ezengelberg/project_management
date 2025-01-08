@@ -1,4 +1,5 @@
 import User from "../models/users.js";
+import dotenv from "dotenv";
 import Project from "../models/projects.js";
 import Submission from "../models/submission.js";
 import bcrypt from "bcryptjs";
@@ -11,6 +12,8 @@ import GradeStructure from "../models/gradeStructure.js";
 import Random from "../models/random.js";
 import fs from "fs";
 import path from "path";
+
+dotenv.config();
 
 export const registerUser = async (req, res) => {
   try {
@@ -90,7 +93,7 @@ export const createAdmin = async (req, res) => {
   try {
     const user = await User.findOne({ email: "admin@jce.ac" });
     if (!user) {
-      const hashedPassword = await bcrypt.hash("U*P0!ps#1N&p", 10);
+      const hashedPassword = await bcrypt.hash(process.env.ADMIN_USER_PASSWORD, 10);
       const newUser = new User({
         name: "משתמש על",
         email: "admin@jce.ac",
@@ -104,30 +107,78 @@ export const createAdmin = async (req, res) => {
         isCoordinator: true,
       });
       await newUser.save();
-    }
+      console.log("Admin user created successfully");
+    } else console.log("Admin user already exists");
     res.status(201).send("Admin user created successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
 };
 
+// export const loginUser = async (req, res) => {
+//   console.log("logging in user");
+//   passport.authenticate("local", async (err, user, info) => {
+//     if (err) {
+//       return next(err); // Handle errors
+//     }
+
+//     if (!user) {
+//       return res.status(401).json({ message: "Authentication failed", error: info });
+//     }
+
+//     req.login(user, (err) => {
+//       if (err) {
+//         console.error("Login error:", err);
+//         return res.status(500).send({ message: "Login error" });
+//       }
+
+//       req.session.save((err) => {
+//         if (err) {
+//           console.error("Session save error:", err);
+//           return res.status(500).send({ message: "Session save error" });
+//         }
+
+//         const userObj = user.toObject();
+//         delete userObj.password;
+//         res.status(200).json(userObj);
+//       });
+//     });
+//   })(req, res);
+// };
+
 export const loginUser = (req, res, next) => {
-  req.body.email = req.body.email.toLowerCase();
   passport.authenticate("local", async (err, user, info) => {
-    if (err) return next(err);
-    if (!user) return res.status(401).send(info.message);
-    if (user.suspended) return res.status(403).send("User is suspended");
+    if (err) {
+      console.error("Authentication error:", err);
+      return next(err);
+    }
 
-    req.login(user, async (err) => {
-      if (err) return next(err);
-      const userObj = user.toObject();
-      delete userObj.password;
+    if (!user) {
+      return res.status(401).send(info.message);
+    }
 
-      // Update rememberMe field
-      user.rememberMe = req.body.rememberMe || false;
-      await user.save();
+    req.login(user, (err) => {
+      if (err) {
+        console.error("Login error:", err);
+        return next(err);
+      }
 
-      res.status(200).json(userObj);
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return next(err);
+        }
+
+        console.log("Session after login:", {
+          id: req.sessionID,
+          passport: req.session.passport,
+          cookie: req.session.cookie,
+        });
+
+        const userObj = user.toObject();
+        delete userObj.password;
+        res.status(200).json(userObj);
+      });
     });
   })(req, res, next);
 };
@@ -256,16 +307,19 @@ export const getUser = async (req, res) => {
 };
 
 export const changePassword = async (req, res) => {
+  console.log("changing password...");
   const user = req.user;
   const { oldPassword, newPassword, interests } = req.body;
   try {
-    const match = await bcrypt.compare(oldPassword, user.password);
+    const userDB = await User.findById(user._id);
+    const match = await bcrypt.compare(oldPassword, userDB.password);
     if (!match) {
       return res.status(401).send("Incorrect password");
     }
     if (oldPassword === newPassword) {
       return res.status(400).send("New password must be different from the old password");
     }
+    console.log("passed all checks");
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     user.firstLogin = false;

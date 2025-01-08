@@ -38,7 +38,7 @@ const GradeDistributionChart = ({ data, additionalData }) => {
                 const index = context.dataIndex;
                 const percentage = data[index].percentage;
                 const count = data[index].count;
-                return [`אחוז סטודנטים: ${percentage}%`, `מספר סטודנטים: ${count}`];
+                return [`אחוז פרויקטים: ${percentage}%`, `מספר פרויקטים: ${count}`];
               },
             },
           },
@@ -59,14 +59,14 @@ const GradeDistributionChart = ({ data, additionalData }) => {
       width: 200,
     },
     {
-      title: "אחוז סטודנטים",
+      title: "אחוז פרויקטים",
       dataIndex: "percentage",
       key: "percentage",
       width: 200,
       render: (text) => `${text}%`,
     },
     {
-      title: "מספר סטודנטים",
+      title: "מספר פרויקטים",
       dataIndex: "count",
       key: "count",
       width: 200,

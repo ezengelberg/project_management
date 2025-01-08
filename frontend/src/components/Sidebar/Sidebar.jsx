@@ -102,6 +102,7 @@ const Sidebar = () => {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, {
           withCredentials: true,
         });
+        console.log("User data:", response.data);
         setUser(response.data);
         localStorage.setItem("user", JSON.stringify(response.data));
       } catch (error) {
@@ -281,6 +282,12 @@ const Sidebar = () => {
                       onClick={() => handleNavigate("/overview-projects")}
                       onMouseDown={(e) => handleMouseDown(e, "/overview-projects")}>
                       הצגת פרויקטים
+                    </li>
+                    <li
+                      className={`${isActive("/groups") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/groups")}
+                      onMouseDown={(e) => handleMouseDown(e, "/groups")}>
+                      קבוצות
                     </li>
                     <li
                       className={`sidebar-option ${isActive("/submissions") ? "active" : ""}`}

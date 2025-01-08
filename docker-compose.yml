@@ -5,15 +5,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "4000:4000"
-    environment:
-      - MONGO_URI=mongodb://mongo:27017/pr-mngt-db  # Database name set as mongoosedb
-      - SERVER_PORT=4000
-      - SESSION_SECRET=jy$2HjwO*2w^^pWZkK
     volumes:
-      - ./backend:/app
-      - node_modules:/app/node_modules
+      - uploads_data:/app/uploads
     depends_on:
       - mongo
+    env_file: 
+      - ./backend/.env # Load environment variables from .env file
 
   frontend:
     build:
@@ -21,13 +18,14 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+
   mongo:
     image: mongo
     ports:
-      - "27017:27017"  # Expose MongoDB default port
+      - "27017:27017"
     volumes:
-      - mongo_data:/data/db  # Persist MongoDB data
+      - mongo_data:/data/db # Persist MongoDB data
 
 volumes:
   mongo_data:
-  node_modules:
+  uploads_data:
