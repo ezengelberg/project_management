@@ -1,9 +1,14 @@
 export const ensureAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
-  } else {
-    res.status(401).send("Unauthorized");
+  if (!req.isAuthenticated()) {
+    console.log("Authentication failed:", {
+      sessionID: req.sessionID,
+      session: req.session,
+      user: req.user,
+      headers: req.headers,
+    });
+    return res.status(401).json({ error: "Unauthorized access" });
   }
+  next();
 };
 
 export const isStudent = (req, res, next) => {
