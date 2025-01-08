@@ -1132,6 +1132,20 @@ const Submissions = () => {
                   </div>
                 </div>
               )}
+              {submissionInfo.submission.isGraded && submissionInfo.submission.isLate && (
+                <div className="detail-item">
+                  <div className="detail-item-header">נקודות קנס</div>
+                  <div className="detail-item-content">
+                    <div className="changeable-content">
+                      {Math.ceil(
+                        (new Date(submissionInfo.submission.uploadDate) -
+                          new Date(submissionInfo.submission.submissionDate)) /
+                          (1000 * 60 * 60 * 24),
+                      ) * 2}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="submission-grades">
