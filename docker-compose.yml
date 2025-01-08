@@ -6,7 +6,7 @@ services:
     ports:
       - "4000:4000"
     volumes:
-      - uploads_data:/uploads
+      - uploads_data:/app/uploads
     depends_on:
       - mongo
 
