@@ -166,7 +166,7 @@ const Submissions = () => {
 
   const assignJudgesAutomatically = async () => {
     try {
-      const response = await axios.post(
+      await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/assign-judge-auto`,
         {
           submissionYear: yearFilter,
@@ -214,7 +214,7 @@ const Submissions = () => {
 
   const handleDeleteSpecific = async (values) => {
     try {
-      const response = await axios.delete(
+      await axios.delete(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
           withCredentials: true,
@@ -234,7 +234,7 @@ const Submissions = () => {
   };
   const handleOkDelete = async (values) => {
     try {
-      const response = await axios.post(
+      await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-active-submissions`,
         {
           submissionName: values.submissionName,
@@ -300,7 +300,7 @@ const Submissions = () => {
             : false;
           break;
       }
-      const response = await axios.post(
+      await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create`,
         {
           name: name,
@@ -332,7 +332,7 @@ const Submissions = () => {
 
   const handleOkEditSpecific = async (values) => {
     try {
-      const response = await axios.post(
+      await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-specific-submission/${specificSubmissionInfo.submission.key}`,
         {
           name: values.submissionName,
@@ -362,7 +362,7 @@ const Submissions = () => {
 
   const handleOkEdit = async (values) => {
     try {
-      const response = await axios.post(
+      await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-information`,
         {
           submissionOldName: values.submissionOldName,
@@ -428,7 +428,7 @@ const Submissions = () => {
             : false;
           break;
       }
-      const response = await axios.post(
+      await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create-specific`,
         {
           name: name,
@@ -1492,7 +1492,7 @@ const Submissions = () => {
             ]}>
             <Select mode="multiple" placeholder="בחר פרויקטים">
               {projects
-                .filter((project) => project.students.length != 0 && project.advisors.length != 0)
+                .filter((project) => project.students.length !== 0 && project.advisors.length !== 0)
                 .map((project) => (
                   <Select.Option key={project._id} value={project._id}>
                     {project.title}
