@@ -74,9 +74,6 @@ const Login = () => {
       if (process.env.REACT_APP_ROOT_USER === lowerCaseEmail && process.env.REACT_APP_ROOT_PASSWORD === password) {
         await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/create-admin`, {
           withCredentials: true,
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-          },
         });
       } else {
         console.log("🔵 Logging in with email:", lowerCaseEmail);

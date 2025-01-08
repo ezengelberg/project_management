@@ -60,6 +60,7 @@ app.use(
     store: MongoStore.create({
       mongoUrl: process.env.NODE_ENV === "production" ? process.env.MONGO_URI : process.env.MONGO_URI_LOCAL,
       collectionName: "sessions",
+      ttl: 24 * 60 * 60, // Time to live - 1 day (in seconds)
     }),
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
@@ -69,12 +70,6 @@ app.use(
     },
   }),
 );
-
-app.use((req, res, next) => {
-  console.log("Session ID:", req.sessionID);
-  console.log("Session Passport:", req.session.passport);
-  next();
-});
 
 passport.serializeUser((user, done) => {
   process.nextTick(() => {
