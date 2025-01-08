@@ -40,7 +40,7 @@ const corsOptions = {
   origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
   credentials: true, // Allow cookies and credentials
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
-  allowedHeaders: ["Content-Type", "Authorization", "x-file-name", "x-file-type", "x-file-size", "x-filename-encoding"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-filename-encoding"],
   preflightContinue: false, // Respond to OPTIONS automatically
   optionsSuccessStatus: 204, // Add this
 };
@@ -124,7 +124,7 @@ app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
 app.get("/", (req, res) => {
-  res.send(`Hello world! DEV: 9`);
+  res.send(`Hello world! DEV: 10`);
 });
 
 async function initializeConfig() {
