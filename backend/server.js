@@ -119,7 +119,7 @@ app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 
 app.get("/", (req, res) => {
-  res.send(`Hello world! DEV: 10`);
+  res.send(`Hello world! DEV: 11`);
 });
 
 async function initializeConfig() {
