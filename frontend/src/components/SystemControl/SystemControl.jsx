@@ -160,12 +160,6 @@ const SystemControl = () => {
 
   const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
     const inputRef = React.useRef(null);
-    const inputNode =
-      inputType === "number" ? (
-        <InputNumber ref={inputRef} min={0} max={100} inputMode="numeric" />
-      ) : (
-        <Input ref={inputRef} />
-      );
 
     useEffect(() => {
       if (editing) {
@@ -187,7 +181,7 @@ const SystemControl = () => {
                 message: "שדה חובה",
               },
             ]}>
-            {inputNode}
+            <InputNumber ref={inputRef} min={0} max={100} inputMode="numeric" />
           </Form.Item>
         ) : (
           children
