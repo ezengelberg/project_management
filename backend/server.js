@@ -57,8 +57,6 @@ app.use(cors(corsOptions));
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1); // Trust the first proxy (e.g., Cloudflare or NGINX)
 }
-console.log('MONGO_URI:', process.env.MONGO_URI);
-console.log('MONGO_URI_LOCAL:', process.env.MONGO_URI_LOCAL);
 
 app.use(
   session({
