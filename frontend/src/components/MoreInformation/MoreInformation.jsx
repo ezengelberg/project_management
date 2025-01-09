@@ -695,7 +695,7 @@ const MoreInformation = () => {
                 <Input placeholder="שם" />
               </Form.Item>
               <Form.Item name="weight" rules={[{ required: true, message: "הכנס משקל" }]}>
-                <InputNumber placeholder="משקל" />
+                <InputNumber placeholder="משקל" inputMode="numeric" />
               </Form.Item>
               <Form.Item
                 name="description"
