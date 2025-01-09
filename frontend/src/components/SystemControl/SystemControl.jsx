@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import "./SystemControl.scss";
 import { Button, Switch, Form, Input, InputNumber, Table, Typography, message, Tooltip, Modal, Select } from "antd";
 import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const SystemControl = () => {
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [manageStudents, setManageStudents] = useState(true);
   const [currentYear, setCurrentYear] = useState("");
   const [years, setYears] = useState([]);
@@ -263,6 +265,7 @@ const SystemControl = () => {
       message.success("הציונים/ביקורות הזמינים פורסמו בהצלחה");
       fetchGrades();
       setRefreshSubmissions((prev) => !prev);
+      fetchNotifications();
     } catch (error) {
       console.error("Error ending judging period:", error);
       if (error.response.status === 400) {
