@@ -157,7 +157,7 @@ const SystemControl = () => {
   const isEditing = (record) => record.key === editingKey;
 
   const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
-    const inputNode = inputType === "number" ? <InputNumber min={0} max={100} /> : <Input />;
+    const inputNode = inputType === "number" ? <InputNumber min={0} max={100} autoFocus /> : <Input />;
     return (
       <td {...restProps}>
         {editing ? (
