@@ -157,7 +157,16 @@ const SystemControl = () => {
   const isEditing = (record) => record.key === editingKey;
 
   const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
-    const inputNode = inputType === "number" ? <InputNumber min={0} max={100} /> : <Input />;
+    const inputRef = React.useRef(null);
+    const inputNode =
+      inputType === "number" ? <InputNumber ref={inputRef} min={0} max={100} /> : <Input ref={inputRef} />;
+
+    useEffect(() => {
+      if (editing) {
+        inputRef.current.focus();
+      }
+    }, [editing]);
+
     return (
       <td {...restProps}>
         {editing ? (
