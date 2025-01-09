@@ -161,7 +161,11 @@ const SystemControl = () => {
   const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
     const inputRef = React.useRef(null);
     const inputNode =
-      inputType === "number" ? <InputNumber ref={inputRef} min={0} max={100} /> : <Input ref={inputRef} />;
+      inputType === "number" ? (
+        <InputNumber ref={inputRef} min={0} max={100} inputMode="numeric" />
+      ) : (
+        <Input ref={inputRef} />
+      );
 
     useEffect(() => {
       if (editing) {
