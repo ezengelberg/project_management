@@ -122,14 +122,36 @@
     height: 100%;
     transform: translateX(100%);
     transition: transform 0.3s ease-in-out;
+
+    .sidebar-actions {
+      .sidebar-greeting {
+        h3 {
+          margin-right: 6rem;
+          text-align: right;
+        }
+      }
+      ul {
+        font-size: 2rem;
+        li {
+          .sidebar-option {
+            padding: 1.5rem 2rem;
+            svg {
+              width: 3rem;
+            }
+          }
+        }
+      }
+    }
   }
   .sidebar-container.open {
     transform: translateX(0);
   }
+
   .close-button {
     position: absolute;
-    top: 1rem;
+    top: 1.5rem;
     right: 1rem;
+    font-size: 2.5rem;
     background: none;
     border: none;
     color: white;
