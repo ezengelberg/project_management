@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./SystemControl.scss";
 import { Button, Switch, Form, Input, InputNumber, Table, Typography, message, Tooltip, Modal, Select } from "antd";
 import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
-import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const SystemControl = () => {
-  const { fetchNotifications } = useContext(NotificationsContext);
   const [manageStudents, setManageStudents] = useState(true);
   const [currentYear, setCurrentYear] = useState("");
   const [years, setYears] = useState([]);
@@ -159,14 +157,7 @@ const SystemControl = () => {
   const isEditing = (record) => record.key === editingKey;
 
   const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
-    const inputRef = React.useRef(null);
-
-    useEffect(() => {
-      if (editing) {
-        inputRef.current.focus();
-      }
-    }, [editing]);
-
+    const inputNode = inputType === "number" ? <InputNumber min={0} max={100} /> : <Input />;
     return (
       <td {...restProps}>
         {editing ? (
@@ -181,8 +172,7 @@ const SystemControl = () => {
                 message: "שדה חובה",
               },
             ]}>
-            {/* <InputNumber ref={inputRef} min={0} max={100} inputMode="numeric" /> */}
-            <input ref={inputRef} type="number" min={0} max={100} inputMode="numeric" />
+            {inputNode}
           </Form.Item>
         ) : (
           children
@@ -264,7 +254,6 @@ const SystemControl = () => {
       message.success("הציונים/ביקורות הזמינים פורסמו בהצלחה");
       fetchGrades();
       setRefreshSubmissions((prev) => !prev);
-      fetchNotifications();
     } catch (error) {
       console.error("Error ending judging period:", error);
       if (error.response.status === 400) {
