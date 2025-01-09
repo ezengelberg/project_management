@@ -345,17 +345,15 @@ const Sidebar = () => {
                 </div>
               </li>
             )}
-            {user.isStudent && (
-              <li>
-                <div
-                  className={`sidebar-option ${isActive("/more-information") ? "active" : ""}`}
-                  onClick={() => handleNavigate("/more-information")}
-                  onMouseDown={(e) => handleMouseDown(e, "/more-information")}>
-                  <InfoCircleOutlined />
-                  <span>מידע לסטודנט</span>
-                </div>
-              </li>
-            )}
+            <li>
+              <div
+                className={`sidebar-option ${isActive("/more-information") ? "active" : ""}`}
+                onClick={() => handleNavigate("/more-information")}
+                onMouseDown={(e) => handleMouseDown(e, "/more-information")}>
+                <InfoCircleOutlined />
+                <span>מידע לסטודנט</span>
+              </div>
+            </li>
             {user.isCoordinator && (
               <li>
                 <div

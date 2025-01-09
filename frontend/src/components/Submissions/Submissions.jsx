@@ -21,6 +21,7 @@ import {
   Space,
   Divider,
   Tooltip,
+  TimePicker,
 } from "antd";
 import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
@@ -110,7 +111,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
           withCredentials: true,
-        },
+        }
       );
       response.data.map((project) => {
         project.submissions.map((submission) => {
@@ -127,18 +128,18 @@ const Submissions = () => {
               submission.submissions.map((sub) => ({
                 name: sub.name,
                 info: sub.info,
-              })),
+              }))
             )
             .map((sub) => [
               sub.name, // Use the name as key
               sub, // Keep the object with name and info as the value
-            ]),
+            ])
         ).values(),
       ];
 
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
-          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
+          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission
         );
 
         if (!existing) return submission;
@@ -173,7 +174,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -196,7 +197,7 @@ const Submissions = () => {
           newGrade: values.newGrade,
           comment: values.comment,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
       message.open({
         type: "success",
@@ -218,7 +219,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -242,7 +243,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "info",
@@ -300,11 +301,23 @@ const Submissions = () => {
             : false;
           break;
       }
+      let submissionDate = dayjs(values.submissionDate);
+      if (windowSize.width < 500) {
+        submissionDate = submissionDate
+          .set({
+            hour: values.submissionTime.hour(),
+            minute: values.submissionTime.minute(),
+          })
+          .toISOString();
+      } else {
+        submissionDate = submissionDate.toISOString();
+      }
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create`,
         {
           name: name,
-          submissionDate: values.submissionDate,
+          submissionDate: submissionDate,
+          submissionTime: values.submissionTime ? values.submissionTime.format("HH:mm") : null,
           submissionInfo: values.submissionInfo,
           submissionYear: yearFilter,
           isGraded: isGraded,
@@ -313,7 +326,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -332,11 +345,23 @@ const Submissions = () => {
 
   const handleOkEditSpecific = async (values) => {
     try {
+      let submissionDate = dayjs(values.submissionDate);
+      if (windowSize.width < 500) {
+        submissionDate = submissionDate
+          .set({
+            hour: values.submissionTime.hour(),
+            minute: values.submissionTime.minute(),
+          })
+          .toISOString();
+      } else {
+        submissionDate = submissionDate.toISOString();
+      }
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-specific-submission/${specificSubmissionInfo.submission.key}`,
         {
           name: values.submissionName,
-          submissionDate: values.submissionDate,
+          submissionDate: submissionDate,
+          submissionTime: values.submissionTime ? values.submissionTime.format("HH:mm") : null,
           isGraded: Array.isArray(values.submissionChecklist) ? values.submissionChecklist.includes("isGraded") : false,
           isReviewed: Array.isArray(values.submissionChecklist)
             ? values.submissionChecklist.includes("isReviewed")
@@ -347,7 +372,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
@@ -373,7 +398,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -428,11 +453,23 @@ const Submissions = () => {
             : false;
           break;
       }
+      let submissionDate = dayjs(values.submissionDate);
+      if (windowSize.width < 500) {
+        submissionDate = submissionDate
+          .set({
+            hour: values.submissionTime.hour(),
+            minute: values.submissionTime.minute(),
+          })
+          .toISOString();
+      } else {
+        submissionDate = submissionDate.toISOString();
+      }
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/create-specific`,
         {
           name: name,
-          submissionDate: values.submissionDate,
+          submissionDate: submissionDate,
+          submissionTime: values.submissionTime ? values.submissionTime.format("HH:mm") : null,
           submissionInfo: values.submissionInfo,
           projects: values.projects,
           isGraded: isGraded,
@@ -441,7 +478,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -462,6 +499,14 @@ const Submissions = () => {
     formSpecific
       .validateFields()
       .then((values) => {
+        if (windowSize.width < 500) {
+          values.submissionDate = values.submissionDate
+            .set({
+              hour: values.submissionTime.hour(),
+              minute: values.submissionTime.minute(),
+            })
+            .toISOString();
+        }
         handleOkSpecific(values);
       })
       .catch((info) => {
@@ -472,6 +517,14 @@ const Submissions = () => {
     formAll
       .validateFields()
       .then((values) => {
+        if (windowSize.width < 500) {
+          values.submissionDate = values.submissionDate
+            .set({
+              hour: values.submissionTime.hour(),
+              minute: values.submissionTime.minute(),
+            })
+            .toISOString();
+        }
         handleOkAll(values);
       })
       .catch((info) => {
@@ -577,7 +630,7 @@ const Submissions = () => {
                     (grade) =>
                       grade.videoQuality === undefined ||
                       grade.workQuality === undefined ||
-                      grade.writingQuality === undefined,
+                      grade.writingQuality === undefined
                   ));
               return (
                 <div className="table-col-div" key={index}>
@@ -611,7 +664,7 @@ const Submissions = () => {
                                   sub.isLate
                                     ? ` באיחור - ${Math.ceil(
                                         (new Date(sub.uploadDate) - new Date(sub.submissionDate)) /
-                                          (1000 * 60 * 60 * 24),
+                                          (1000 * 60 * 60 * 24)
                                       )} ימים`
                                     : ""
                                 }`
@@ -712,7 +765,7 @@ const Submissions = () => {
   ];
 
   const filteredSubmissionData = submissionData.filter(
-    (project) => yearFilter === "all" || project.year === yearFilter,
+    (project) => yearFilter === "all" || project.year === yearFilter
   );
 
   return (
@@ -960,26 +1013,65 @@ const Submissions = () => {
             ]}>
             <Input />
           </Form.Item>
-          <Form.Item
-            label="תאריך הגשה"
-            name="submissionDate"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה להזין תאריך הגשה",
-              },
-            ]}>
-            <DatePicker
-              className="date-picker"
-              locale={locale} // Add the Hebrew locale here
-              direction="rtl"
-              showTime={{
-                format: "HH:mm",
-              }}
-              format="DD-MM-YYYY HH:mm"
-            />
-          </Form.Item>
+          {windowSize.width < 500 ? (
+            <div className="submission-date-time-mobile">
+              <Form.Item
+                label="תאריך הגשה"
+                name="submissionDate"
+                hasFeedback
+                rules={[
+                  {
+                    required: true,
+                    message: "שדה חובה",
+                  },
+                ]}>
+                <DatePicker
+                  className="submission-date-time-mobile-item"
+                  format="DD-MM-YYYY"
+                  placeholder="בחר תאריך"
+                  locale={locale}
+                />
+              </Form.Item>
+              <Form.Item
+                label="שעת הגשה"
+                name="submissionTime"
+                hasFeedback
+                rules={[
+                  {
+                    required: true,
+                    message: "שדה חובה",
+                  },
+                ]}>
+                <TimePicker
+                  className="submission-date-time-mobile-item"
+                  format="HH:mm"
+                  placeholder="בחר שעה"
+                  locale={locale}
+                />
+              </Form.Item>
+            </div>
+          ) : (
+            <Form.Item
+              label="תאריך הגשה"
+              name="submissionDate"
+              hasFeedback
+              rules={[
+                {
+                  required: true,
+                  message: "חובה להזין תאריך הגשה",
+                },
+              ]}>
+              <DatePicker
+                className="date-picker"
+                locale={locale} // Add the Hebrew locale here
+                direction="rtl"
+                showTime={{
+                  format: "HH:mm",
+                }}
+                format="DD-MM-YYYY HH:mm"
+              />
+            </Form.Item>
+          )}
           <Form.Item name="submissionChecklist">
             <Checkbox.Group>
               <Checkbox value="isGraded">מתן ציון</Checkbox>
@@ -1067,7 +1159,7 @@ const Submissions = () => {
                               ? ` באיחור - ${Math.ceil(
                                   (new Date(submissionInfo.submission.uploadDate) -
                                     new Date(submissionInfo.submission.submissionDate)) /
-                                    (1000 * 60 * 60 * 24),
+                                    (1000 * 60 * 60 * 24)
                                 )} ימים`
                               : ""
                           }`
@@ -1140,7 +1232,7 @@ const Submissions = () => {
                       {Math.ceil(
                         (new Date(submissionInfo.submission.uploadDate) -
                           new Date(submissionInfo.submission.submissionDate)) /
-                          (1000 * 60 * 60 * 24),
+                          (1000 * 60 * 60 * 24)
                       ) * 2}
                     </div>
                   </div>
@@ -1292,39 +1384,78 @@ const Submissions = () => {
             rules={[{ required: true, message: "חובה להזין שם הגשה" }]}>
             <Input />
           </Form.Item>
-          <Form.Item
-            label="תאריך הגשה"
-            name="submissionDate"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה להזין תאריך הגשה",
-              },
-              {
-                validator: (_, value) => {
-                  if (!value) {
-                    return Promise.resolve(); // Skip validation if no value is selected (handled by `required`)
-                  }
-                  // Check if the selected date is in the past
-                  const now = dayjs(); // Or dayjs(), if you're using dayjs
-                  if (value.isBefore(now)) {
-                    return Promise.reject(new Error("לא ניתן לבחור תאריך ושעה שעברו"));
-                  }
-                  return Promise.resolve();
+          {windowSize.width < 500 ? (
+            <div className="submission-date-time-mobile">
+              <Form.Item
+                label="תאריך הגשה"
+                name="submissionDate"
+                hasFeedback
+                rules={[
+                  {
+                    required: true,
+                    message: "שדה חובה",
+                  },
+                ]}>
+                <DatePicker
+                  className="submission-date-time-mobile-item"
+                  format="DD-MM-YYYY"
+                  placeholder="בחר תאריך"
+                  locale={locale}
+                />
+              </Form.Item>
+              <Form.Item
+                label="שעת הגשה"
+                name="submissionTime"
+                hasFeedback
+                rules={[
+                  {
+                    required: true,
+                    message: "שדה חובה",
+                  },
+                ]}>
+                <TimePicker
+                  className="submission-date-time-mobile-item"
+                  format="HH:mm"
+                  placeholder="בחר שעה"
+                  locale={locale}
+                />
+              </Form.Item>
+            </div>
+          ) : (
+            <Form.Item
+              label="תאריך הגשה"
+              name="submissionDate"
+              hasFeedback
+              rules={[
+                {
+                  required: true,
+                  message: "חובה להזין תאריך הגשה",
                 },
-              },
-            ]}>
-            <DatePicker
-              className="date-picker"
-              locale={locale} // Add the Hebrew locale here
-              direction="rtl"
-              showTime={{
-                format: "HH:mm",
-              }}
-              format="DD-MM-YYYY HH:mm"
-            />
-          </Form.Item>
+                {
+                  validator: (_, value) => {
+                    if (!value) {
+                      return Promise.resolve(); // Skip validation if no value is selected (handled by `required`)
+                    }
+                    // Check if the selected date is in the past
+                    const now = dayjs(); // Or dayjs(), if you're using dayjs
+                    if (value.isBefore(now)) {
+                      return Promise.reject(new Error("לא ניתן לבחור תאריך ושעה שעברו"));
+                    }
+                    return Promise.resolve();
+                  },
+                },
+              ]}>
+              <DatePicker
+                className="date-picker"
+                locale={locale} // Add the Hebrew locale here
+                direction="rtl"
+                showTime={{
+                  format: "HH:mm",
+                }}
+                format="DD-MM-YYYY HH:mm"
+              />
+            </Form.Item>
+          )}
           <Form.Item label="פרטים נוספים" name="submissionInfo">
             <TextArea rows={4} />
           </Form.Item>
@@ -1369,26 +1500,65 @@ const Submissions = () => {
               <Input />
             </Form.Item>
           )}
-          <Form.Item
-            label="תאריך הגשה"
-            name="submissionDate"
-            hasFeedback
-            rules={[
-              {
-                required: true,
-                message: "חובה להזין תאריך הגשה",
-              },
-            ]}>
-            <DatePicker
-              className="date-picker"
-              locale={locale} // Add the Hebrew locale here
-              direction="rtl"
-              showTime={{
-                format: "HH:mm",
-              }}
-              format="DD-MM-YYYY HH:mm"
-            />
-          </Form.Item>
+          {windowSize.width < 500 ? (
+            <div className="submission-date-time-mobile">
+              <Form.Item
+                label="תאריך הגשה"
+                name="submissionDate"
+                hasFeedback
+                rules={[
+                  {
+                    required: true,
+                    message: "שדה חובה",
+                  },
+                ]}>
+                <DatePicker
+                  className="submission-date-time-mobile-item"
+                  format="DD-MM-YYYY"
+                  placeholder="בחר תאריך"
+                  locale={locale}
+                />
+              </Form.Item>
+              <Form.Item
+                label="שעת הגשה"
+                name="submissionTime"
+                hasFeedback
+                rules={[
+                  {
+                    required: true,
+                    message: "שדה חובה",
+                  },
+                ]}>
+                <TimePicker
+                  className="submission-date-time-mobile-item"
+                  format="HH:mm"
+                  placeholder="בחר שעה"
+                  locale={locale}
+                />
+              </Form.Item>
+            </div>
+          ) : (
+            <Form.Item
+              label="תאריך הגשה"
+              name="submissionDate"
+              hasFeedback
+              rules={[
+                {
+                  required: true,
+                  message: "חובה להזין תאריך הגשה",
+                },
+              ]}>
+              <DatePicker
+                className="date-picker"
+                locale={locale} // Add the Hebrew locale here
+                direction="rtl"
+                showTime={{
+                  format: "HH:mm",
+                }}
+                format="DD-MM-YYYY HH:mm"
+              />
+            </Form.Item>
+          )}
 
           <Form.Item label="פרטים נוספים" name="submissionInfo">
             <TextArea rows={4} />
@@ -1455,25 +1625,64 @@ const Submissions = () => {
           )}
 
           {/* תאריך הגשה */}
-          <Form.Item
-            label="תאריך הגשה"
-            name="submissionDate"
-            hasFeedback
-            rules={[
-              {
-                type: "object", // Corrected the type from "array" to "object"
-                required: true,
-                message: "חובה להזין תאריך הגשה",
-              },
-            ]}>
-            <DatePicker
-              className="date-picker"
-              locale={locale}
-              direction="rtl"
-              showTime={{ format: "HH:mm" }}
-              format="DD-MM-YYYY HH:mm"
-            />
-          </Form.Item>
+          {windowSize.width < 500 ? (
+            <div className="submission-date-time-mobile">
+              <Form.Item
+                label="תאריך הגשה"
+                name="submissionDate"
+                hasFeedback
+                rules={[
+                  {
+                    required: true,
+                    message: "שדה חובה",
+                  },
+                ]}>
+                <DatePicker
+                  className="submission-date-time-mobile-item"
+                  format="DD-MM-YYYY"
+                  placeholder="בחר תאריך"
+                  locale={locale}
+                />
+              </Form.Item>
+              <Form.Item
+                label="שעת הגשה"
+                name="submissionTime"
+                hasFeedback
+                rules={[
+                  {
+                    required: true,
+                    message: "שדה חובה",
+                  },
+                ]}>
+                <TimePicker
+                  className="submission-date-time-mobile-item"
+                  format="HH:mm"
+                  placeholder="בחר שעה"
+                  locale={locale}
+                />
+              </Form.Item>
+            </div>
+          ) : (
+            <Form.Item
+              label="תאריך הגשה"
+              name="submissionDate"
+              hasFeedback
+              rules={[
+                {
+                  type: "object", // Corrected the type from "array" to "object"
+                  required: true,
+                  message: "חובה להזין תאריך הגשה",
+                },
+              ]}>
+              <DatePicker
+                className="date-picker"
+                locale={locale}
+                direction="rtl"
+                showTime={{ format: "HH:mm" }}
+                format="DD-MM-YYYY HH:mm"
+              />
+            </Form.Item>
+          )}
 
           <Form.Item label="פרטים נוספים" name="submissionInfo">
             <TextArea rows={4} />

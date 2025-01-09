@@ -57,8 +57,6 @@ app.use(cors(corsOptions));
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1); // Trust the first proxy (e.g., Cloudflare or NGINX)
 }
-console.log('MONGO_URI:', process.env.MONGO_URI);
-console.log('MONGO_URI_LOCAL:', process.env.MONGO_URI_LOCAL);
 
 app.use(
   session({
@@ -66,7 +64,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
+      mongoUrl: process.env.NODE_ENV === "production" ? process.env.MONGO_URI : process.env.MONGO_URI_LOCAL,
       collectionName: "sessions",
       ttl: 24 * 60 * 60, // Time to live - 1 day (in seconds)
     }),

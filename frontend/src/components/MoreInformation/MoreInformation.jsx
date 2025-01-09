@@ -17,6 +17,7 @@ import {
   Upload,
   Modal,
 } from "antd";
+import locale from "antd/es/date-picker/locale/he_IL";
 import { EditOutlined, SaveOutlined, StopOutlined, DeleteOutlined, InboxOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
@@ -703,7 +704,7 @@ const MoreInformation = () => {
                 <Input placeholder="תיאור" />
               </Form.Item>
               <Form.Item name="date" rules={[{ required: true, message: "הכנס תאריך" }]}>
-                <DatePicker placeholder="תאריך" />
+                <DatePicker placeholder="תאריך" locale={locale} />
               </Form.Item>
               <Form.Item name="tachlit" rules={[{ required: true, message: "בחר סוג" }]}>
                 <Select placeholder="בחר סוג">

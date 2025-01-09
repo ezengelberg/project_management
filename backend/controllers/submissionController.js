@@ -9,6 +9,11 @@ import path from "path";
 
 export const createSubmission = async (req, res) => {
   try {
+    const submissionDate = new Date(req.body.submissionDate);
+    if (req.body.submissionTime) {
+      const [hours, minutes] = req.body.submissionTime.split(":");
+      submissionDate.setHours(hours, minutes);
+    }
     const projects = await Project.find({
       isTerminated: false,
       isFinished: false,
@@ -35,7 +40,7 @@ export const createSubmission = async (req, res) => {
         const submission = new Submission({
           name: req.body.name,
           project: project._id,
-          submissionDate: new Date(req.body.submissionDate),
+          submissionDate: submissionDate,
           grades: [gradeByAdvisor],
           isGraded: req.body.isGraded,
           isReviewed: req.body.isReviewed,
@@ -53,9 +58,9 @@ export const createSubmission = async (req, res) => {
               link: "/my-submissions",
             });
             await notification.save();
-          }),
+          })
         );
-      }),
+      })
     );
     res.status(201).json({ message: "Submissions created successfully" });
   } catch (error) {
@@ -66,6 +71,11 @@ export const createSubmission = async (req, res) => {
 
 export const createSpecificSubmission = async (req, res) => {
   try {
+    const submissionDate = new Date(req.body.submissionDate);
+    if (req.body.submissionTime) {
+      const [hours, minutes] = req.body.submissionTime.split(":");
+      submissionDate.setHours(hours, minutes);
+    }
     await Promise.all(
       req.body.projects.map(async (projectId) => {
         const project = await Project.findById(projectId);
@@ -84,7 +94,7 @@ export const createSpecificSubmission = async (req, res) => {
         const submission = new Submission({
           name: req.body.name,
           project: project._id,
-          submissionDate: new Date(req.body.submissionDate),
+          submissionDate: submissionDate,
           grades: [gradeByAdvisor],
           isGraded: req.body.isGraded,
           isReviewed: req.body.isReviewed,
@@ -102,9 +112,9 @@ export const createSpecificSubmission = async (req, res) => {
               link: "/my-submissions",
             });
             await notification.save();
-          }),
+          })
         );
-      }),
+      })
     );
     res.status(201).json({ message: "Submissions created successfully" });
   } catch (error) {
@@ -137,7 +147,7 @@ export const getAllProjectSubmissions = async (req, res) => {
                   journalActive: grade.journalActive,
                   commits: grade.commits,
                 };
-              }),
+              })
             );
             return {
               key: submission._id,
@@ -155,7 +165,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               file: submission.file,
               editable: submission.editable,
             };
-          }),
+          })
         );
         return {
           key: project._id,
@@ -164,7 +174,7 @@ export const getAllProjectSubmissions = async (req, res) => {
           year: project.year,
           submissions: submissionsWithGrades,
         };
-      }),
+      })
     );
 
     let resolvedProjectsList = await Promise.all(projectsList);
@@ -207,11 +217,11 @@ export const getAllSubmissions = async (req, res) => {
                 editable: gradeInfo ? gradeInfo.editable : null,
                 overridden: submission.overridden,
               };
-            }),
+            })
           ),
           key: submission._id,
         };
-      }),
+      })
     );
     res.status(200).json(submissionsWithDetails);
   } catch (error) {
@@ -246,9 +256,9 @@ export const getStudentSubmissions = async (req, res) => {
               journalActive: grade.journalActive,
               commits: grade.commits,
             };
-          }),
+          })
         ),
-      })),
+      }))
     ).then((result) => result.sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)));
 
     res.status(200).json(submissionsWithDetails);
@@ -361,11 +371,11 @@ export const copyJudges = async (req, res) => {
           project.advisors.map(async (advisor) => {
             const newGrade = new Grade({ judge: advisor });
             return await newGrade.save();
-          }),
+          })
         );
         submission.grades = newGrades;
         await submission.save();
-      }),
+      })
     );
   } catch (error) {
     console.log(error);
@@ -425,7 +435,7 @@ export const assignJudgesAutomatically = async (req, res) => {
         const gradeInfo = await Grade.findById(grade);
         const advisor = gradeInfo.judge.toString();
         return advisor;
-      }),
+      })
     );
     // Calculate remaining slots for judges
     const remainingSlots = Math.max(0, 3 - currentJudges.length);
@@ -510,7 +520,7 @@ export const updateJudgesInSubmission = async (req, res) => {
             message: `הוסרת משפיטת: "${submission.name}" עבור פרויקט: "${submission.project.title}"`,
           });
           await notification.save();
-        }),
+        })
       );
     }
 
@@ -519,7 +529,7 @@ export const updateJudgesInSubmission = async (req, res) => {
 
     // Find new judges to add
     const newJudges = validJudges.filter(
-      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID),
+      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID)
     );
 
     if (newJudges.length !== 0) {
@@ -534,7 +544,7 @@ export const updateJudgesInSubmission = async (req, res) => {
           });
           await notification.save();
           return newGrade._id;
-        }),
+        })
       );
       submission.grades = [...submission.grades, ...newGrades];
     }
@@ -571,7 +581,7 @@ export const updateSubmissionFile = async (req, res) => {
             : `הועלה קובץ עבור: "${submission.name}" ע"י ${req.user.name}`,
         });
         await notification.save();
-      }),
+      })
     );
 
     res.status(200).json({ message: "Submission updated successfully", submission });
@@ -599,7 +609,7 @@ export const deleteSubmission = async (req, res) => {
     await Promise.all(
       grades.map(async (grade) => {
         await grade.deleteOne({ _id: grade._id });
-      }),
+      })
     );
     await Submission.deleteOne({ _id: submission._id });
     res.status(200).json({ message: "Submission deleted successfully" });
@@ -637,10 +647,10 @@ export const deleteActiveSubmissions = async (req, res) => {
         await Promise.all(
           grades.map(async (grade) => {
             await grade.deleteOne({ _id: grade._id });
-          }),
+          })
         );
         await Submission.deleteOne({ _id: submission._id });
-      }),
+      })
     );
 
     res.status(200).json({ message: "Active submissions deleted successfully" });
@@ -670,7 +680,7 @@ export const updateSubmissionInformation = async (req, res) => {
           submission.name = req.body.SubmissionName;
           await submission.save();
         }
-      }),
+      })
     );
 
     res.status(200).json({ message: "Submissions updated successfully" });
@@ -686,9 +696,15 @@ export const updateSpecificSubmission = async (req, res) => {
     if (!submission) {
       return res.status(404).json({ message: "הגשה לא נמצאה" });
     } else {
+      const submissionDate = new Date(req.body.submissionDate);
+      if (req.body.submissionTime) {
+        const [hours, minutes] = req.body.submissionTime.split(":");
+        submissionDate.setHours(hours, minutes);
+      }
       Object.keys(req.body).forEach((key) => {
         submission[key] = req.body[key];
       });
+      submission.submissionDate = submissionDate;
       await submission.save();
       res.status(200).json({ message: "Submission updated successfully", submission });
     }
@@ -761,7 +777,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
               journalActive: grade.journalActive,
               commits: grade.commits,
             };
-          }),
+          })
         );
         return {
           key: submission._id,
@@ -781,7 +797,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
           file: submission.file,
           fileNeeded: submission.fileNeeded,
         };
-      }),
+      })
     );
     res.status(200).json(submissionsWithDetails);
   } catch (error) {

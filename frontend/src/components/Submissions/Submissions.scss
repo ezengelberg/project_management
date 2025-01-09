@@ -158,6 +158,21 @@
   direction: ltr;
 }
 
+.submission-date-time-mobile {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .ant-form-item {
+    width: 100%;
+
+    .submission-date-time-mobile-item {
+      width: 100%;
+    }
+  }
+}
+
 @media screen and (max-width: 1200px) {
   .action-buttons {
     flex-wrap: wrap;
