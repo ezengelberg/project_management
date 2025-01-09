@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import { Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 
 import Login from "./components/Login/Login";
@@ -40,6 +39,37 @@ const MainLayout = () => {
   const location = useLocation();
   const noSidebarRoutes = ["/login", "/", "*"];
   const shouldDisplaySidebar = !noSidebarRoutes.includes(location.pathname);
+
+  useEffect(() => {
+    const routeTitles = {
+      "/profile/:userId": "פרופיל",
+      "/home": "דף הבית",
+      "/projects": "פרויקטים",
+      "/project/:projectID": "דף פרויקט",
+      "/templates": "תבניות",
+      "/my-submissions": "הגשות שלי",
+      "/create-project": "יצירת פרויקט",
+      "/list-projects": "ניהול פרויקטים",
+      "/create-user": "יצירת משתמש",
+      "/display-users": "הצגת משתמשים",
+      "/overview-projects": "סקירת פרויקטים",
+      "/groups": "קבוצות",
+      "/submissions": "ניהול הגשות",
+      "/check-submissions": "בדיקת הגשות",
+      "/submission-status": "סטטוס הגשות",
+      "/grade-submission/:submissionId": "הערכת הגשה",
+      "/more-information": "מידע נוסף",
+      "/system": "בקרת מערכת",
+      "/delete-all": "מחיקת הכל",
+      "/notifications": "התראות",
+    };
+
+    const currentPath = Object.keys(routeTitles).find((path) =>
+      new RegExp(`^${path.replace(/:\w+/g, "\\w+")}$`).test(location.pathname)
+    );
+
+    document.title = `ניהול פרויקטים | ${routeTitles[currentPath] || "כניסה"}`;
+  }, [location.pathname]);
 
   return (
     <>
