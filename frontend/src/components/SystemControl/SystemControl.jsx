@@ -181,7 +181,8 @@ const SystemControl = () => {
                 message: "שדה חובה",
               },
             ]}>
-            <InputNumber ref={inputRef} min={0} max={100} inputMode="numeric" />
+            {/* <InputNumber ref={inputRef} min={0} max={100} inputMode="numeric" /> */}
+            <input ref={inputRef} type="number" min={0} max={100} inputMode="numeric" />
           </Form.Item>
         ) : (
           children
