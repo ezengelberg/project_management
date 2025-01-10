@@ -1028,6 +1028,7 @@ const Submissions = () => {
             .validateFields()
             .then((values) => {
               setDeleteAllSubmissionsConfirm(values);
+              deleteSubmissionsForm.resetFields();
             })
             .catch((info) => {
               console.log("Validate Failed:", info);
