@@ -57,13 +57,13 @@ passport.use(
 
 // Add a middleware to check passport's state
 const checkPassportState = (req, res, next) => {
-  console.log("🔍 Passport State Check:", {
-    sessionID: req.sessionID,
-    hasSession: !!req.session,
-    sessionPassport: req.session?.passport,
-    isAuthenticated: req.isAuthenticated(),
-    user: req.user ? { id: req.user._id, email: req.user.email } : "none",
-  });
+  // console.log("🔍 Passport State Check:", {
+  //   sessionID: req.sessionID,
+  //   hasSession: !!req.session,
+  //   sessionPassport: req.session?.passport,
+  //   isAuthenticated: req.isAuthenticated(),
+  //   user: req.user ? { id: req.user._id, email: req.user.email } : "none",
+  // });
   next();
 };
 
