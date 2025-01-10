@@ -169,7 +169,6 @@ const Submissions = () => {
   }, []);
 
   const handleResetJudges = async (values) => {
-    console.log("values", values);
     try {
       await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/submission/reset-all-judges`, {
         params: {
