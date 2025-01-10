@@ -319,7 +319,6 @@ export const changePassword = async (req, res) => {
     if (oldPassword === newPassword) {
       return res.status(400).send("New password must be different from the old password");
     }
-    console.log("passed all checks");
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     user.firstLogin = false;
