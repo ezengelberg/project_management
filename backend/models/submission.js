@@ -34,6 +34,7 @@ const submissionSchema = new mongoose.Schema(
       },
       required: false,
     },
+    averageCalculation: { type: Boolean, default: false }, // If false -> calculate by median | If true -> calculate by average
   },
   { timestamps: true }
 );

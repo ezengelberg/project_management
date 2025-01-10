@@ -123,6 +123,7 @@ export const getAllNumericValues = async (req, res) => {
       // Initialize the group with default null values for all letters
       const groupValues = {
         name,
+        averageCalculation: submissions[0].averageCalculation,
         ...defaultLetters.reduce((obj, letter) => ({ ...obj, [letter]: null }), {}),
       };
 
@@ -226,20 +227,35 @@ export const getGradeBySubmission = async (req, res) => {
   }
 };
 
+export const updateCalculationMethod = async (req, res) => {
+  const { submissionName, averageCalculation } = req.body;
+
+  try {
+    await Submission.updateMany({ name: submissionName }, { $set: { averageCalculation } });
+
+    res.status(200).json({ message: "Calculation method updated successfully" });
+  } catch (error) {
+    console.error("Error updating calculation method:", error);
+    res.status(500).json({ message: "Error updating calculation method" });
+  }
+};
+
 export const publishGrades = async (req, res) => {
   const { submissionName, group } = req.body;
   try {
     const submissions = await Submission.find({ name: submissionName }).populate("grades").populate("project");
     const advisorNotified = new Set();
+
     for (const submission of submissions) {
       if (submission.editable === false) {
         continue;
       }
-      let totalGrade = 0;
-      let gradeCount = 0;
+
+      const grades = [];
       let allGradesHaveNumericValue = true;
       let allGradesHaveVideoQuality = true;
 
+      // Process all grades first
       for (const grade of submission.grades) {
         if (grade.numericGrade === null && grade.grade !== null) {
           const numericValueDoc = submission.numericValues.find((nv) => nv.letter === grade.grade);
@@ -250,12 +266,13 @@ export const publishGrades = async (req, res) => {
           grade.editable = false;
           await grade.save();
         }
+
         if (grade.numericGrade !== null) {
-          totalGrade += grade.numericGrade;
-          gradeCount++;
+          grades.push(grade.numericGrade);
         } else {
           allGradesHaveNumericValue = false;
         }
+
         if (grade.videoQuality !== undefined && grade.videoQuality !== null && grade.editable) {
           grade.editable = false;
           await grade.save();
@@ -265,11 +282,24 @@ export const publishGrades = async (req, res) => {
         }
       }
 
-      if (allGradesHaveNumericValue && gradeCount > 0) {
-        let averageGrade = totalGrade / gradeCount;
-        submission.finalGrade = Math.round(averageGrade);
+      if (allGradesHaveNumericValue && grades.length > 0) {
+        let finalGrade;
+
+        if (submission.averageCalculation) {
+          // Calculate average
+          const sum = grades.reduce((a, b) => a + b, 0);
+          finalGrade = Math.round(sum / grades.length);
+        } else {
+          // Calculate median
+          grades.sort((a, b) => a - b);
+          const mid = Math.floor(grades.length / 2);
+          finalGrade = grades.length % 2 === 0 ? Math.round((grades[mid - 1] + grades[mid]) / 2) : grades[mid];
+        }
+
+        submission.finalGrade = finalGrade;
         submission.editable = false;
-        // adding penalty for days late
+
+        // Apply late submission penalty
         if (submission.fileNeeded) {
           const days = Math.ceil(
             (new Date(submission.uploadDate) - new Date(submission.submissionDate)) / (1000 * 60 * 60 * 24)
@@ -280,9 +310,11 @@ export const publishGrades = async (req, res) => {
       } else {
         submission.finalGrade = null;
       }
+
       if (allGradesHaveVideoQuality && !allGradesHaveNumericValue) {
         submission.editable = false;
       }
+
       await submission.save();
 
       // Create notifications for students
