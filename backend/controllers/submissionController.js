@@ -58,9 +58,9 @@ export const createSubmission = async (req, res) => {
               link: "/my-submissions",
             });
             await notification.save();
-          })
+          }),
         );
-      })
+      }),
     );
     res.status(201).json({ message: "Submissions created successfully" });
   } catch (error) {
@@ -112,9 +112,9 @@ export const createSpecificSubmission = async (req, res) => {
               link: "/my-submissions",
             });
             await notification.save();
-          })
+          }),
         );
-      })
+      }),
     );
     res.status(201).json({ message: "Submissions created successfully" });
   } catch (error) {
@@ -147,7 +147,7 @@ export const getAllProjectSubmissions = async (req, res) => {
                   journalActive: grade.journalActive,
                   commits: grade.commits,
                 };
-              })
+              }),
             );
             return {
               key: submission._id,
@@ -165,7 +165,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               file: submission.file,
               editable: submission.editable,
             };
-          })
+          }),
         );
         return {
           key: project._id,
@@ -174,7 +174,7 @@ export const getAllProjectSubmissions = async (req, res) => {
           year: project.year,
           submissions: submissionsWithGrades,
         };
-      })
+      }),
     );
 
     let resolvedProjectsList = await Promise.all(projectsList);
@@ -217,11 +217,11 @@ export const getAllSubmissions = async (req, res) => {
                 editable: gradeInfo ? gradeInfo.editable : null,
                 overridden: submission.overridden,
               };
-            })
+            }),
           ),
           key: submission._id,
         };
-      })
+      }),
     );
     res.status(200).json(submissionsWithDetails);
   } catch (error) {
@@ -256,9 +256,9 @@ export const getStudentSubmissions = async (req, res) => {
               journalActive: grade.journalActive,
               commits: grade.commits,
             };
-          })
+          }),
         ),
-      }))
+      })),
     ).then((result) => result.sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)));
 
     res.status(200).json(submissionsWithDetails);
@@ -371,16 +371,46 @@ export const copyJudges = async (req, res) => {
           project.advisors.map(async (advisor) => {
             const newGrade = new Grade({ judge: advisor });
             return await newGrade.save();
-          })
+          }),
         );
         submission.grades = newGrades;
         await submission.save();
-      })
+      }),
     );
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
+};
+
+export const resetJudges = async (req, res) => {
+  const { submissionYear, submissionName } = req.query;
+  console.log(submissionYear, submissionName);
+  const activeProjects = await Project.find({
+    isTerminated: false,
+    isFinished: false,
+    isTaken: true,
+    year: submissionYear,
+  });
+
+  const submissions = await Submission.find({
+    project: { $in: activeProjects.map((project) => project._id) },
+    name: submissionName,
+  });
+  for (const submission of submissions) {
+    const submissionProject = activeProjects.find((project) => project._id.equals(submission.project));
+    const currentSubmission = await Submission.findById(submission._id);
+    if (submissionProject) {
+      for (const grade of submission.grades) {
+        const gradeResult = await Grade.findById(grade);
+        if (gradeResult && gradeResult.judge.toString() !== submissionProject.advisors[0].toString()) {
+          await Grade.findByIdAndDelete(grade);
+          await currentSubmission.updateOne({ $pull: { grades: grade } });
+        }
+      }
+    }
+  }
+  res.status(200).json({ message: "Judges reset successfully" });
 };
 
 export const assignJudgesAutomatically = async (req, res) => {
@@ -435,7 +465,7 @@ export const assignJudgesAutomatically = async (req, res) => {
         const gradeInfo = await Grade.findById(grade);
         const advisor = gradeInfo.judge.toString();
         return advisor;
-      })
+      }),
     );
     // Calculate remaining slots for judges
     const remainingSlots = Math.max(0, 3 - currentJudges.length);
@@ -520,7 +550,7 @@ export const updateJudgesInSubmission = async (req, res) => {
             message: `הוסרת משפיטת: "${submission.name}" עבור פרויקט: "${submission.project.title}"`,
           });
           await notification.save();
-        })
+        }),
       );
     }
 
@@ -529,7 +559,7 @@ export const updateJudgesInSubmission = async (req, res) => {
 
     // Find new judges to add
     const newJudges = validJudges.filter(
-      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID)
+      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID),
     );
 
     if (newJudges.length !== 0) {
@@ -544,7 +574,7 @@ export const updateJudgesInSubmission = async (req, res) => {
           });
           await notification.save();
           return newGrade._id;
-        })
+        }),
       );
       submission.grades = [...submission.grades, ...newGrades];
     }
@@ -581,7 +611,7 @@ export const updateSubmissionFile = async (req, res) => {
             : `הועלה קובץ עבור: "${submission.name}" ע"י ${req.user.name}`,
         });
         await notification.save();
-      })
+      }),
     );
 
     res.status(200).json({ message: "Submission updated successfully", submission });
@@ -609,7 +639,7 @@ export const deleteSubmission = async (req, res) => {
     await Promise.all(
       grades.map(async (grade) => {
         await grade.deleteOne({ _id: grade._id });
-      })
+      }),
     );
     await Submission.deleteOne({ _id: submission._id });
     res.status(200).json({ message: "Submission deleted successfully" });
@@ -647,10 +677,10 @@ export const deleteActiveSubmissions = async (req, res) => {
         await Promise.all(
           grades.map(async (grade) => {
             await grade.deleteOne({ _id: grade._id });
-          })
+          }),
         );
         await Submission.deleteOne({ _id: submission._id });
-      })
+      }),
     );
 
     res.status(200).json({ message: "Active submissions deleted successfully" });
@@ -680,7 +710,7 @@ export const updateSubmissionInformation = async (req, res) => {
           submission.name = req.body.SubmissionName;
           await submission.save();
         }
-      })
+      }),
     );
 
     res.status(200).json({ message: "Submissions updated successfully" });
@@ -777,7 +807,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
               journalActive: grade.journalActive,
               commits: grade.commits,
             };
-          })
+          }),
         );
         return {
           key: submission._id,
@@ -797,7 +827,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
           file: submission.file,
           fileNeeded: submission.fileNeeded,
         };
-      })
+      }),
     );
     res.status(200).json(submissionsWithDetails);
   } catch (error) {

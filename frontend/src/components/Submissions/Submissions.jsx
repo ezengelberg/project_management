@@ -42,6 +42,7 @@ const Submissions = () => {
   const [formSpecific] = Form.useForm();
   const [gradeForm] = Form.useForm();
   const [deleteSubmissionsForm] = Form.useForm();
+  const [deleteJudgesForm] = Form.useForm();
   const [assignJudgesModal, setAssignJudgesModal] = useState(false);
   const [allSubmissions, setAllSubmissions] = useState(false);
   const [specificSubmission, setSpecificSubmission] = useState(false);
@@ -54,7 +55,9 @@ const Submissions = () => {
   const [showReview, setShowReview] = useState(null);
   const [deleteAllSubmissions, setDeleteAllSubmissions] = useState(false);
   const [deleteAllSubmissionsConfirm, setDeleteAllSubmissionsConfirm] = useState(null);
+  const [deleteAllJudgesConfirm, setDeleteAllJudgesConfirm] = useState(null);
   const [deleteSubmission, setDeleteSubmission] = useState(null);
+  const [deleteJudges, setDeleteJudges] = useState(false);
   const [projects, setProjects] = useState([]);
   const [submissionInfo, setSubmissionInfo] = useState(null);
   const [specificSubmissionInfo, setSpecificSubmissionInfo] = useState(null);
@@ -111,7 +114,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
           withCredentials: true,
-        }
+        },
       );
       response.data.map((project) => {
         project.submissions.map((submission) => {
@@ -128,18 +131,18 @@ const Submissions = () => {
               submission.submissions.map((sub) => ({
                 name: sub.name,
                 info: sub.info,
-              }))
+              })),
             )
             .map((sub) => [
               sub.name, // Use the name as key
               sub, // Keep the object with name and info as the value
-            ])
+            ]),
         ).values(),
       ];
 
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
-          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission
+          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
         );
 
         if (!existing) return submission;
@@ -165,6 +168,27 @@ const Submissions = () => {
     fetchYears();
   }, []);
 
+  const handleResetJudges = async (values) => {
+    console.log("values", values);
+    try {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/submission/reset-all-judges`, {
+        params: {
+          submissionYear: yearFilter,
+          submissionName: values.submissionName,
+        },
+        withCredentials: true,
+      });
+      message.open({
+        type: "info",
+        content: "השופטים אופסו בהצלחה",
+      });
+    } catch (error) {
+      console.error("Error deleting judges:", error);
+    } finally {
+      setDeleteAllJudgesConfirm(null);
+      fetchSubmissions();
+    }
+  };
   const assignJudgesAutomatically = async () => {
     try {
       await axios.post(
@@ -174,7 +198,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -197,7 +221,7 @@ const Submissions = () => {
           newGrade: values.newGrade,
           comment: values.comment,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       message.open({
         type: "success",
@@ -219,7 +243,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -243,7 +267,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "info",
@@ -326,7 +350,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -372,7 +396,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
@@ -398,7 +422,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -478,7 +502,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -630,7 +654,7 @@ const Submissions = () => {
                     (grade) =>
                       grade.videoQuality === undefined ||
                       grade.workQuality === undefined ||
-                      grade.writingQuality === undefined
+                      grade.writingQuality === undefined,
                   ));
               return (
                 <div className="table-col-div" key={index}>
@@ -664,7 +688,7 @@ const Submissions = () => {
                                   sub.isLate
                                     ? ` באיחור - ${Math.ceil(
                                         (new Date(sub.uploadDate) - new Date(sub.submissionDate)) /
-                                          (1000 * 60 * 60 * 24)
+                                          (1000 * 60 * 60 * 24),
                                       )} ימים`
                                     : ""
                                 }`
@@ -765,7 +789,7 @@ const Submissions = () => {
   ];
 
   const filteredSubmissionData = submissionData.filter(
-    (project) => yearFilter === "all" || project.year === yearFilter
+    (project) => yearFilter === "all" || project.year === yearFilter,
   );
 
   return (
@@ -837,6 +861,19 @@ const Submissions = () => {
                   type: "warning",
                   content: "יש לבחור שנה ספציפית",
                 });
+              setDeleteJudges(true);
+            }}>
+            איפוס שופטים
+          </Button>
+          <Button
+            color="danger"
+            variant="solid"
+            onClick={() => {
+              if (yearFilter === "all")
+                return message.open({
+                  type: "warning",
+                  content: "יש לבחור שנה ספציפית",
+                });
               setDeleteAllSubmissions(true);
             }}>
             מחיקת הגשות
@@ -844,6 +881,73 @@ const Submissions = () => {
         </div>
       </div>
       <Table columns={columns} dataSource={filteredSubmissionData} scroll={{ x: "max-content" }} />
+      <Modal
+        title={`אישור מחיקה`}
+        open={deleteAllJudgesConfirm !== null}
+        okText="מחק"
+        cancelText="ביטול"
+        okButtonProps={{ danger: true }}
+        onOk={() => {
+          handleResetJudges(deleteAllJudgesConfirm);
+        }}
+        onCancel={() => setDeleteAllJudgesConfirm(null)}>
+        <>
+          {"האם אתה בטוח שברצונך למחוק את כל ההגשות עם השם "}
+          <span style={{ fontWeight: "500" }}>{deleteAllJudgesConfirm?.submissionName || "שם ברירת מחדל"}</span>
+          {" מהשנה "}
+          <span style={{ textDecoration: "underline" }}>{yearFilter || "שנה ברירת מחדל"}</span>
+          {" ?"}
+        </>
+      </Modal>
+      <Modal
+        title="איפוס שופטים"
+        open={deleteJudges}
+        cancelText="בטל"
+        okText="אשר מחיקה"
+        okButtonProps={{ danger: true }}
+        onCancel={() => {
+          setDeleteJudges(false);
+          deleteJudgesForm.resetFields();
+        }}
+        onOk={() => {
+          deleteJudgesForm
+            .validateFields()
+            .then((values) => {
+              setDeleteAllJudgesConfirm(values);
+              setDeleteJudges(false);
+              deleteJudgesForm.resetFields();
+            })
+            .catch((info) => {
+              console.log("Validate Failed:", info);
+            });
+        }}>
+        <Form layout="vertical" form={deleteJudgesForm}>
+          <p>
+            <span style={{ color: "red", fontWeight: 600 }}>שים לב</span> - האיפוס מוריד את כל השופטים עבור ההגשות מהשנה{" "}
+            <Tooltip title="ניתן לשנות בחירה ב dropdown">
+              <span style={{ textDecoration: "underline" }}>{yearFilter}</span>
+            </Tooltip>
+          </p>
+          <Form.Item
+            label="בחר הגשה"
+            name="submissionName"
+            hasFeedback
+            rules={[
+              {
+                required: true,
+                message: "חובה לבחור הגשה",
+              },
+            ]}>
+            <Select placeholder="בחר הגשה">
+              {submissionDetails.map((submission, index) => (
+                <Option key={index} value={submission.name}>
+                  {submission.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
       <Modal
         title="הקצאת שופטים אוטומטית"
         open={assignJudgesModal}
@@ -1159,7 +1263,7 @@ const Submissions = () => {
                               ? ` באיחור - ${Math.ceil(
                                   (new Date(submissionInfo.submission.uploadDate) -
                                     new Date(submissionInfo.submission.submissionDate)) /
-                                    (1000 * 60 * 60 * 24)
+                                    (1000 * 60 * 60 * 24),
                                 )} ימים`
                               : ""
                           }`
@@ -1232,7 +1336,7 @@ const Submissions = () => {
                       {Math.ceil(
                         (new Date(submissionInfo.submission.uploadDate) -
                           new Date(submissionInfo.submission.submissionDate)) /
-                          (1000 * 60 * 60 * 24)
+                          (1000 * 60 * 60 * 24),
                       ) * 2}
                     </div>
                   </div>

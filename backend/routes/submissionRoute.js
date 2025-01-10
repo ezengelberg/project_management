@@ -18,6 +18,7 @@ import {
   assignJudgesAutomatically,
   getGradeDistribution,
   deleteAllSubmissions,
+  resetJudges,
 } from "../controllers/submissionController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -29,6 +30,7 @@ router.get("/get-all", ensureAuthenticated, isCoordinator, getAllSubmissions);
 router.get("/get-all-project-submissions", ensureAuthenticated, isCoordinator, getAllProjectSubmissions);
 router.get("/get-specific-project-submissions/:projectId", ensureAuthenticated, getSpecificProjectSubmissions);
 router.put("/update-judges", ensureAuthenticated, isCoordinator, updateJudgesInSubmission);
+router.delete("/reset-all-judges", ensureAuthenticated, isCoordinator, resetJudges);
 router.get("/get-judge-submissions", ensureAuthenticated, getJudgeSubmissions);
 router.get("/get-submission/:id", ensureAuthenticated, getSubmission);
 router.get("/get-submission-details/:id", ensureAuthenticated, getSubmissionDetails);
