@@ -20,14 +20,15 @@ import gradeStructureRoute from "./routes/gradeStructureRoute.js";
 import randomRoute from "./routes/randomRoute.js";
 import configRoute from "./routes/configRoute.js";
 import Config from "./models/config.js";
+import groupRoute from "./routes/groupRoute.js";
 
-import dotenv from 'dotenv'
+import dotenv from "dotenv";
 
 dotenv.config();
 
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
-  console.error('MONGO_URI is not defined in environment variables');
+  console.error("MONGO_URI is not defined in environment variables");
   process.exit(1);
 }
 
@@ -74,7 +75,7 @@ app.use(
       secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
       sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax", // Use Lax for local development
     },
-  }),
+  })
 );
 
 passport.serializeUser((user, done) => {
@@ -123,6 +124,7 @@ app.use("/api/uploads", uploadsRoute);
 app.use("/api/random", randomRoute);
 app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
+app.use("/api/group", groupRoute);
 
 app.get("/", (req, res) => {
   res.send(`Version DEV: 13`);

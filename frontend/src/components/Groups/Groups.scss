@@ -1,6 +1,15 @@
 .groups-container {
-  .groups-form {
+  .groups-radio {
     width: 30%;
     margin: 0 auto;
+  }
+  .groups-form {
+    width: 30%;
+    margin: 2rem auto 0;
+  }
+  .groups-header {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
   }
 }
