@@ -76,8 +76,6 @@ const Login = () => {
           withCredentials: true,
         });
       } else {
-        console.log("🔵 Logging in with email:", lowerCaseEmail);
-        console.log("sending request to:", `${process.env.REACT_APP_BACKEND_URL}/api/user/login`);
         const result = await axios.post(
           `${process.env.REACT_APP_BACKEND_URL}/api/user/login`,
           {

@@ -7,6 +7,7 @@ import {
   updateNumericValues,
   getAllNumericValues,
   publishGrades,
+  updateCalculationMethod,
 } from "../controllers/gradeController.js";
 
 const router = express.Router();
@@ -17,5 +18,6 @@ router.get("/submission/:submissionId", ensureAuthenticated, getGradeBySubmissio
 router.put("/update-numeric-values", ensureAuthenticated, isCoordinator, updateNumericValues);
 router.get("/get-all-numeric-values", ensureAuthenticated, getAllNumericValues);
 router.post("/publish-grades", ensureAuthenticated, isCoordinator, publishGrades);
+router.put("/update-calculation-method", ensureAuthenticated, isCoordinator, updateCalculationMethod);
 
 export default router;

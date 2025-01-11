@@ -20,26 +20,27 @@ import gradeStructureRoute from "./routes/gradeStructureRoute.js";
 import randomRoute from "./routes/randomRoute.js";
 import configRoute from "./routes/configRoute.js";
 import Config from "./models/config.js";
+import groupRoute from "./routes/groupRoute.js";
 
-import dotenv from 'dotenv'
+import dotenv from "dotenv";
 
 dotenv.config();
 
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
-  console.error('MONGO_URI is not defined in environment variables');
+  console.error("MONGO_URI is not defined in environment variables");
   process.exit(1);
 }
 
 const app = express();
 const server_port = process.env.SERVER_PORT || 3000;
 
-app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.originalUrl}`);
-  res.header("Access-Control-Allow-Origin", `${process.env.CORS_ORIGIN}`);
-  res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS");
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log(`Incoming request: ${req.method} ${req.originalUrl}`);
+//   res.header("Access-Control-Allow-Origin", `${process.env.CORS_ORIGIN}`);
+//   res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS");
+//   next();
+// });
 
 // Allow cross-origin requests
 const corsOptions = {
@@ -74,21 +75,21 @@ app.use(
       secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
       sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax", // Use Lax for local development
     },
-  }),
+  })
 );
 
 passport.serializeUser((user, done) => {
   process.nextTick(() => {
     try {
-      console.log("🔵 Serializing user:", {
-        id: user._id.toString(),
-        email: user.email,
-      });
+      // console.log("🔵 Serializing user:", {
+      //   id: user._id.toString(),
+      //   email: user.email,
+      // });
 
       // Store the user ID or minimal session data
       done(null, user._id.toString()); // Store only the ID here, or you can store a minimal session object if needed
     } catch (error) {
-      console.error("❌ Serialization error:", error);
+      // console.error("❌ Serialization error:", error);
       done(error);
     }
   });
@@ -96,9 +97,9 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    console.log("🔵 Deserializing user with ID:", id);
+    // console.log("🔵 Deserializing user with ID:", id);
     const user = await User.findById(id).select("-password"); // Only fetch necessary user info
-    console.log("🔑 User deserialized:", user.email);
+    // console.log("🔑 User deserialized:", user.email);
     done(null, user);
   } catch (error) {
     console.error("❌ Deserialization error:", error);
@@ -123,6 +124,7 @@ app.use("/api/uploads", uploadsRoute);
 app.use("/api/random", randomRoute);
 app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
+app.use("/api/group", groupRoute);
 
 app.get("/", (req, res) => {
   res.send(`Version DEV: 13`);

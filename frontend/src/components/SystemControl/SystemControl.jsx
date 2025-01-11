@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./SystemControl.scss";
-import { Button, Switch, Form, Input, InputNumber, Table, Typography, message, Tooltip, Modal, Select } from "antd";
+import {
+  Button,
+  Switch,
+  Form,
+  Input,
+  InputNumber,
+  Table,
+  Typography,
+  message,
+  Tooltip,
+  Modal,
+  Select,
+  Radio,
+} from "antd";
 import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
@@ -34,6 +47,7 @@ const SystemControl = () => {
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [currentSubmissionName, setCurrentSubmissionName] = useState("");
   const [currentGroup, setCurrentGroup] = useState("");
+  const [radioValue, setRadioValue] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -77,11 +91,6 @@ const SystemControl = () => {
 
       const today = new Date();
       const currentHebrewDate = toJewishDate(today);
-      const currentHebrewYear = currentHebrewDate.year;
-
-      // // Calculate previous, current, and next years
-      const previousYear = currentHebrewYear - 1;
-      const nextYear = currentHebrewYear + 1;
 
       // // Format years into Hebrew letters
       const formattedCurrentYear = formatJewishDateInHebrew(currentHebrewDate).split(" ").pop().replace(/^ה/, ""); // Remove "ה" prefix if needed
@@ -282,6 +291,24 @@ const SystemControl = () => {
     publishGradesForSubmissions(submissionName, group);
   };
 
+  const handleCalculationMethodChange = async (submissionName, value) => {
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/grade/update-calculation-method`,
+        { submissionName, averageCalculation: value },
+        { withCredentials: true }
+      );
+
+      // Refresh the data to show the updated calculation method
+      setRefreshSubmissions((prev) => !prev);
+      fetchGrades();
+      message.success("שיטת החישוב עודכנה בהצלחה");
+    } catch (error) {
+      console.error("Error updating calculation method:", error);
+      message.error("שגיאה בעדכון שיטת החישוב");
+    }
+  };
+
   const columns = [
     {
       title: "הגשה",
@@ -316,6 +343,20 @@ const SystemControl = () => {
           ? 120
           : 120,
     })),
+    {
+      title: "צורת חישוב",
+      dataIndex: "averageCalculation",
+      key: "averageCalculation",
+      render: (text, record) => (
+        <Radio.Group
+          value={record.averageCalculation}
+          onChange={(e) => handleCalculationMethodChange(record.name, e.target.value)}>
+          <Radio value={false}>חציון</Radio>
+          <Radio value={true}>ממוצע</Radio>
+        </Radio.Group>
+      ),
+      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 150 : 150,
+    },
     {
       title: "פעולות",
       dataIndex: "actions",

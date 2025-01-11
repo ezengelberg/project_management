@@ -1,6 +1,83 @@
 .groups-container {
-  .groups-form {
+  .groups-radio {
     width: 30%;
     margin: 0 auto;
+  }
+  .groups-form {
+    width: 30%;
+    margin: 2rem auto 0;
+  }
+  .groups-header {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+}
+
+@media screen and (max-width: 1920px) {
+  .groups-container {
+    .groups-radio {
+      width: 35%;
+    }
+    .groups-form {
+      width: 35%;
+    }
+  }
+}
+
+@media screen and (max-width: 1600px) {
+  .groups-container {
+    .groups-radio {
+      width: 45%;
+    }
+    .groups-form {
+      width: 45%;
+    }
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .groups-container {
+    .groups-radio {
+      width: 60%;
+    }
+    .groups-form {
+      width: 60%;
+    }
+    .ant-transfer {
+      flex-direction: column;
+      .ant-transfer-operation {
+        rotate: 270deg;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .groups-container {
+    .groups-radio {
+      width: 80%;
+    }
+    .groups-form {
+      width: 80%;
+    }
+  }
+}
+
+@media screen and (max-width: 626px) {
+  .groups-container {
+    .groups-radio {
+      width: 100%;
+      flex-wrap: wrap;
+      .ant-radio-button-wrapper {
+        min-width: 20rem;
+      }
+    }
+    .groups-form {
+      width: 100%;
+    }
+    .groups-header {
+      flex-wrap: wrap;
+    }
   }
 }
