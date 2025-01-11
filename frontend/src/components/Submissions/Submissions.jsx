@@ -68,6 +68,7 @@ const Submissions = () => {
   const [years, setYears] = useState([]);
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState("all");
+  const [selectedGroupSubmissions, setSelectedGroupSubmissions] = useState([]);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -275,6 +276,7 @@ const Submissions = () => {
         {
           submissionName: values.submissionName,
           submissionYear: yearFilter,
+          groups: [selectedGroupSubmissions],
         },
         {
           withCredentials: true,
@@ -290,6 +292,7 @@ const Submissions = () => {
       console.error("Error deleting submissions:", error);
     } finally {
       fetchSubmissions();
+      setSelectedGroupSubmissions([]);
     }
   };
   const handleOkAll = async (values) => {
@@ -358,6 +361,7 @@ const Submissions = () => {
           isGraded: isGraded,
           isReviewed: isReviewed,
           fileNeeded: fileNeeded,
+          groups: [selectedGroupSubmissions],
         },
         {
           withCredentials: true,
@@ -375,6 +379,7 @@ const Submissions = () => {
       setAllSubmissions(false);
       fetchSubmissions();
       setSubmissionType("proposalReport");
+      setSelectedGroupSubmissions([]);
     }
   };
 
@@ -430,6 +435,7 @@ const Submissions = () => {
           submissionDate: values.submissionDate,
           submissionInfo: values.submissionInfo,
           submissionYear: yearFilter,
+          groups: [selectedGroupSubmissions],
         },
         {
           withCredentials: true,
@@ -445,6 +451,7 @@ const Submissions = () => {
       editSubmission.resetFields();
       setEditSubmissions(false);
       fetchSubmissions();
+      setSelectedGroupSubmissions([]);
     }
   };
 
@@ -818,7 +825,7 @@ const Submissions = () => {
           ))}
         </Select>
         <Select value={selectedGroup} onChange={setSelectedGroup} style={{ width: "200px" }}>
-          <Select.Option value="all">כל הקבוצות</Select.Option>
+          <Select.Option value="all">כולם</Select.Option>
           {groups
             .filter((group) => yearFilter === "all" || group.year === yearFilter)
             .map((group) => (
@@ -1046,6 +1053,7 @@ const Submissions = () => {
         onCancel={() => {
           setDeleteAllSubmissions(false);
           deleteSubmissionsForm.resetFields();
+          setSelectedGroupSubmissions([]);
         }}
         onOk={() => {
           deleteSubmissionsForm
@@ -1066,7 +1074,7 @@ const Submissions = () => {
             </Tooltip>
           </p>
           <Form.Item
-            label="בחר הגשה"
+            label="הגשה"
             name="submissionName"
             hasFeedback
             rules={[
@@ -1081,6 +1089,21 @@ const Submissions = () => {
                   {submission.name}
                 </Option>
               ))}
+            </Select>
+          </Form.Item>
+          <Form.Item label="קבוצות (אם לא תיבחר קבוצה המחיקה תהיה לכולם)" name="groups" hasFeedback>
+            <Select
+              value={selectedGroupSubmissions}
+              onChange={(value) => setSelectedGroupSubmissions(value)}
+              mode="multiple"
+              placeholder="בחר קבוצות">
+              {groups
+                .filter((group) => yearFilter === "all" || group.year === yearFilter)
+                .map((group) => (
+                  <Select.Option key={group._id} value={group._id}>
+                    {group.name}
+                  </Select.Option>
+                ))}
             </Select>
           </Form.Item>
         </Form>
@@ -1472,6 +1495,7 @@ const Submissions = () => {
         onCancel={() => {
           setEditSubmissions(false);
           editSubmission.resetFields();
+          setSelectedGroupSubmissions([]);
         }}>
         <Form layout="vertical" form={editSubmission}>
           <p>
@@ -1504,6 +1528,21 @@ const Submissions = () => {
                   {submission.name}
                 </Option>
               ))}
+            </Select>
+          </Form.Item>
+          <Form.Item label="קבוצות (אם לא תיבחר קבוצה השינוי יהיה לכולם)" name="group" hasFeedback>
+            <Select
+              value={selectedGroupSubmissions}
+              onChange={(value) => setSelectedGroupSubmissions(value)}
+              mode="multiple"
+              placeholder="בחר קבוצות">
+              {groups
+                .filter((group) => yearFilter === "all" || group.year === yearFilter)
+                .map((group) => (
+                  <Select.Option key={group._id} value={group._id}>
+                    {group.name}
+                  </Select.Option>
+                ))}
             </Select>
           </Form.Item>
           <Form.Item
@@ -1599,6 +1638,7 @@ const Submissions = () => {
           formAll.resetFields();
           setAllSubmissions(false);
           setSubmissionType(null);
+          setSelectedGroupSubmissions([]);
         }}
         onOk={onOkHandlerAll}>
         <Form
@@ -1679,16 +1719,31 @@ const Submissions = () => {
               ]}>
               <DatePicker
                 className="date-picker"
-                locale={locale} // Add the Hebrew locale here
+                // Add the Hebrew locale here
                 direction="rtl"
                 showTime={{
                   format: "HH:mm",
                 }}
                 format="DD-MM-YYYY HH:mm"
+                placeholder="בחר תאריך ושעה"
               />
             </Form.Item>
           )}
-
+          <Form.Item label="קבוצות (אם לא נבחר אז יפתח לכולם)" name="groups" hasFeedback>
+            <Select
+              value={selectedGroupSubmissions}
+              onChange={(value) => setSelectedGroupSubmissions(value)}
+              mode="multiple"
+              placeholder="בחר קבוצות">
+              {groups
+                .filter((group) => yearFilter === "all" || group.year === yearFilter)
+                .map((group) => (
+                  <Select.Option key={group._id} value={group._id}>
+                    {group.name}
+                  </Select.Option>
+                ))}
+            </Select>
+          </Form.Item>
           <Form.Item label="פרטים נוספים" name="submissionInfo">
             <TextArea rows={4} />
           </Form.Item>
