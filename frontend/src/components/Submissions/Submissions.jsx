@@ -168,7 +168,6 @@ const Submissions = () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get`, { withCredentials: true });
       setGroups(response.data);
-      console.log(response.data);
     } catch (error) {
       console.error("Error fetching groups:", error);
     }
@@ -820,11 +819,13 @@ const Submissions = () => {
         </Select>
         <Select value={selectedGroup} onChange={setSelectedGroup} style={{ width: "200px" }}>
           <Select.Option value="all">כל הקבוצות</Select.Option>
-          {groups.map((group) => (
-            <Select.Option key={group._id} value={group._id}>
-              {group.name}
-            </Select.Option>
-          ))}
+          {groups
+            .filter((group) => yearFilter === "all" || group.year === yearFilter)
+            .map((group) => (
+              <Select.Option key={group._id} value={group._id}>
+                {group.name}
+              </Select.Option>
+            ))}
         </Select>
         <Button
           type="primary"
