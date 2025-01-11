@@ -66,6 +66,8 @@ const Submissions = () => {
   const searchInput = useRef(null);
   const [yearFilter, setYearFilter] = useState("all");
   const [years, setYears] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState("all");
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -114,7 +116,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
           withCredentials: true,
-        },
+        }
       );
       response.data.map((project) => {
         project.submissions.map((submission) => {
@@ -131,18 +133,18 @@ const Submissions = () => {
               submission.submissions.map((sub) => ({
                 name: sub.name,
                 info: sub.info,
-              })),
+              }))
             )
             .map((sub) => [
               sub.name, // Use the name as key
               sub, // Keep the object with name and info as the value
-            ]),
+            ])
         ).values(),
       ];
 
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
-          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
+          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission
         );
 
         if (!existing) return submission;
@@ -162,10 +164,21 @@ const Submissions = () => {
     }
   };
 
+  const fetchGroups = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get`, { withCredentials: true });
+      setGroups(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error fetching groups:", error);
+    }
+  };
+
   useEffect(() => {
     fetchSubmissions();
     fetchActiveProjects();
     fetchYears();
+    fetchGroups();
   }, []);
 
   const handleResetJudges = async (values) => {
@@ -197,7 +210,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -220,7 +233,7 @@ const Submissions = () => {
           newGrade: values.newGrade,
           comment: values.comment,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
       message.open({
         type: "success",
@@ -242,7 +255,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -266,7 +279,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "info",
@@ -349,7 +362,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -395,7 +408,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
@@ -421,7 +434,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -501,7 +514,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -653,7 +666,7 @@ const Submissions = () => {
                     (grade) =>
                       grade.videoQuality === undefined ||
                       grade.workQuality === undefined ||
-                      grade.writingQuality === undefined,
+                      grade.writingQuality === undefined
                   ));
               return (
                 <div className="table-col-div" key={index}>
@@ -687,7 +700,7 @@ const Submissions = () => {
                                   sub.isLate
                                     ? ` באיחור - ${Math.ceil(
                                         (new Date(sub.uploadDate) - new Date(sub.submissionDate)) /
-                                          (1000 * 60 * 60 * 24),
+                                          (1000 * 60 * 60 * 24)
                                       )} ימים`
                                     : ""
                                 }`
@@ -787,18 +800,29 @@ const Submissions = () => {
     },
   ];
 
-  const filteredSubmissionData = submissionData.filter(
-    (project) => yearFilter === "all" || project.year === yearFilter,
-  );
+  const filteredSubmissionData = submissionData.filter((project) => {
+    return (
+      (yearFilter === "all" || project.year === yearFilter) &&
+      (selectedGroup === "all" || groups.find((group) => group._id === selectedGroup)?.projects.includes(project.key))
+    );
+  });
 
   return (
     <div>
       <div className="action-buttons">
-        <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px", marginRight: "10px" }}>
+        <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px" }}>
           <Select.Option value="all">כל השנים</Select.Option>
           {years.map((year) => (
             <Select.Option key={year} value={year}>
               {year}
+            </Select.Option>
+          ))}
+        </Select>
+        <Select value={selectedGroup} onChange={setSelectedGroup} style={{ width: "200px" }}>
+          <Select.Option value="all">כל הקבוצות</Select.Option>
+          {groups.map((group) => (
+            <Select.Option key={group._id} value={group._id}>
+              {group.name}
             </Select.Option>
           ))}
         </Select>
@@ -1263,7 +1287,7 @@ const Submissions = () => {
                               ? ` באיחור - ${Math.ceil(
                                   (new Date(submissionInfo.submission.uploadDate) -
                                     new Date(submissionInfo.submission.submissionDate)) /
-                                    (1000 * 60 * 60 * 24),
+                                    (1000 * 60 * 60 * 24)
                                 )} ימים`
                               : ""
                           }`
@@ -1336,7 +1360,7 @@ const Submissions = () => {
                       {Math.ceil(
                         (new Date(submissionInfo.submission.uploadDate) -
                           new Date(submissionInfo.submission.submissionDate)) /
-                          (1000 * 60 * 60 * 24),
+                          (1000 * 60 * 60 * 24)
                       ) * 2}
                     </div>
                   </div>
