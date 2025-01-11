@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import "./Groups.scss";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { handleMouseDown } from "../../utils/mouseDown";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 import { Button, Form, Input, Select, message, Transfer, Divider, Table, Radio, Modal } from "antd";
 
 const Groups = () => {
+  const navigate = useNavigate();
   const [targetKeys, setTargetKeys] = useState([]);
   const [createGroupForm] = Form.useForm();
   const [renameGroupForm] = Form.useForm();
@@ -14,6 +17,7 @@ const Groups = () => {
   const [yearFilter, setYearFilter] = useState("");
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
+  const [projectsWithNoGroup, setProjectsWithNoGroup] = useState([]);
   const [radioButtonValue, setRadioButtonValue] = useState("createGroup");
   const [selectedGroupToRename, setSelectedGroupToRename] = useState(null);
   const [selectedGroupToDelete, setSelectedGroupToDelete] = useState(null);
@@ -61,6 +65,12 @@ const Groups = () => {
         );
         return { ...project, advisorsDetails, studentsDetails };
       });
+
+      const projectsWithNoGroup = projectsWithDetails.filter(
+        (project) => !groupRes.data.some((group) => group.projects.includes(project._id))
+      );
+
+      setProjectsWithNoGroup(projectsWithNoGroup);
 
       setProjectsData(projectsWithDetails);
       setGroups(groupRes.data);
@@ -117,6 +127,7 @@ const Groups = () => {
                 onItemSelect(key, !listSelectedKeys.includes(key));
               },
             })}
+            scroll={{ x: "max-content" }}
           />
         );
       }}
@@ -194,27 +205,65 @@ const Groups = () => {
     }
   };
 
-  const tableData = projectsData
+  const leftTableData = projectsWithNoGroup
     .filter((project) => project.year === yearFilter)
     .map((project) => ({
       key: project._id,
       name: project.title,
       advisor: project.advisorsDetails[0]?.name || "אין מנחה",
-      students: project.studentsDetails.map((student) => student?.name).join("| ") || "אין סטודנטים",
+      students: project.studentsDetails.map((student) => student?.name).join(" | ") || "אין סטודנטים",
     }));
+
+  const rightTableData = selectedGroup
+    ? projectsData
+        .filter((project) => targetKeys.includes(project._id))
+        .map((project) => ({
+          key: project._id,
+          name: project.title,
+          advisor: project.advisorsDetails[0]?.name || "אין מנחה",
+          students: project.studentsDetails.map((student) => student?.name).join("| ") || "אין סטודנטים",
+        }))
+    : [];
+
+  const allTableData = [...leftTableData, ...rightTableData];
 
   const columns = [
     {
       title: "פרויקט",
       dataIndex: "name",
+      fixed: windowSize.width > 1450 && "left",
+      render: (text, record) => (
+        <a
+          onClick={() => navigate(`/project/${record.key}`)}
+          onMouseDown={(e) => handleMouseDown(e, `/project/${record.key}`)}>
+          {windowSize.width > 2229
+            ? text.length > 60
+              ? `${text.substring(0, 60)}...`
+              : text
+            : windowSize.width > 1765
+            ? text.length > 50
+              ? `${text.substring(0, 50)}...`
+              : text
+            : windowSize.width > 1560
+            ? text.length > 45
+              ? `${text.substring(0, 45)}...`
+              : text
+            : text.length > 38
+            ? `${text.substring(0, 38)}...`
+            : text}
+        </a>
+      ),
+      width: windowSize.width > 2229 ? "50%" : windowSize.width > 1765 ? 400 : windowSize.width > 1560 ? 350 : 300,
     },
     {
       title: "מנחה",
       dataIndex: "advisor",
+      width: windowSize.width > 2229 ? "20%" : windowSize.width > 1765 ? 250 : 200,
     },
     {
       title: "סטודנטים",
       dataIndex: "students",
+      width: windowSize.width > 2229 ? "30%" : 250,
     },
   ];
 
@@ -338,6 +387,7 @@ const Groups = () => {
       <h3>בחר שנה וקבוצה כדי להתחיל</h3>
       <div className="groups-header">
         <Select
+          style={{ width: "200px" }}
           placeholder="בחר שנה"
           value={yearFilter}
           onChange={(value) => {
@@ -346,6 +396,7 @@ const Groups = () => {
           }}
           options={years.map((year) => ({ label: year, value: year }))}></Select>
         <Select
+          style={{ width: "200px" }}
           placeholder="בחר קבוצה"
           value={selectedGroup}
           onChange={(value) => setSelectedGroup(value)}
@@ -356,7 +407,7 @@ const Groups = () => {
       <TableTransfer
         className="groups-transfer"
         loading={loading}
-        dataSource={tableData}
+        dataSource={allTableData}
         targetKeys={targetKeys}
         showSearch
         onChange={onChange}
