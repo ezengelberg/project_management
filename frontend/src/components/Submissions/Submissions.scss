@@ -173,12 +173,13 @@
   }
 }
 
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 1600px) {
   .action-buttons {
     flex-wrap: wrap;
 
     .action-buttons-end {
       margin-right: 0;
+      flex-wrap: wrap;
     }
   }
 }

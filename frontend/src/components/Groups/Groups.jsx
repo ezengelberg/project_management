@@ -58,13 +58,17 @@ const Groups = () => {
       setYearFilter(currentHebrewYearIndex !== -1 ? years[currentHebrewYearIndex] : years[0]);
 
       const activeUsers = usersRes.data.filter((user) => !user.suspended);
-      const projectsWithDetails = projectsRes.data.map((project) => {
-        const advisorsDetails = project.advisors.map((advisorId) => activeUsers.find((user) => user._id === advisorId));
-        const studentsDetails = project.students.map((student) =>
-          activeUsers.find((user) => user._id === student.student)
-        );
-        return { ...project, advisorsDetails, studentsDetails };
-      });
+      const projectsWithDetails = projectsRes.data
+        .filter((project) => project.isTaken === true && project.isTerminated === false)
+        .map((project) => {
+          const advisorsDetails = project.advisors.map((advisorId) =>
+            activeUsers.find((user) => user._id === advisorId)
+          );
+          const studentsDetails = project.students.map((student) =>
+            activeUsers.find((user) => user._id === student.student)
+          );
+          return { ...project, advisorsDetails, studentsDetails };
+        });
 
       const projectsWithNoGroup = projectsWithDetails.filter(
         (project) => !groupRes.data.some((group) => group.projects.includes(project._id))

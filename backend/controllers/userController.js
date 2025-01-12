@@ -115,37 +115,6 @@ export const createAdmin = async (req, res) => {
   }
 };
 
-// export const loginUser = async (req, res) => {
-//   console.log("logging in user");
-//   passport.authenticate("local", async (err, user, info) => {
-//     if (err) {
-//       return next(err); // Handle errors
-//     }
-
-//     if (!user) {
-//       return res.status(401).json({ message: "Authentication failed", error: info });
-//     }
-
-//     req.login(user, (err) => {
-//       if (err) {
-//         console.error("Login error:", err);
-//         return res.status(500).send({ message: "Login error" });
-//       }
-
-//       req.session.save((err) => {
-//         if (err) {
-//           console.error("Session save error:", err);
-//           return res.status(500).send({ message: "Session save error" });
-//         }
-
-//         const userObj = user.toObject();
-//         delete userObj.password;
-//         res.status(200).json(userObj);
-//       });
-//     });
-//   })(req, res);
-// };
-
 export const loginUser = (req, res, next) => {
   passport.authenticate("local", async (err, user, info) => {
     if (err) {
@@ -157,13 +126,13 @@ export const loginUser = (req, res, next) => {
       return res.status(401).send(info.message);
     }
 
-    req.login(user, (err) => {
+    req.login(user, async (err) => {
       if (err) {
         console.error("Login error:", err);
         return next(err);
       }
 
-      req.session.save((err) => {
+      req.session.save(async (err) => {
         if (err) {
           console.error("Session save error:", err);
           return next(err);
@@ -174,6 +143,10 @@ export const loginUser = (req, res, next) => {
           passport: req.session.passport,
           cookie: req.session.cookie,
         });
+
+        user.rememberMe = req.body.rememberMe;
+        user.expireDate = new Date().getTime() + 1000 * 60 * 60 * 24 * 7; // 1 week
+        await user.save();
 
         const userObj = user.toObject();
         delete userObj.password;
