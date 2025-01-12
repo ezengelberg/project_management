@@ -2,8 +2,12 @@ import Group from "../models/groups.js";
 
 export const createNewGroup = async (req, res) => {
   try {
-    const { name, projects } = req.body;
-    const newGroup = new Group({ name, projects });
+    const { name, projects, year } = req.body;
+    const existingGroup = await Group.findOne({ name, year });
+    if (existingGroup) {
+      return res.status(400).json({ error: "Group with the same name already exists for the selected year" });
+    }
+    const newGroup = new Group({ name, projects, year });
     await newGroup.save();
     res.status(201).json(newGroup);
   } catch (error) {

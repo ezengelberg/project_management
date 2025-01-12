@@ -145,8 +145,12 @@ const Groups = () => {
       createGroupForm.resetFields();
       fetchData();
     } catch (error) {
-      message.error("נכשל ביצירת קבוצה");
-      console.error(error);
+      if (error.response.status === 400) {
+        message.error("קבוצה עם שם כזה כבר קיימת");
+      } else {
+        message.error("נכשל ביצירת קבוצה");
+        console.error(error);
+      }
     }
   };
 
@@ -304,6 +308,17 @@ const Groups = () => {
       />
       {radioButtonValue === "createGroup" && (
         <Form className="groups-form" form={createGroupForm} layout="vertical" onFinish={createGroup}>
+          <Form.Item label="בחר שנה" name="year" rules={[{ required: true, message: "שדה חובה" }]}>
+            <Select
+              placeholder="בחר שנה"
+              value={yearFilter}
+              onChange={(value) => {
+                setYearFilter(value);
+                setSelectedGroup(null);
+                createGroupForm.resetFields(["name"]);
+              }}
+              options={years.map((year) => ({ label: year, value: year }))}></Select>
+          </Form.Item>
           <Form.Item label="שם קבוצה" name="name" rules={[{ required: true, message: "שדה חובה" }]}>
             <Input />
           </Form.Item>
