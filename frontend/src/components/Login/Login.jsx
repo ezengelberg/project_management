@@ -20,17 +20,14 @@ const Login = () => {
   const [loginForm] = Form.useForm();
   const [forgotPasswordForm] = Form.useForm();
 
-  // useEffect(() => {
-  //   const user = JSON.parse(localStorage.getItem("user"));
-  //   if (user && user.rememberMe) {
-  //     const cookie = document.cookie.split("; ").find((row) => row.startsWith("connect.sid="));
-  //     if (!cookie) {
-  //       localStorage.removeItem("user");
-  //     } else {
-  //       navigate("/home");
-  //     }
-  //   }
-  // }, [navigate]);
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user && user.expireDate > new Date().getTime() && user.rememberMe) {
+      navigate("/home");
+    } else {
+      localStorage.removeItem("user");
+    }
+  }, [navigate]);
 
   const EmailSvg = () => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -83,7 +80,7 @@ const Login = () => {
             password,
             rememberMe,
           },
-          { withCredentials: true },
+          { withCredentials: true }
         );
 
         const userData = result.data;

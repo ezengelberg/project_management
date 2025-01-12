@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
   suspensionRecords: { type: Array, required: true, default: [] },
   updatedAt: { type: Date, default: Date.now },
   rememberMe: { type: Boolean, default: false },
+  expireDate: { type: Number, default: null },
 });
 
 const userModel = mongoose.model("User", userSchema);
