@@ -117,7 +117,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
           withCredentials: true,
-        }
+        },
       );
       response.data.map((project) => {
         project.submissions.map((submission) => {
@@ -134,18 +134,18 @@ const Submissions = () => {
               submission.submissions.map((sub) => ({
                 name: sub.name,
                 info: sub.info,
-              }))
+              })),
             )
             .map((sub) => [
               sub.name, // Use the name as key
               sub, // Keep the object with name and info as the value
-            ])
+            ]),
         ).values(),
       ];
 
       const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
         const existing = self.find(
-          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission
+          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
         );
 
         if (!existing) return submission;
@@ -201,16 +201,40 @@ const Submissions = () => {
       fetchSubmissions();
     }
   };
-  const assignJudgesAutomatically = async () => {
+
+  const assignJudgesAI = async (values) => {
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/assign-judge-ai`,
+        {
+          submissionYear: yearFilter,
+          submissionName: values.submissionName,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+    } catch (error) {
+      console.error("Error assigning judges automatically:", error);
+      message.open({
+        type: "error",
+        content: "מחסור בשופטים להקצאה אוטומטית",
+      });
+    }
+  };
+
+  const assignJudgesAutomatically = async (values) => {
+    console.log("values", values.submissionName);
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/assign-judge-auto`,
         {
           submissionYear: yearFilter,
+          submissionName: values.submissionName,
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -233,7 +257,7 @@ const Submissions = () => {
           newGrade: values.newGrade,
           comment: values.comment,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       message.open({
         type: "success",
@@ -255,7 +279,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -280,7 +304,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "info",
@@ -365,7 +389,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -412,7 +436,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
@@ -439,7 +463,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -520,7 +544,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -672,7 +696,7 @@ const Submissions = () => {
                     (grade) =>
                       grade.videoQuality === undefined ||
                       grade.workQuality === undefined ||
-                      grade.writingQuality === undefined
+                      grade.writingQuality === undefined,
                   ));
               return (
                 <div className="table-col-div" key={index}>
@@ -706,7 +730,7 @@ const Submissions = () => {
                                   sub.isLate
                                     ? ` באיחור - ${Math.ceil(
                                         (new Date(sub.uploadDate) - new Date(sub.submissionDate)) /
-                                          (1000 * 60 * 60 * 24)
+                                          (1000 * 60 * 60 * 24),
                                       )} ימים`
                                     : ""
                                 }`
@@ -993,10 +1017,24 @@ const Submissions = () => {
               סגור
             </Button>
             <div className="modal-footer-action">
-              <Button key="extra1" type="primary" onClick={() => assignJudgesAutomatically()}>
+              <Button
+                key="extra1"
+                type="primary"
+                onClick={() => {
+                  judgeAssignmentForm.validateFields().then((values) => {
+                    assignJudgesAutomatically(values);
+                  });
+                }}>
                 הקצאה רגילה
               </Button>
-              <Button key="extra2" type="primary" onClick={() => console.log("W.I.P")}>
+              <Button
+                key="extra2"
+                type="primary"
+                onClick={() => {
+                  judgeAssignmentForm.validateFields().then((values) => {
+                    assignJudgesAI(values);
+                  });
+                }}>
                 הקצאה חכמה
               </Button>
             </div>
@@ -1311,7 +1349,7 @@ const Submissions = () => {
                               ? ` באיחור - ${Math.ceil(
                                   (new Date(submissionInfo.submission.uploadDate) -
                                     new Date(submissionInfo.submission.submissionDate)) /
-                                    (1000 * 60 * 60 * 24)
+                                    (1000 * 60 * 60 * 24),
                                 )} ימים`
                               : ""
                           }`
@@ -1384,7 +1422,7 @@ const Submissions = () => {
                       {Math.ceil(
                         (new Date(submissionInfo.submission.uploadDate) -
                           new Date(submissionInfo.submission.submissionDate)) /
-                          (1000 * 60 * 60 * 24)
+                          (1000 * 60 * 60 * 24),
                       ) * 2}
                     </div>
                   </div>

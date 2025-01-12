@@ -7,6 +7,9 @@ import Notification from "../models/notifications.js";
 import Group from "../models/groups.js";
 import fs from "fs";
 import path from "path";
+import OpenAI from "openai";
+
+const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
 export const createSubmission = async (req, res) => {
   try {
@@ -422,6 +425,7 @@ export const resetJudges = async (req, res) => {
 };
 
 export const assignJudgesAI = async (req, res) => {
+  console.log("Assigning judges automatically with AI");
   const workload = {};
   const projectDetails = {};
   const activeProjects = await Project.find({
@@ -431,21 +435,39 @@ export const assignJudgesAI = async (req, res) => {
     year: req.body.submissionYear,
   });
 
-  activeProjects.forEach(async (project) => {
+  for (const project of activeProjects) {
     const advisor = await User.findById(project.advisors[0]);
-    
+
     // creating workload object for advisors/judges
-    if (!workload[advisor]) {
-      workload[advisor] = { projects: 0, quota: 0, assigned: 0 };
+    if (!workload[advisor._id]) {
+      // Ensure you're using the advisor's ID for the key
+      console.log("Creating workload object for advisor");
+      workload[advisor._id] = { projects: 0, quota: 0, assigned: 0 };
     }
-    workload[advisor].projects++;
-    workload[advisor].assigned++;
-    workload[advisor].quota += 3;
-    workload[advisor].interests = advisor.interests;
+    workload[advisor._id].projects++;
+    workload[advisor._id].assigned++;
+    workload[advisor._id].quota += 3;
+    workload[advisor._id].interests = advisor.interests;
 
     // creating project details object
-    projectDetails[project._id] = { title: project.title, description: project.description };
+    projectDetails[project._id] = {
+      title: project.title,
+      description: project.description,
+      advisor: project.advisors[0],
+    };
+  }
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      { role: "system", content: "You are a helpful assistant." },
+      {
+        role: "user",
+        content: "What is OpenAI?",
+      },
+    ],
   });
+
+  console.log(completion.choices[0].message);
 };
 
 export const assignJudgesAutomatically = async (req, res) => {
@@ -480,7 +502,7 @@ export const assignJudgesAutomatically = async (req, res) => {
   });
 
   // Get all submissions for active projects and shuffle them
-  const submissions = await Submission.find({ project: { $in: activeProjectIds } });
+  const submissions = await Submission.find({ project: { $in: activeProjectIds }, name: req.body.submissionName });
   const totalGrades = submissions.reduce((acc, submission) => acc + submission.grades.length, 0);
 
   // Convert workload object to an array of values

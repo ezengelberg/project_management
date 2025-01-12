@@ -19,6 +19,7 @@ import {
   getGradeDistribution,
   deleteAllSubmissions,
   resetJudges,
+  assignJudgesAI,
 } from "../controllers/submissionController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -41,6 +42,7 @@ router.post("/update-specific-submission/:id", ensureAuthenticated, isCoordinato
 router.post("/delete-active-submissions", ensureAuthenticated, isCoordinator, deleteActiveSubmissions);
 router.delete("/delete-specific-submission/:id", ensureAuthenticated, isCoordinator, deleteSubmission);
 router.post("/assign-judge-auto", ensureAuthenticated, isCoordinator, assignJudgesAutomatically);
+router.post("/assign-judge-ai", ensureAuthenticated, isCoordinator, assignJudgesAI);
 router.get("/grade-distribution/:id", ensureAuthenticated, getGradeDistribution);
 router.delete("/delete-all", ensureAuthenticated, isCoordinator, deleteAllSubmissions);
 
