@@ -441,7 +441,6 @@ export const assignJudgesAI = async (req, res) => {
     // creating workload object for advisors/judges
     if (!workload[advisor._id]) {
       // Ensure you're using the advisor's ID for the key
-      console.log("Creating workload object for advisor");
       workload[advisor._id] = { projects: 0, quota: 0, assigned: 0 };
     }
     workload[advisor._id].projects++;
@@ -459,9 +458,28 @@ export const assignJudgesAI = async (req, res) => {
 
   let prompt =
     "I have a list of projects and advisors. Assign 2 more judges for each project besides the advisor. Ensure the output is strictly a valid JSON object. Each project includes a title, description, and advisor. Each advisor has a quota, current assignments, and interests. Do not include any explanations or extra text in the output. Here are the details:";
+
   prompt += `\n\nProjects: ${JSON.stringify(projectDetails)}`;
   prompt += `\n\nWorkload: ${JSON.stringify(workload)}`;
-  prompt += "\n\nPlease assign 2 judges for each project by their advisor id as seen in the project details, make sure there are no repetitions. If there are not enough judges available, don't assign anyone. There is no need to assign the project advisor.";
+
+  prompt +=
+    "\n\nPlease assign 2 judges for each project by their advisor id as seen in the project details, make sure there are no repetitions. If there are not enough judges available, do not assign any judges. There is no need to assign the project advisor.";
+
+  const response_structure = {
+    project_id: {
+      judges: ["judge_id", "judge_id"],
+    },
+    project_id: {
+      judges: ["judge_id", "judge_id"],
+    },
+    project_id: {
+      judges: ["judge_id", "judge_id"],
+    },
+  };
+
+  prompt += `I want the response structure to be the following: \n\n${JSON.stringify(
+    response_structure,
+  )}. If no judges can be assigned to a project, return **only** an empty object like this: {} (without any project IDs or empty objects like { "project_id": {} }).`;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -472,7 +490,7 @@ export const assignJudgesAI = async (req, res) => {
       ],
     });
 
-    console.log(completion.choices[0].message);
+    console.log("the response\n", completion.choices[0].message);
     const content = completion.choices[0].message.content;
 
     // Parse response to extract valid JSON
