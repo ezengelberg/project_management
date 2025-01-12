@@ -119,6 +119,7 @@ const Submissions = () => {
           withCredentials: true,
         },
       );
+      console.log(response.data);
       response.data.map((project) => {
         project.submissions.map((submission) => {
           submission.isLate = new Date(submission.submissionDate) < new Date(submission.uploadDate);
@@ -127,38 +128,6 @@ const Submissions = () => {
         return project;
       });
       setSubmissionData(response.data);
-      const submissionDetails = [
-        ...new Map(
-          response.data
-            .flatMap((submission) =>
-              submission.submissions.map((sub) => ({
-                name: sub.name,
-                info: sub.info,
-              })),
-            )
-            .map((sub) => [
-              sub.name, // Use the name as key
-              sub, // Keep the object with name and info as the value
-            ]),
-        ).values(),
-      ];
-
-      const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
-        const existing = self.find(
-          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission,
-        );
-
-        if (!existing) return submission;
-
-        // If both have info, select the one with the longer info
-        if (submission.info && existing.info) {
-          return submission.info.length > existing.info.length ? submission : existing;
-        }
-
-        // If one has info, return the one with info
-        return submission.info ? submission : existing;
-      });
-      setSubmissionDetails(filteredSubmissionDetails);
     } catch (error) {
       console.error("Error fetching submissions:", error);
       setSubmissionData([]);
@@ -1006,9 +975,10 @@ const Submissions = () => {
       <Modal
         title="הקצאת שופטים אוטומטית"
         open={assignJudgesModal}
-        footer={[
-          <div className="modal-footer">
+        footer={
+          <div className="modal-footer" key="footer">
             <Button
+              key="back"
               type="default"
               onClick={() => {
                 setAssignJudgesModal(false);
@@ -1038,8 +1008,8 @@ const Submissions = () => {
                 הקצאה חכמה
               </Button>
             </div>
-          </div>,
-        ]}
+          </div>
+        }
         cancelText={"סגור"}
         onCancel={() => setAssignJudgesModal(false)}
         okButtonProps={{ style: { display: "none" } }}>
@@ -1061,11 +1031,21 @@ const Submissions = () => {
               },
             ]}>
             <Select placeholder="בחר הגשה">
-              {submissionDetails.map((submission, index) => (
-                <Option key={index} value={submission.name}>
-                  {submission.name}
-                </Option>
-              ))}
+              {submissionData
+                .filter((project) => project.year == yearFilter)
+                .flatMap((submission, projectIndex) =>
+                  submission.submissions.map((sub) => ({
+                    ...sub,
+                    projectIndex, // Add the project index to maintain uniqueness
+                  })),
+                )
+                .filter((sub) => sub.name)
+                .filter((sub, index, array) => array.findIndex((item) => item.name === sub.name) === index)
+                .map((sub) => (
+                  <Option key={`${sub.name}-${sub.projectIndex}`} value={sub.name}>
+                    {sub.name}
+                  </Option>
+                ))}
             </Select>
           </Form.Item>
         </Form>
@@ -1561,11 +1541,23 @@ const Submissions = () => {
                   submissionInfo: selectedSubmission?.info || "", // Populate `submissionInfo` if available
                 });
               }}>
-              {submissionDetails.map((submission, index) => (
+              {submissionData
+                .filter((project) => project.year == yearFilter)
+                .flatMap((submission) => submission.submissions) // Flatten the submissions array
+                .filter((sub) => sub.name) // Filter out entries without names
+                .filter(
+                  (sub, index, array) => array.findIndex((item) => item.name === sub.name) === index, // Keep only first occurrence
+                )
+                .map((sub, index) => (
+                  <Option key={index} value={sub.name}>
+                    {sub.name}
+                  </Option>
+                ))}
+              {/* {submissionDetails.map((submission, index) => (
                 <Option key={index} value={submission.name}>
                   {submission.name}
                 </Option>
-              ))}
+              ))} */}
             </Select>
           </Form.Item>
           <Form.Item label="קבוצות (אם לא תיבחר קבוצה השינוי יהיה לכולם)" name="group" hasFeedback>
