@@ -456,31 +456,30 @@ export const assignJudgesAI = async (req, res) => {
     };
   }
 
-  let prompt =
-    "I have a list of projects and advisors. Assign 2 more judges for each project besides the advisor. Ensure the output is strictly a valid JSON object. Each project includes a title, description, and advisor. Each advisor has a quota, current assignments, and interests. Do not include any explanations or extra text in the output. Here are the details:";
+  let prompt = `
+    I have a list of projects and advisors. Each project has a title, description, and an advisor. Each advisor has a quota, current assignments, and interests.
 
-  prompt += `\n\nProjects: ${JSON.stringify(projectDetails)}`;
-  prompt += `\n\nWorkload: ${JSON.stringify(workload)}`;
+### Rules:
+1. Assign exactly 2 additional judges (advisor IDs) for each project. The project's advisor cannot be assigned as a judge to their own project.
+2. The quota indicates the maximum number of *projects an advisor can judge in total*, NOT including their role as an advisor on their own project.
+3. Each advisor may only be assigned as a judge for a project once. Avoid duplicate assignments.
+4. If there are not enough judges available to assign two to each project, return an empty object \`{}\`.
 
-  prompt +=
-    "\n\nPlease assign 2 judges for each project by their advisor id as seen in the project details, make sure there are no repetitions. If there are not enough judges available, do not assign any judges. There is no need to assign the project advisor.";
+### Data:
+Projects: ${JSON.stringify(projectDetails, null, 2)}
+Workload: ${JSON.stringify(workload, null, 2)}
 
-  const response_structure = {
-    project_id: {
-      judges: ["judge_id", "judge_id"],
-    },
-    project_id: {
-      judges: ["judge_id", "judge_id"],
-    },
-    project_id: {
-      judges: ["judge_id", "judge_id"],
-    },
-  };
+### Output:
+Provide a strictly valid JSON response in this structure:
+{
+  "project_id": { "judges": ["judge_id", "judge_id"] },
+  ...
+}
+If no judges can be assigned, return: {}
+  `;
 
-  prompt += `I want the response structure to be the following: \n\n${JSON.stringify(
-    response_structure,
-  )}. If no judges can be assigned to a project, return **only** an empty object like this: {} (without any project IDs or empty objects like { "project_id": {} }).`;
-
+  console.log(workload);
+  console.log(projectDetails);
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -492,12 +491,19 @@ export const assignJudgesAI = async (req, res) => {
 
     console.log("the response\n", completion.choices[0].message);
     const content = completion.choices[0].message.content;
+    console.log("Raw AI Response:", content);
 
     // Parse response to extract valid JSON
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsedResponse = JSON.parse(jsonMatch[0]);
       console.log(parsedResponse);
+      if (Object.keys(parsedResponse).length === 0) {
+        return res.status(500).json({ message: "No judges were assigned" });
+      }
+      for (const project in parsedResponse) {
+        console.log(project);
+      }
       res.status(200).json(parsedResponse);
     } else {
       throw new Error("Invalid JSON response from AI.");
