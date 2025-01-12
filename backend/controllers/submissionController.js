@@ -456,18 +456,38 @@ export const assignJudgesAI = async (req, res) => {
       advisor: project.advisors[0],
     };
   }
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: "You are a helpful assistant." },
-      {
-        role: "user",
-        content: "What is OpenAI?",
-      },
-    ],
-  });
 
-  console.log(completion.choices[0].message);
+  let prompt =
+    "I have a list of projects and advisors. Assign 2 more judges for each project besides the advisor. Ensure the output is strictly a valid JSON object. Each project includes a title, description, and advisor. Each advisor has a quota, current assignments, and interests. Do not include any explanations or extra text in the output. Here are the details:";
+  prompt += `\n\nProjects: ${JSON.stringify(projectDetails)}`;
+  prompt += `\n\nWorkload: ${JSON.stringify(workload)}`;
+  prompt += "\n\nPlease assign 2 judges for each project by their advisor id as seen in the project details, make sure there are no repetitions. If there are not enough judges available, don't assign anyone. There is no need to assign the project advisor.";
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are a helpful assignment assistant." },
+        { role: "user", content: prompt },
+      ],
+    });
+
+    console.log(completion.choices[0].message);
+    const content = completion.choices[0].message.content;
+
+    // Parse response to extract valid JSON
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsedResponse = JSON.parse(jsonMatch[0]);
+      console.log(parsedResponse);
+      res.status(200).json(parsedResponse);
+    } else {
+      throw new Error("Invalid JSON response from AI.");
+    }
+  } catch (error) {
+    console.error("Error assigning judges:", error);
+    res.status(500).json({ error: "Failed to assign judges." });
+  }
 };
 
 export const assignJudgesAutomatically = async (req, res) => {
