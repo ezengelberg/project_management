@@ -7,6 +7,9 @@ import Notification from "../models/notifications.js";
 import Group from "../models/groups.js";
 import fs from "fs";
 import path from "path";
+import OpenAI from "openai";
+
+const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
 export const createSubmission = async (req, res) => {
   try {
@@ -66,9 +69,9 @@ export const createSubmission = async (req, res) => {
               link: "/my-submissions",
             });
             await notification.save();
-          })
+          }),
         );
-      })
+      }),
     );
     res.status(201).json({ message: "Submissions created successfully" });
   } catch (error) {
@@ -120,9 +123,9 @@ export const createSpecificSubmission = async (req, res) => {
               link: "/my-submissions",
             });
             await notification.save();
-          })
+          }),
         );
-      })
+      }),
     );
     res.status(201).json({ message: "Submissions created successfully" });
   } catch (error) {
@@ -155,7 +158,7 @@ export const getAllProjectSubmissions = async (req, res) => {
                   journalActive: grade.journalActive,
                   commits: grade.commits,
                 };
-              })
+              }),
             );
             return {
               key: submission._id,
@@ -173,7 +176,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               file: submission.file,
               editable: submission.editable,
             };
-          })
+          }),
         );
         return {
           key: project._id,
@@ -182,7 +185,7 @@ export const getAllProjectSubmissions = async (req, res) => {
           year: project.year,
           submissions: submissionsWithGrades,
         };
-      })
+      }),
     );
 
     let resolvedProjectsList = await Promise.all(projectsList);
@@ -225,11 +228,11 @@ export const getAllSubmissions = async (req, res) => {
                 editable: gradeInfo ? gradeInfo.editable : null,
                 overridden: submission.overridden,
               };
-            })
+            }),
           ),
           key: submission._id,
         };
-      })
+      }),
     );
     res.status(200).json(submissionsWithDetails);
   } catch (error) {
@@ -264,9 +267,9 @@ export const getStudentSubmissions = async (req, res) => {
               journalActive: grade.journalActive,
               commits: grade.commits,
             };
-          })
+          }),
         ),
-      }))
+      })),
     ).then((result) => result.sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)));
 
     res.status(200).json(submissionsWithDetails);
@@ -379,11 +382,11 @@ export const copyJudges = async (req, res) => {
           project.advisors.map(async (advisor) => {
             const newGrade = new Grade({ judge: advisor });
             return await newGrade.save();
-          })
+          }),
         );
         submission.grades = newGrades;
         await submission.save();
-      })
+      }),
     );
   } catch (error) {
     console.log(error);
@@ -421,6 +424,147 @@ export const resetJudges = async (req, res) => {
   res.status(200).json({ message: "Judges reset successfully" });
 };
 
+export const assignJudgesAI = async (req, res) => {
+  console.log("Assigning judges automatically with AI");
+  const workload = {};
+  const projectDetails = {};
+  const activeProjects = await Project.find({
+    isTerminated: false,
+    isFinished: false,
+    isTaken: true,
+    year: req.body.submissionYear,
+  });
+
+  for (const project of activeProjects) {
+    const advisor = await User.findById(project.advisors[0]);
+
+    // creating workload object for advisors/judges
+    if (!workload[advisor._id]) {
+      // Ensure you're using the advisor's ID for the key
+      workload[advisor._id] = { projects: 0, quota: 0, assigned: 0 };
+    }
+    workload[advisor._id].projects++;
+    workload[advisor._id].assigned++;
+    workload[advisor._id].quota += 3;
+    workload[advisor._id].interests = advisor.interests;
+
+    // creating project details object
+    projectDetails[project._id] = {
+      title: project.title,
+      description: project.description,
+      advisor: project.advisors[0],
+    };
+  }
+
+  let prompt = `
+    I have a list of projects and advisors. Each project has a title, description, and an advisor. Each advisor has a quota, current assignments, and interests.
+
+### Rules:
+1. Assign exactly 2 additional judges (advisor IDs) for each project. The project's advisor cannot be assigned as a judge to their own project.
+2. The quota indicates the maximum number of *projects an advisor can judge in total* including their role as an advisor on their own project.
+3. Each advisor may only be assigned as a judge for a project once. Avoid duplicate assignments.
+4. If there are not enough judges available to assign two to each project, return an empty object \`{}\`.
+5. Keep the response minimal, give me the required JSON file only without any additional information.
+
+### Data:
+Projects: ${JSON.stringify(projectDetails, null, 2)}
+Workload: ${JSON.stringify(workload, null, 2)}
+
+### Output:
+Provide a strictly valid JSON response in this structure:
+{
+  "project_id": { "judges": ["judge_id", "judge_id"] },
+  ...
+}
+If no judges can be assigned, return: {}
+  `;
+
+  console.log(workload);
+  console.log(projectDetails);
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: "You are a helpful assignment assistant." },
+        { role: "user", content: prompt },
+      ],
+    });
+
+    console.log("the response\n", completion.choices[0].message);
+    const content = completion.choices[0].message.content;
+    console.log("Raw AI Response:", content);
+
+    // Parse response to extract valid JSON
+    // const jsonMatch = content.match(/\{[\s\S]*\}/);
+    // if (jsonMatch) {
+    //   const parsedResponse = JSON.parse(jsonMatch[0]);
+    //   console.log(parsedResponse);
+    //   if (Object.keys(parsedResponse).length === 0) {
+    //     return res.status(500).json({ message: "No judges were assigned" });
+    //   }
+    //   for (const project in parsedResponse) {
+    //     console.log(parsedResponse);
+    //     console.log(project);
+    //   }
+    //   res.status(200).json(parsedResponse);
+    // } else {
+    //   throw new Error("Invalid JSON response from AI.");
+    // }
+
+    try {
+      // Attempt to extract the JSON part of the response
+      const jsonMatch = content.match(/```json\n([\s\S]*?)```/);
+      if (jsonMatch) {
+        const parsedResponse = JSON.parse(jsonMatch[1]); // Use the matched JSON content
+        console.log("parsed response:", parsedResponse);
+
+        if (Object.keys(parsedResponse).length === 0) {
+          return res.status(500).json({ message: "No judges were assigned" });
+        }
+
+        for (const project in parsedResponse) {
+          const submission = await Submission.findOne({ project: project, name: req.body.submissionName });
+          if (submission) {
+            console.log(parsedResponse[project].judges);
+            const judges = parsedResponse[project].judges;
+            const validJudges = await Promise.all(
+              judges.map(async (judge) => {
+                const user = await User.findById(judge);
+                if (user && user.isJudge) {
+                  return judge;
+                }
+              }),
+            );
+            console.log("Valid judges are: ", validJudges);
+            if (validJudges.length === 0) {
+              return res.status(500).json({ message: "No valid judges found" });
+            }
+            const gradeObjects = await Promise.all(
+              validJudges.map(async (judge) => {
+                const grade = new Grade({ judge });
+                await grade.save(); // Save each grade object to the database
+                return grade;
+              }),
+            );
+            console.log("grade objects: ", gradeObjects);
+            await submission.updateOne({ $push: { grades: { $each: gradeObjects } } });
+          }
+        }
+        console.log("Judges assigned successfully");
+        res.status(200).json("judges assigned successfully");
+      } else {
+        throw new Error("No valid JSON found in the AI response.");
+      }
+    } catch (error) {
+      console.error("Error assigning judges:", error);
+      res.status(500).json({ error: "Failed to assign judges." });
+    }
+  } catch (error) {
+    console.error("Error assigning judges:", error);
+    res.status(500).json({ error: "Failed to assign judges." });
+  }
+};
+
 export const assignJudgesAutomatically = async (req, res) => {
   const workload = {};
   // Get all active projects
@@ -453,7 +597,7 @@ export const assignJudgesAutomatically = async (req, res) => {
   });
 
   // Get all submissions for active projects and shuffle them
-  const submissions = await Submission.find({ project: { $in: activeProjectIds } });
+  const submissions = await Submission.find({ project: { $in: activeProjectIds }, name: req.body.submissionName });
   const totalGrades = submissions.reduce((acc, submission) => acc + submission.grades.length, 0);
 
   // Convert workload object to an array of values
@@ -473,7 +617,7 @@ export const assignJudgesAutomatically = async (req, res) => {
         const gradeInfo = await Grade.findById(grade);
         const advisor = gradeInfo.judge.toString();
         return advisor;
-      })
+      }),
     );
     // Calculate remaining slots for judges
     const remainingSlots = Math.max(0, 3 - currentJudges.length);
@@ -558,7 +702,7 @@ export const updateJudgesInSubmission = async (req, res) => {
             message: `הוסרת משפיטת: "${submission.name}" עבור פרויקט: "${submission.project.title}"`,
           });
           await notification.save();
-        })
+        }),
       );
     }
 
@@ -567,7 +711,7 @@ export const updateJudgesInSubmission = async (req, res) => {
 
     // Find new judges to add
     const newJudges = validJudges.filter(
-      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID)
+      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID),
     );
 
     if (newJudges.length !== 0) {
@@ -582,7 +726,7 @@ export const updateJudgesInSubmission = async (req, res) => {
           });
           await notification.save();
           return newGrade._id;
-        })
+        }),
       );
       submission.grades = [...submission.grades, ...newGrades];
     }
@@ -619,7 +763,7 @@ export const updateSubmissionFile = async (req, res) => {
             : `הועלה קובץ עבור: "${submission.name}" ע"י ${req.user.name}`,
         });
         await notification.save();
-      })
+      }),
     );
 
     res.status(200).json({ message: "Submission updated successfully", submission });
@@ -647,7 +791,7 @@ export const deleteSubmission = async (req, res) => {
     await Promise.all(
       grades.map(async (grade) => {
         await grade.deleteOne({ _id: grade._id });
-      })
+      }),
     );
     await Submission.deleteOne({ _id: submission._id });
     res.status(200).json({ message: "Submission deleted successfully" });
@@ -692,10 +836,10 @@ export const deleteActiveSubmissions = async (req, res) => {
         await Promise.all(
           grades.map(async (grade) => {
             await grade.deleteOne({ _id: grade._id });
-          })
+          }),
         );
         await Submission.deleteOne({ _id: submission._id });
-      })
+      }),
     );
 
     res.status(200).json({ message: "Active submissions deleted successfully" });
@@ -732,7 +876,7 @@ export const updateSubmissionInformation = async (req, res) => {
           submission.name = req.body.SubmissionName;
           await submission.save();
         }
-      })
+      }),
     );
 
     res.status(200).json({ message: "Submissions updated successfully" });
@@ -829,7 +973,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
               journalActive: grade.journalActive,
               commits: grade.commits,
             };
-          })
+          }),
         );
         return {
           key: submission._id,
@@ -849,7 +993,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
           file: submission.file,
           fileNeeded: submission.fileNeeded,
         };
-      })
+      }),
     );
     res.status(200).json(submissionsWithDetails);
   } catch (error) {
