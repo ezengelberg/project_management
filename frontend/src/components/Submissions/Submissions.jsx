@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
-import axios from "axios";
+import axios, { isCancel } from "axios";
 import dayjs from "dayjs";
 import "./Submissions.scss";
 import { Progress } from "antd";
@@ -174,9 +174,9 @@ const Submissions = () => {
   };
 
   const assignJudgesAI = async (values) => {
-    setProgress(0);
+    let loopCancel = false;
     try {
-      await axios.post(
+      const axiosPromise = axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/assign-judge-ai`,
         {
           submissionYear: yearFilter,
@@ -186,11 +186,17 @@ const Submissions = () => {
           withCredentials: true,
         },
       );
+
+      // Start the progress loop
       for (let i = 0; i < 99; i++) {
+        if (loopCancel) break;
         setTimeout(() => {
           setProgress(i);
-        }, 1000);
+        }, i * 80); // Adjust the delay incrementally for each iteration
       }
+
+      // Wait for the axios post to complete
+      await axiosPromise;
     } catch (error) {
       console.error("Error assigning judges automatically:", error);
       message.open({
@@ -198,6 +204,7 @@ const Submissions = () => {
         content: "מחסור בשופטים להקצאה אוטומטית",
       });
     } finally {
+      loopCancel = true;
       setProgress(100);
     }
   };
@@ -1003,6 +1010,7 @@ const Submissions = () => {
               onClick={() => {
                 setAssignJudgesModal(false);
                 judgeAssignmentForm.resetFields();
+                setProgress(0);
               }}>
               סגור
             </Button>
@@ -1031,7 +1039,13 @@ const Submissions = () => {
           </div>
         }
         cancelText={"סגור"}
-        onCancel={() => setAssignJudgesModal(false)}
+        onCancel={() => {
+          setAssignJudgesModal(false);
+          setProgress(0);
+        }}
+        onClose={() => {
+          setProgress(0);
+        }}
         okButtonProps={{ style: { display: "none" } }}>
         <Form layout="vertical" form={judgeAssignmentForm}>
           <p>

@@ -464,6 +464,7 @@ export const assignJudgesAI = async (req, res) => {
 2. The quota indicates the maximum number of *projects an advisor can judge in total* including their role as an advisor on their own project.
 3. Each advisor may only be assigned as a judge for a project once. Avoid duplicate assignments.
 4. If there are not enough judges available to assign two to each project, return an empty object \`{}\`.
+5. Keep the response minimal, give me the required JSON file only without any additional information.
 
 ### Data:
 Projects: ${JSON.stringify(projectDetails, null, 2)}
