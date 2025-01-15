@@ -70,7 +70,7 @@ app.use(
       ttl: 24 * 60 * 60, // Time to live - 1 day (in seconds)
     }),
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // Cookie will expire after 1 day
+      maxAge: 24 * 60 * 60 * 1000 * 365, // Cookie will expire after 1 year
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
       sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax", // Use Lax for local development
