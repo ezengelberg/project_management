@@ -5,6 +5,7 @@ import { handleMouseDown } from "../../utils/mouseDown";
 import axios from "axios";
 import dayjs from "dayjs";
 import "./Submissions.scss";
+import { Progress } from "antd";
 import {
   Modal,
   DatePicker,
@@ -44,6 +45,7 @@ const Submissions = () => {
   const [deleteSubmissionsForm] = Form.useForm();
   const [deleteJudgesForm] = Form.useForm();
   const [assignJudgesModal, setAssignJudgesModal] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [allSubmissions, setAllSubmissions] = useState(false);
   const [specificSubmission, setSpecificSubmission] = useState(false);
   const [editSubmissions, setEditSubmissions] = useState(false);
@@ -172,6 +174,7 @@ const Submissions = () => {
   };
 
   const assignJudgesAI = async (values) => {
+    setProgress(0);
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/assign-judge-ai`,
@@ -183,12 +186,19 @@ const Submissions = () => {
           withCredentials: true,
         },
       );
+      for (let i = 0; i < 99; i++) {
+        setTimeout(() => {
+          setProgress(i);
+        }, 1000);
+      }
     } catch (error) {
       console.error("Error assigning judges automatically:", error);
       message.open({
         type: "error",
         content: "מחסור בשופטים להקצאה אוטומטית",
       });
+    } finally {
+      setProgress(100);
     }
   };
 
@@ -963,11 +973,21 @@ const Submissions = () => {
               },
             ]}>
             <Select placeholder="בחר הגשה">
-              {submissionDetails.map((submission, index) => (
-                <Option key={index} value={submission.name}>
-                  {submission.name}
-                </Option>
-              ))}
+              {submissionData
+                .filter((project) => project.year == yearFilter)
+                .flatMap((submission, projectIndex) =>
+                  submission.submissions.map((sub) => ({
+                    ...sub,
+                    projectIndex, // Add the project index to maintain uniqueness
+                  })),
+                )
+                .filter((sub) => sub.name)
+                .filter((sub, index, array) => array.findIndex((item) => item.name === sub.name) === index)
+                .map((sub) => (
+                  <Option key={`${sub.name}-${sub.projectIndex}`} value={sub.name}>
+                    {sub.name}
+                  </Option>
+                ))}
             </Select>
           </Form.Item>
         </Form>
@@ -1049,6 +1069,12 @@ const Submissions = () => {
             </Select>
           </Form.Item>
         </Form>
+        {progress > 0 && (
+          <>
+            <span>{progress === 100 ? "הקצאה הושלמה" : "מבצע הקצאה של שופטים..."}</span>
+            <Progress percent={progress} status="active" showInfo={false} style={{ marginBottom: "1rem" }} />
+          </>
+        )}
       </Modal>
       <Modal
         title={`אישור מחיקה`}
@@ -1102,11 +1128,21 @@ const Submissions = () => {
               },
             ]}>
             <Select placeholder="בחר הגשה">
-              {submissionDetails.map((submission, index) => (
-                <Option key={index} value={submission.name}>
-                  {submission.name}
-                </Option>
-              ))}
+              {submissionData
+                .filter((project) => project.year == yearFilter)
+                .flatMap((submission, projectIndex) =>
+                  submission.submissions.map((sub) => ({
+                    ...sub,
+                    projectIndex, // Add the project index to maintain uniqueness
+                  })),
+                )
+                .filter((sub) => sub.name)
+                .filter((sub, index, array) => array.findIndex((item) => item.name === sub.name) === index)
+                .map((sub) => (
+                  <Option key={`${sub.name}-${sub.projectIndex}`} value={sub.name}>
+                    {sub.name}
+                  </Option>
+                ))}
             </Select>
           </Form.Item>
           <Form.Item label="קבוצות (אם לא תיבחר קבוצה המחיקה תהיה לכולם)" name="groups" hasFeedback>
