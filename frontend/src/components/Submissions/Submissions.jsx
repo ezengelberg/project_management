@@ -2,9 +2,10 @@ import React, { useEffect, useState, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
-import axios from "axios";
+import axios, { isCancel } from "axios";
 import dayjs from "dayjs";
 import "./Submissions.scss";
+import { Progress } from "antd";
 import {
   Modal,
   DatePicker,
@@ -44,6 +45,7 @@ const Submissions = () => {
   const [deleteSubmissionsForm] = Form.useForm();
   const [deleteJudgesForm] = Form.useForm();
   const [assignJudgesModal, setAssignJudgesModal] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [allSubmissions, setAllSubmissions] = useState(false);
   const [specificSubmission, setSpecificSubmission] = useState(false);
   const [editSubmissions, setEditSubmissions] = useState(false);
@@ -117,8 +119,9 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
           withCredentials: true,
-        }
+        },
       );
+      console.log(response.data);
       response.data.map((project) => {
         project.submissions.map((submission) => {
           submission.isLate = new Date(submission.submissionDate) < new Date(submission.uploadDate);
@@ -127,38 +130,6 @@ const Submissions = () => {
         return project;
       });
       setSubmissionData(response.data);
-      const submissionDetails = [
-        ...new Map(
-          response.data
-            .flatMap((submission) =>
-              submission.submissions.map((sub) => ({
-                name: sub.name,
-                info: sub.info,
-              }))
-            )
-            .map((sub) => [
-              sub.name, // Use the name as key
-              sub, // Keep the object with name and info as the value
-            ])
-        ).values(),
-      ];
-
-      const filteredSubmissionDetails = submissionDetails.map((submission, index, self) => {
-        const existing = self.find(
-          (otherSubmission) => otherSubmission.name === submission.name && otherSubmission !== submission
-        );
-
-        if (!existing) return submission;
-
-        // If both have info, select the one with the longer info
-        if (submission.info && existing.info) {
-          return submission.info.length > existing.info.length ? submission : existing;
-        }
-
-        // If one has info, return the one with info
-        return submission.info ? submission : existing;
-      });
-      setSubmissionDetails(filteredSubmissionDetails);
     } catch (error) {
       console.error("Error fetching submissions:", error);
       setSubmissionData([]);
@@ -201,16 +172,55 @@ const Submissions = () => {
       fetchSubmissions();
     }
   };
-  const assignJudgesAutomatically = async () => {
+
+  const assignJudgesAI = async (values) => {
+    let loopCancel = false;
+    try {
+      const axiosPromise = axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/assign-judge-ai`,
+        {
+          submissionYear: yearFilter,
+          submissionName: values.submissionName,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+
+      // Start the progress loop
+      for (let i = 0; i < 99; i++) {
+        if (loopCancel) break;
+        setTimeout(() => {
+          setProgress(i);
+        }, i * 80); // Adjust the delay incrementally for each iteration
+      }
+
+      // Wait for the axios post to complete
+      await axiosPromise;
+    } catch (error) {
+      console.error("Error assigning judges automatically:", error);
+      message.open({
+        type: "error",
+        content: "מחסור בשופטים להקצאה אוטומטית",
+      });
+    } finally {
+      loopCancel = true;
+      setProgress(100);
+    }
+  };
+
+  const assignJudgesAutomatically = async (values) => {
+    console.log("values", values.submissionName);
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/assign-judge-auto`,
         {
           submissionYear: yearFilter,
+          submissionName: values.submissionName,
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -233,7 +243,7 @@ const Submissions = () => {
           newGrade: values.newGrade,
           comment: values.comment,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       message.open({
         type: "success",
@@ -255,7 +265,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -280,7 +290,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "info",
@@ -365,7 +375,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -412,7 +422,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
@@ -439,7 +449,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -520,7 +530,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       message.open({
         type: "success",
@@ -672,7 +682,7 @@ const Submissions = () => {
                     (grade) =>
                       grade.videoQuality === undefined ||
                       grade.workQuality === undefined ||
-                      grade.writingQuality === undefined
+                      grade.writingQuality === undefined,
                   ));
               return (
                 <div className="table-col-div" key={index}>
@@ -706,7 +716,7 @@ const Submissions = () => {
                                   sub.isLate
                                     ? ` באיחור - ${Math.ceil(
                                         (new Date(sub.uploadDate) - new Date(sub.submissionDate)) /
-                                          (1000 * 60 * 60 * 24)
+                                          (1000 * 60 * 60 * 24),
                                       )} ימים`
                                     : ""
                                 }`
@@ -970,11 +980,21 @@ const Submissions = () => {
               },
             ]}>
             <Select placeholder="בחר הגשה">
-              {submissionDetails.map((submission, index) => (
-                <Option key={index} value={submission.name}>
-                  {submission.name}
-                </Option>
-              ))}
+              {submissionData
+                .filter((project) => project.year == yearFilter)
+                .flatMap((submission, projectIndex) =>
+                  submission.submissions.map((sub) => ({
+                    ...sub,
+                    projectIndex, // Add the project index to maintain uniqueness
+                  })),
+                )
+                .filter((sub) => sub.name)
+                .filter((sub, index, array) => array.findIndex((item) => item.name === sub.name) === index)
+                .map((sub) => (
+                  <Option key={`${sub.name}-${sub.projectIndex}`} value={sub.name}>
+                    {sub.name}
+                  </Option>
+                ))}
             </Select>
           </Form.Item>
         </Form>
@@ -982,28 +1002,50 @@ const Submissions = () => {
       <Modal
         title="הקצאת שופטים אוטומטית"
         open={assignJudgesModal}
-        footer={[
-          <div className="modal-footer">
+        footer={
+          <div className="modal-footer" key="footer">
             <Button
+              key="back"
               type="default"
               onClick={() => {
                 setAssignJudgesModal(false);
                 judgeAssignmentForm.resetFields();
+                setProgress(0);
               }}>
               סגור
             </Button>
             <div className="modal-footer-action">
-              <Button key="extra1" type="primary" onClick={() => assignJudgesAutomatically()}>
+              <Button
+                key="extra1"
+                type="primary"
+                onClick={() => {
+                  judgeAssignmentForm.validateFields().then((values) => {
+                    assignJudgesAutomatically(values);
+                  });
+                }}>
                 הקצאה רגילה
               </Button>
-              <Button key="extra2" type="primary" onClick={() => console.log("W.I.P")}>
+              <Button
+                key="extra2"
+                type="primary"
+                onClick={() => {
+                  judgeAssignmentForm.validateFields().then((values) => {
+                    assignJudgesAI(values);
+                  });
+                }}>
                 הקצאה חכמה
               </Button>
             </div>
-          </div>,
-        ]}
+          </div>
+        }
         cancelText={"סגור"}
-        onCancel={() => setAssignJudgesModal(false)}
+        onCancel={() => {
+          setAssignJudgesModal(false);
+          setProgress(0);
+        }}
+        onClose={() => {
+          setProgress(0);
+        }}
         okButtonProps={{ style: { display: "none" } }}>
         <Form layout="vertical" form={judgeAssignmentForm}>
           <p>
@@ -1023,14 +1065,30 @@ const Submissions = () => {
               },
             ]}>
             <Select placeholder="בחר הגשה">
-              {submissionDetails.map((submission, index) => (
-                <Option key={index} value={submission.name}>
-                  {submission.name}
-                </Option>
-              ))}
+              {submissionData
+                .filter((project) => project.year == yearFilter)
+                .flatMap((submission, projectIndex) =>
+                  submission.submissions.map((sub) => ({
+                    ...sub,
+                    projectIndex, // Add the project index to maintain uniqueness
+                  })),
+                )
+                .filter((sub) => sub.name)
+                .filter((sub, index, array) => array.findIndex((item) => item.name === sub.name) === index)
+                .map((sub) => (
+                  <Option key={`${sub.name}-${sub.projectIndex}`} value={sub.name}>
+                    {sub.name}
+                  </Option>
+                ))}
             </Select>
           </Form.Item>
         </Form>
+        {progress > 0 && (
+          <>
+            <span>{progress === 100 ? "הקצאה הושלמה" : "מבצע הקצאה של שופטים..."}</span>
+            <Progress percent={progress} status="active" showInfo={false} style={{ marginBottom: "1rem" }} />
+          </>
+        )}
       </Modal>
       <Modal
         title={`אישור מחיקה`}
@@ -1084,11 +1142,21 @@ const Submissions = () => {
               },
             ]}>
             <Select placeholder="בחר הגשה">
-              {submissionDetails.map((submission, index) => (
-                <Option key={index} value={submission.name}>
-                  {submission.name}
-                </Option>
-              ))}
+              {submissionData
+                .filter((project) => project.year == yearFilter)
+                .flatMap((submission, projectIndex) =>
+                  submission.submissions.map((sub) => ({
+                    ...sub,
+                    projectIndex, // Add the project index to maintain uniqueness
+                  })),
+                )
+                .filter((sub) => sub.name)
+                .filter((sub, index, array) => array.findIndex((item) => item.name === sub.name) === index)
+                .map((sub) => (
+                  <Option key={`${sub.name}-${sub.projectIndex}`} value={sub.name}>
+                    {sub.name}
+                  </Option>
+                ))}
             </Select>
           </Form.Item>
           <Form.Item label="קבוצות (אם לא תיבחר קבוצה המחיקה תהיה לכולם)" name="groups" hasFeedback>
@@ -1311,7 +1379,7 @@ const Submissions = () => {
                               ? ` באיחור - ${Math.ceil(
                                   (new Date(submissionInfo.submission.uploadDate) -
                                     new Date(submissionInfo.submission.submissionDate)) /
-                                    (1000 * 60 * 60 * 24)
+                                    (1000 * 60 * 60 * 24),
                                 )} ימים`
                               : ""
                           }`
@@ -1384,7 +1452,7 @@ const Submissions = () => {
                       {Math.ceil(
                         (new Date(submissionInfo.submission.uploadDate) -
                           new Date(submissionInfo.submission.submissionDate)) /
-                          (1000 * 60 * 60 * 24)
+                          (1000 * 60 * 60 * 24),
                       ) * 2}
                     </div>
                   </div>
@@ -1523,11 +1591,23 @@ const Submissions = () => {
                   submissionInfo: selectedSubmission?.info || "", // Populate `submissionInfo` if available
                 });
               }}>
-              {submissionDetails.map((submission, index) => (
+              {submissionData
+                .filter((project) => project.year == yearFilter)
+                .flatMap((submission) => submission.submissions) // Flatten the submissions array
+                .filter((sub) => sub.name) // Filter out entries without names
+                .filter(
+                  (sub, index, array) => array.findIndex((item) => item.name === sub.name) === index, // Keep only first occurrence
+                )
+                .map((sub, index) => (
+                  <Option key={index} value={sub.name}>
+                    {sub.name}
+                  </Option>
+                ))}
+              {/* {submissionDetails.map((submission, index) => (
                 <Option key={index} value={submission.name}>
                   {submission.name}
                 </Option>
-              ))}
+              ))} */}
             </Select>
           </Form.Item>
           <Form.Item label="קבוצות (אם לא תיבחר קבוצה השינוי יהיה לכולם)" name="group" hasFeedback>

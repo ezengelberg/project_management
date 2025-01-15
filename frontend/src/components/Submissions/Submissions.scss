@@ -86,10 +86,6 @@
 }
 
 .submission-info-modal {
-  // .submission-info-edit {
-  //   position: absolute;
-  //   left: 2rem;
-  // }
   .submission-header {
     .header-title {
       display: flex;
@@ -170,6 +166,16 @@
     .submission-date-time-mobile-item {
       width: 100%;
     }
+  }
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  .modal-footer-action {
+    display: flex;
+    gap: 1rem;
   }
 }
 
