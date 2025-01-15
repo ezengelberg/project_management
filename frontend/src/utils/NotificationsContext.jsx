@@ -22,7 +22,12 @@ export const NotificationsProvider = ({ children }) => {
       setNewNotifications(sortedNotifications.filter((notification) => !notification.read));
       setOldNotifications(sortedNotifications.filter((notification) => notification.read));
     } catch (error) {
-      console.error("Error fetching notifications:", error);
+      if (error.response && error.response.status === 401) {
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      } else {
+        console.error("Error fetching notifications:", error);
+      }
     }
   };
 

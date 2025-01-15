@@ -145,7 +145,7 @@ export const loginUser = (req, res, next) => {
         });
 
         user.rememberMe = req.body.rememberMe;
-        user.expireDate = new Date().getTime() + 1000 * 60 * 60 * 24 - 1000; // 24 hours - 1 second
+        user.expireDate = new Date().getTime() + 1000 * 60 * 60 * 24 * 30; // 1 month
         await user.save();
 
         const userObj = user.toObject();
