@@ -461,7 +461,7 @@ export const assignJudgesAI = async (req, res) => {
 
 ### Rules:
 1. Assign exactly 2 additional judges (advisor IDs) for each project. The project's advisor cannot be assigned as a judge to their own project.
-2. The quota indicates the maximum number of *projects an advisor can judge in total*, NOT including their role as an advisor on their own project.
+2. The quota indicates the maximum number of *projects an advisor can judge in total* including their role as an advisor on their own project.
 3. Each advisor may only be assigned as a judge for a project once. Avoid duplicate assignments.
 4. If there are not enough judges available to assign two to each project, return an empty object \`{}\`.
 
@@ -482,7 +482,7 @@ If no judges can be assigned, return: {}
   console.log(projectDetails);
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         { role: "system", content: "You are a helpful assignment assistant." },
         { role: "user", content: prompt },
@@ -494,19 +494,69 @@ If no judges can be assigned, return: {}
     console.log("Raw AI Response:", content);
 
     // Parse response to extract valid JSON
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const parsedResponse = JSON.parse(jsonMatch[0]);
-      console.log(parsedResponse);
-      if (Object.keys(parsedResponse).length === 0) {
-        return res.status(500).json({ message: "No judges were assigned" });
+    // const jsonMatch = content.match(/\{[\s\S]*\}/);
+    // if (jsonMatch) {
+    //   const parsedResponse = JSON.parse(jsonMatch[0]);
+    //   console.log(parsedResponse);
+    //   if (Object.keys(parsedResponse).length === 0) {
+    //     return res.status(500).json({ message: "No judges were assigned" });
+    //   }
+    //   for (const project in parsedResponse) {
+    //     console.log(parsedResponse);
+    //     console.log(project);
+    //   }
+    //   res.status(200).json(parsedResponse);
+    // } else {
+    //   throw new Error("Invalid JSON response from AI.");
+    // }
+
+    try {
+      // Attempt to extract the JSON part of the response
+      const jsonMatch = content.match(/```json\n([\s\S]*?)```/);
+      if (jsonMatch) {
+        const parsedResponse = JSON.parse(jsonMatch[1]); // Use the matched JSON content
+        console.log("parsed response:", parsedResponse);
+
+        if (Object.keys(parsedResponse).length === 0) {
+          return res.status(500).json({ message: "No judges were assigned" });
+        }
+
+        for (const project in parsedResponse) {
+          const submission = await Submission.findOne({ project: project, name: req.body.submissionName });
+          if (submission) {
+            console.log(parsedResponse[project].judges);
+            const judges = parsedResponse[project].judges;
+            const validJudges = await Promise.all(
+              judges.map(async (judge) => {
+                const user = await User.findById(judge);
+                if (user && user.isJudge) {
+                  return judge;
+                }
+              }),
+            );
+            console.log("Valid judges are: ", validJudges);
+            if (validJudges.length === 0) {
+              return res.status(500).json({ message: "No valid judges found" });
+            }
+            const gradeObjects = await Promise.all(
+              validJudges.map(async (judge) => {
+                const grade = new Grade({ judge });
+                await grade.save(); // Save each grade object to the database
+                return grade;
+              }),
+            );
+            console.log("grade objects: ", gradeObjects);
+            await submission.updateOne({ $push: { grades: { $each: gradeObjects } } });
+          }
+        }
+        console.log("Judges assigned successfully");
+        res.status(200).json("judges assigned successfully");
+      } else {
+        throw new Error("No valid JSON found in the AI response.");
       }
-      for (const project in parsedResponse) {
-        console.log(project);
-      }
-      res.status(200).json(parsedResponse);
-    } else {
-      throw new Error("Invalid JSON response from AI.");
+    } catch (error) {
+      console.error("Error assigning judges:", error);
+      res.status(500).json({ error: "Failed to assign judges." });
     }
   } catch (error) {
     console.error("Error assigning judges:", error);
