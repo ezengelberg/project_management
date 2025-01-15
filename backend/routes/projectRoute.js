@@ -25,6 +25,10 @@ import {
   getProjectYears,
   startProjectsCoordinator,
   deleteAllProjects,
+  createExamTable,
+  getExamTables,
+  editExamTableClasses,
+  deleteExamTable,
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../middleware/auth.js";
 
@@ -55,5 +59,9 @@ router.post("/assign-advisors-automatically", ensureAuthenticated, isCoordinator
 router.put("/start-projects-coordinator", ensureAuthenticated, isCoordinator, startProjectsCoordinator);
 router.get("/years", getProjectYears);
 router.delete("/delete-all", ensureAuthenticated, isCoordinator, deleteAllProjects);
+router.post("/create-exam-table", ensureAuthenticated, isCoordinator, createExamTable);
+router.get("/get-exam-tables", ensureAuthenticated, isCoordinator, getExamTables);
+router.put("/edit-exam-table-classes/:id", ensureAuthenticated, isCoordinator, editExamTableClasses);
+router.delete("/delete-exam-table/:id", ensureAuthenticated, isCoordinator, deleteExamTable);
 
 export default router;

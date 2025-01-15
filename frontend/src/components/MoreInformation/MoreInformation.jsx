@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./MoreInformation.scss";
-import axios from "axios";
+import axios, { all } from "axios";
 import {
   Form,
   Input,
@@ -16,6 +16,7 @@ import {
   Select,
   Upload,
   Modal,
+  Divider,
 } from "antd";
 import locale from "antd/es/date-picker/locale/he_IL";
 import { EditOutlined, SaveOutlined, StopOutlined, DeleteOutlined, InboxOutlined } from "@ant-design/icons";
@@ -33,6 +34,8 @@ const MoreInformation = () => {
     return storedUser ? JSON.parse(storedUser) : {};
   });
   const [form] = Form.useForm();
+  const [examTableForm] = Form.useForm();
+  const [formEditClasses] = Form.useForm();
   const [formGrades] = Form.useForm();
   const [formEditGrades] = Form.useForm();
   const [data, setData] = useState([]);
@@ -58,6 +61,22 @@ const MoreInformation = () => {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [currentFile, setCurrentFile] = useState({});
+  const [groups, setGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState("all");
+  const [configYear, setConfigYear] = useState("");
+  const [tableData, setTableData] = useState([]);
+  const [allTables, setAllTables] = useState([]);
+  const [years, setYears] = useState([]);
+  const [selectedTable, setSelectedTable] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+  const [classNames, setClassNames] = useState({
+    class1: "כיתה 1",
+    class2: "כיתה 2",
+    class3: "כיתה 3",
+    class4: "כיתה 4",
+  });
+  const [editClassesModal, setEditClassesModal] = useState(false);
+  const [deleteTableModal, setDeleteTableModal] = useState(false);
   const { Dragger } = Upload;
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -144,6 +163,47 @@ const MoreInformation = () => {
     };
 
     fetchMoreInformationFiles();
+  }, []);
+
+  const getExamTables = async () => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-exam-tables`, {
+        withCredentials: true,
+      });
+      setAllTables(res.data);
+    } catch (error) {
+      console.error("Error fetching exam tables:", error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchGroupsAndExamTable = async () => {
+      try {
+        const [groupRes, configRes, examTableRes, yearsRes] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get`, {
+            withCredentials: true,
+          }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config/get-config`, {
+            withCredentials: true,
+          }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-exam-tables`, {
+            withCredentials: true,
+          }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
+            withCredentials: true,
+          }),
+        ]);
+        setGroups(groupRes.data);
+        setConfigYear(configRes.data.currentYear);
+        setAllTables(examTableRes.data);
+        setSelectedYear(configRes.data.currentYear);
+        const sortedYears = yearsRes.data.sort((a, b) => b.localeCompare(a));
+        setYears(sortedYears);
+      } catch (error) {
+        console.error("Error fetching groups and exam table:", error);
+      }
+    };
+    fetchGroupsAndExamTable();
   }, []);
 
   const handleEditorChange = (e) => {
@@ -655,6 +715,276 @@ const MoreInformation = () => {
     setEditDescription(e.htmlValue || "");
   };
 
+  const handleShowTableData = async (value) => {
+    setSelectedTable(value);
+    const selectedTableData = allTables.find((table) => table._id === value);
+    const { transformedData, classNames } = transformExamTableData(selectedTableData);
+    setTableData(transformedData);
+    setClassNames(classNames);
+    formEditClasses.setFieldsValue(classNames); // Initialize form with current class names
+  };
+
+  const transformExamTableData = (data) => {
+    if (!data || !data.days) {
+      return { transformedData: [], classNames: {} };
+    }
+
+    const transformedData = [];
+    data.days.forEach((day, dayIndex) => {
+      Object.keys(day.exams).forEach((examKey) => {
+        const exam = day.exams[examKey];
+        transformedData.push({
+          key: `day${dayIndex + 1}-${examKey}`,
+          time: exam.time,
+          class1: exam.projects.slice(0, 1),
+          class2: exam.projects.slice(1, 2),
+          class3: exam.projects.slice(2, 3),
+          class4: exam.projects.slice(3, 4),
+        });
+      });
+    });
+
+    const classNames = {
+      class1: data.classes.class1,
+      class2: data.classes.class2,
+      class3: data.classes.class3,
+      class4: data.classes.class4,
+    };
+
+    return { transformedData, classNames };
+  };
+
+  const handleExamTableSubmit = async (values) => {
+    const groupId = values.group === "all" ? "all" : values.group;
+    if (allTables.some((table) => table.groupId === groupId && table.year === configYear)) {
+      message.error("כבר קיימת טבלת מבחנים עבור קבוצה זו");
+      return;
+    }
+    if (groupId === "all") {
+      if (allTables.some((table) => table.groupId === undefined && table.year === configYear)) {
+        message.error("כבר קיימת טבלת מבחנים עבור כל הקבוצות");
+        return;
+      }
+    }
+    try {
+      const res = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/create-exam-table`,
+        {
+          groupId,
+          class1: values.class1 ? values.class1 : "",
+          class2: values.class2 ? values.class2 : "",
+          class3: values.class3 ? values.class3 : "",
+          class4: values.class4 ? values.class4 : "",
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      const { transformedData, classNames } = transformExamTableData(res.data);
+      setTableData(transformedData);
+      setClassNames(classNames);
+      setSelectedTable(res.data.name);
+      getExamTables();
+      message.success("טבלת מבחנים נוצרה בהצלחה");
+      examTableForm.resetFields();
+    } catch (error) {
+      console.error("Error creating exam table:", error);
+      message.error("שגיאה ביצירת טבלת מבחנים");
+    }
+  };
+
+  const handleEditClasses = async () => {
+    try {
+      const values = await formEditClasses.validateFields();
+      if (
+        values.class1 === values.class2 ||
+        values.class1 === values.class3 ||
+        values.class1 === values.class4 ||
+        values.class2 === values.class3 ||
+        values.class2 === values.class4 ||
+        values.class3 === values.class4
+      ) {
+        message.error("כיתות חייבות להיות שונות");
+        return;
+      }
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/edit-exam-table-classes/${selectedTable}`,
+        {
+          class1: values.class1,
+          class2: values.class2,
+          class3: values.class3,
+          class4: values.class4,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      message.success("כיתות עודכנו בהצלחה");
+      getExamTables();
+      setClassNames(values);
+      setEditClassesModal(false);
+    } catch (error) {
+      console.error("Error editing exam table classes:", error);
+      message.error("שגיאה בעדכון כיתות");
+    }
+  };
+
+  const handleDeleteTable = async () => {
+    try {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/project/delete-exam-table/${selectedTable}`, {
+        withCredentials: true,
+      });
+      message.success("טבלת המבחנים נמחקה בהצלחה");
+      setDeleteTableModal(false);
+      setTableData([]);
+      setClassNames({
+        class1: "כיתה 1",
+        class2: "כיתה 2",
+        class3: "כיתה 3",
+        class4: "כיתה 4",
+      });
+      getExamTables();
+      setSelectedTable("");
+    } catch (error) {
+      console.error("Error deleting exam table:", error);
+      message.error("שגיאה במחיקת טבלת מבחנים");
+    }
+  };
+
+  const examTableColumns = [
+    {
+      title: "שעה",
+      dataIndex: "time",
+      key: "time",
+      render: (text) => <strong>{text}</strong>,
+      width: "10%",
+    },
+    {
+      title: classNames.class1,
+      dataIndex: "class1",
+      key: "class1",
+      render: (projects) => (
+        <div>
+          {projects.map((project, index) => (
+            <div key={index} className="exam-table-cell">
+              <a href={`/project/${project.id}`}>{project.title}</a>
+              <p>
+                <strong>סטודנטים:</strong>
+              </p>
+              <ul>
+                {project.students.map((student, index) => (
+                  <li key={index}>{student}</li>
+                ))}
+              </ul>
+              <p>
+                <strong>שופטים:</strong>
+              </p>
+              <ul>
+                {project.judges.map((judge, index) => (
+                  <li key={index}>{judge}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ),
+      width: "22.5%",
+    },
+    {
+      title: classNames.class2,
+      dataIndex: "class2",
+      key: "class2",
+      render: (projects) => (
+        <div>
+          {projects.map((project, index) => (
+            <div key={index} className="exam-table-cell">
+              <a href={`/project/${project.id}`}>{project.title}</a>
+              <p>
+                <strong>סטודנטים:</strong>
+              </p>
+              <ul>
+                {project.students.map((student, index) => (
+                  <li key={index}>{student}</li>
+                ))}
+              </ul>
+              <p>
+                <strong>שופטים:</strong>
+              </p>
+              <ul>
+                {project.judges.map((judge, index) => (
+                  <li key={index}>{judge}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ),
+      width: "22.5%",
+    },
+    {
+      title: classNames.class3,
+      dataIndex: "class3",
+      key: "class3",
+      render: (projects) => (
+        <div>
+          {projects.map((project, index) => (
+            <div key={index} className="exam-table-cell">
+              <a href={`/project/${project.id}`}>{project.title}</a>
+              <p>
+                <strong>סטודנטים:</strong>
+              </p>
+              <ul>
+                {project.students.map((student, index) => (
+                  <li key={index}>{student}</li>
+                ))}
+              </ul>
+              <p>
+                <strong>שופטים:</strong>
+              </p>
+              <ul>
+                {project.judges.map((judge, index) => (
+                  <li key={index}>{judge}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ),
+      width: "22.5%",
+    },
+    {
+      title: classNames.class4,
+      dataIndex: "class4",
+      key: "class4",
+      render: (projects) => (
+        <div>
+          {projects.map((project, index) => (
+            <div key={index} className="exam-table-cell">
+              <a href={`/project/${project.id}`}>{project.title}</a>
+              <p>
+                <strong>סטודנטים:</strong>
+              </p>
+              <ul>
+                {project.students.map((student, index) => (
+                  <li key={index}>{student}</li>
+                ))}
+              </ul>
+              <p>
+                <strong>שופטים:</strong>
+              </p>
+              <ul>
+                {project.judges.map((judge, index) => (
+                  <li key={index}>{judge}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ),
+      width: "22.5%",
+    },
+  ];
+
   const tabs = [
     {
       key: "1",
@@ -784,6 +1114,105 @@ const MoreInformation = () => {
     },
     {
       key: "3",
+      label: "מועדי מבחנים",
+      children: (
+        <div className="exam-table-container">
+          <div className="exam-table-header">
+            {currentUser.isCoordinator && (
+              <>
+                <Form
+                  form={examTableForm}
+                  className="exam-table-form"
+                  layout="inline"
+                  onFinish={handleExamTableSubmit}
+                  initialValues={{ group: "all" }}>
+                  <Form.Item
+                    className="exam-table-form-item"
+                    label={`בחר קבוצה ליצירת טבלה (לשנת ${configYear})`}
+                    name="group"
+                    rules={[{ required: true, message: "בחר קבוצה" }]}>
+                    <Select
+                      value={selectedGroup}
+                      placeholder="בחר קבוצה"
+                      style={{ width: 200 }}
+                      onChange={(value) => setSelectedGroup(value)}>
+                      <Select.Option value="all">לכולם</Select.Option>
+                      {groups
+                        .filter((group) => group.year === configYear)
+                        .map((group) => (
+                          <Select.Option key={group._id} value={group._id}>
+                            {group.name}
+                          </Select.Option>
+                        ))}
+                    </Select>
+                  </Form.Item>
+                  <p>*לא חובה לבחור כיתות בשלב זה</p>
+                  <div className="exam-table-classes">
+                    <Form.Item name="class1" label="כיתה 1">
+                      <Input placeholder="הכנס כיתה" />
+                    </Form.Item>
+                    <Form.Item name="class2" label="כיתה 2">
+                      <Input placeholder="הכנס כיתה" />
+                    </Form.Item>
+                    <Form.Item name="class3" label="כיתה 3">
+                      <Input placeholder="הכנס כיתה" />
+                    </Form.Item>
+                    <Form.Item name="class4" label="כיתה 4">
+                      <Input placeholder="הכנס כיתה" />
+                    </Form.Item>
+                  </div>
+                  <Form.Item>
+                    <Button type="primary" htmlType="submit">
+                      צור טבלה
+                    </Button>
+                  </Form.Item>
+                </Form>
+                <Divider />
+              </>
+            )}
+            <div className="show-exam-table">
+              <Select
+                value={selectedYear}
+                style={{ width: 200 }}
+                placeholder="בחר שנה להצגה"
+                onChange={(value) => setSelectedYear(value)}>
+                {years.map((year) => (
+                  <Select.Option key={year} value={year}>
+                    {year}
+                  </Select.Option>
+                ))}
+              </Select>
+              <Select
+                value={selectedTable}
+                style={{ width: 200 }}
+                placeholder="בחר טבלה להצגה"
+                onChange={(value) => handleShowTableData(value)}>
+                {allTables
+                  .filter((table) => table.year === selectedYear)
+                  .map((table) => (
+                    <Select.Option key={table._id} value={table._id}>
+                      {table.name}
+                    </Select.Option>
+                  ))}
+              </Select>
+              {currentUser.isCoordinator && selectedTable && (
+                <div className="exam-table-buttons">
+                  <Button type="primary" onClick={() => setEditClassesModal(true)}>
+                    ערוך כיתות
+                  </Button>
+                  <Button type="primary" danger onClick={() => setDeleteTableModal(true)}>
+                    מחק טבלה
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+          <Table dataSource={tableData} columns={examTableColumns} pagination={false} bordered />
+        </div>
+      ),
+    },
+    {
+      key: "4",
       label: "קבצים נוספים",
       children: (
         <div>
@@ -874,6 +1303,42 @@ const MoreInformation = () => {
             style={{ height: "320px", wordBreak: "break-word" }}
           />
         </div>
+      </Modal>
+
+      <Modal
+        className="edit-modal"
+        title="עריכת כיתות"
+        open={editClassesModal}
+        onOk={handleEditClasses}
+        onCancel={() => setEditClassesModal(false)}
+        okText="שמירה"
+        cancelText="ביטול">
+        <Form layout="vertical" form={formEditClasses}>
+          <Form.Item name="class1" label="כיתה 1" rules={[{ required: true, message: "הכנס כיתה" }]}>
+            <Input placeholder="הכנס כיתה" />
+          </Form.Item>
+          <Form.Item name="class2" label="כיתה 2" rules={[{ required: true, message: "הכנס כיתה" }]}>
+            <Input placeholder="הכנס כיתה" />
+          </Form.Item>
+          <Form.Item name="class3" label="כיתה 3" rules={[{ required: true, message: "הכנס כיתה" }]}>
+            <Input placeholder="הכנס כיתה" />
+          </Form.Item>
+          <Form.Item name="class4" label="כיתה 4" rules={[{ required: true, message: "הכנס כיתה" }]}>
+            <Input placeholder="הכנס כיתה" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        className="delete-modal"
+        title="מחיקת טבלה"
+        open={deleteTableModal}
+        onOk={handleDeleteTable}
+        onCancel={() => setDeleteTableModal(false)}
+        okText="מחק"
+        cancelText="ביטול"
+        okButtonProps={{ danger: true }}>
+        <p>האם אתה בטוח שברצונך למחוק את הטבלה?</p>
       </Modal>
     </div>
   );

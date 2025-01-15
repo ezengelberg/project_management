@@ -5,8 +5,13 @@ import Submission from "../models/submission.js";
 import Grade from "../models/grades.js";
 import Upload from "../models/uploads.js";
 import Config from "../models/config.js";
+import Group from "../models/groups.js";
 import fs from "fs";
 import path from "path";
+import OpenAI from "openai";
+import ExamTable from "../models/examTable.js";
+
+const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
 export const getProjects = async (req, res) => {
   try {
@@ -779,5 +784,191 @@ export const deleteAllProjects = async (req, res) => {
   } catch (error) {
     console.error("Error deleting projects:", error);
     res.status(500).json({ message: "Failed to delete projects" });
+  }
+};
+
+export const createExamTable = async (req, res) => {
+  try {
+    let groups = [];
+    let projects = [];
+    const config = await Config.findOne();
+    if (req.body.groupId === "all") {
+      projects = await Project.find({ year: config.currentYear, isTaken: true, isTerminated: false });
+    } else {
+      groups = await Group.find({ _id: { $in: req.body.groupId } });
+      const projectIds = groups[0].projects.map((project) => project._id);
+      projects = await Project.find({ _id: { $in: projectIds }, isTaken: true, isTerminated: false });
+    }
+    if (projects.length === 0) {
+      return res.status(404).json({ message: "No projects found" });
+    }
+
+    const projectsWithJudges = await Promise.all(
+      projects.map(async (project) => {
+        for (const student of project.students) {
+          const user = await User.findById(student.student);
+          if (user) {
+            student.student = user;
+          }
+        }
+        const submission = await Submission.findOne({ project: project._id, name: "מבחן סוף" }).populate("grades");
+        let judges = [];
+        if (submission) {
+          judges = submission.grades.map((grade) => grade.judge);
+          for (const judge of judges) {
+            const user = await User.findById(judge);
+            if (user) {
+              judge.name = user.name;
+            }
+          }
+        }
+        return { ...project.toObject(), judges };
+      })
+    );
+
+    const projectDetails = projectsWithJudges.map((project) => {
+      return {
+        id: project._id,
+        title: project.title,
+        students: project.students.map((student) => student.student.name),
+        judges: project.judges.map((judge) => judge.name),
+      };
+    });
+
+    let prompt = `You are a project coordinator arranging a timetable for final exams. Each project's students will present their project to a panel of judges, who will grade the project and presentation.\n
+    Here are the scheduling rules:\n
+    1. Exam Duration: Each exam lasts 40 minutes, including breaks.\n
+    2. Parallel Exams: A maximum of 4 exams can run simultaneously.\n
+    3. Exam Timing:\n
+    - First exam starts at 10:00 and ends at 10:40.\n
+    - Second exam starts at 10:40 and ends at 11:20.\n
+    - Third exam starts at 11:20 and ends at 12:00.\n
+    - Fourth exam starts at 12:00 and ends at 12:40.\n
+    - Fifth exam starts at 12:40 and ends at 13:20.\n
+    - A break is scheduled between 13:20 and 14:00.\n
+    - Sixth exam starts at 14:00 and ends at 14:40.\n
+    - Seventh exam starts at 14:40 and ends at 15:20.\n
+    - Eighth exam starts at 15:20 and ends at 16:00.\n
+    - The last exam starts at 16:00.\n
+    Judges' Availability:\n
+    1. Each judge can be in only one exam at a time.\n
+    2. Aim to minimize the number of days a judge needs to attend.\n\n
+    Conflict Resolution:\n
+    - If a judge is assigned to two exams that overlap, the exam with the higher index should be scheduled first.\n
+    - If the schedule cannot be resolved into a single day, the exam with the higher index should be scheduled on the second day.\n\n
+    Below are the project details and their assigned judges:\n\n
+    ${JSON.stringify(projectDetails, null, 2)}
+    
+    The output should be a JSON object like this:\n
+    {
+    "days": [
+      {
+        "exams": {
+          "exam1": {
+            "time": "10:00",
+            "projects": [
+              {
+                "id": "project_id1",
+                "title": "project_title1",
+                "students": ["student_id1", "student_id2", "student_id3"],
+                "judges": ["judge_id1", "judge_id2", "judge_id3"]
+              },
+              // ...more projects
+            ]
+          },
+          // ...more exams
+        }
+      },
+      // ...more days
+    ]
+    }`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "Generate a JSON object for the exam schedule, based only on the input data." },
+        { role: "user", content: prompt },
+      ],
+    });
+
+    const response = completion.choices[0].message.content.trim();
+    let examTable;
+    try {
+      // Attempt to parse the response as JSON
+      examTable = JSON.parse(response);
+    } catch (error) {
+      // Fallback: Try to extract JSON manually if wrapped in extra text
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        examTable = JSON.parse(jsonMatch[0]); // Parse the matched JSON string
+      } else {
+        throw new Error("Failed to extract JSON from OpenAI response");
+      }
+    }
+
+    const newExamTable = new ExamTable({
+      groupId: req.body.groupId === "all" ? undefined : req.body.groupId,
+      name: groups.length > 0 ? groups[0].name : "כללי",
+      year: config.currentYear,
+      classes: {
+        class1: req.body.class1 !== "" ? req.body.class1 : "כיתה 1",
+        class2: req.body.class2 !== "" ? req.body.class2 : "כיתה 2",
+        class3: req.body.class3 !== "" ? req.body.class3 : "כיתה 3",
+        class4: req.body.class4 !== "" ? req.body.class4 : "כיתה 4",
+      },
+      days: examTable.days,
+    });
+
+    await newExamTable.save();
+
+    res.status(200).json(newExamTable);
+  } catch (error) {
+    console.error("Error creating exam table:", error);
+    res.status(500).json({ message: "Failed to create exam table" });
+  }
+};
+
+export const getExamTables = async (req, res) => {
+  try {
+    const examTables = await ExamTable.find();
+    res.status(200).json(examTables);
+  } catch (error) {
+    console.error("Error fetching exam tables:", error);
+    res.status(500).json({ message: "Failed to fetch exam tables" });
+  }
+};
+
+export const editExamTableClasses = async (req, res) => {
+  try {
+    const examTable = await ExamTable.findById(req.params.id);
+    if (!examTable) {
+      return res.status(404).json({ message: "Exam table not found" });
+    }
+
+    examTable.classes.class1 = req.body.class1 !== "" && req.body.class1;
+    examTable.classes.class2 = req.body.class2 !== "" && req.body.class2;
+    examTable.classes.class3 = req.body.class3 !== "" && req.body.class3;
+    examTable.classes.class4 = req.body.class4 !== "" && req.body.class4;
+
+    await examTable.save();
+    res.status(200).json(examTable);
+  } catch (error) {
+    console.error("Error editing exam table classes:", error);
+    res.status(500).json({ message: "Failed to edit exam table classes" });
+  }
+};
+
+export const deleteExamTable = async (req, res) => {
+  try {
+    const examTable = await ExamTable.findById(req.params.id);
+    if (!examTable) {
+      return res.status(404).json({ message: "Exam table not found" });
+    }
+
+    await examTable.deleteOne();
+    res.status(200).json({ message: "Exam table deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting exam table:", error);
+    res.status(500).json({ message: "Failed to delete exam table" });
   }
 };

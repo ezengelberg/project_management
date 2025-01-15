@@ -19,7 +19,7 @@ export const createSubmission = async (req, res) => {
     let projects = [];
     if (groups.length !== 0) {
       const projectsIds = groups.map((group) => group.projects).flat();
-      projects = await Project.find({ _id: { $in: projectsIds } });
+      projects = await Project.find({ _id: { $in: projectsIds }, isTerminated: false, isTaken: true });
     } else {
       projects = await Project.find({
         isTerminated: false,
@@ -663,7 +663,7 @@ export const deleteActiveSubmissions = async (req, res) => {
     let activeProjects = [];
     if (groups.length !== 0) {
       const projectsIds = groups.map((group) => group.projects).flat();
-      activeProjects = await Project.find({ _id: { $in: projectsIds } });
+      activeProjects = await Project.find({ _id: { $in: projectsIds }, isTerminated: false, isTaken: true });
     } else {
       activeProjects = await Project.find({
         isTerminated: false,
@@ -712,7 +712,7 @@ export const updateSubmissionInformation = async (req, res) => {
     let activeProjects = [];
     if (groups.length !== 0) {
       const projectsIds = groups.map((group) => group.projects).flat();
-      activeProjects = await Project.find({ _id: { $in: projectsIds } });
+      activeProjects = await Project.find({ _id: { $in: projectsIds }, isTerminated: false, isTaken: true });
     } else {
       activeProjects = await Project.find({
         isTerminated: false,
