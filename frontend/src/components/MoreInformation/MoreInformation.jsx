@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./MoreInformation.scss";
-import axios, { all } from "axios";
+import axios from "axios";
 import {
   Form,
   Input,
@@ -17,6 +17,7 @@ import {
   Upload,
   Modal,
   Divider,
+  Pagination,
 } from "antd";
 import locale from "antd/es/date-picker/locale/he_IL";
 import { EditOutlined, SaveOutlined, StopOutlined, DeleteOutlined, InboxOutlined } from "@ant-design/icons";
@@ -82,6 +83,9 @@ const MoreInformation = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const handleResize = () => {
@@ -718,23 +722,24 @@ const MoreInformation = () => {
   const handleShowTableData = async (value) => {
     setSelectedTable(value);
     const selectedTableData = allTables.find((table) => table._id === value);
-    const { transformedData, classNames } = transformExamTableData(selectedTableData);
+    const { transformedData, classNames, totalPages } = transformExamTableData(selectedTableData);
     setTableData(transformedData);
     setClassNames(classNames);
+    setTotalPages(totalPages);
+    setCurrentPage(1); // Reset to first page
     formEditClasses.setFieldsValue(classNames); // Initialize form with current class names
   };
 
   const transformExamTableData = (data) => {
     if (!data || !data.days) {
-      return { transformedData: [], classNames: {} };
+      return { transformedData: [], classNames: {}, totalPages: 1 };
     }
 
     const transformedData = [];
     data.days.forEach((day, dayIndex) => {
-      Object.keys(day.exams).forEach((examKey) => {
-        const exam = day.exams[examKey];
+      day.exams.forEach((exam, examIndex) => {
         transformedData.push({
-          key: `day${dayIndex + 1}-${examKey}`,
+          key: `day${dayIndex + 1}-exam${examIndex + 1}`,
           time: exam.time,
           class1: exam.projects.slice(0, 1),
           class2: exam.projects.slice(1, 2),
@@ -751,11 +756,12 @@ const MoreInformation = () => {
       class4: data.classes.class4,
     };
 
-    return { transformedData, classNames };
+    return { transformedData, classNames, totalPages: data.days.length };
   };
 
   const handleExamTableSubmit = async (values) => {
     const groupId = values.group === "all" ? "all" : values.group;
+    const endpoint = values.creationMethod === "ai" ? "create-exam-table" : "create-exam-table-manuel";
     if (allTables.some((table) => table.groupId === groupId && table.year === configYear)) {
       message.error("כבר קיימת טבלת מבחנים עבור קבוצה זו");
       return;
@@ -767,8 +773,9 @@ const MoreInformation = () => {
       }
     }
     try {
+      setLoading(true);
       const res = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/project/create-exam-table`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/${endpoint}`,
         {
           groupId,
           class1: values.class1 ? values.class1 : "",
@@ -786,10 +793,12 @@ const MoreInformation = () => {
       setSelectedTable(res.data.name);
       getExamTables();
       message.success("טבלת מבחנים נוצרה בהצלחה");
+      setLoading(false);
       examTableForm.resetFields();
     } catch (error) {
       console.error("Error creating exam table:", error);
       message.error("שגיאה ביצירת טבלת מבחנים");
+      setLoading(false);
     }
   };
 
@@ -851,6 +860,15 @@ const MoreInformation = () => {
     }
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const getCurrentPageData = () => {
+    const startIndex = (currentPage - 1) * 9;
+    return tableData.slice(startIndex, startIndex + 9);
+  };
+
   const examTableColumns = [
     {
       title: "שעה",
@@ -873,7 +891,7 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.students.map((student, index) => (
-                  <li key={index}>{student}</li>
+                  <li key={index}>{student.name}</li>
                 ))}
               </ul>
               <p>
@@ -881,7 +899,7 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.judges.map((judge, index) => (
-                  <li key={index}>{judge}</li>
+                  <li key={index}>{judge.name}</li>
                 ))}
               </ul>
             </div>
@@ -904,7 +922,7 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.students.map((student, index) => (
-                  <li key={index}>{student}</li>
+                  <li key={index}>{student.name}</li>
                 ))}
               </ul>
               <p>
@@ -912,7 +930,7 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.judges.map((judge, index) => (
-                  <li key={index}>{judge}</li>
+                  <li key={index}>{judge.name}</li>
                 ))}
               </ul>
             </div>
@@ -935,7 +953,7 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.students.map((student, index) => (
-                  <li key={index}>{student}</li>
+                  <li key={index}>{student.name}</li>
                 ))}
               </ul>
               <p>
@@ -943,7 +961,7 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.judges.map((judge, index) => (
-                  <li key={index}>{judge}</li>
+                  <li key={index}>{judge.name}</li>
                 ))}
               </ul>
             </div>
@@ -966,7 +984,7 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.students.map((student, index) => (
-                  <li key={index}>{student}</li>
+                  <li key={index}>{student.name}</li>
                 ))}
               </ul>
               <p>
@@ -974,7 +992,7 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.judges.map((judge, index) => (
-                  <li key={index}>{judge}</li>
+                  <li key={index}>{judge.name}</li>
                 ))}
               </ul>
             </div>
@@ -1146,6 +1164,16 @@ const MoreInformation = () => {
                         ))}
                     </Select>
                   </Form.Item>
+                  <Form.Item
+                    className="exam-table-form-item"
+                    label="שיטת יצירת טבלה"
+                    name="creationMethod"
+                    rules={[{ required: true, message: "בחר שיטה" }]}>
+                    <Select placeholder="בחר שיטה" style={{ width: 200 }}>
+                      <Select.Option value="ai">AI</Select.Option>
+                      <Select.Option value="manual">ידני</Select.Option>
+                    </Select>
+                  </Form.Item>
                   <p>*לא חובה לבחור כיתות בשלב זה</p>
                   <div className="exam-table-classes">
                     <Form.Item name="class1" label="כיתה 1">
@@ -1162,9 +1190,10 @@ const MoreInformation = () => {
                     </Form.Item>
                   </div>
                   <Form.Item>
-                    <Button type="primary" htmlType="submit">
+                    <Button type="primary" htmlType="submit" loading={loading}>
                       צור טבלה
                     </Button>
+                    {loading && <p>זה יכול לקחת כמה דקות...</p>}
                   </Form.Item>
                 </Form>
                 <Divider />
@@ -1207,7 +1236,14 @@ const MoreInformation = () => {
               )}
             </div>
           </div>
-          <Table dataSource={tableData} columns={examTableColumns} pagination={false} bordered />
+          <Table dataSource={getCurrentPageData()} columns={examTableColumns} pagination={false} bordered />
+          <Pagination
+            current={currentPage}
+            total={totalPages * 9}
+            pageSize={9}
+            onChange={handlePageChange}
+            style={{ marginTop: 16, textAlign: "center" }}
+          />
         </div>
       ),
     },

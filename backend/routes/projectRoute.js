@@ -29,6 +29,7 @@ import {
   getExamTables,
   editExamTableClasses,
   deleteExamTable,
+  createExamTableManuel,
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../middleware/auth.js";
 
@@ -63,5 +64,6 @@ router.post("/create-exam-table", ensureAuthenticated, isCoordinator, createExam
 router.get("/get-exam-tables", ensureAuthenticated, isCoordinator, getExamTables);
 router.put("/edit-exam-table-classes/:id", ensureAuthenticated, isCoordinator, editExamTableClasses);
 router.delete("/delete-exam-table/:id", ensureAuthenticated, isCoordinator, deleteExamTable);
+router.post("/create-exam-table-manuel", ensureAuthenticated, isCoordinator, createExamTableManuel);
 
 export default router;

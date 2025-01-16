@@ -10,6 +10,7 @@ import fs from "fs";
 import path from "path";
 import OpenAI from "openai";
 import ExamTable from "../models/examTable.js";
+import mongoose from "mongoose";
 
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
@@ -787,7 +788,7 @@ export const deleteAllProjects = async (req, res) => {
   }
 };
 
-export const createExamTable = async (req, res) => {
+export const createExamTableManuel = async (req, res) => {
   try {
     let groups = [];
     let projects = [];
@@ -830,81 +831,100 @@ export const createExamTable = async (req, res) => {
       return {
         id: project._id,
         title: project.title,
-        students: project.students.map((student) => student.student.name),
-        judges: project.judges.map((judge) => judge.name),
+        students: project.students.map((student) => ({ id: student.student._id, name: student.student.name })),
+        judges: project.judges.map((judge) => ({ id: judge._id, name: judge.name })),
       };
     });
 
-    let prompt = `You are a project coordinator arranging a timetable for final exams. Each project's students will present their project to a panel of judges, who will grade the project and presentation.\n
-    Here are the scheduling rules:\n
-    1. Exam Duration: Each exam lasts 40 minutes, including breaks.\n
-    2. Parallel Exams: A maximum of 4 exams can run simultaneously.\n
-    3. Exam Timing:\n
-    - First exam starts at 10:00 and ends at 10:40.\n
-    - Second exam starts at 10:40 and ends at 11:20.\n
-    - Third exam starts at 11:20 and ends at 12:00.\n
-    - Fourth exam starts at 12:00 and ends at 12:40.\n
-    - Fifth exam starts at 12:40 and ends at 13:20.\n
-    - A break is scheduled between 13:20 and 14:00.\n
-    - Sixth exam starts at 14:00 and ends at 14:40.\n
-    - Seventh exam starts at 14:40 and ends at 15:20.\n
-    - Eighth exam starts at 15:20 and ends at 16:00.\n
-    - The last exam starts at 16:00.\n
-    Judges' Availability:\n
-    1. Each judge can be in only one exam at a time.\n
-    2. Aim to minimize the number of days a judge needs to attend.\n\n
-    Conflict Resolution:\n
-    - If a judge is assigned to two exams that overlap, the exam with the higher index should be scheduled first.\n
-    - If the schedule cannot be resolved into a single day, the exam with the higher index should be scheduled on the second day.\n\n
-    Below are the project details and their assigned judges:\n\n
-    ${JSON.stringify(projectDetails, null, 2)}
-    
-    The output should be a JSON object like this:\n
-    {
-    "days": [
-      {
-        "exams": {
-          "exam1": {
-            "time": "10:00",
-            "projects": [
-              {
-                "id": "project_id1",
-                "title": "project_title1",
-                "students": ["student_id1", "student_id2", "student_id3"],
-                "judges": ["judge_id1", "judge_id2", "judge_id3"]
-              },
-              // ...more projects
-            ]
-          },
-          // ...more exams
-        }
-      },
-      // ...more days
-    ]
-    }`;
+    // Step 1: Count the number of appearances for each judge
+    const judgeProjectCount = {};
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: "Generate a JSON object for the exam schedule, based only on the input data." },
-        { role: "user", content: prompt },
-      ],
+    projectDetails.forEach((project) => {
+      project.judges.forEach((judge) => {
+        const judgeId = judge.id;
+        if (judgeProjectCount[judgeId]) {
+          judgeProjectCount[judgeId]++;
+        } else {
+          judgeProjectCount[judgeId] = 1;
+        }
+      });
     });
 
-    const response = completion.choices[0].message.content.trim();
-    let examTable;
-    try {
-      // Attempt to parse the response as JSON
-      examTable = JSON.parse(response);
-    } catch (error) {
-      // Fallback: Try to extract JSON manually if wrapped in extra text
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        examTable = JSON.parse(jsonMatch[0]); // Parse the matched JSON string
-      } else {
-        throw new Error("Failed to extract JSON from OpenAI response");
+    // Step 2: Sort judges by the number of appearances
+    const sortedJudges = Object.entries(judgeProjectCount).sort((a, b) => b[1] - a[1]);
+
+    const examSchedule = [];
+    let currentDay = new Date();
+
+    for (const judge of sortedJudges) {
+      const judgeId = judge[0];
+      const projectsWithTopJudge = projectDetails.filter((project) => project.judges.some((j) => j.id.equals(judgeId)));
+
+      for (const project of projectsWithTopJudge) {
+        // Check if the project already exists in the examSchedule
+        const projectExists = examSchedule.some((day) =>
+          day.exams.some((exam) => exam.projects.some((p) => p.id.equals(project.id)))
+        );
+
+        if (projectExists) {
+          continue;
+        }
+
+        // Find an empty time slot for the project
+        let scheduled = false;
+        for (const day of examSchedule) {
+          for (const exam of day.exams) {
+            const hasConflict = exam.projects.some((p) =>
+              p.judges.some((j) => project.judges.some((pj) => pj.id.equals(j.id)))
+            );
+            if (exam.projects.length < 4 && !hasConflict) {
+              exam.projects.push(project);
+              scheduled = true;
+              break;
+            }
+          }
+          if (scheduled) {
+            break;
+          }
+        }
+
+        // If no empty slot found, create a new day or time slot
+        if (!scheduled) {
+          if (examSchedule.length === 0 || examSchedule[examSchedule.length - 1].exams.length >= 9) {
+            currentDay.setDate(currentDay.getDate() + 1);
+            examSchedule.push({
+              date: currentDay.toISOString(),
+              exams: [],
+            });
+          }
+
+          const lastDay = examSchedule[examSchedule.length - 1];
+          const timeSlots = ["10:00", "10:40", "11:20", "12:00", "12:40", "14:00", "14:40", "15:20", "16:00"];
+          const nextTimeSlot = timeSlots[lastDay.exams.length];
+
+          lastDay.exams.push({
+            time: nextTimeSlot,
+            projects: [project],
+          });
+        }
       }
     }
+
+    // Ensure judges and students are arrays of objects
+    examSchedule.forEach((day) => {
+      day.exams.forEach((exam) => {
+        exam.projects.forEach((project) => {
+          project.judges = project.judges.map((judge) => ({
+            id: judge.id.toString(),
+            name: judge.name,
+          }));
+          project.students = project.students.map((student) => ({
+            id: student.id.toString(),
+            name: student.name,
+          }));
+        });
+      });
+    });
 
     const newExamTable = new ExamTable({
       groupId: req.body.groupId === "all" ? undefined : req.body.groupId,
@@ -916,7 +936,7 @@ export const createExamTable = async (req, res) => {
         class3: req.body.class3 !== "" ? req.body.class3 : "כיתה 3",
         class4: req.body.class4 !== "" ? req.body.class4 : "כיתה 4",
       },
-      days: examTable.days,
+      days: examSchedule,
     });
 
     await newExamTable.save();
@@ -970,5 +990,206 @@ export const deleteExamTable = async (req, res) => {
   } catch (error) {
     console.error("Error deleting exam table:", error);
     res.status(500).json({ message: "Failed to delete exam table" });
+  }
+};
+
+export const createExamTable = async (req, res) => {
+  try {
+    let groups = [];
+    let projects = [];
+    const config = await Config.findOne();
+    if (req.body.groupId === "all") {
+      projects = await Project.find({ year: config.currentYear, isTaken: true, isTerminated: false });
+    } else {
+      groups = await Group.find({ _id: { $in: req.body.groupId } });
+      const projectIds = groups[0].projects.map((project) => project._id);
+      projects = await Project.find({ _id: { $in: projectIds }, isTaken: true, isTerminated: false });
+    }
+    if (projects.length === 0) {
+      return res.status(404).json({ message: "No projects found" });
+    }
+
+    const projectsWithJudges = await Promise.all(
+      projects.map(async (project) => {
+        for (const student of project.students) {
+          const user = await User.findById(student.student);
+          if (user) {
+            student.student = user;
+          }
+        }
+        const submission = await Submission.findOne({ project: project._id, name: "מבחן סוף" }).populate("grades");
+        let judges = [];
+        if (submission) {
+          judges = submission.grades.map((grade) => grade.judge);
+          for (const judge of judges) {
+            const user = await User.findById(judge);
+            if (user) {
+              judge.name = user.name;
+            }
+          }
+        }
+        return { ...project.toObject(), judges };
+      })
+    );
+
+    const projectDetails = projectsWithJudges.map((project) => {
+      return {
+        id: project._id,
+        title: project.title,
+        students: project.students.map((student) => ({ id: student.student._id, name: student.student.name })),
+        judges: project.judges.map((judge) => ({ id: judge._id, name: judge.name })),
+      };
+    });
+
+    // Shuffle function to randomize the order of projects
+    const shuffleArray = (array) => {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    };
+
+    // Shuffle the projectDetails array
+    shuffleArray(projectDetails);
+
+    let prompt = `
+    You are a project coordinator arranging a timetable for final exams. Each project's students will present their project to a panel of judges, who will grade the project and presentation.
+    Let's go over the steps for you to make the best schedule for the exams.
+    **Introduction:**
+    - There are 9 time slots for exams, each lasting 40 minutes, including breaks.
+    - **Exam Timing:**
+      - First exam starts at 10:00 and ends at 10:40.
+      - Second exam starts at 10:40 and ends at 11:20.
+      - Third exam starts at 11:20 and ends at 12:00.
+      - Fourth exam starts at 12:00 and ends at 12:40.
+      - Fifth exam starts at 12:40 and ends at 13:20.
+      - A break is scheduled between 13:20 and 14:00.
+      - Sixth exam starts at 14:00 and ends at 14:40.
+      - Seventh exam starts at 14:40 and ends at 15:20.
+      - Eighth exam starts at 15:20 and ends at 16:00.
+      - The last exam of the day starts at 16:00.
+    - In each time slot, you can schedule up to 4 exams.
+    **Step 1:**
+    - In every project you have judges, I want you to first make a map of how many times each judge appears in the project details provided.
+    **Step 2:**
+    - When you find the numbers, I want you to take the judge with the most projects and schedule them as one of the 4 projects in each time slot, until that judge is scheduled for all their projects.
+    - Keep in mind that there can be more than one judge in each project, so you will need to update the numbering for each judge in the project.
+    **Step 3:**
+    - Continue this process with the next judge with the most projects, until all judges are scheduled.
+    - If there are conflicts with judges, you can move the project to the next time slot.
+    - If all time slots are full, you can move the project to the next day.
+    **Step 4:**
+    - Run over the schedule and make sure that there are no conflicts with judges.
+    - If there are, you can move the project to the next time slot or day.
+
+    Below are the project details and their assigned judges.
+    ${JSON.stringify(projectDetails, null, 2)}
+
+    The output should be a JSON object like this:
+    {
+    "days": [
+      {
+        "date": "2025-01-16T09:25:22.418Z",
+        "exams": [
+          {
+            "time": "10:00",
+            "projects": [
+              {
+                "id": "project_id1",
+                "title": "project_title1",
+                "students": ["student1", "student2", ...],
+                "judges": ["judge1", "judge2", "judge3"]
+              },
+              {
+                "id": "project2",
+                "title": "project_title2",
+                "students": ["student3", "student4", ...],
+                "judges": ["judge4", "judge5", "judge6"]
+              },
+              {
+                "id": "project3",
+                "title": "project_title3",
+                "students": ["student5", "student6", ...],
+                "judges": ["judge7", "judge8", "judge9"]
+              },
+              {
+                "id": "project4",
+                "title": "project_title4",
+                "students": ["student7", "student8", ...],
+                "judges": ["judge10", "judge11", "judge12"]
+              },
+            ]
+          }
+          // ...more exams
+        ]
+      }'
+      // ...more days
+    ]
+    }
+
+    **Notes:**
+    - Keep the structure of the students and judges.
+    `;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "Generate a JSON object for the exam schedule, based only on the input data." },
+        { role: "user", content: prompt },
+      ],
+    });
+
+    const response = completion.choices[0].message.content.trim();
+    let examTable;
+    try {
+      // Attempt to parse the response as JSON
+      examTable = JSON.parse(response);
+    } catch (error) {
+      // Fallback: Try to extract JSON manually if wrapped in extra text
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        examTable = JSON.parse(jsonMatch[0]); // Parse the matched JSON string
+      } else {
+        throw new Error("Failed to extract JSON from OpenAI response");
+      }
+    }
+
+    // Function to recursively cast project IDs to ObjectId
+    const castProjectIdsToObjectId = (obj) => {
+      if (Array.isArray(obj)) {
+        obj.forEach(castProjectIdsToObjectId);
+      } else if (obj && typeof obj === "object") {
+        for (const key in obj) {
+          if (key === "id" && typeof obj[key] === "string") {
+            obj[key] = new mongoose.Types.ObjectId(obj[key]);
+          } else {
+            castProjectIdsToObjectId(obj[key]);
+          }
+        }
+      }
+    };
+
+    // Cast all project IDs to ObjectId
+    castProjectIdsToObjectId(examTable);
+
+    const newExamTable = new ExamTable({
+      groupId: req.body.groupId === "all" ? undefined : req.body.groupId,
+      name: groups.length > 0 ? groups[0].name : "כללי",
+      year: config.currentYear,
+      classes: {
+        class1: req.body.class1 !== "" ? req.body.class1 : "כיתה 1",
+        class2: req.body.class2 !== "" ? req.body.class2 : "כיתה 2",
+        class3: req.body.class3 !== "" ? req.body.class3 : "כיתה 3",
+        class4: req.body.class4 !== "" ? req.body.class4 : "כיתה 4",
+      },
+      days: examTable.days,
+    });
+
+    await newExamTable.save();
+
+    res.status(200).json(newExamTable);
+  } catch (error) {
+    console.error("Error creating exam table:", error);
+    res.status(500).json({ message: "Failed to create exam table" });
   }
 };
