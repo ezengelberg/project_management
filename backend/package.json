@@ -21,6 +21,7 @@
     "jewish-date": "^2.0.17",
     "mongoose": "^8.7.1",
     "multer": "^1.4.5-lts.1",
+    "openai": "^4.78.1",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0"
   },
