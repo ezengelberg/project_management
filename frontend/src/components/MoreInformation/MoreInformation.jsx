@@ -726,8 +726,8 @@ const MoreInformation = () => {
     setTableData(transformedData);
     setClassNames(classNames);
     setTotalPages(totalPages);
-    setCurrentPage(1); // Reset to first page
-    formEditClasses.setFieldsValue(classNames); // Initialize form with current class names
+    setCurrentPage(1);
+    formEditClasses.setFieldsValue(classNames);
   };
 
   const transformExamTableData = (data) => {
@@ -787,11 +787,14 @@ const MoreInformation = () => {
           withCredentials: true,
         }
       );
-      const { transformedData, classNames } = transformExamTableData(res.data);
+      await getExamTables();
+      setSelectedTable(res.data._id);
+      const { transformedData, classNames, totalPages } = transformExamTableData(res.data);
       setTableData(transformedData);
       setClassNames(classNames);
-      setSelectedTable(res.data.name);
-      getExamTables();
+      setTotalPages(totalPages);
+      setCurrentPage(1);
+      formEditClasses.setFieldsValue(classNames);
       message.success("טבלת מבחנים נוצרה בהצלחה");
       setLoading(false);
       examTableForm.resetFields();
@@ -891,7 +894,13 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.students.map((student, index) => (
-                  <li key={index}>{student.name}</li>
+                  <li key={index}>
+                    {currentUser._id === student.id ? (
+                      <mark style={{ backgroundColor: "#ffc069" }}>{student.name}</mark>
+                    ) : (
+                      student.name
+                    )}
+                  </li>
                 ))}
               </ul>
               <p>
@@ -899,7 +908,13 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.judges.map((judge, index) => (
-                  <li key={index}>{judge.name}</li>
+                  <li key={index}>
+                    {currentUser._id === judge.id ? (
+                      <mark style={{ backgroundColor: "#ffc069" }}>{judge.name}</mark>
+                    ) : (
+                      judge.name
+                    )}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -922,7 +937,13 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.students.map((student, index) => (
-                  <li key={index}>{student.name}</li>
+                  <li key={index}>
+                    {currentUser._id === student.id ? (
+                      <mark style={{ backgroundColor: "#ffc069" }}>{student.name}</mark>
+                    ) : (
+                      student.name
+                    )}
+                  </li>
                 ))}
               </ul>
               <p>
@@ -930,7 +951,13 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.judges.map((judge, index) => (
-                  <li key={index}>{judge.name}</li>
+                  <li key={index}>
+                    {currentUser._id === judge.id ? (
+                      <mark style={{ backgroundColor: "#ffc069" }}>{judge.name}</mark>
+                    ) : (
+                      judge.name
+                    )}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -953,7 +980,13 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.students.map((student, index) => (
-                  <li key={index}>{student.name}</li>
+                  <li key={index}>
+                    {currentUser._id === student.id ? (
+                      <mark style={{ backgroundColor: "#ffc069" }}>{student.name}</mark>
+                    ) : (
+                      student.name
+                    )}
+                  </li>
                 ))}
               </ul>
               <p>
@@ -961,7 +994,13 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.judges.map((judge, index) => (
-                  <li key={index}>{judge.name}</li>
+                  <li key={index}>
+                    {currentUser._id === judge.id ? (
+                      <mark style={{ backgroundColor: "#ffc069" }}>{judge.name}</mark>
+                    ) : (
+                      judge.name
+                    )}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -984,7 +1023,13 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.students.map((student, index) => (
-                  <li key={index}>{student.name}</li>
+                  <li key={index}>
+                    {currentUser._id === student.id ? (
+                      <mark style={{ backgroundColor: "#ffc069" }}>{student.name}</mark>
+                    ) : (
+                      student.name
+                    )}
+                  </li>
                 ))}
               </ul>
               <p>
@@ -992,7 +1037,13 @@ const MoreInformation = () => {
               </p>
               <ul>
                 {project.judges.map((judge, index) => (
-                  <li key={index}>{judge.name}</li>
+                  <li key={index}>
+                    {currentUser._id === judge.id ? (
+                      <mark style={{ backgroundColor: "#ffc069" }}>{judge.name}</mark>
+                    ) : (
+                      judge.name
+                    )}
+                  </li>
                 ))}
               </ul>
             </div>
