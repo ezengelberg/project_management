@@ -194,7 +194,7 @@ const CreateProject = () => {
       ...values,
       description: processedDescription,
       type: values.type === "אחר" ? values.customType : values.type,
-      advisors: values.advisors?.map((advisorId) => advisorUsers.find((user) => user._id === advisorId)) || [],
+      advisors: values.advisors ? [values.advisors] : [],
       students:
         values.students?.map((studentId) => studentsNoProject.find((student) => student.id === studentId)) || [],
     };
@@ -384,7 +384,7 @@ const CreateProject = () => {
                 required: false,
               },
             ]}>
-            <Select mode="multiple" placeholder="בחר מנחים">
+            <Select placeholder="בחר מנחה">
               {advisorUsers.map((user) => (
                 <Option key={user._id} value={user._id}>
                   {user.name}
