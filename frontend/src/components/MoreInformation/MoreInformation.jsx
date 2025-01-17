@@ -1052,8 +1052,9 @@ const MoreInformation = () => {
       title: "שעה",
       dataIndex: "time",
       key: "time",
+      fixed: "left",
       render: (text) => <strong>{text}</strong>,
-      width: "10%",
+      width: 50,
     },
     {
       title: classNames.class1,
@@ -1098,7 +1099,7 @@ const MoreInformation = () => {
           ))}
         </div>
       ),
-      width: "22.5%",
+      width: 237.5,
     },
     {
       title: classNames.class2,
@@ -1143,7 +1144,7 @@ const MoreInformation = () => {
           ))}
         </div>
       ),
-      width: "22.5%",
+      width: 237.5,
     },
     {
       title: classNames.class3,
@@ -1188,7 +1189,7 @@ const MoreInformation = () => {
           ))}
         </div>
       ),
-      width: "22.5%",
+      width: 237.5,
     },
     {
       title: classNames.class4,
@@ -1233,7 +1234,7 @@ const MoreInformation = () => {
           ))}
         </div>
       ),
-      width: "22.5%",
+      width: 237.5,
     },
   ];
 
@@ -1497,7 +1498,13 @@ const MoreInformation = () => {
             </div>
           </div>
           <h2>{examDates.length > 0 ? `תאריך: ${examDates.join(" - ")}` : ""}</h2>
-          <Table dataSource={getCurrentPageData()} columns={examTableColumns} pagination={false} bordered />
+          <Table
+            dataSource={getCurrentPageData()}
+            columns={examTableColumns}
+            pagination={false}
+            bordered
+            scroll={{ x: "max-content" }}
+          />
           <Pagination
             current={currentPage}
             total={totalPages * 9}
