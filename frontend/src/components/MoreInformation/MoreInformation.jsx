@@ -1052,7 +1052,7 @@ const MoreInformation = () => {
       title: classNames.class1,
       dataIndex: "class1",
       key: "class1",
-      render: (projects) => (
+      render: (projects, record) => (
         <div
           className={editExamTableClicked ? "ant-table-cell clickable" : "ant-table-cell"}
           onClick={() => editExamTableClicked && handleCellClick(record, "class1")}>
@@ -1097,7 +1097,7 @@ const MoreInformation = () => {
       title: classNames.class2,
       dataIndex: "class2",
       key: "class2",
-      render: (projects) => (
+      render: (projects, record) => (
         <div
           className={editExamTableClicked ? "ant-table-cell clickable" : "ant-table-cell"}
           onClick={() => editExamTableClicked && handleCellClick(record, "class2")}>
@@ -1142,7 +1142,7 @@ const MoreInformation = () => {
       title: classNames.class3,
       dataIndex: "class3",
       key: "class3",
-      render: (projects) => (
+      render: (projects, record) => (
         <div
           className={editExamTableClicked ? "ant-table-cell clickable" : "ant-table-cell"}
           onClick={() => editExamTableClicked && handleCellClick(record, "class3")}>
@@ -1187,7 +1187,7 @@ const MoreInformation = () => {
       title: classNames.class4,
       dataIndex: "class4",
       key: "class4",
-      render: (projects) => (
+      render: (projects, record) => (
         <div
           className={editExamTableClicked ? "ant-table-cell clickable" : "ant-table-cell"}
           onClick={() => editExamTableClicked && handleCellClick(record, "class4")}>
@@ -1462,7 +1462,9 @@ const MoreInformation = () => {
               </Select>
               {currentUser.isCoordinator && selectedTable && (
                 <div className="exam-table-buttons">
-                  <Button type="primary">ערוך תאריך</Button>
+                  <Button type="primary" onClick={() => setEditDatesModal(true)}>
+                    ערוך תאריך
+                  </Button>
                   <Button
                     type="primary"
                     onClick={() => {
@@ -1701,6 +1703,26 @@ const MoreInformation = () => {
         okText="מחק"
         cancelText="ביטול"
         okButtonProps={{ danger: true }}></Modal>
+
+      <Modal
+        title="עריכת תאריכים"
+        open={editDatesModal}
+        onOk={handleEditDates}
+        onCancel={() => setEditDatesModal(false)}
+        okText="שמירה"
+        cancelText="ביטול">
+        <Form layout="vertical" form={editDatesForm}>
+          {examDates.map((date, index) => (
+            <Form.Item
+              key={index}
+              name={["dates", index]}
+              label={`תאריך ${index + 1}`}
+              rules={[{ required: true, message: "הכנס תאריך" }]}>
+              <DatePicker placeholder="תאריך" locale={locale} />
+            </Form.Item>
+          ))}
+        </Form>
+      </Modal>
     </div>
   );
 };
