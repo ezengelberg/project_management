@@ -7,6 +7,7 @@ import {
   addProjects,
   removeProjects,
   deleteGroup,
+  getGroupProjects,
 } from "../controllers/groupController.js";
 
 const router = express.Router();
@@ -17,5 +18,6 @@ router.put("/rename", ensureAuthenticated, isCoordinator, renameGroup);
 router.put("/add-projects", ensureAuthenticated, isCoordinator, addProjects);
 router.put("/remove-projects", ensureAuthenticated, isCoordinator, removeProjects);
 router.delete("/delete", ensureAuthenticated, isCoordinator, deleteGroup);
+router.get("/get-projects/:groupId", ensureAuthenticated, isCoordinator, getGroupProjects);
 
 export default router;

@@ -854,7 +854,8 @@ export const createExamTableManuel = async (req, res) => {
     const sortedJudges = Object.entries(judgeProjectCount).sort((a, b) => b[1] - a[1]);
 
     const examSchedule = [];
-    let currentDay = new Date();
+    let currentDay = req.body.date ? new Date(req.body.date) : new Date();
+    const timeSlots = ["10:00", "10:40", "11:20", "12:00", "12:40", "14:00", "14:40", "15:20", "16:00"];
 
     for (const judge of sortedJudges) {
       const judgeId = judge[0];
@@ -894,18 +895,16 @@ export const createExamTableManuel = async (req, res) => {
             currentDay.setDate(currentDay.getDate() + 1);
             examSchedule.push({
               date: currentDay.toISOString(),
-              exams: [],
+              exams: timeSlots.map((time) => ({ time, projects: [] })),
             });
           }
 
           const lastDay = examSchedule[examSchedule.length - 1];
-          const timeSlots = ["10:00", "10:40", "11:20", "12:00", "12:40", "14:00", "14:40", "15:20", "16:00"];
-          const nextTimeSlot = timeSlots[lastDay.exams.length];
+          const nextTimeSlot = lastDay.exams.find((exam) => exam.projects.length < 4);
 
-          lastDay.exams.push({
-            time: nextTimeSlot,
-            projects: [project],
-          });
+          if (nextTimeSlot) {
+            nextTimeSlot.projects.push(project);
+          }
         }
       }
     }
@@ -1191,5 +1190,169 @@ export const createExamTable = async (req, res) => {
   } catch (error) {
     console.error("Error creating exam table:", error);
     res.status(500).json({ message: "Failed to create exam table" });
+  }
+};
+
+export const deleteExamTableCell = async (req, res) => {
+  try {
+    const examTable = await ExamTable.findById(req.params.id);
+    if (!examTable) {
+      return res.status(404).json({ message: "Exam table not found" });
+    }
+
+    const { dayIndex, examIndex, projectIndex } = req.body;
+    if (dayIndex < 0 || dayIndex >= examTable.days.length) {
+      return res.status(400).json({ message: "Invalid day index" });
+    }
+
+    const day = examTable.days[dayIndex];
+    if (examIndex < 0 || examIndex >= day.exams.length) {
+      return res.status(400).json({ message: "Invalid exam index" });
+    }
+
+    const exam = day.exams[examIndex];
+    if (projectIndex < 0 || projectIndex >= exam.projects.length) {
+      return res.status(400).json({ message: "Invalid project index" });
+    }
+
+    exam.projects.splice(projectIndex, 1);
+    await examTable.save();
+
+    res.status(200).json(examTable);
+  } catch (error) {
+    console.error("Error deleting exam table cell:", error);
+    res.status(500).json({ message: "Failed to delete exam table cell" });
+  }
+};
+
+export const addExamTableCell = async (req, res) => {
+  try {
+    const examTable = await ExamTable.findById(req.params.id);
+    if (!examTable) {
+      return res.status(404).json({ message: "Exam table not found" });
+    }
+
+    const { dayIndex, examIndex, projectIndex, project } = req.body;
+    if (dayIndex < 0 || dayIndex >= examTable.days.length) {
+      return res.status(400).json({ message: "Invalid day index" });
+    }
+
+    const day = examTable.days[dayIndex];
+    if (examIndex < 0 || examIndex >= day.exams.length) {
+      return res.status(400).json({ message: "Invalid exam index" });
+    }
+
+    const exam = day.exams[examIndex];
+    if (projectIndex < 0 || projectIndex > exam.projects.length) {
+      return res.status(400).json({ message: "Invalid project index" });
+    }
+
+    exam.projects.splice(projectIndex, 0, project);
+    await examTable.save();
+
+    res.status(200).json(examTable);
+  } catch (error) {
+    console.error("Error adding exam table cell:", error);
+    res.status(500).json({ message: "Failed to add exam table cell" });
+  }
+};
+
+export const getProjectJudges = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    const submission = await Submission.findOne({ project: project._id, name: "מבחן סוף" }).populate({
+      path: "grades",
+      populate: {
+        path: "judge",
+        model: "User",
+      },
+    });
+    if (!submission) {
+      return res.status(404).json({ message: "Final exam submission not found" });
+    }
+
+    const judges = submission.grades.map((grade) => grade.judge);
+
+    res.status(200).json(judges);
+  } catch (error) {
+    console.error("Error fetching project judges:", error);
+    res.status(500).json({ message: "Failed to fetch project judges" });
+  }
+};
+
+export const getProjectsForExamTable = async (req, res) => {
+  try {
+    const projects = await Project.find({ isTaken: true, isTerminated: false });
+
+    const projectsWithJudges = await Promise.all(
+      projects.map(async (project) => {
+        for (const student of project.students) {
+          const user = await User.findById(student.student);
+          if (user) {
+            student.student = user;
+          }
+        }
+        const submission = await Submission.findOne({ project: project._id, name: "מבחן סוף" }).populate("grades");
+        if (!submission) {
+          return null; // Filter out projects without "מבחן סוף" submission
+        }
+        let judges = [];
+        if (submission) {
+          judges = submission.grades.map((grade) => grade.judge);
+          for (const judge of judges) {
+            const user = await User.findById(judge);
+            if (user) {
+              judge.name = user.name;
+            }
+          }
+        }
+        return { ...project.toObject(), judges };
+      })
+    );
+
+    const filteredProjects = projectsWithJudges.filter((project) => project !== null);
+
+    const projectDetails = filteredProjects.map((project) => {
+      return {
+        _id: project._id,
+        title: project.title,
+        year: project.year,
+        students: project.students.map((student) => ({ id: student.student._id, name: student.student.name })),
+        judges: project.judges.map((judge) => ({ id: judge._id, name: judge.name })),
+      };
+    });
+
+    res.status(200).json(projectDetails);
+  } catch (error) {
+    console.error("Error fetching projects for exam table:", error);
+    res.status(500).json({ message: "Failed to fetch projects for exam table" });
+  }
+};
+
+export const editExamTableDates = async (req, res) => {
+  try {
+    const examTable = await ExamTable.findById(req.params.id);
+    if (!examTable) {
+      return res.status(404).json({ message: "Exam table not found" });
+    }
+
+    const { dates } = req.body;
+    if (!Array.isArray(dates) || dates.length !== examTable.days.length) {
+      return res.status(400).json({ message: "Invalid dates array" });
+    }
+
+    examTable.days.forEach((day, index) => {
+      day.date = new Date(dates[index]);
+    });
+
+    await examTable.save();
+    res.status(200).json(examTable);
+  } catch (error) {
+    console.error("Error editing exam table dates:", error);
+    res.status(500).json({ message: "Failed to edit exam table dates" });
   }
 };

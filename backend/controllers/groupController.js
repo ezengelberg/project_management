@@ -81,3 +81,16 @@ export const deleteGroup = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getGroupProjects = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const group = await Group.findById(groupId).populate({ path: "projects", populate: { path: "students advisors" } });
+    if (!group) {
+      return res.status(404).json({ error: "Group not found" });
+    }
+    res.status(200).json(group.projects);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

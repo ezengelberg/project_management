@@ -39,6 +39,8 @@ const MoreInformation = () => {
   const [formEditClasses] = Form.useForm();
   const [formGrades] = Form.useForm();
   const [formEditGrades] = Form.useForm();
+  const [formAddData] = Form.useForm();
+  const [editDatesForm] = Form.useForm();
   const [data, setData] = useState([]);
   const [editingKey, setEditingKey] = useState("");
   const [editingGradesKey, setEditingGradesKey] = useState("");
@@ -78,14 +80,25 @@ const MoreInformation = () => {
   });
   const [editClassesModal, setEditClassesModal] = useState(false);
   const [deleteTableModal, setDeleteTableModal] = useState(false);
+  const [editExamTableClicked, setEditExamTableClicked] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isAddDataModalVisible, setIsAddDataModalVisible] = useState(false);
+  const [selectedCell, setSelectedCell] = useState(null);
+  const [isDeleteDataModalVisible, setIsDeleteDataModalVisible] = useState(false);
+  const [allTablesUpdated, setAllTablesUpdated] = useState(false);
+  const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState("");
+  const [selectedTableProjects, setSelectedTableProjects] = useState([]);
+  const [selectedGroupToAddProject, setSelectedGroupToAddProject] = useState("");
+  const [selectedGroupProjects, setSelectedGroupProjects] = useState([]);
   const { Dragger } = Upload;
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
   });
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [examDates, setExamDates] = useState([]);
+  const [editDatesModal, setEditDatesModal] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -169,12 +182,13 @@ const MoreInformation = () => {
     fetchMoreInformationFiles();
   }, []);
 
-  const getExamTables = async () => {
+  const getExamTables = async (callback) => {
     try {
       const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-exam-tables`, {
         withCredentials: true,
       });
       setAllTables(res.data);
+      if (callback) callback();
     } catch (error) {
       console.error("Error fetching exam tables:", error);
     }
@@ -183,7 +197,7 @@ const MoreInformation = () => {
   useEffect(() => {
     const fetchGroupsAndExamTable = async () => {
       try {
-        const [groupRes, configRes, examTableRes, yearsRes] = await Promise.all([
+        const [groupRes, configRes, examTableRes, yearsRes, projectsRes] = await Promise.all([
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get`, {
             withCredentials: true,
           }),
@@ -196,6 +210,9 @@ const MoreInformation = () => {
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
             withCredentials: true,
           }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-projects-for-exam-table`, {
+            withCredentials: true,
+          }),
         ]);
         setGroups(groupRes.data);
         setConfigYear(configRes.data.currentYear);
@@ -203,12 +220,20 @@ const MoreInformation = () => {
         setSelectedYear(configRes.data.currentYear);
         const sortedYears = yearsRes.data.sort((a, b) => b.localeCompare(a));
         setYears(sortedYears);
+        setProjects(projectsRes.data);
       } catch (error) {
         console.error("Error fetching groups and exam table:", error);
       }
     };
     fetchGroupsAndExamTable();
   }, []);
+
+  useEffect(() => {
+    if (allTablesUpdated) {
+      handleShowTableData(selectedTable);
+      setAllTablesUpdated(false);
+    }
+  }, [allTablesUpdated]);
 
   const handleEditorChange = (e) => {
     setGradeWeightDescription(e.htmlValue || "");
@@ -724,10 +749,28 @@ const MoreInformation = () => {
     const selectedTableData = allTables.find((table) => table._id === value);
     const { transformedData, classNames, totalPages } = transformExamTableData(selectedTableData);
     setTableData(transformedData);
+
+    // Extract project IDs and store them in selectedTableProjects
+    const projectIds = transformedData.flatMap((data) => [
+      ...data.class1.map((project) => project.id),
+      ...data.class2.map((project) => project.id),
+      ...data.class3.map((project) => project.id),
+      ...data.class4.map((project) => project.id),
+    ]);
+    setSelectedTableProjects(projectIds);
+
     setClassNames(classNames);
     setTotalPages(totalPages);
     setCurrentPage(1);
-    formEditClasses.setFieldsValue(classNames);
+
+    // Extract and format exam dates
+    const dates = selectedTableData.days.map((day) => dayjs(day.date).format("DD/MM/YYYY"));
+    setExamDates(dates);
+
+    // Set initial values for the edit dates form
+    editDatesForm.setFieldsValue({
+      dates: selectedTableData.days.map((day) => dayjs(day.date)),
+    });
   };
 
   const transformExamTableData = (data) => {
@@ -782,19 +825,15 @@ const MoreInformation = () => {
           class2: values.class2 ? values.class2 : "",
           class3: values.class3 ? values.class3 : "",
           class4: values.class4 ? values.class4 : "",
+          date: values.date,
         },
         {
           withCredentials: true,
         }
       );
-      await getExamTables();
       setSelectedTable(res.data._id);
-      const { transformedData, classNames, totalPages } = transformExamTableData(res.data);
-      setTableData(transformedData);
-      setClassNames(classNames);
-      setTotalPages(totalPages);
-      setCurrentPage(1);
-      formEditClasses.setFieldsValue(classNames);
+      await getExamTables(() => setAllTablesUpdated(true));
+      setEditExamTableClicked(false);
       message.success("טבלת מבחנים נוצרה בהצלחה");
       setLoading(false);
       examTableForm.resetFields();
@@ -857,6 +896,7 @@ const MoreInformation = () => {
       });
       getExamTables();
       setSelectedTable("");
+      setEditExamTableClicked(false);
     } catch (error) {
       console.error("Error deleting exam table:", error);
       message.error("שגיאה במחיקת טבלת מבחנים");
@@ -872,6 +912,134 @@ const MoreInformation = () => {
     return tableData.slice(startIndex, startIndex + 9);
   };
 
+  const handleCellClick = (record, column) => {
+    const cellData = record[column];
+    setSelectedCell({ record, column });
+    if (cellData && cellData.length > 0) {
+      setIsDeleteDataModalVisible(true);
+    } else {
+      setIsAddDataModalVisible(true);
+    }
+  };
+
+  const handleDeleteCell = async () => {
+    const { record, column } = selectedCell;
+    const dayIndex = parseInt(record.key.split("-")[0].replace("day", "")) - 1;
+    const examIndex = parseInt(record.key.split("-")[1].replace("exam", "")) - 1;
+    const projectIndex = column === "class1" ? 0 : column === "class2" ? 1 : column === "class3" ? 2 : 3;
+
+    try {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/project/delete-exam-table-cell/${selectedTable}`, {
+        data: { dayIndex, examIndex, projectIndex },
+        withCredentials: true,
+      });
+      message.success("פרויקט נמחק מהשיבוץ בהצלחה");
+      setIsDeleteDataModalVisible(false);
+      await getExamTables(() => setAllTablesUpdated(true));
+    } catch (error) {
+      console.error("Error deleting cell data:", error);
+      message.error("נכשל במחיקת פרויקט מהשיבוץ");
+    }
+  };
+
+  const getSelectedGroupProjects = async (value) => {
+    setSelectedGroupToAddProject(value);
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get-projects/${value}`, {
+        withCredentials: true,
+      });
+      setSelectedGroupProjects(res.data);
+    } catch (error) {
+      console.error("Error fetching group projects:", error);
+    }
+  };
+
+  const handleAddData = async () => {
+    try {
+      await formAddData.validateFields();
+    } catch (error) {
+      console.error("Validation failed:", error);
+      return;
+    }
+
+    const { record, column } = selectedCell;
+    const dayIndex = parseInt(record.key.split("-")[0].replace("day", "")) - 1;
+    const examIndex = parseInt(record.key.split("-")[1].replace("exam", "")) - 1;
+    const projectIndex = column === "class1" ? 0 : column === "class2" ? 1 : column === "class3" ? 2 : 3;
+
+    try {
+      const project = projects.find((project) => project._id === selectedProject);
+      const judges = await fetchJudges(project._id);
+      const projectData = {
+        id: project._id,
+        title: project.title,
+        students: project.studentsDetails.map((student) => ({ id: student._id, name: student.name })),
+        judges,
+      };
+
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/add-exam-table-cell/${selectedTable}`,
+        {
+          dayIndex,
+          examIndex,
+          projectIndex,
+          project: projectData,
+        },
+        { withCredentials: true }
+      );
+
+      message.success("פרויקט נוסף לשיבוץ בהצלחה");
+      setIsAddDataModalVisible(false);
+      await getExamTables(() => setAllTablesUpdated(true));
+      formAddData.resetFields();
+    } catch (error) {
+      console.error("Error adding project to exam table cell:", error);
+      message.error("נכשל בהוספת פרויקט לשיבוץ");
+    }
+  };
+
+  const fetchJudges = async (projectId) => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-judges/${projectId}`, {
+        withCredentials: true,
+      });
+      return res.data.map((judge) => ({ id: judge._id, name: judge.name }));
+    } catch (error) {
+      console.error("Error fetching judges:", error);
+      return [];
+    }
+  };
+
+  const handleProjectChange = async (value) => {
+    setSelectedProject(value);
+    const selectedProjectData = projects.find((project) => project._id === value);
+    const judges = await fetchJudges(value);
+    formAddData.setFieldsValue({
+      students: selectedProjectData
+        ? selectedProjectData.studentsDetails.map((student) => student.name).join(", ")
+        : "",
+      judges: judges.map((judge) => judge.name).join(", "),
+    });
+  };
+
+  const handleEditDates = async () => {
+    try {
+      const values = await editDatesForm.validateFields();
+      const updatedDates = values.dates.map((date) => date.toISOString());
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/edit-exam-table-dates/${selectedTable}`,
+        { dates: updatedDates },
+        { withCredentials: true }
+      );
+      message.success("תאריכים עודכנו בהצלחה");
+      setEditDatesModal(false);
+      await getExamTables(() => setAllTablesUpdated(true));
+    } catch (error) {
+      console.error("Error editing exam table dates:", error);
+      message.error("שגיאה בעדכון תאריכים");
+    }
+  };
+
   const examTableColumns = [
     {
       title: "שעה",
@@ -885,7 +1053,9 @@ const MoreInformation = () => {
       dataIndex: "class1",
       key: "class1",
       render: (projects) => (
-        <div>
+        <div
+          className={editExamTableClicked ? "ant-table-cell clickable" : "ant-table-cell"}
+          onClick={() => editExamTableClicked && handleCellClick(record, "class1")}>
           {projects.map((project, index) => (
             <div key={index} className="exam-table-cell">
               <a href={`/project/${project.id}`}>{project.title}</a>
@@ -928,7 +1098,9 @@ const MoreInformation = () => {
       dataIndex: "class2",
       key: "class2",
       render: (projects) => (
-        <div>
+        <div
+          className={editExamTableClicked ? "ant-table-cell clickable" : "ant-table-cell"}
+          onClick={() => editExamTableClicked && handleCellClick(record, "class2")}>
           {projects.map((project, index) => (
             <div key={index} className="exam-table-cell">
               <a href={`/project/${project.id}`}>{project.title}</a>
@@ -971,7 +1143,9 @@ const MoreInformation = () => {
       dataIndex: "class3",
       key: "class3",
       render: (projects) => (
-        <div>
+        <div
+          className={editExamTableClicked ? "ant-table-cell clickable" : "ant-table-cell"}
+          onClick={() => editExamTableClicked && handleCellClick(record, "class3")}>
           {projects.map((project, index) => (
             <div key={index} className="exam-table-cell">
               <a href={`/project/${project.id}`}>{project.title}</a>
@@ -1014,7 +1188,9 @@ const MoreInformation = () => {
       dataIndex: "class4",
       key: "class4",
       render: (projects) => (
-        <div>
+        <div
+          className={editExamTableClicked ? "ant-table-cell clickable" : "ant-table-cell"}
+          onClick={() => editExamTableClicked && handleCellClick(record, "class4")}>
           {projects.map((project, index) => (
             <div key={index} className="exam-table-cell">
               <a href={`/project/${project.id}`}>{project.title}</a>
@@ -1195,37 +1371,39 @@ const MoreInformation = () => {
                   layout="inline"
                   onFinish={handleExamTableSubmit}
                   initialValues={{ group: "all" }}>
-                  <Form.Item
-                    className="exam-table-form-item"
-                    label={`בחר קבוצה ליצירת טבלה (לשנת ${configYear})`}
-                    name="group"
-                    rules={[{ required: true, message: "בחר קבוצה" }]}>
-                    <Select
-                      value={selectedGroup}
-                      placeholder="בחר קבוצה"
-                      style={{ width: 200 }}
-                      onChange={(value) => setSelectedGroup(value)}>
-                      <Select.Option value="all">לכולם</Select.Option>
-                      {groups
-                        .filter((group) => group.year === configYear)
-                        .map((group) => (
-                          <Select.Option key={group._id} value={group._id}>
-                            {group.name}
-                          </Select.Option>
-                        ))}
-                    </Select>
-                  </Form.Item>
-                  <Form.Item
-                    className="exam-table-form-item"
-                    label="שיטת יצירת טבלה"
-                    name="creationMethod"
-                    rules={[{ required: true, message: "בחר שיטה" }]}>
-                    <Select placeholder="בחר שיטה" style={{ width: 200 }}>
-                      <Select.Option value="ai">AI</Select.Option>
-                      <Select.Option value="manual">ידני</Select.Option>
-                    </Select>
-                  </Form.Item>
-                  <p>*לא חובה לבחור כיתות בשלב זה</p>
+                  <div className="exam-table-form-required">
+                    <Form.Item
+                      className="exam-table-form-item"
+                      label={`בחר קבוצה ליצירת טבלה (לשנת ${configYear})`}
+                      name="group"
+                      rules={[{ required: true, message: "בחר קבוצה" }]}>
+                      <Select
+                        value={selectedGroup}
+                        placeholder="בחר קבוצה"
+                        style={{ width: 200 }}
+                        onChange={(value) => setSelectedGroup(value)}>
+                        <Select.Option value="all">לכולם</Select.Option>
+                        {groups
+                          .filter((group) => group.year === configYear)
+                          .map((group) => (
+                            <Select.Option key={group._id} value={group._id}>
+                              {group.name}
+                            </Select.Option>
+                          ))}
+                      </Select>
+                    </Form.Item>
+                    <Form.Item
+                      className="exam-table-form-item"
+                      label="שיטת יצירת טבלה"
+                      name="creationMethod"
+                      rules={[{ required: true, message: "בחר שיטה" }]}>
+                      <Select placeholder="בחר שיטה" style={{ width: 200 }}>
+                        <Select.Option value="ai">AI</Select.Option>
+                        <Select.Option value="manual">ידני</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </div>
+                  <p>*לא חובה לבחור כיתות או תאריך בשלב זה</p>
                   <div className="exam-table-classes">
                     <Form.Item name="class1" label="כיתה 1">
                       <Input placeholder="הכנס כיתה" />
@@ -1239,7 +1417,11 @@ const MoreInformation = () => {
                     <Form.Item name="class4" label="כיתה 4">
                       <Input placeholder="הכנס כיתה" />
                     </Form.Item>
+                    <Form.Item name="date" label="תאריך התחלה">
+                      <DatePicker placeholder="תאריך" locale={locale} />
+                    </Form.Item>
                   </div>
+
                   <Form.Item>
                     <Button type="primary" htmlType="submit" loading={loading}>
                       צור טבלה
@@ -1266,7 +1448,10 @@ const MoreInformation = () => {
                 value={selectedTable}
                 style={{ width: 200 }}
                 placeholder="בחר טבלה להצגה"
-                onChange={(value) => handleShowTableData(value)}>
+                onChange={(value) => {
+                  handleShowTableData(value);
+                  setEditExamTableClicked(false);
+                }}>
                 {allTables
                   .filter((table) => table.year === selectedYear)
                   .map((table) => (
@@ -1277,9 +1462,24 @@ const MoreInformation = () => {
               </Select>
               {currentUser.isCoordinator && selectedTable && (
                 <div className="exam-table-buttons">
-                  <Button type="primary" onClick={() => setEditClassesModal(true)}>
+                  <Button type="primary">ערוך תאריך</Button>
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      setEditClassesModal(true);
+                      formEditClasses.setFieldsValue(classNames);
+                    }}>
                     ערוך כיתות
                   </Button>
+                  {editExamTableClicked ? (
+                    <Button type="primary" onClick={() => setEditExamTableClicked(false)}>
+                      סיים עריכה
+                    </Button>
+                  ) : (
+                    <Button type="primary" onClick={() => setEditExamTableClicked(true)}>
+                      ערוך טבלה
+                    </Button>
+                  )}
                   <Button type="primary" danger onClick={() => setDeleteTableModal(true)}>
                     מחק טבלה
                   </Button>
@@ -1287,6 +1487,7 @@ const MoreInformation = () => {
               )}
             </div>
           </div>
+          <h2>{examDates.length > 0 ? `תאריך: ${examDates.join(" - ")}` : ""}</h2>
           <Table dataSource={getCurrentPageData()} columns={examTableColumns} pagination={false} bordered />
           <Pagination
             current={currentPage}
@@ -1417,7 +1618,6 @@ const MoreInformation = () => {
       </Modal>
 
       <Modal
-        className="delete-modal"
         title="מחיקת טבלה"
         open={deleteTableModal}
         onOk={handleDeleteTable}
@@ -1427,6 +1627,80 @@ const MoreInformation = () => {
         okButtonProps={{ danger: true }}>
         <p>האם אתה בטוח שברצונך למחוק את הטבלה?</p>
       </Modal>
+
+      <Modal
+        title="שיבוץ פרויקט"
+        open={isAddDataModalVisible}
+        onOk={handleAddData}
+        onCancel={() => {
+          setIsAddDataModalVisible(false);
+          setSelectedProject("");
+          setSelectedGroupToAddProject("");
+          formAddData.resetFields();
+        }}
+        okText="הוסף"
+        cancelText="ביטול">
+        <p>שים לב לשופטים שנמצאים באותו הזמן!</p>
+        <Form form={formAddData} layout="vertical">
+          <Form.Item name="group" label="בחר קבוצה לפרויקטים ספיציפים">
+            <Select
+              value={selectedGroupToAddProject}
+              placeholder="בחר קבוצה"
+              onChange={(value) => {
+                getSelectedGroupProjects(value);
+                formAddData.setFieldsValue({ project: "", students: "", judges: "" });
+              }}>
+              {groups
+                .filter((group) => group.year === selectedYear)
+                .map((group) => (
+                  <Select.Option key={group._id} value={group._id}>
+                    {group.name}
+                  </Select.Option>
+                ))}
+            </Select>
+          </Form.Item>
+          {selectedGroupToAddProject !== "" ? (
+            <Form.Item name="project" label="בחר פרויקט" rules={[{ required: true, message: "בחר פרויקט" }]}>
+              <Select value={selectedProject} placeholder="בחר פרויקט" onChange={handleProjectChange}>
+                {selectedGroupProjects
+                  .filter((project) => !selectedTableProjects.includes(project._id) && project.year === selectedYear)
+                  .map((project) => (
+                    <Select.Option key={project._id} value={project._id}>
+                      {project.title}
+                    </Select.Option>
+                  ))}
+              </Select>
+            </Form.Item>
+          ) : (
+            <Form.Item name="project" label="בחר פרויקט" rules={[{ required: true, message: "בחר פרויקט" }]}>
+              <Select value={selectedProject} placeholder="בחר פרויקט" onChange={handleProjectChange}>
+                {projects
+                  .filter((project) => !selectedTableProjects.includes(project._id) && project.year === selectedYear)
+                  .map((project) => (
+                    <Select.Option key={project._id} value={project._id}>
+                      {project.title}
+                    </Select.Option>
+                  ))}
+              </Select>
+            </Form.Item>
+          )}
+          <Form.Item name="students" label="סטודנטים">
+            <Input disabled />
+          </Form.Item>
+          <Form.Item name="judges" label="שופטים">
+            <Input disabled />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="למחוק את שיבוץ הפרויקט?"
+        open={isDeleteDataModalVisible}
+        onOk={handleDeleteCell}
+        onCancel={() => setIsDeleteDataModalVisible(false)}
+        okText="מחק"
+        cancelText="ביטול"
+        okButtonProps={{ danger: true }}></Modal>
     </div>
   );
 };
