@@ -92,13 +92,13 @@ const MoreInformation = () => {
   const [selectedTableProjects, setSelectedTableProjects] = useState([]);
   const [selectedGroupToAddProject, setSelectedGroupToAddProject] = useState("");
   const [selectedGroupProjects, setSelectedGroupProjects] = useState([]);
+  const [examDates, setExamDates] = useState([]);
+  const [editDatesModal, setEditDatesModal] = useState(false);
   const { Dragger } = Upload;
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
   });
-  const [examDates, setExamDates] = useState([]);
-  const [editDatesModal, setEditDatesModal] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -897,6 +897,13 @@ const MoreInformation = () => {
       getExamTables();
       setSelectedTable("");
       setEditExamTableClicked(false);
+      setExamDates([]);
+      setCurrentPage(1);
+      setTotalPages(1);
+      setSelectedTableProjects([]);
+      setSelectedGroup("all");
+      setSelectedGroupToAddProject("");
+      setSelectedGroupProjects([]);
     } catch (error) {
       console.error("Error deleting exam table:", error);
       message.error("שגיאה במחיקת טבלת מבחנים");
