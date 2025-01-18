@@ -813,6 +813,9 @@ export const createExamTableManuel = async (req, res) => {
           }
         }
         const submission = await Submission.findOne({ project: project._id, name: "מבחן סוף" }).populate("grades");
+        if (!submission) {
+          return null;
+        }
         let judges = [];
         if (submission) {
           judges = submission.grades.map((grade) => grade.judge);
@@ -827,7 +830,12 @@ export const createExamTableManuel = async (req, res) => {
       })
     );
 
-    const projectDetails = projectsWithJudges.map((project) => {
+    const filteredProjects = projectsWithJudges.filter((project) => project !== null);
+    if (filteredProjects.length === 0) {
+      return res.status(304).json({ message: "No projects with judges found" });
+    }
+
+    const projectDetails = filteredProjects.map((project) => {
       return {
         id: project._id,
         title: project.title,
@@ -1017,6 +1025,9 @@ export const createExamTable = async (req, res) => {
           }
         }
         const submission = await Submission.findOne({ project: project._id, name: "מבחן סוף" }).populate("grades");
+        if (!submission) {
+          return null;
+        }
         let judges = [];
         if (submission) {
           judges = submission.grades.map((grade) => grade.judge);
@@ -1031,7 +1042,12 @@ export const createExamTable = async (req, res) => {
       })
     );
 
-    const projectDetails = projectsWithJudges.map((project) => {
+    const filteredProjects = projectsWithJudges.filter((project) => project !== null);
+    if (filteredProjects.length === 0) {
+      return res.status(304).json({ message: "No projects with judges found" });
+    }
+
+    const projectDetails = filteredProjects.map((project) => {
       return {
         id: project._id,
         title: project.title,
@@ -1096,26 +1112,26 @@ export const createExamTable = async (req, res) => {
               {
                 "id": "project_id1",
                 "title": "project_title1",
-                "students": ["student1", "student2", ...],
-                "judges": ["judge1", "judge2", "judge3"]
+                "students": ["student1_object", "student2_object", ...],
+                "judges": ["judge1_object", "judge2_object", "judge3_object"]
               },
               {
                 "id": "project2",
                 "title": "project_title2",
-                "students": ["student3", "student4", ...],
-                "judges": ["judge4", "judge5", "judge6"]
+                "students": ["student3_object", "student4_object", ...],
+                "judges": ["judge4_object", "judge5_object", "judge6_object"]
               },
               {
                 "id": "project3",
                 "title": "project_title3",
-                "students": ["student5", "student6", ...],
-                "judges": ["judge7", "judge8", "judge9"]
+                "students": ["student5_object", "student6_object", ...],
+                "judges": ["judge7_object", "judge8_object", "judge9_object"]
               },
               {
                 "id": "project4",
                 "title": "project_title4",
-                "students": ["student7", "student8", ...],
-                "judges": ["judge10", "judge11", "judge12"]
+                "students": ["student7_object", "student8_object", ...],
+                "judges": ["judge10_object", "judge11_object", "judge12_object"]
               },
             ]
           }
@@ -1125,9 +1141,6 @@ export const createExamTable = async (req, res) => {
       // ...more days
     ]
     }
-
-    **Notes:**
-    - Keep the structure of the students and judges.
     `;
 
     const completion = await openai.chat.completions.create({
