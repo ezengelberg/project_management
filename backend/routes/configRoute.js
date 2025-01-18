@@ -3,7 +3,7 @@ import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 import Config from "../models/config.js";
 
 const router = express.Router();
-router.get("/get-config", ensureAuthenticated, isCoordinator, async (req, res) => {
+router.get("/get-config", ensureAuthenticated, async (req, res) => {
   const config = await Config.findOne();
   if (!config) {
     res.status(404);
