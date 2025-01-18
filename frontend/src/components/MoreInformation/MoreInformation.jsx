@@ -766,11 +766,6 @@ const MoreInformation = () => {
     // Extract and format exam dates
     const dates = selectedTableData.days.map((day) => dayjs(day.date).format("DD/MM/YYYY"));
     setExamDates(dates);
-
-    // Set initial values for the edit dates form
-    editDatesForm.setFieldsValue({
-      dates: selectedTableData.days.map((day) => dayjs(day.date)),
-    });
   };
 
   const transformExamTableData = (data) => {
@@ -838,9 +833,14 @@ const MoreInformation = () => {
       setLoading(false);
       examTableForm.resetFields();
     } catch (error) {
-      console.error("Error creating exam table:", error);
-      message.error("שגיאה ביצירת טבלת מבחנים");
-      setLoading(false);
+      if (error.response?.status === 304) {
+        message.error("אין פרויקטים עם מבחן סוף");
+        setLoading(false);
+      } else {
+        console.error("Error creating exam table:", error);
+        message.error("שגיאה ביצירת טבלת מבחנים");
+        setLoading(false);
+      }
     }
   };
 
@@ -1027,6 +1027,14 @@ const MoreInformation = () => {
         : "",
       judges: judges.map((judge) => judge.name).join(", "),
     });
+  };
+
+  const handleEditDatesButtonClick = () => {
+    const selectedTableData = allTables.find((table) => table._id === selectedTable);
+    editDatesForm.setFieldsValue({
+      dates: selectedTableData.days.map((day) => dayjs(day.date)),
+    });
+    setEditDatesModal(true);
   };
 
   const handleEditDates = async () => {
@@ -1470,7 +1478,7 @@ const MoreInformation = () => {
               </Select>
               {currentUser.isCoordinator && selectedTable && (
                 <div className="exam-table-buttons">
-                  <Button type="primary" onClick={() => setEditDatesModal(true)}>
+                  <Button type="primary" onClick={handleEditDatesButtonClick}>
                     ערוך תאריך
                   </Button>
                   <Button
@@ -1497,7 +1505,7 @@ const MoreInformation = () => {
               )}
             </div>
           </div>
-          <h2>{examDates.length > 0 ? `תאריך: ${examDates.join(" - ")}` : ""}</h2>
+          <h2>{examDates.length > 0 && examDates.join(" - ")}</h2>
           <Table
             dataSource={getCurrentPageData()}
             columns={examTableColumns}

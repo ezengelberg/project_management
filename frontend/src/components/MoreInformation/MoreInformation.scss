@@ -58,6 +58,10 @@
 }
 
 .exam-table-container {
+  h2 {
+    margin-bottom: 1rem;
+    text-align: center;
+  }
   .exam-table-header {
     display: flex;
     flex-direction: column;
