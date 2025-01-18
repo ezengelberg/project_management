@@ -92,12 +92,19 @@
       align-items: center;
       gap: 1rem;
       flex-wrap: wrap;
-    }
+      width: 100%;
 
-    .exam-table-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
+      .exam-table-buttons {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .excel-icon {
+        width: 4.5rem;
+        margin-right: auto;
+        cursor: pointer;
+      }
     }
   }
 

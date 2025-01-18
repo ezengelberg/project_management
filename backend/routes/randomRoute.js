@@ -9,7 +9,7 @@ import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/description-for-grade-structure", ensureAuthenticated, isCoordinator, fetchDescriptionForGradeStructure);
+router.get("/description-for-grade-structure", ensureAuthenticated, fetchDescriptionForGradeStructure);
 router.post(
   "/create-description-for-grade-structure",
   ensureAuthenticated,
