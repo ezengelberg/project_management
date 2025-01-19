@@ -65,7 +65,7 @@ const MainLayout = () => {
     };
 
     const currentPath = Object.keys(routeTitles).find((path) =>
-      new RegExp(`^${path.replace(/:\w+/g, "\\w+")}$`).test(location.pathname)
+      new RegExp(`^${path.replace(/:\w+/g, "\\w+")}$`).test(location.pathname),
     );
 
     document.title = `ניהול פרויקטים | ${routeTitles[currentPath] || "כניסה"}`;
@@ -130,7 +130,7 @@ const MainLayout = () => {
               <Route
                 path="/create-project"
                 element={
-                  <ProtectedRoute privileges={["advisor"]}>
+                  <ProtectedRoute privileges={["advisor", "coordinator"]}>
                     <CreateProject />
                   </ProtectedRoute>
                 }

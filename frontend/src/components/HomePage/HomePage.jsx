@@ -229,7 +229,7 @@ const Homepage = () => {
                 <p>תבנית דוחות הגשה</p>
               </div>
             )}
-            {currentUser.isAdvisor && (
+            {(currentUser.isAdvisor || currentUser.isCoordinator) && (
               <div
                 className="quick-link-item"
                 onClick={() => navigate("/create-project")}
