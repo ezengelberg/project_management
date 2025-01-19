@@ -34,7 +34,7 @@ import {
   deleteNotification,
   clearAllNotifications,
 } from "../controllers/notificationController.js";
-import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
+import { ensureAuthenticated, isCoordinator, isAdvisorOrCoordinator } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -47,7 +47,7 @@ router.post("/toggle-favorite", ensureAuthenticated, toggleFavoriteProject);
 router.get("/ensure-favorite/:projectId", ensureAuthenticated, ensureFavoriteProject);
 router.get("/get-user-info/:id", ensureAuthenticated, getUserProfile);
 router.put("/change-password", ensureAuthenticated, changePassword);
-router.get("/advisor-users", ensureAuthenticated, isCoordinator, getAdvisorUsers);
+router.get("/advisor-users", ensureAuthenticated, isAdvisorOrCoordinator, getAdvisorUsers);
 router.get("/check-auth", ensureAuthenticated, (req, res) => {
   res.status(200).json({
     authenticated: !req.user.firstLogin,
