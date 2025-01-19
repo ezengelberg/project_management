@@ -21,6 +21,7 @@ import randomRoute from "./routes/randomRoute.js";
 import configRoute from "./routes/configRoute.js";
 import Config from "./models/config.js";
 import groupRoute from "./routes/groupRoute.js";
+import announcementRoute from "./routes/announcementRoute.js";
 
 import dotenv from "dotenv";
 
@@ -75,7 +76,7 @@ app.use(
       secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
       sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax", // Use Lax for local development
     },
-  })
+  }),
 );
 
 passport.serializeUser((user, done) => {
@@ -125,6 +126,7 @@ app.use("/api/random", randomRoute);
 app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 app.use("/api/group", groupRoute);
+app.use("/api/announcement", announcementRoute);
 
 app.get("/", (req, res) => {
   res.send(`Version DEV: 13`);

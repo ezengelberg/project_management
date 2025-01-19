@@ -26,6 +26,7 @@ import SubmissionsStatus from "./components/SubmissionsStatus/SubmissionsStatus"
 import ProfilePage from "./components/ProfilePage/ProfilePage";
 import DeleteAll from "./components/DeleteAll/DeleteAll";
 import Groups from "./components/Groups/Groups";
+import Announcements from "./components/Announcements/Announcements";
 
 function App() {
   return (
@@ -44,6 +45,7 @@ const MainLayout = () => {
     const routeTitles = {
       "/profile/:userId": "פרופיל",
       "/home": "דף הבית",
+      "/announcements": "הודעות",
       "/projects": "פרויקטים",
       "/project/:projectID": "דף פרויקט",
       "/templates": "תבניות",
@@ -96,6 +98,14 @@ const MainLayout = () => {
                 element={
                   <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
                     <HomePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/announcements"
+                element={
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
+                    <Announcements />
                   </ProtectedRoute>
                 }
               />
@@ -257,6 +267,7 @@ const MainLayout = () => {
         <Routes>
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/dev" element={<Announcements />} />
           <Route path="*" element={<WrongPath />} />
         </Routes>
       )}
