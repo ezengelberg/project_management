@@ -148,9 +148,11 @@ const ProfilePage = () => {
           </h3>
           {(currentUser.isCoordinator || currentUser._id === user?._id) && (
             <div className="private-info">
-              <h3>
-                <InterestsSVG /> תחומי עניין: {user?.interests}
-              </h3>
+              {(currentUser.isCoordinator || (currentUser._id === user?._id && currentUser.isAdvisor)) && (
+                <h3>
+                  <InterestsSVG /> תחומי עניין: {user?.interests}
+                </h3>
+              )}
               <h3>
                 <IdcardOutlined /> {user?.id}
               </h3>

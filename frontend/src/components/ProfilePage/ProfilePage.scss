@@ -9,6 +9,7 @@
     flex-direction: column;
     align-items: center;
     gap: 2rem;
+    width: 100%;
 
     .profile-page-header-info {
       .copy-email {
@@ -38,7 +39,7 @@
     }
 
     .basic-statistics {
-      width: 100%;
+      width: 70%;
       canvas {
         width: 100% !important;
         height: 100% !important;
@@ -61,6 +62,22 @@
     flex-direction: column;
     align-items: center;
     gap: 5rem;
+
+    .profile-page-header {
+      .basic-statistics {
+        width: 90%;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 850px) {
+  .profile-page {
+    .profile-page-header {
+      .basic-statistics {
+        width: 100%;
+      }
+    }
   }
 }
 
