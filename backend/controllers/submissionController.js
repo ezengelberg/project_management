@@ -653,9 +653,10 @@ export const assignJudgesAutomatically = async (req, res) => {
         workload[selectedJudge].assigned++;
         const newGrade = new Grade({ judge: selectedJudge });
         await newGrade.save();
+        const project = await Project.findById(submission.project);
         const notification = new Notification({
           user: selectedJudge,
-          message: `מונתה לשפיטת: "${submission.name}", עבור פרויקט: "${submission.project.title}"`,
+          message: `מונתה לשפיטת: "${submission.name}", עבור פרויקט: "${project.title}"`,
         });
         await notification.save();
         submission.grades.push(newGrade._id);
