@@ -2,26 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import "./ProfilePage.scss";
 import axios from "axios";
-import {
-  Avatar,
-  Modal,
-  message,
-  Button,
-  Form,
-  Input,
-  Alert,
-  Row,
-  Col,
-  Slider,
-  InputNumber,
-  Space,
-  Typography,
-} from "antd";
+import { Avatar, Modal, message, Button, Form, Input, Alert } from "antd";
 import { MailOutlined, IdcardOutlined, UserOutlined } from "@ant-design/icons";
 import { fetchUserProjectStatistics, renderUserProjectStatisticsChart } from "../../utils/basicStatistics";
-import { renderSkillRadarChart } from "../../utils/skillRadar";
-
-const { Text } = Typography;
 
 const ProfilePage = () => {
   const { userId } = useParams();
@@ -37,11 +20,7 @@ const ProfilePage = () => {
   const [editDetailsForm] = Form.useForm();
   const [changePasswordForm] = Form.useForm();
   const statisticsChartRef = useRef(null);
-  const radarChartRef = useRef(null);
   const statisticsChartInstance = useRef(null);
-  const radarChartInstance = useRef(null);
-  const [skillData, setSkillData] = useState([8, 6, 7, 9, 5]);
-  const [tempSkillData, setTempSkillData] = useState([...skillData]);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -104,21 +83,6 @@ const ProfilePage = () => {
     };
   }, [currentUser, userId]);
 
-  useEffect(() => {
-    if (currentUser.isCoordinator && radarChartRef.current) {
-      if (radarChartInstance.current) {
-        radarChartInstance.current.destroy();
-      }
-      radarChartInstance.current = renderSkillRadarChart(radarChartRef.current, skillData);
-    }
-
-    return () => {
-      if (radarChartInstance.current) {
-        radarChartInstance.current.destroy();
-      }
-    };
-  }, [currentUser, skillData]);
-
   const handleEditDetails = async (values) => {
     try {
       await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/user/user-edit-profile/${userId}`, values, {
@@ -166,16 +130,6 @@ const ProfilePage = () => {
       .catch(() => {
         message.error("העתקת האימייל נכשלה");
       });
-  };
-
-  const handleSkillChange = (index, value) => {
-    const newSkillData = [...tempSkillData];
-    newSkillData[index] = value;
-    setTempSkillData(newSkillData);
-  };
-
-  const handleConfirmSkillChange = () => {
-    setSkillData(tempSkillData);
   };
 
   return (
@@ -239,42 +193,6 @@ const ProfilePage = () => {
           )}
         </div>
       </div>
-      <div className="skills-statistics">
-        {currentUser.isCoordinator && windowSize.width > 517 && (
-          <>
-            <canvas ref={radarChartRef} />
-            <Space direction="vertical" style={{ width: "100%" }}>
-              {["פרויקט שלי", "פרויקטים אחרים", "נחמדות", "עזרה", "שאלות"].map((label, index) => (
-                <Row key={label} align="middle">
-                  <Col span={4}>
-                    <Text>{label}</Text>
-                  </Col>
-                  <Col span={12}>
-                    <Slider
-                      min={0}
-                      max={10}
-                      onChange={(value) => handleSkillChange(index, value)}
-                      value={typeof tempSkillData[index] === "number" ? tempSkillData[index] : 0}
-                    />
-                  </Col>
-                  <Col span={4}>
-                    <InputNumber
-                      min={0}
-                      max={10}
-                      style={{ margin: "0 16px" }}
-                      value={tempSkillData[index]}
-                      onChange={(value) => handleSkillChange(index, value)}
-                    />
-                  </Col>
-                </Row>
-              ))}
-              <Button type="primary" onClick={handleConfirmSkillChange}>
-                אישור
-              </Button>
-            </Space>
-          </>
-        )}
-      </div>
 
       <Modal
         title="עריכת פרטים"
@@ -284,8 +202,7 @@ const ProfilePage = () => {
           editDetailsForm
             .validateFields()
             .then(handleEditDetails)
-            .catch((info) => {
-            });
+            .catch((info) => {});
         }}
         okText="שמור"
         cancelText="בטל">
