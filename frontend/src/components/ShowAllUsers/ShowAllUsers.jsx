@@ -1,8 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./ShowAllUsers.scss";
 import axios from "axios";
-import { Space, Table, Tag, Avatar, Modal, Form, Input, Select, message, Tooltip, Switch, Tabs } from "antd";
-import { EditOutlined, UserDeleteOutlined, UserAddOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  Space,
+  Table,
+  Tag,
+  Avatar,
+  Modal,
+  Form,
+  Input,
+  Select,
+  message,
+  Tooltip,
+  Switch,
+  Tabs,
+  Descriptions,
+} from "antd";
+import { EditOutlined, UserDeleteOutlined, UserAddOutlined, DeleteOutlined, HistoryOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -14,6 +28,7 @@ const ShowAllUsers = () => {
     return storedUser ? JSON.parse(storedUser) : {};
   });
   const [users, setUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const [projects, setProjects] = useState([]);
   const [suspendedUsers, setSuspendedUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +48,8 @@ const ShowAllUsers = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const [suspensionHistory, setSuspensionHistory] = useState([]);
+  const [openSuspensionHistory, setOpenSuspensionHistory] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -59,7 +76,7 @@ const ShowAllUsers = () => {
           withCredentials: true,
         });
         const userData = usersResponse.data;
-
+        setAllUsers(userData);
         const suspendedUsersData = userData.filter((user) => user.suspended);
         const activeUsers = userData.filter((user) => !user.suspended);
 
@@ -429,6 +446,24 @@ const ShowAllUsers = () => {
     }
   };
 
+  const handleViewSuspensionHistory = (record) => {
+    if (!record.suspensionRecords || record.suspensionRecords.length === 0) {
+      setSuspensionHistory([]);
+      setOpenSuspensionHistory(true);
+      return;
+    }
+
+    const userSuspensionHistory = record.suspensionRecords.map((record) => {
+      const suspendedByUser = allUsers.find((user) => user._id === record.suspendedBy);
+      return {
+        ...record,
+        suspendedByName: suspendedByUser ? suspendedByUser.name : "Unknown",
+      };
+    });
+    setSuspensionHistory(userSuspensionHistory);
+    setOpenSuspensionHistory(true);
+  };
+
   const suspendedColumns = [
     {
       title: "שם",
@@ -481,7 +516,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.userId - b.userId,
       sortDirections: ["descend", "ascend"],
-      width: windowSize.width > 1920 ? "8%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 120 : 120,
+      width: windowSize.width > 1920 ? "6%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 120 : 120,
     },
     {
       title: "תאריך הרשמה",
@@ -493,7 +528,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => new Date(a.registerDate) - new Date(b.registerDate),
       sortDirections: ["descend", "ascend"],
-      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 170 : 170,
+      width: windowSize.width > 1920 ? "8%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 170 : 170,
     },
     {
       title: "פרויקט נבחר",
@@ -507,7 +542,7 @@ const ShowAllUsers = () => {
           <a
             onClick={() => navigate(`/project/${record.projectId}`)}
             onMouseDown={(e) => handleMouseDown(e, `/project/${record.projectId}`)}>
-            {record.projectTitle}
+            {record.projectTitle.length > 50 ? `${record.projectTitle.slice(0, 50)}...` : record.projectTitle}
           </a>
         );
       },
@@ -526,7 +561,7 @@ const ShowAllUsers = () => {
         }
         return record.projectId === null;
       },
-      width: windowSize.width > 1920 ? "20%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 250 : 250,
+      width: windowSize.width > 1920 ? "18%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 250 : 250,
     },
     {
       title: "תפקיד",
@@ -565,7 +600,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.email.localeCompare(b.email),
       sortDirections: ["descend", "ascend"],
-      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 200,
+      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 200,
     },
     {
       title: "סיבת השעיה",
@@ -610,6 +645,11 @@ const ShowAllUsers = () => {
       key: "action",
       render: (_, record) => (
         <Space size="middle">
+          <a onClick={() => handleViewSuspensionHistory(record)}>
+            <Tooltip title="היסטורית השעיות">
+              <HistoryOutlined className="column-icons" />
+            </Tooltip>
+          </a>
           <a onClick={() => handleUnsuspend(record.key)}>
             <Tooltip title="ביטול השעיה">
               <UserAddOutlined className="column-icons" />
@@ -626,7 +666,7 @@ const ShowAllUsers = () => {
           </a>
         </Space>
       ),
-      width: windowSize.width > 1920 ? "5%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 100 : 100,
+      width: windowSize.width > 1920 ? "8%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 100 : 100,
     },
   ];
 
@@ -643,6 +683,7 @@ const ShowAllUsers = () => {
     isCoordinator: user.isCoordinator,
     suspensionReason: user.suspendedReason,
     suspensionDate: new Date(user.suspendedAt).toLocaleDateString("he-IL"),
+    suspensionRecords: user.suspensionRecords,
   }));
 
   const handleUnsuspend = async (userId) => {
@@ -840,6 +881,25 @@ const ShowAllUsers = () => {
         okButtonProps={{ danger: true }}
         cancelText="בטל">
         <p>האם אתה בטוח שברצונך למחוק את המשתמש?</p>
+      </Modal>
+
+      <Modal
+        width={windowSize.width > 1600 ? "70%" : windowSize.width > 1200 ? "80%" : "90%"}
+        title="היסטורית השעיות"
+        open={openSuspensionHistory}
+        onCancel={() => setOpenSuspensionHistory(false)}
+        footer={null}>
+        {suspensionHistory.map((record, index) => (
+          <Descriptions key={index} bordered title={`השעיה ${index + 1}`} column={windowSize.width > 768 ? 2 : 1}>
+            <Descriptions.Item label="תאריך השעיה" span={2}>
+              {new Date(record.suspendedAt).toLocaleDateString("he-IL")}
+            </Descriptions.Item>
+            <Descriptions.Item label="סיבת השעיה" span={2}>
+              {record.reason}
+            </Descriptions.Item>
+            <Descriptions.Item label='הושעה ע"י'>{record.suspendedByName}</Descriptions.Item>
+          </Descriptions>
+        ))}
       </Modal>
     </div>
   );
