@@ -6,8 +6,9 @@ export const ensureAuthenticated = (req, res, next) => {
       user: req.user,
       headers: req.headers,
     });
-    return res.status(401).json({ error: "Unauthorized access" });
+    return res.status(401).json({ error: "Unauthorized access", type: "unauthorized" });
   }
+  if (req.user.suspended) return res.status(403).json({ error: "User is suspended", type: "suspended", reason: req.user.suspendedReason });
   next();
 };
 
