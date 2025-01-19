@@ -58,7 +58,7 @@ const Announcements = () => {
           title,
           description,
           ...(selectedGroup !== "" && { group: selectedGroup }),
-          ...(selectedRoles.some((role) => selectedRoles[role] === true) && { roles: selectedRoles }),
+          ...(Object.values(selectedRoles).some((role) => role === true) && { roles: selectedRoles }),
         },
         {
           withCredentials: true,
