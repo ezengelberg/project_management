@@ -245,6 +245,13 @@
 }
 
 @media screen and (max-width: 626px) {
+  .project-container {
+    .project-profile-content {
+      width: 100%;
+    }
+    
+
+  }
   .project-profile-info-emails {
     display: flex;
     flex-direction: column;

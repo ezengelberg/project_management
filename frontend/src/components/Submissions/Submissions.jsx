@@ -991,7 +991,7 @@ const Submissions = () => {
             ]}>
             <Select placeholder="בחר הגשה">
               {submissionData
-                .filter((project) => project.year == yearFilter)
+                .filter((project) => project.year === yearFilter)
                 .flatMap((submission, projectIndex) =>
                   submission.submissions.map((sub) => ({
                     ...sub,
@@ -1076,7 +1076,7 @@ const Submissions = () => {
             ]}>
             <Select placeholder="בחר הגשה">
               {submissionData
-                .filter((project) => project.year == yearFilter)
+                .filter((project) => project.year === yearFilter)
                 .flatMap((submission, projectIndex) =>
                   submission.submissions.map((sub) => ({
                     ...sub,
@@ -1153,7 +1153,7 @@ const Submissions = () => {
             ]}>
             <Select placeholder="בחר הגשה">
               {submissionData
-                .filter((project) => project.year == yearFilter)
+                .filter((project) => project.year === yearFilter)
                 .flatMap((submission, projectIndex) =>
                   submission.submissions.map((sub) => ({
                     ...sub,
@@ -1603,7 +1603,7 @@ const Submissions = () => {
                 });
               }}>
               {submissionData
-                .filter((project) => project.year == yearFilter)
+                .filter((project) => project.year === yearFilter)
                 .flatMap((submission) => submission.submissions) // Flatten the submissions array
                 .filter((sub) => sub.name) // Filter out entries without names
                 .filter(
