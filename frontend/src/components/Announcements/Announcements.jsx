@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Announcements.scss";
 import { Editor } from "primereact/editor";
-import { Button, message, Checkbox } from "antd";
+import { Button, message, Checkbox, Input, Select } from "antd";
 
 const Announcements = () => {
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
@@ -93,10 +93,11 @@ const Announcements = () => {
           <h2>כתיבת הודעה חדשה</h2>
           <div className="form-input-group">
             <label htmlFor="announcement-title">כותרת</label>
-            <input
+            <Input
               type="text"
               id="announcement-title"
               placeholder="כותרת"
+              rules={[{ required: true, message: "שדה חובה" }]}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -117,14 +118,19 @@ const Announcements = () => {
               }}
             />
             <label htmlFor="announcement-group">קבוצה (במידה ולא תבחר קבוצה ההודעה תשלח לכולם)</label>
-            <select id="announcement-group" onChange={(e) => setSelectedGroup(e.target.value)}>
-              <option value=""></option>
-              {groups.map((group) => (
-                <option key={group._id} value={group._id}>
-                  {group.name}
-                </option>
-              ))}
-            </select>
+            <Select
+              id="announcement-group"
+              value={selectedGroup}
+              options={[
+                { label: "ללא בחירה", value: "" }, // Add an empty option
+                ...groups.map((group) => ({
+                  label: group.name,
+                  value: group._id,
+                })),
+              ]}
+              onChange={(value) => setSelectedGroup(value)}
+              placeholder="בחר קבוצה"
+            />
           </div>
 
           <div className="form-input-group template-input-group">
