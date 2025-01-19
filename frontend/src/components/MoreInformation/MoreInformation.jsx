@@ -340,7 +340,16 @@ const MoreInformation = () => {
   };
 
   const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
-    const inputNode = inputType === "number" ? <InputNumber /> : dataIndex === "date" ? <DatePicker /> : <Input />;
+    const inputNode =
+      inputType === "number" ? (
+        <InputNumber />
+      ) : dataIndex === "date" ? (
+        <DatePicker locale={locale} />
+      ) : dataIndex === "weight" ? (
+        <InputNumber />
+      ) : (
+        <Input />
+      );
     return (
       <td {...restProps}>
         {editing ? (
