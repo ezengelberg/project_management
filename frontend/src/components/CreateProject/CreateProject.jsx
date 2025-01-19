@@ -188,6 +188,10 @@ const CreateProject = () => {
     setSelectedYear(value);
   };
 
+  const filterOption = (input, option) => {
+    return option.children.toLowerCase().includes(input.toLowerCase());
+  };
+
   const onFinish = async (values) => {
     const processedDescription = processEditorContent(values.description);
     const finalValues = {
@@ -271,7 +275,7 @@ const CreateProject = () => {
               message: "חובה להזין תיאור לפרויקט",
             },
           ]}>
-          <Editor style={{ height: "320px", wordBreak: "break-word" }} onTextChange={handleEditorChange} />
+          <Editor style={{ height: "320px" }} onTextChange={handleEditorChange} />
         </Form.Item>
 
         <Form.Item
@@ -384,7 +388,7 @@ const CreateProject = () => {
                 required: false,
               },
             ]}>
-            <Select placeholder="בחר מנחה">
+            <Select placeholder="בחר מנחה" showSearch filterOption={filterOption}>
               {advisorUsers.map((user) => (
                 <Option key={user._id} value={user._id}>
                   {user.name}
@@ -417,7 +421,7 @@ const CreateProject = () => {
               required: false,
             },
           ]}>
-          <Select mode="multiple" placeholder="בחר סטודנטים">
+          <Select mode="multiple" placeholder="בחר סטודנטים" filterOption={filterOption}>
             {studentsNoProject.map((student) => (
               <Option key={student.id} value={student.id}>
                 {student.name}

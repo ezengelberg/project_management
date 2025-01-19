@@ -313,6 +313,7 @@ const MoreInformation = () => {
         setRandomTextId(res.data._id);
       }
       setRandomText(gradeWeightDescription);
+      setGradeWeightDescription("");
     } catch (error) {
       console.error("Error occurred:", error);
     }
@@ -885,6 +886,9 @@ const MoreInformation = () => {
       if (error.response?.status === 304) {
         message.error("אין פרויקטים עם מבחן סוף");
         setLoading(false);
+      } else if (error.response?.status === 404) {
+        message.error("לא נמצאו פרויקטים במערכת");
+        setLoading(false);
       } else {
         console.error("Error creating exam table:", error);
         message.error("שגיאה ביצירת טבלת מבחנים");
@@ -1384,22 +1388,25 @@ const MoreInformation = () => {
                 marginBottom: 16,
               }}>
               <Form.Item name="name" rules={[{ required: true, message: "הכנס שם" }]}>
-                <Input placeholder="שם" />
+                <Input placeholder="שם" style={{ width: 200, marginBottom: "10px" }} />
               </Form.Item>
               <Form.Item name="weight" rules={[{ required: true, message: "הכנס משקל" }]}>
-                <InputNumber placeholder="משקל" />
+                <InputNumber placeholder="משקל" style={{ width: 200, marginBottom: "10px" }} />
               </Form.Item>
               <Form.Item
                 name="description"
                 rules={[{ required: true, message: "הכנס תיאור" }]}
-                style={{ width: windowSize.width > 768 ? 400 : windowSize.width > 626 ? 350 : 270 }}>
+                style={{
+                  width: windowSize.width > 768 ? 400 : windowSize.width > 626 ? 350 : 200,
+                  marginBottom: "10px",
+                }}>
                 <Input placeholder="תיאור" />
               </Form.Item>
               <Form.Item name="date" rules={[{ required: true, message: "הכנס תאריך" }]}>
-                <DatePicker placeholder="תאריך" locale={locale} />
+                <DatePicker placeholder="תאריך" locale={locale} style={{ width: 200, marginBottom: "10px" }} />
               </Form.Item>
-              <Form.Item name="tachlit" rules={[{ required: true, message: "בחר סוג" }]}>
-                <Select placeholder="בחר סוג">
+              <Form.Item name="tachlit" rules={[{ required: true, message: "בחר קבוצה" }]}>
+                <Select placeholder="בחר קבוצה" style={{ width: 200, marginBottom: "10px" }}>
                   <Select.Option value={false}>כולם</Select.Option>
                   <Select.Option value={true}>תכלית</Select.Option>
                 </Select>
@@ -1448,8 +1455,9 @@ const MoreInformation = () => {
               </Button>
             </div>
           )}
-          {randomText && (
+          {randomText ? (
             <div className="grade-weight-random-description">
+              <h3>הערות נוספות</h3>
               <p style={{ marginTop: "20px" }} dangerouslySetInnerHTML={{ __html: processContent(randomText) }} />
               {currentUser.isCoordinator && (
                 <div className="grade-weight-random-description-buttons">
@@ -1470,6 +1478,8 @@ const MoreInformation = () => {
                 </div>
               )}
             </div>
+          ) : (
+            <h3>אין הערות נוספות</h3>
           )}
         </div>
       ),

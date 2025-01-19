@@ -1472,6 +1472,10 @@ const OverviewProjects = () => {
     },
   ];
 
+  const filterOption = (input, option) => {
+    return option.label.toLowerCase().includes(input.toLowerCase());
+  };
+
   return (
     <div>
       <Tabs items={tabs} />
@@ -1498,6 +1502,7 @@ const OverviewProjects = () => {
               label: user.name,
               value: user._id,
             }))}
+            filterOption={filterOption}
           />
         </div>
       </Modal>
@@ -1525,6 +1530,7 @@ const OverviewProjects = () => {
               label: user.name,
               value: user._id,
             }))}
+            filterOption={filterOption}
           />
         </div>
       </Modal>
@@ -1544,12 +1550,14 @@ const OverviewProjects = () => {
         <div className="modal-select-input">
           <p>בחר מנחה לפרויקט:</p>
           <Select
+            showSearch
             value={selectedAdvisor}
             onChange={setSelectedAdvisor}
             options={advisors.map((user) => ({
               label: user.name,
               value: user._id,
             }))}
+            filterOption={filterOption}
           />
         </div>
       </Modal>
@@ -1568,12 +1576,14 @@ const OverviewProjects = () => {
         <div className="modal-select-input">
           <p>בחר מנחה לפרויקט:</p>
           <Select
+            showSearch
             value={selectedAdvisor}
             onChange={setSelectedAdvisor}
             options={advisors.map((user) => ({
               label: user.name,
               value: user._id,
             }))}
+            filterOption={filterOption}
           />
         </div>
       </Modal>
@@ -1606,6 +1616,7 @@ const OverviewProjects = () => {
                 label: user.name,
                 value: user._id,
               }))}
+              filterOption={filterOption}
               disabled={submission.editable}
             />
           </div>

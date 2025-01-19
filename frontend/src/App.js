@@ -211,7 +211,7 @@ const MainLayout = () => {
               <Route
                 path="/more-information"
                 element={
-                  <ProtectedRoute privileges={["student"]}>
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
                     <MoreInformation />
                   </ProtectedRoute>
                 }
