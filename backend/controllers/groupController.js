@@ -28,7 +28,6 @@ export const getGroups = async (req, res) => {
 export const getYearGroups = async (req, res) => {
   try {
     const config = await Config.findOne();
-    console.log(config.currentYear);
     const groups = await Group.find({ year: config.currentYear });
     res.status(200).json(groups);
   } catch (error) {

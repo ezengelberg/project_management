@@ -8,6 +8,13 @@ const Announcements = () => {
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedRoles, setSelectedRoles] = useState({
+    student: false,
+    advisor: false,
+    judge: false,
+    coordinator: false,
+  });
+  const [selectedGroup, setSelectedGroup] = useState("");
   const [groups, setGroups] = useState([]);
 
   const fetchPrivileges = async () => {
@@ -27,7 +34,6 @@ const Announcements = () => {
         withCredentials: true,
       });
       setGroups(response.data);
-      console.log(response.data);
     } catch (error) {
       console.error("Error fetching groups:", error);
     }
@@ -42,12 +48,17 @@ const Announcements = () => {
   }, []);
 
   const submitAnnouncement = async () => {
+    console.log(title, description);
+    console.log(selectedGroup === "");
+    console.log("selected roles", selectedRoles);
     try {
       axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/announcement/create`,
         {
           title,
           description,
+          ...(selectedGroup !== "" && { group: selectedGroup }),
+          ...(selectedRoles.some((role) => selectedRoles[role] === true) && { roles: selectedRoles }),
         },
         {
           withCredentials: true,
@@ -90,10 +101,30 @@ const Announcements = () => {
               onChange={(e) => setTitle(e.target.value)}
             />
             <label htmlFor="announcement-roles">למי נשלחת ההודעה</label>
-            <Checkbox.Group id="announcement-roles" options={roleOptions} defaultValue={[]} />
-
+            <Checkbox.Group
+              id="announcement-roles"
+              options={roleOptions}
+              value={Object.keys(selectedRoles).filter((role) => selectedRoles[role])}
+              onChange={(checkedValues) => {
+                const newRoles = {
+                  student: checkedValues.includes("student"),
+                  advisor: checkedValues.includes("advisor"),
+                  judge: checkedValues.includes("judge"),
+                  coordinator: checkedValues.includes("coordinator"),
+                };
+                console.log("Changing roles:", newRoles);
+                setSelectedRoles(newRoles);
+              }}
+            />
             <label htmlFor="announcement-group">קבוצה (במידה ולא תבחר קבוצה ההודעה תשלח לכולם)</label>
-            <input type="text" id="announcement-group" placeholder="קבוצה" />
+            <select id="announcement-group" onChange={(e) => setSelectedGroup(e.target.value)}>
+              <option value=""></option>
+              {groups.map((group) => (
+                <option key={group._id} value={group._id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-input-group template-input-group">
