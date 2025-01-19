@@ -80,9 +80,8 @@ const Login = () => {
             password,
             rememberMe,
           },
-          { withCredentials: true }
+          { withCredentials: true },
         );
-
         const userData = result.data;
         if (userData.firstLogin) {
           setTempUserData(userData);

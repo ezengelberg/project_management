@@ -126,6 +126,10 @@ export const loginUser = (req, res, next) => {
       return res.status(401).send(info.message);
     }
 
+    if (user.suspended) {
+      return res.status(403).send({ message: "User is suspended", reason: user.suspendedReason });
+    }
+
     req.login(user, async (err) => {
       if (err) {
         console.error("Login error:", err);
