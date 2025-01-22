@@ -1032,19 +1032,30 @@ const Submissions = () => {
                 key="extra1"
                 type="primary"
                 onClick={() => {
-                  judgeAssignmentForm.validateFields().then((values) => {
-                    assignJudgesAutomatically(values);
-                  });
+                  judgeAssignmentForm
+                    .validateFields()
+                    .then((values) => {
+                      assignJudgesAutomatically(values);
+                    })
+                    .catch((errorInfo) => {
+                      console.error("Validation failed:", errorInfo);
+                    });
                 }}>
                 הקצאה רגילה
               </Button>
+
               <Button
                 key="extra2"
                 type="primary"
                 onClick={() => {
-                  judgeAssignmentForm.validateFields().then((values) => {
-                    assignJudgesAI(values);
-                  });
+                  judgeAssignmentForm
+                    .validateFields()
+                    .then((values) => {
+                      assignJudgesAI(values);
+                    })
+                    .catch((errorInfo) => {
+                      console.error("Validation failed:", errorInfo);
+                    });
                 }}>
                 הקצאה חכמה
               </Button>
