@@ -206,6 +206,7 @@ const Submissions = () => {
       loopCancel = true;
       setProgress(100);
       fetchSubmissions();
+      setAssignJudgesModal(false);
     }
   };
 
@@ -233,6 +234,7 @@ const Submissions = () => {
       });
     } finally {
       fetchSubmissions();
+      setAssignJudgesModal(false);
     }
   };
 
