@@ -44,6 +44,7 @@ const Submissions = () => {
   const [gradeForm] = Form.useForm();
   const [deleteSubmissionsForm] = Form.useForm();
   const [deleteJudgesForm] = Form.useForm();
+  const [loading, setLoading] = useState(false);
   const [assignJudgesModal, setAssignJudgesModal] = useState(false);
   const [progress, setProgress] = useState(0);
   const [allSubmissions, setAllSubmissions] = useState(false);
@@ -115,11 +116,12 @@ const Submissions = () => {
 
   const fetchSubmissions = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all-project-submissions`,
         {
           withCredentials: true,
-        },
+        }
       );
       response.data.map((project) => {
         project.submissions.map((submission) => {
@@ -129,9 +131,11 @@ const Submissions = () => {
         return project;
       });
       setSubmissionData(response.data);
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching submissions:", error);
       setSubmissionData([]);
+      setLoading(false);
     }
   };
 
@@ -183,7 +187,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
 
       // Start the progress loop
@@ -220,7 +224,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -246,7 +250,7 @@ const Submissions = () => {
           newGrade: values.newGrade,
           comment: values.comment,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
       message.open({
         type: "success",
@@ -268,7 +272,7 @@ const Submissions = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-specific-submission/${values.submission.key}`,
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -293,7 +297,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "info",
@@ -378,7 +382,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -425,7 +429,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.info(`הגשה ${specificSubmissionInfo.submission.name} עודכנה בהצלחה`);
     } catch (error) {
@@ -452,7 +456,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -533,7 +537,7 @@ const Submissions = () => {
         },
         {
           withCredentials: true,
-        },
+        }
       );
       message.open({
         type: "success",
@@ -685,7 +689,7 @@ const Submissions = () => {
                     (grade) =>
                       grade.videoQuality === undefined ||
                       grade.workQuality === undefined ||
-                      grade.writingQuality === undefined,
+                      grade.writingQuality === undefined
                   ));
               return (
                 <div className="table-col-div" key={index}>
@@ -719,7 +723,7 @@ const Submissions = () => {
                                   sub.isLate
                                     ? ` באיחור - ${Math.ceil(
                                         (new Date(sub.uploadDate) - new Date(sub.submissionDate)) /
-                                          (1000 * 60 * 60 * 24),
+                                          (1000 * 60 * 60 * 24)
                                       )} ימים`
                                     : ""
                                 }`
@@ -934,7 +938,7 @@ const Submissions = () => {
           </Button>
         </div>
       </div>
-      <Table columns={columns} dataSource={filteredSubmissionData} scroll={{ x: "max-content" }} />
+      <Table columns={columns} dataSource={filteredSubmissionData} loading={loading} scroll={{ x: "max-content" }} />
       <Modal
         title={`אישור מחיקה`}
         open={deleteAllJudgesConfirm !== null}
@@ -999,7 +1003,7 @@ const Submissions = () => {
                   submission.submissions.map((sub) => ({
                     ...sub,
                     projectIndex, // Add the project index to maintain uniqueness
-                  })),
+                  }))
                 )
                 .filter((sub) => sub.name)
                 .filter((sub, index, array) => array.findIndex((item) => item.name === sub.name) === index)
@@ -1095,7 +1099,7 @@ const Submissions = () => {
                   submission.submissions.map((sub) => ({
                     ...sub,
                     projectIndex, // Add the project index to maintain uniqueness
-                  })),
+                  }))
                 )
                 .filter((sub) => sub.name)
                 .filter((sub, index, array) => array.findIndex((item) => item.name === sub.name) === index)
@@ -1172,7 +1176,7 @@ const Submissions = () => {
                   submission.submissions.map((sub) => ({
                     ...sub,
                     projectIndex, // Add the project index to maintain uniqueness
-                  })),
+                  }))
                 )
                 .filter((sub) => sub.name)
                 .filter((sub, index, array) => array.findIndex((item) => item.name === sub.name) === index)
@@ -1404,7 +1408,7 @@ const Submissions = () => {
                               ? ` באיחור - ${Math.ceil(
                                   (new Date(submissionInfo.submission.uploadDate) -
                                     new Date(submissionInfo.submission.submissionDate)) /
-                                    (1000 * 60 * 60 * 24),
+                                    (1000 * 60 * 60 * 24)
                                 )} ימים`
                               : ""
                           }`
@@ -1477,7 +1481,7 @@ const Submissions = () => {
                       {Math.ceil(
                         (new Date(submissionInfo.submission.uploadDate) -
                           new Date(submissionInfo.submission.submissionDate)) /
-                          (1000 * 60 * 60 * 24),
+                          (1000 * 60 * 60 * 24)
                       ) * 2}
                     </div>
                   </div>
@@ -1621,7 +1625,7 @@ const Submissions = () => {
                 .flatMap((submission) => submission.submissions) // Flatten the submissions array
                 .filter((sub) => sub.name) // Filter out entries without names
                 .filter(
-                  (sub, index, array) => array.findIndex((item) => item.name === sub.name) === index, // Keep only first occurrence
+                  (sub, index, array) => array.findIndex((item) => item.name === sub.name) === index // Keep only first occurrence
                 )
                 .map((sub, index) => (
                   <Option key={index} value={sub.name}>

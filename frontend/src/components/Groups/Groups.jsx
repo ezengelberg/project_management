@@ -123,6 +123,7 @@ const Groups = () => {
             }}
             columns={columns}
             dataSource={filteredItems}
+            loading={loading}
             size="small"
             style={{ pointerEvents: listDisabled ? "none" : undefined }}
             onRow={({ key, disabled: itemDisabled }) => ({
