@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import "./Sidebar.scss";
 import axios from "axios";
+import { FloatButton, Drawer } from "antd";
 import {
   HomeOutlined,
   ProjectOutlined,
@@ -15,6 +16,7 @@ import {
   CloseOutlined,
   LogoutOutlined,
   DeleteOutlined,
+  CommentOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -30,6 +32,7 @@ const Sidebar = () => {
     manageUsers: false,
     manageProjects: false,
   });
+  const [open, setOpen] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -38,6 +41,13 @@ const Sidebar = () => {
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
+  };
+
+  const showDrawer = () => {
+    setOpen(true);
+  };
+  const onClose = () => {
+    setOpen(false);
   };
 
   useEffect(() => {
@@ -386,6 +396,21 @@ const Sidebar = () => {
           </ul>
         </div>
       </div>
+      <FloatButton
+        icon={<CommentOutlined />}
+        onClick={showDrawer}
+        badge={{
+          count: 10,
+          overflowCount: 999,
+          style: { direction: "ltr" },
+        }}
+        style={{ direction: "ltr" }}
+      />
+      <Drawer title="צ'אטים" onClose={onClose} open={open} mask={false} maskClosable={false}>
+        <p>Some contents...</p>
+        <p>Some contents...</p>
+        <p>Some contents...</p>
+      </Drawer>
     </>
   );
 };
