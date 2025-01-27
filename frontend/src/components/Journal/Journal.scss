@@ -1,0 +1,16 @@
+.journal {
+  width: 70%;
+  margin: 0 auto;
+
+  .journal-header {
+    .journal-header-counter {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      p {
+        margin: 0;
+      }
+    }
+  }
+}
