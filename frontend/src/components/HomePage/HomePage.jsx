@@ -112,6 +112,19 @@ const Homepage = () => {
       </g>
     </svg>
   );
+  const JournalSVG = () => (
+    <svg viewBox="0 0 16 16" fill="#000000" className="special-icons">
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path
+          fillRule="evenodd"
+          d="M10.854 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 8.793l2.646-2.647a.5.5 0 0 1 .708 0z"></path>
+        <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"></path>
+        <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"></path>
+      </g>
+    </svg>
+  );
 
   useEffect(() => {
     dayjs.locale("he");
@@ -218,6 +231,15 @@ const Homepage = () => {
                 onMouseDown={(e) => handleMouseDown(e, `/project/${userProject._id}`)}>
                 <ApartmentOutlined />
                 <p>דף הפרויקט</p>
+              </div>
+            )}
+            {currentUser.isStudent && (
+              <div
+                className="quick-link-item"
+                onClick={() => navigate("/journal")}
+                onMouseDown={(e) => handleMouseDown(e, "/journal")}>
+                <JournalSVG />
+                <p>יומן עבודה</p>
               </div>
             )}
             {currentUser.isStudent && (

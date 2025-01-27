@@ -26,6 +26,7 @@ import SubmissionsStatus from "./components/SubmissionsStatus/SubmissionsStatus"
 import ProfilePage from "./components/ProfilePage/ProfilePage";
 import DeleteAll from "./components/DeleteAll/DeleteAll";
 import Groups from "./components/Groups/Groups";
+import Journal from "./components/Journal/Journal";
 
 function App() {
   return (
@@ -62,10 +63,11 @@ const MainLayout = () => {
       "/system": "בקרת מערכת",
       "/delete-all": "מחיקת הכל",
       "/notifications": "התראות",
+      "/journal": "יומן עבודה",
     };
 
     const currentPath = Object.keys(routeTitles).find((path) =>
-      new RegExp(`^${path.replace(/:\w+/g, "\\w+")}$`).test(location.pathname),
+      new RegExp(`^${path.replace(/:\w+/g, "\\w+")}$`).test(location.pathname)
     );
 
     document.title = `ניהול פרויקטים | ${routeTitles[currentPath] || "כניסה"}`;
@@ -114,6 +116,14 @@ const MainLayout = () => {
                 element={
                   <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
                     <Templates />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/journal"
+                element={
+                  <ProtectedRoute privileges={["student"]}>
+                    <Journal />
                   </ProtectedRoute>
                 }
               />
