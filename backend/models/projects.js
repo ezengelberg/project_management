@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 const journalSchema = new mongoose.Schema(
   {
     missions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Mission", required: false, default: [] }],
-    labels: [{ type: mongoose.Schema.Types.ObjectId, ref: "Label", required: false, default: [] }],
   },
   { timestamps: true }
 );

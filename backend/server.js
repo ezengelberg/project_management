@@ -23,7 +23,6 @@ import Config from "./models/config.js";
 import groupRoute from "./routes/groupRoute.js";
 import journalRoute from "./routes/journalRoute.js";
 import missionRoute from "./routes/missionRoute.js";
-import labelRoute from "./routes/labelRoute.js";
 
 import dotenv from "dotenv";
 
@@ -131,7 +130,6 @@ app.use("/api/group", groupRoute);
 app.use("/api/journal", journalRoute);
 app.use("/api/mission", missionRoute);
 app.use("/api/project/:projectId/journal", journalRoute);
-app.use("/api/labels", labelRoute);
 
 app.get("/", (req, res) => {
   res.send(`Version DEV: 13`);

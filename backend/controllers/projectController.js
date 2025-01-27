@@ -83,6 +83,24 @@ export const getSelfProjects = async (req, res) => {
   }
 };
 
+export const getSelfProjectsAsStudent = async (req, res) => {
+  try {
+    const userid = req.user._id;
+    const user = await User.findById(userid);
+    if (!user) {
+      return res.status(200).send({ projects: [] });
+    }
+    const projects = await Project.find({ students: { $elemMatch: { student: userid } } }).populate({
+      path: "students.student",
+      model: "User",
+      select: "-password", // Exclude the password field
+    });
+    res.status(200).send({ projects });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const createProject = async (req, res) => {
   try {
     const { title, description, year, suitableFor, type, continues, advisors, students } = req.body;
@@ -107,6 +125,7 @@ export const createProject = async (req, res) => {
         isTerminated: false,
         isTaken: false,
         grades: [],
+        journal: { missions: [] },
       });
     } else {
       if (advisors.length > 0) {
@@ -136,6 +155,7 @@ export const createProject = async (req, res) => {
         isTerminated: false,
         isTaken: false,
         grades: [],
+        journal: { missions: [] },
       });
     }
 

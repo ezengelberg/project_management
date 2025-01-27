@@ -5,21 +5,15 @@ import {
   getJournalEntryById,
   updateJournalEntry,
   deleteJournalEntry,
-  createLabel,
-  getLabels,
-  deleteLabel,
 } from "../controllers/journalController.js";
+import { ensureAuthenticated } from "../middleware/auth.js";
 
-const router = express.Router({ mergeParams: true });
+const router = express.Router();
 
-router.post("/", createJournalEntry);
-router.get("/", getJournalEntries);
-router.get("/:missionId", getJournalEntryById);
-router.put("/:missionId", updateJournalEntry);
-router.delete("/:missionId", deleteJournalEntry);
-
-router.post("/labels", createLabel);
-router.get("/labels", getLabels);
-router.delete("/labels/:labelId", deleteLabel);
+router.post("/", ensureAuthenticated, createJournalEntry);
+router.get("/", ensureAuthenticated, getJournalEntries);
+router.get("/:missionId", ensureAuthenticated, getJournalEntryById);
+router.put("/:missionId", ensureAuthenticated, updateJournalEntry);
+router.delete("/:missionId", ensureAuthenticated, deleteJournalEntry);
 
 export default router;
