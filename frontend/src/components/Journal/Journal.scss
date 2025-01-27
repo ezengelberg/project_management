@@ -23,6 +23,10 @@
     }
   }
 
+  .ant-collapse-header {
+    align-items: center !important;
+  }
+
   .journal-item-meta {
     display: flex;
     align-items: center;
@@ -63,14 +67,40 @@
 
   .ant-col {
     .ant-form-item-control-input {
-      .ant-select {
-        .ant-select-selector {
-          .ant-select-selection-wrap {
-            .ant-select-selection-overflow {
-              .ant-select-selection-overflow-item {
-                .ant-tag {
-                  .anticon-close {
-                    color: #000;
+      .ant-form-item-control-input-content {
+        .ant-select {
+          .ant-select-selector {
+            .ant-select-selection-wrap {
+              .ant-select-selection-overflow {
+                .ant-select-selection-overflow-item {
+                  .ant-tag {
+                    .anticon-close {
+                      color: #000;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.edit-mission-form {
+  .ant-col {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        .ant-select {
+          .ant-select-selector {
+            .ant-select-selection-wrap {
+              .ant-select-selection-overflow {
+                .ant-select-selection-overflow-item {
+                  .ant-tag {
+                    .anticon-close {
+                      color: #000;
+                    }
                   }
                 }
               }

@@ -26,10 +26,18 @@ const Journal = () => {
     return storedUser ? JSON.parse(storedUser) : {};
   });
   const [newMissionForm] = Form.useForm();
+  const [editMissionForm] = Form.useForm();
+  const [deleteMissionModalVisible, setDeleteMissionModalVisible] = useState(false);
+  const [deleteMissionId, setDeleteMissionId] = useState("");
+  const [editMissionModalVisible, setEditMissionModalVisible] = useState(false);
+  const [editMissionDetails, setEditMissionDetails] = useState("");
   const [loading, setLoading] = useState(false);
   const [missions, setMissions] = useState([]);
   const [projectDetails, setProjectDetails] = useState({});
   const [students, setStudents] = useState([]);
+  const [selectedCreator, setSelectedCreator] = useState(null);
+  const [selectedLabel, setSelectedLabel] = useState(null);
+  const [selectedAssignee, setSelectedAssignee] = useState(null);
 
   const tagRender = (props) => {
     const { label, value, closable, onClose } = props;
@@ -73,8 +81,6 @@ const Journal = () => {
             withCredentials: true,
           }
         );
-        // console.log(res.data.projects[0]);
-        // console.log(missionsRes.data);
         setProjectDetails(res.data.projects[0]);
         const sortedMissions = missionsRes.data.missions.sort((a, b) => b.number - a.number);
         setMissions(sortedMissions || []);
@@ -92,6 +98,17 @@ const Journal = () => {
     };
     fetchProjectDetails();
   }, []);
+
+  useEffect(() => {
+    if (editMissionDetails) {
+      editMissionForm.setFieldsValue({
+        name: editMissionDetails.name,
+        description: editMissionDetails.description,
+        labels: editMissionDetails.labels,
+        assignees: editMissionDetails.assignees.map((assignee) => assignee._id),
+      });
+    }
+  }, [editMissionDetails, editMissionForm]);
 
   const fetchMissions = async () => {
     try {
@@ -128,8 +145,84 @@ const Journal = () => {
     }
   };
 
-  const openMissionsDataSource = missions.filter((mission) => mission.isCompleted === false);
-  const closedMissionsDataSource = missions.filter((mission) => mission.isCompleted === true);
+  const handleDeleteMission = async (missionId) => {
+    try {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/mission/${missionId}`, {
+        withCredentials: true,
+      });
+      fetchMissions();
+      message.success("המשימה נמחקה בהצלחה");
+      setDeleteMissionModalVisible(false);
+      setDeleteMissionId("");
+    } catch (error) {
+      console.error(error);
+      message.error("שגיאה במחיקת המשימה");
+    }
+  };
+
+  const handleMarkMissionAsCompleted = async (missionId) => {
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/mission/${missionId}`,
+        { isCompleted: true },
+        {
+          withCredentials: true,
+        }
+      );
+      fetchMissions();
+      message.success("המשימה הושלמה בהצלחה");
+    } catch (error) {
+      console.error(error);
+      message.error("שגיאה בסימון המשימה כהושלמה");
+    }
+  };
+
+  const handleRestoreMission = async (missionId) => {
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/mission/${missionId}`,
+        { isCompleted: false },
+        {
+          withCredentials: true,
+        }
+      );
+      fetchMissions();
+      message.success("המשימה נפתחה מחדש בהצלחה");
+    } catch (error) {
+      console.error(error);
+      message.error("שגיאה בפתיחת המשימה מחדש");
+    }
+  };
+
+  const handleEditMission = async (values) => {
+    try {
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/mission/${editMissionDetails._id}`, values, {
+        withCredentials: true,
+      });
+      fetchMissions();
+      message.success("המשימה עודכנה בהצלחה");
+      setEditMissionModalVisible(false);
+      editMissionForm.resetFields();
+      setEditMissionDetails(null);
+    } catch (error) {
+      console.error(error);
+      message.error("שגיאה בעדכון המשימה");
+    }
+  };
+
+  const filterMissions = (missions) => {
+    return missions.filter((mission) => {
+      const matchesCreator = selectedCreator ? mission.author._id === selectedCreator : true;
+      const matchesLabel = selectedLabel ? mission.labels.includes(selectedLabel) : true;
+      const matchesAssignee = selectedAssignee
+        ? mission.assignees.some((assignee) => assignee._id === selectedAssignee)
+        : true;
+      return matchesCreator && matchesLabel && matchesAssignee;
+    });
+  };
+
+  const openMissionsDataSource = filterMissions(missions.filter((mission) => mission.isCompleted === false));
+  const closedMissionsDataSource = filterMissions(missions.filter((mission) => mission.isCompleted === true));
 
   const items = [
     {
@@ -157,20 +250,20 @@ const Journal = () => {
                 <Select
                   placeholder="יוצר"
                   style={{ width: 150 }}
-                  onChange={(value) => console.log(value)}
-                  options={students}
+                  onChange={(value) => setSelectedCreator(value)}
+                  options={[{ label: "הכל", value: "" }, ...students]}
                 />
                 <Select
                   placeholder="תגית"
                   style={{ width: 150 }}
-                  onChange={(value) => console.log(value)}
-                  options={missionLabels}
+                  onChange={(value) => setSelectedLabel(value)}
+                  options={[{ label: "הכל", value: "" }, ...missionLabels]}
                 />
                 <Select
                   placeholder="משוייך ל..."
                   style={{ width: 150 }}
-                  onChange={(value) => console.log(value)}
-                  options={students}
+                  onChange={(value) => setSelectedAssignee(value)}
+                  options={[{ label: "הכל", value: "" }, ...students]}
                 />
               </div>
             </div>
@@ -237,15 +330,31 @@ const Journal = () => {
                           </Avatar.Group>
                           <div className="journal-item-actions-buttons">
                             <Tooltip title="סמן כהושלם">
-                              <CheckCircleTwoTone twoToneColor="#52c41a" />
+                              <CheckCircleTwoTone
+                                twoToneColor="#52c41a"
+                                onClick={() => handleMarkMissionAsCompleted(item._id)}
+                              />
                             </Tooltip>
                             <Divider type="vertical" />
                             <Tooltip title="עריכה">
-                              <EditOutlined />
+                              <EditOutlined
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditMissionModalVisible(true);
+                                  setEditMissionDetails(item);
+                                }}
+                              />
                             </Tooltip>
                             <Divider type="vertical" />
                             <Tooltip title="מחיקה">
-                              <DeleteTwoTone twoToneColor="#ff4d4f" />
+                              <DeleteTwoTone
+                                twoToneColor="#ff4d4f"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteMissionModalVisible(true);
+                                  setDeleteMissionId(item._id);
+                                }}
+                              />
                             </Tooltip>
                           </div>
                         </div>
@@ -285,20 +394,20 @@ const Journal = () => {
                 <Select
                   placeholder="יוצר"
                   style={{ width: 150 }}
-                  onChange={(value) => console.log(value)}
-                  options={students}
+                  onChange={(value) => setSelectedCreator(value)}
+                  options={[{ label: "הכל", value: "" }, ...students]}
                 />
                 <Select
                   placeholder="תגית"
                   style={{ width: 150 }}
-                  onChange={(value) => console.log(value)}
-                  options={missionLabels}
+                  onChange={(value) => setSelectedLabel(value)}
+                  options={[{ label: "הכל", value: "" }, ...missionLabels]}
                 />
                 <Select
                   placeholder="משוייך ל..."
                   style={{ width: 150 }}
-                  onChange={(value) => console.log(value)}
-                  options={students}
+                  onChange={(value) => setSelectedAssignee(value)}
+                  options={[{ label: "הכל", value: "" }, ...students]}
                 />
               </div>
             </div>
@@ -314,46 +423,44 @@ const Journal = () => {
                   label: (
                     <div>
                       <List.Item key={item._id}>
-                        <div className="journal-item">
-                          <div className="journal-item__title">{item.name}</div>
-                          <div className="journal-item__date">
-                            {
-                              <>
-                                <div className="journal-item-creator">
-                                  <span>
-                                    #{item.number} · {item.author.name} נפתח ב:{" "}
-                                  </span>
-                                  {new Date(item.createdAt).toLocaleString("he-IL", {
-                                    year: "numeric",
-                                    month: "2-digit",
-                                    day: "2-digit",
-                                  })}
-                                </div>
-                                <div>
-                                  {item.labels.map((label) => {
-                                    const labelData = missionLabels.find((l) => l.value === label);
-                                    const color = labelData?.color || "#000";
-                                    const borderColor = labelData?.borderColor || "#000";
-                                    const borderRadius = labelData?.borderRadius || "0px";
-                                    return (
-                                      <Tag
-                                        key={label}
-                                        color={color}
-                                        style={{
-                                          color: borderColor,
-                                          borderColor: borderColor,
-                                          borderRadius: borderRadius,
-                                          fontWeight: "bold",
-                                        }}>
-                                        {label}
-                                      </Tag>
-                                    );
-                                  })}
-                                </div>
-                              </>
-                            }
-                          </div>
-                        </div>
+                        <List.Item.Meta
+                          title={item.name}
+                          description={
+                            <div className="journal-item-meta">
+                              <div className="journal-item-creator">
+                                <span>
+                                  #{item.number} · {item.author.name} נפתח ב:{" "}
+                                </span>
+                                {new Date(item.createdAt).toLocaleString("he-IL", {
+                                  year: "numeric",
+                                  month: "2-digit",
+                                  day: "2-digit",
+                                })}
+                              </div>
+                              <div className="journal-item-labels">
+                                {item.labels.map((label) => {
+                                  const labelData = missionLabels.find((l) => l.value === label);
+                                  const color = labelData?.color || "#000";
+                                  const borderColor = labelData?.borderColor || "#000";
+                                  const borderRadius = labelData?.borderRadius || "0px";
+                                  return (
+                                    <Tag
+                                      key={label}
+                                      color={color}
+                                      style={{
+                                        color: borderColor,
+                                        borderColor: borderColor,
+                                        borderRadius: borderRadius,
+                                        fontWeight: "bold",
+                                      }}>
+                                      {label}
+                                    </Tag>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          }
+                        />
                         <div className="journal-item-actions">
                           <Avatar.Group>
                             {item.assignees.map((assignee) => (
@@ -367,11 +474,18 @@ const Journal = () => {
                           </Avatar.Group>
                           <div className="journal-item-actions-buttons">
                             <Tooltip title="פתח מחדש">
-                              <RollbackOutlined />
+                              <RollbackOutlined onClick={() => handleRestoreMission(item._id)} />
                             </Tooltip>
                             <Divider type="vertical" />
                             <Tooltip title="מחיקה">
-                              <DeleteTwoTone twoToneColor="#ff4d4f" />
+                              <DeleteTwoTone
+                                twoToneColor="#ff4d4f"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteMissionModalVisible(true);
+                                  setDeleteMissionId(item._id);
+                                }}
+                              />
                             </Tooltip>
                           </div>
                         </div>
@@ -440,6 +554,67 @@ const Journal = () => {
   return (
     <div className="journal">
       <Tabs defaultActiveKey="1" items={items} />
+      <Modal
+        title="האם אתה בטוח שברצונך למחוק את המשימה?"
+        open={deleteMissionModalVisible}
+        onOk={() => handleDeleteMission(deleteMissionId)}
+        onCancel={() => {
+          setDeleteMissionModalVisible(false);
+          setDeleteMissionId("");
+        }}
+        okText="כן"
+        cancelText="לא"
+        okButtonProps={{ danger: true }}></Modal>
+
+      <Modal
+        title="עריכת משימה"
+        open={editMissionModalVisible}
+        onOk={() => {
+          editMissionForm
+            .validateFields()
+            .then((values) => handleEditMission(values))
+            .catch(() => {
+              console.log("Validation Failed");
+            });
+        }}
+        onCancel={() => {
+          setEditMissionModalVisible(false);
+          editMissionForm.resetFields();
+          setEditMissionDetails(null);
+        }}
+        okText="שמירה"
+        cancelText="ביטול">
+        <Form form={editMissionForm} layout="vertical" className="edit-mission-form">
+          <Form.Item label="שם המשימה" name="name" rules={[{ required: true, message: "שדה חובה" }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item label="תיאור המשימה" name="description">
+            <Input.TextArea rows={10} />
+          </Form.Item>
+          <Form.Item label="תגיות" name="labels">
+            <Select
+              showSearch={false}
+              mode="multiple"
+              tagRender={tagRender}
+              style={{ width: "100%" }}
+              placeholder="תגיות"
+              options={missionLabels.map((label) => ({
+                value: label.value,
+                label: label.value,
+              }))}
+            />
+          </Form.Item>
+          <Form.Item label="משוייך ל..." name="assignees">
+            <Select
+              mode="multiple"
+              style={{ width: "100%" }}
+              placeholder="משוייך ל..."
+              options={students}
+              showSearch={false}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
