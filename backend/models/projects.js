@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+const journalSchema = new mongoose.Schema(
+  {
+    missions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Mission", required: false, default: [] }],
+    labels: [{ type: mongoose.Schema.Types.ObjectId, ref: "Label", required: false, default: [] }],
+  },
+  { timestamps: true }
+);
+
 const projectSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
@@ -59,6 +67,7 @@ const projectSchema = new mongoose.Schema({
       },
     },
   ],
+  journal: journalSchema,
 });
 
 // Apply the option to disable _id for sub-documents within `candidates`
