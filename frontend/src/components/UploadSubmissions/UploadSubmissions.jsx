@@ -186,6 +186,7 @@ const UploadSubmissions = () => {
       const data = response.data || [];
       if (data.message === "No project found") {
         setSubmissions([]);
+        setLoading(false);
         return;
       } else if (!Array.isArray(data)) {
         throw new Error("Invalid data format");
