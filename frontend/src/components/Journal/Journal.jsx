@@ -19,8 +19,10 @@ import {
 } from "antd";
 import { CheckCircleTwoTone, EditOutlined, DeleteTwoTone, RollbackOutlined } from "@ant-design/icons";
 import { missionLabels } from "../../utils/labelsUtil";
+import { useParams } from "react-router-dom";
 
-const Journal = () => {
+const Journal = ({ readOnly }) => {
+  const { projectId } = useParams();
   const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
@@ -33,7 +35,7 @@ const Journal = () => {
   const [editMissionDetails, setEditMissionDetails] = useState("");
   const [loading, setLoading] = useState(false);
   const [missions, setMissions] = useState([]);
-  const [projectDetails, setProjectDetails] = useState({});
+  const [projectDetails, setProjectDetails] = useState(null);
   const [students, setStudents] = useState([]);
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [selectedLabel, setSelectedLabel] = useState(null);
@@ -72,16 +74,34 @@ const Journal = () => {
     const fetchProjectDetails = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/self-projects-student`, {
-          withCredentials: true,
-        });
+        let res;
+        if (readOnly) {
+          res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects`, {
+            withCredentials: true,
+          });
+          if (!res.data.projects.length) {
+            return;
+          }
+          const project = res.data.projects.find((project) => project._id === projectId);
+          if (!project) {
+            return;
+          }
+          setProjectDetails(project);
+        } else {
+          res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/"self-projects-student"`, {
+            withCredentials: true,
+          });
+          if (!res.data.projects.length) {
+            return;
+          }
+          setProjectDetails(res.data.projects[0]);
+        }
         const missionsRes = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/mission/project/${res.data.projects[0]._id}`,
           {
             withCredentials: true,
           }
         );
-        setProjectDetails(res.data.projects[0]);
         const sortedMissions = missionsRes.data.missions.sort((a, b) => b.number - a.number);
         setMissions(sortedMissions || []);
         setStudents(
@@ -97,7 +117,7 @@ const Journal = () => {
       }
     };
     fetchProjectDetails();
-  }, []);
+  }, [projectId, readOnly]);
 
   useEffect(() => {
     if (editMissionDetails) {
@@ -246,26 +266,28 @@ const Journal = () => {
                 />
                 <p>משימות פתוחות</p>
               </div>
-              <div className="journal-header-filter">
-                <Select
-                  placeholder="יוצר"
-                  style={{ width: 150 }}
-                  onChange={(value) => setSelectedCreator(value)}
-                  options={[{ label: "הכל", value: "" }, ...students]}
-                />
-                <Select
-                  placeholder="תגית"
-                  style={{ width: 150 }}
-                  onChange={(value) => setSelectedLabel(value)}
-                  options={[{ label: "הכל", value: "" }, ...missionLabels]}
-                />
-                <Select
-                  placeholder="משוייך ל..."
-                  style={{ width: 150 }}
-                  onChange={(value) => setSelectedAssignee(value)}
-                  options={[{ label: "הכל", value: "" }, ...students]}
-                />
-              </div>
+              {!readOnly && (
+                <div className="journal-header-filter">
+                  <Select
+                    placeholder="יוצר"
+                    style={{ width: 150 }}
+                    onChange={(value) => setSelectedCreator(value)}
+                    options={[{ label: "הכל", value: "" }, ...students]}
+                  />
+                  <Select
+                    placeholder="תגית"
+                    style={{ width: 150 }}
+                    onChange={(value) => setSelectedLabel(value)}
+                    options={[{ label: "הכל", value: "" }, ...missionLabels]}
+                  />
+                  <Select
+                    placeholder="משוייך ל..."
+                    style={{ width: 150 }}
+                    onChange={(value) => setSelectedAssignee(value)}
+                    options={[{ label: "הכל", value: "" }, ...students]}
+                  />
+                </div>
+              )}
             </div>
           }
           dataSource={openMissionsDataSource}
@@ -328,35 +350,37 @@ const Journal = () => {
                               </Tooltip>
                             ))}
                           </Avatar.Group>
-                          <div className="journal-item-actions-buttons">
-                            <Tooltip title="סמן כהושלם">
-                              <CheckCircleTwoTone
-                                twoToneColor="#52c41a"
-                                onClick={() => handleMarkMissionAsCompleted(item._id)}
-                              />
-                            </Tooltip>
-                            <Divider type="vertical" />
-                            <Tooltip title="עריכה">
-                              <EditOutlined
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditMissionModalVisible(true);
-                                  setEditMissionDetails(item);
-                                }}
-                              />
-                            </Tooltip>
-                            <Divider type="vertical" />
-                            <Tooltip title="מחיקה">
-                              <DeleteTwoTone
-                                twoToneColor="#ff4d4f"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDeleteMissionModalVisible(true);
-                                  setDeleteMissionId(item._id);
-                                }}
-                              />
-                            </Tooltip>
-                          </div>
+                          {!readOnly && (
+                            <div className="journal-item-actions-buttons">
+                              <Tooltip title="סמן כהושלם">
+                                <CheckCircleTwoTone
+                                  twoToneColor="#52c41a"
+                                  onClick={() => handleMarkMissionAsCompleted(item._id)}
+                                />
+                              </Tooltip>
+                              <Divider type="vertical" />
+                              <Tooltip title="עריכה">
+                                <EditOutlined
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditMissionModalVisible(true);
+                                    setEditMissionDetails(item);
+                                  }}
+                                />
+                              </Tooltip>
+                              <Divider type="vertical" />
+                              <Tooltip title="מחיקה">
+                                <DeleteTwoTone
+                                  twoToneColor="#ff4d4f"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeleteMissionModalVisible(true);
+                                    setDeleteMissionId(item._id);
+                                  }}
+                                />
+                              </Tooltip>
+                            </div>
+                          )}
                         </div>
                       </List.Item>
                     ),
@@ -390,26 +414,28 @@ const Journal = () => {
                 />
                 <p>משימות סגורות</p>
               </div>
-              <div className="journal-header-filter">
-                <Select
-                  placeholder="יוצר"
-                  style={{ width: 150 }}
-                  onChange={(value) => setSelectedCreator(value)}
-                  options={[{ label: "הכל", value: "" }, ...students]}
-                />
-                <Select
-                  placeholder="תגית"
-                  style={{ width: 150 }}
-                  onChange={(value) => setSelectedLabel(value)}
-                  options={[{ label: "הכל", value: "" }, ...missionLabels]}
-                />
-                <Select
-                  placeholder="משוייך ל..."
-                  style={{ width: 150 }}
-                  onChange={(value) => setSelectedAssignee(value)}
-                  options={[{ label: "הכל", value: "" }, ...students]}
-                />
-              </div>
+              {!readOnly && (
+                <div className="journal-header-filter">
+                  <Select
+                    placeholder="יוצר"
+                    style={{ width: 150 }}
+                    onChange={(value) => setSelectedCreator(value)}
+                    options={[{ label: "הכל", value: "" }, ...students]}
+                  />
+                  <Select
+                    placeholder="תגית"
+                    style={{ width: 150 }}
+                    onChange={(value) => setSelectedLabel(value)}
+                    options={[{ label: "הכל", value: "" }, ...missionLabels]}
+                  />
+                  <Select
+                    placeholder="משוייך ל..."
+                    style={{ width: 150 }}
+                    onChange={(value) => setSelectedAssignee(value)}
+                    options={[{ label: "הכל", value: "" }, ...students]}
+                  />
+                </div>
+              )}
             </div>
           }
           dataSource={closedMissionsDataSource}
@@ -472,22 +498,24 @@ const Journal = () => {
                               </Tooltip>
                             ))}
                           </Avatar.Group>
-                          <div className="journal-item-actions-buttons">
-                            <Tooltip title="פתח מחדש">
-                              <RollbackOutlined onClick={() => handleRestoreMission(item._id)} />
-                            </Tooltip>
-                            <Divider type="vertical" />
-                            <Tooltip title="מחיקה">
-                              <DeleteTwoTone
-                                twoToneColor="#ff4d4f"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDeleteMissionModalVisible(true);
-                                  setDeleteMissionId(item._id);
-                                }}
-                              />
-                            </Tooltip>
-                          </div>
+                          {!readOnly && (
+                            <div className="journal-item-actions-buttons">
+                              <Tooltip title="פתח מחדש">
+                                <RollbackOutlined onClick={() => handleRestoreMission(item._id)} />
+                              </Tooltip>
+                              <Divider type="vertical" />
+                              <Tooltip title="מחיקה">
+                                <DeleteTwoTone
+                                  twoToneColor="#ff4d4f"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeleteMissionModalVisible(true);
+                                    setDeleteMissionId(item._id);
+                                  }}
+                                />
+                              </Tooltip>
+                            </div>
+                          )}
                         </div>
                       </List.Item>
                     </div>
@@ -501,9 +529,9 @@ const Journal = () => {
       ),
     },
     {
-      key: "3",
-      label: "פתיחת משימה חדשה",
-      children: (
+      key: !readOnly && "3",
+      label: !readOnly && "פתיחת משימה חדשה",
+      children: !readOnly && (
         <Form form={newMissionForm} layout="vertical" onFinish={handleCreateMission}>
           <Form.Item
             label="שם המשימה"
@@ -553,7 +581,7 @@ const Journal = () => {
 
   return (
     <div className="journal">
-      <Tabs defaultActiveKey="1" items={items} />
+      {projectDetails ? <Tabs defaultActiveKey="1" items={items} /> : <h2>אחרי הרשמה לפרויקט תוכלו לפתוח יומן</h2>}
       <Modal
         title="האם אתה בטוח שברצונך למחוק את המשימה?"
         open={deleteMissionModalVisible}

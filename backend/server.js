@@ -129,7 +129,6 @@ app.use("/uploads", express.static("uploads")); // Serve uploaded files
 app.use("/api/group", groupRoute);
 app.use("/api/journal", journalRoute);
 app.use("/api/mission", missionRoute);
-app.use("/api/project/:projectId/journal", journalRoute);
 
 app.get("/", (req, res) => {
   res.send(`Version DEV: 13`);

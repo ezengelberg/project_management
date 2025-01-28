@@ -282,6 +282,12 @@ const Sidebar = () => {
                       סטטוס פרויקטים
                     </li>
                     <li
+                      className={`${isActive("/journal-status") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/journal-status")}
+                      onMouseDown={(e) => handleMouseDown(e, "/journal-status")}>
+                      מעקב עבודה
+                    </li>
+                    <li
                       className={`${isActive("/submission-status") ? "active" : ""}`}
                       onClick={() => handleNavigate("/submission-status")}
                       onMouseDown={(e) => handleMouseDown(e, "/submission-status")}>

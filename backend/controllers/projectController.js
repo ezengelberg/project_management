@@ -11,6 +11,7 @@ import path from "path";
 import OpenAI from "openai";
 import ExamTable from "../models/examTable.js";
 import mongoose from "mongoose";
+import Mission from "../models/mission.js";
 
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
@@ -627,6 +628,12 @@ export const terminateProject = async (req, res) => {
       await submission.deleteOne();
     }
 
+    // Delete all related missions
+    await Mission.deleteMany({ _id: { $in: project.journal.missions } });
+
+    // Delete the journal
+    project.journal = { missions: [] };
+
     await project.save();
     res.status(200).send("Project terminated successfully");
   } catch (err) {
@@ -799,6 +806,9 @@ export const deleteAllProjects = async (req, res) => {
         }
       }
       await Submission.deleteMany({ project: project._id });
+
+      // Delete associated missions
+      await Mission.deleteMany({ _id: { $in: project.journal.missions } });
     }
     await Project.deleteMany();
     res.status(200).json({ message: "All projects deleted successfully" });

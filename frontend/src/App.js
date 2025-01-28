@@ -27,6 +27,7 @@ import ProfilePage from "./components/ProfilePage/ProfilePage";
 import DeleteAll from "./components/DeleteAll/DeleteAll";
 import Groups from "./components/Groups/Groups";
 import Journal from "./components/Journal/Journal";
+import JournalStatus from "./components/JournalStatus/JournalStatus";
 
 function App() {
   return (
@@ -64,6 +65,8 @@ const MainLayout = () => {
       "/delete-all": "מחיקת הכל",
       "/notifications": "התראות",
       "/journal": "יומן עבודה",
+      "/journal-status": "מעקב עבודה",
+      "/journal/:projectId": "יומן עבודה",
     };
 
     const currentPath = Object.keys(routeTitles).find((path) =>
@@ -209,6 +212,14 @@ const MainLayout = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/journal-status"
+                element={
+                  <ProtectedRoute privileges={["advisor"]}>
+                    <JournalStatus />
+                  </ProtectedRoute>
+                }
+              />
               {/* TODO privileges */}
               <Route
                 path="/grade-submission/:submissionId"
@@ -247,6 +258,14 @@ const MainLayout = () => {
                 element={
                   <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
                     <Notifications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/journal/:projectId"
+                element={
+                  <ProtectedRoute privileges={["advisor"]}>
+                    <Journal readOnly={true} />
                   </ProtectedRoute>
                 }
               />
