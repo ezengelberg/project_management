@@ -21,7 +21,6 @@ import randomRoute from "./routes/randomRoute.js";
 import configRoute from "./routes/configRoute.js";
 import Config from "./models/config.js";
 import groupRoute from "./routes/groupRoute.js";
-import journalRoute from "./routes/journalRoute.js";
 import missionRoute from "./routes/missionRoute.js";
 
 import dotenv from "dotenv";
@@ -127,7 +126,6 @@ app.use("/api/random", randomRoute);
 app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 app.use("/api/group", groupRoute);
-app.use("/api/journal", journalRoute);
 app.use("/api/mission", missionRoute);
 
 app.get("/", (req, res) => {
