@@ -13,13 +13,15 @@ import {
   TeamOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import locale from "antd/es/date-picker/locale/he_IL";
+import dayjs from "dayjs";
+import "dayjs/locale/he";
 import { useNavigate } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
 import StudentSubmissions from "../UploadSubmissions/UploadSubmissions";
 import AdvisorSubmissionsStatus from "../SubmissionsStatus/SubmissionsStatus";
 import SubmissionsManagement from "../Submissions/Submissions";
 import { NotificationsContext } from "../../utils/NotificationsContext";
+import locale from "antd/es/date-picker/locale/he_IL";
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -28,6 +30,8 @@ const Homepage = () => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
   });
+  const [value, setValue] = useState(() => dayjs());
+  const [selectedValue, setSelectedValue] = useState(() => dayjs());
   const [userProject, setUserProject] = useState(null);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -136,6 +140,11 @@ const Homepage = () => {
     fetchUserProject();
     fetchNotifications();
   }, []);
+
+  const onSelect = (newValue) => {
+    setValue(newValue);
+    setSelectedValue(newValue);
+  };
 
   const handleNotificationClick = (notification) => {
     if (notification.link) {
@@ -366,7 +375,10 @@ const Homepage = () => {
           </>
         )}
       </div>
-      <Calendar className="home-page-upcoming-events" locale={locale} />
+      <div className="home-page-upcoming-events">
+        <Calendar className="calendar" locale={locale} value={value} onSelect={onSelect} />
+        <Alert className="list-info" message={`${selectedValue?.format("DD-MM-YYYY")}`} />
+      </div>
     </div>
   );
 };
