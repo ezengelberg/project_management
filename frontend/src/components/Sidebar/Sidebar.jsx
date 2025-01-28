@@ -95,7 +95,7 @@ const Sidebar = () => {
   );
 
   const JournalSVG = () => (
-    <svg viewBox="0 0 16 16" fill="#e4dede" className="special-sidebar-icon" style={{ height: "17px" }}>
+    <svg viewBox="0 0 16 16" fill="#e4dede" className="special-sidebar-icon" style={{ height: "16px" }}>
       <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
       <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
       <g id="SVGRepo_iconCarrier">
