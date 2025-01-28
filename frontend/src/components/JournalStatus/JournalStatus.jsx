@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import "./JournalStatus.scss";
 import axios from "axios";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { useNavigate } from "react-router-dom";
-import { Table, Divider, Badge, Button, Tooltip, Select } from "antd";
+import { Table, Divider, Select } from "antd";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const JournalStatus = () => {

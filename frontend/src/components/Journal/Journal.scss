@@ -20,6 +20,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      flex-wrap: wrap;
     }
   }
 
@@ -101,6 +102,56 @@
                     .anticon-close {
                       color: #000;
                     }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 1600px) {
+  .journal {
+    width: 80%;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .journal {
+    width: 95%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .journal {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 626px) {
+  .journal {
+    .ant-list-items {
+      .ant-collapse-item {
+        .ant-collapse-header {
+          .ant-collapse-header-text {
+            .ant-list-item {
+              display: flex;
+              flex-direction: column;
+              width: 100%;
+              .ant-list-item-meta {
+                width: 100%;
+              }
+              .journal-item-actions {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                .journal-item-actions-buttons {
+                  span {
+                    font-size: 3rem;
                   }
                 }
               }

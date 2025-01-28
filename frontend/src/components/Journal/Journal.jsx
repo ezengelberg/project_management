@@ -74,38 +74,42 @@ const Journal = ({ readOnly }) => {
     const fetchProjectDetails = async () => {
       try {
         setLoading(true);
-        let res;
+        let projectRes;
+        let missionRes;
         if (readOnly) {
-          res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects`, {
+          projectRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects`, {
             withCredentials: true,
           });
-          if (!res.data.projects.length) {
+          if (!projectRes.data.projects.length) {
             return;
           }
-          const project = res.data.projects.find((project) => project._id === projectId);
+          const project = projectRes.data.projects.find((project) => project._id === projectId);
           if (!project) {
             return;
           }
           setProjectDetails(project);
-        } else {
-          res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/"self-projects-student"`, {
+          missionRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/mission/project/${projectId}`, {
             withCredentials: true,
           });
-          if (!res.data.projects.length) {
+        } else {
+          projectRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/self-projects-student`, {
+            withCredentials: true,
+          });
+          if (!projectRes.data.projects.length) {
             return;
           }
-          setProjectDetails(res.data.projects[0]);
+          setProjectDetails(projectRes.data.projects[0]);
+          missionRes = await axios.get(
+            `${process.env.REACT_APP_BACKEND_URL}/api/mission/project/${projectRes.data.projects[0]._id}`,
+            {
+              withCredentials: true,
+            }
+          );
         }
-        const missionsRes = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/mission/project/${res.data.projects[0]._id}`,
-          {
-            withCredentials: true,
-          }
-        );
-        const sortedMissions = missionsRes.data.missions.sort((a, b) => b.number - a.number);
+        const sortedMissions = missionRes.data.missions.sort((a, b) => b.number - a.number);
         setMissions(sortedMissions || []);
         setStudents(
-          res.data.projects[0].students.map((student) => ({
+          projectRes.data.projects[0].students.map((student) => ({
             label: student.student.name,
             value: student.student._id,
           }))
