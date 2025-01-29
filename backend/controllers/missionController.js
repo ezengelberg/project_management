@@ -1,10 +1,11 @@
 import Mission from "../models/mission.js";
 import Project from "../models/projects.js";
+import Notification from "../models/notifications.js";
 
 // Create a new mission
 export const createMission = async (req, res) => {
   try {
-    const { projectId, ...missionData } = req.body;
+    const { projectId, assignees, ...missionData } = req.body;
 
     // Create the new mission
     const mission = new Mission(missionData);
@@ -18,6 +19,15 @@ export const createMission = async (req, res) => {
 
     project.journal.missions.push(mission._id);
     await project.save();
+
+    // Send notifications to assignees
+    const notifications = assignees
+      .filter((assigneeId) => assigneeId.toString() !== mission.author.toString())
+      .map((assigneeId) => ({
+        user: assigneeId,
+        message: `משימה חדשה: ${mission.name}`,
+      }));
+    await Notification.insertMany(notifications);
 
     res.status(201).json(mission);
   } catch (error) {
@@ -82,6 +92,30 @@ export const updateMission = async (req, res) => {
     if (!mission) {
       return res.status(404).json({ error: "Mission not found" });
     }
+
+    // Check if the mission is completed
+    if (req.body.isCompleted) {
+      const notifications = mission.assignees
+        .filter(
+          (assigneeId) =>
+            assigneeId.toString() !== req.user._id.toString() && assigneeId.toString() !== mission.author.toString()
+        )
+        .map((assigneeId) => ({
+          user: assigneeId,
+          message: `משימה הושלמה: ${mission.name}`,
+        }));
+
+      // Add notification for the author if they are not the one marking it as complete
+      if (mission.author.toString() !== req.user._id.toString()) {
+        notifications.push({
+          user: mission.author,
+          message: `משימה הושלמה: ${mission.name}`,
+        });
+      }
+
+      await Notification.insertMany(notifications);
+    }
+
     res.status(200).json(mission);
   } catch (error) {
     res.status(400).json({ error: error.message });
