@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import "./HomePage.scss";
 import axios from "axios";
-import { Alert, Calendar } from "antd";
+import { Alert, Calendar, Badge, Card } from "antd";
 import {
   ApartmentOutlined,
   ProjectOutlined,
@@ -22,6 +22,7 @@ import AdvisorSubmissionsStatus from "../SubmissionsStatus/SubmissionsStatus";
 import SubmissionsManagement from "../Submissions/Submissions";
 import { NotificationsContext } from "../../utils/NotificationsContext";
 import locale from "antd/es/date-picker/locale/he_IL";
+import { HebrewCalendar } from "@hebcal/core";
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ const Homepage = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+  const [submissions, setSubmissions] = useState([]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -141,10 +143,148 @@ const Homepage = () => {
     fetchNotifications();
   }, []);
 
+  useEffect(() => {
+    const fetchSubmissions = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-student-submissions`,
+          {
+            withCredentials: true,
+          }
+        );
+        setSubmissions(response.data);
+      } catch (error) {
+        console.error("Error fetching submissions:", error);
+      }
+    };
+
+    fetchSubmissions();
+  }, []);
+
+  const getListData = (value) => {
+    let listData = [];
+    submissions.forEach((submission) => {
+      if (dayjs(submission.submissionDate).isSame(value, "day")) {
+        listData.push({
+          color: "purple",
+          content: `${submission.name}`,
+          time: submission.submissionDate,
+        });
+      }
+    });
+    return listData;
+  };
+
+  const getJewishHolidays = (year) => {
+    const holidays = HebrewCalendar.calendar({
+      year,
+      isHebrewYear: false,
+      noMinorFast: true,
+      noSpecialShabbat: true,
+      noModern: true,
+      noRoshChodesh: true,
+      sedrot: false,
+      omer: false,
+      candlelighting: false,
+      locale: "he",
+    });
+    return holidays;
+  };
+
+  const dateCellRender = (value) => {
+    const listData = getListData(value);
+    const gregorianDate = value.toDate();
+    const holidays = getJewishHolidays(gregorianDate.getFullYear());
+
+    const holiday = holidays.find((h) => {
+      const hDate = h.getDate().greg();
+      return (
+        hDate.getFullYear() === gregorianDate.getFullYear() &&
+        hDate.getMonth() === gregorianDate.getMonth() &&
+        hDate.getDate() === gregorianDate.getDate()
+      );
+    });
+
+    return (
+      <ul className="events">
+        {listData.map((item) => (
+          <li key={item.content}>
+            <Badge
+              color={item.color}
+              text={
+                windowSize.width > 1920
+                  ? item.content.length > 18
+                    ? `${item.content.substring(0, 18)}...`
+                    : item.content
+                  : windowSize.width > 1600
+                  ? item.content.length > 10
+                    ? `${item.content.substring(0, 10)}...`
+                    : item.content
+                  : windowSize.width > 1200
+                  ? item.content.length > 8
+                    ? `${item.content.substring(0, 8)}...`
+                    : item.content
+                  : windowSize.width > 768
+                  ? item.content.length > 8
+                    ? `${item.content.substring(0, 8)}...`
+                    : item.content
+                  : windowSize.width > 626
+                  ? "הגשה"
+                  : ""
+              }
+            />
+          </li>
+        ))}
+        {holiday ? (
+          <Badge
+            className="holiday-badge"
+            color="gold"
+            text={
+              windowSize.width > 1920
+                ? holiday.render().length > 25
+                  ? `${holiday.render().substring(0, 25)}...`
+                  : holiday.render()
+                : windowSize.width > 1600
+                ? holiday.render().length > 20
+                  ? `${holiday.render().substring(0, 20)}...`
+                  : holiday.render()
+                : windowSize.width > 1200
+                ? holiday.render().length > 15
+                  ? `${holiday.render().substring(0, 15)}...`
+                  : holiday.render()
+                : windowSize.width > 768
+                ? holiday.render().length > 10
+                  ? `${holiday.render().substring(0, 10)}...`
+                  : holiday.render()
+                : windowSize.width > 626
+                ? "חג"
+                : ""
+            }
+          />
+        ) : null}
+      </ul>
+    );
+  };
+
+  const cellRender = (current, info) => {
+    if (info.type === "date") return dateCellRender(current);
+    return info.originNode;
+  };
+
   const onSelect = (newValue) => {
     setValue(newValue);
     setSelectedValue(newValue);
   };
+
+  const selectedDateSubmissions = getListData(selectedValue);
+  const selectedDateHolidays = getJewishHolidays(selectedValue.year()).filter((holiday) => {
+    const hDate = holiday.getDate().greg();
+    return (
+      hDate.getFullYear() === selectedValue.year() &&
+      hDate.getMonth() === selectedValue.month() &&
+      hDate.getDate() === selectedValue.date()
+    );
+  });
 
   const handleNotificationClick = (notification) => {
     if (notification.link) {
@@ -376,8 +516,33 @@ const Homepage = () => {
         )}
       </div>
       <div className="home-page-upcoming-events">
-        <Calendar className="calendar" locale={locale} value={value} onSelect={onSelect} />
-        <Alert className="list-info" message={`${selectedValue?.format("DD-MM-YYYY")}`} />
+        <Calendar className="calendar" locale={locale} value={value} onSelect={onSelect} cellRender={cellRender} />
+        <Alert
+          className="list-info"
+          message={`${selectedValue?.format("DD-MM-YYYY")}`}
+          description={
+            selectedDateSubmissions.length > 0 || selectedDateHolidays.length > 0 ? (
+              <ul>
+                {selectedDateSubmissions.map((item) => (
+                  <Badge.Ribbon key={item.content} text="הגשה" color="purple">
+                    <Card title="יום אחרון להגשה" size="small">
+                      {item.content} - <strong>עד השעה: {dayjs(item.time).format("HH:mm")}</strong>
+                    </Card>
+                  </Badge.Ribbon>
+                ))}
+                {selectedDateHolidays.map((holiday) => (
+                  <Badge.Ribbon key={holiday.render()} text="חג" color="gold">
+                    <Card title="חג" size="small">
+                      {holiday.render()}
+                    </Card>
+                  </Badge.Ribbon>
+                ))}
+              </ul>
+            ) : (
+              "אין אירועים מתוזמנים"
+            )
+          }
+        />
       </div>
     </div>
   );

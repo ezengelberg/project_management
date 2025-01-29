@@ -104,6 +104,12 @@
   gap: 2rem;
   .calendar {
     flex: 2;
+    .ant-picker-calendar-date-content {
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+    }
   }
   .list-info {
     flex: 1;
@@ -113,6 +119,44 @@
       .ant-alert-message {
         font-size: 1.6rem;
         font-weight: 600;
+      }
+      .ant-alert-description {
+        ul {
+          list-style: none;
+          padding: 0;
+          text-align: right;
+          .ant-ribbon-wrapper {
+            margin-bottom: 0.5rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 1600px) {
+  .home-page-upcoming-events {
+    .calendar {
+      flex: 3;
+    }
+    .list-info {
+      flex: 1;
+    }
+  }
+}
+
+@media screen and (max-width: 1300px) {
+  .home-page-upcoming-events {
+    flex-direction: column;
+    .calendar {
+      flex: 1;
+    }
+    .list-info {
+      flex: 1;
+      .ant-alert-content {
+        .ant-alert-message {
+          font-size: 2rem;
+        }
       }
     }
   }
@@ -144,6 +188,36 @@
       .notification-list-message {
         p {
           font-size: 1.6rem;
+        }
+      }
+    }
+  }
+  .home-page-upcoming-events {
+    .calendar {
+      .ant-picker-calendar-date-content {
+        ul {
+          text-align: center;
+          li {
+            span {
+              span {
+                width: 2rem;
+                height: 2rem;
+              }
+            }
+          }
+        }
+        .holiday-badge {
+          span {
+            width: 2rem;
+            height: 2rem;
+          }
+        }
+      }
+    }
+    .list-info {
+      .ant-alert-content {
+        .ant-alert-message {
+          font-size: 2.5rem;
         }
       }
     }
