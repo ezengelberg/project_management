@@ -34,3 +34,27 @@
     }
   }
 }
+
+@media screen and (max-width: 1600px) {
+  .submission-status-submissions {
+    .submission-status-submission {
+      .submission-status-submission-details {
+        .submission-title {
+          font-size: 1.8rem;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 626px) {
+  .submission-status-submissions {
+    .submission-status-submission {
+      .submission-status-submission-details {
+        .submission-title {
+          font-size: 2rem;
+        }
+      }
+    }
+  }
+}
