@@ -429,7 +429,7 @@ const Sidebar = () => {
                 </div>
               </li>
             )}
-            {user.isStudent && (
+            {!user.isAdvisor && !user.isCoordinator && (
               <li>
                 <div
                   className={`sidebar-option ${isActive("/list-zoom-meetings") ? "active" : ""}`}
