@@ -22,6 +22,7 @@ import configRoute from "./routes/configRoute.js";
 import Config from "./models/config.js";
 import groupRoute from "./routes/groupRoute.js";
 import missionRoute from "./routes/missionRoute.js";
+import zoomRoute from "./routes/zoomRoute.js";
 
 import dotenv from "dotenv";
 
@@ -127,6 +128,7 @@ app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 app.use("/api/group", groupRoute);
 app.use("/api/mission", missionRoute);
+app.use("/api/zoom", zoomRoute);
 
 app.get("/", (req, res) => {
   res.send(`Version DEV: 13`);
@@ -152,4 +154,16 @@ app.listen(server_port, () => {
     initializeConfig();
   });
   console.log(`Server is running at port: ${server_port}`);
+});
+
+import updateRecurringMeetings from "./scheduler/meetingScheduler.js";
+import schedule from "node-schedule";
+
+// Schedule the task to run every hour
+schedule.scheduleJob("0 * * * *", async () => {
+  try {
+    await updateRecurringMeetings();
+  } catch (error) {
+    console.error("Error updating recurring meetings:", error);
+  }
 });

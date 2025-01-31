@@ -39,6 +39,7 @@ const Homepage = () => {
     height: window.innerHeight,
   });
   const [submissions, setSubmissions] = useState([]);
+  const [meetings, setMeetings] = useState([]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -161,6 +162,21 @@ const Homepage = () => {
     fetchSubmissions();
   }, []);
 
+  useEffect(() => {
+    const fetchMeetings = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/zoom/meetings`, {
+          withCredentials: true,
+        });
+        setMeetings(response.data);
+      } catch (error) {
+        console.error("Error fetching meetings:", error);
+      }
+    };
+
+    fetchMeetings();
+  }, []);
+
   const getListData = (value) => {
     let listData = [];
     submissions.forEach((submission) => {
@@ -173,6 +189,22 @@ const Homepage = () => {
       }
     });
     return listData;
+  };
+
+  const getMeetingsData = (value) => {
+    let meetingsData = [];
+    meetings.forEach((meeting) => {
+      if (dayjs(meeting.startTime).isSame(value, "day")) {
+        meetingsData.push({
+          color: "blue",
+          content: `${meeting.topic}`,
+          time: meeting.startTime,
+          link: currentUser._id === meeting.creator ? meeting.startUrl : meeting.joinUrl,
+          endTime: meeting.endTime,
+        });
+      }
+    });
+    return meetingsData;
   };
 
   const getJewishHolidays = (year) => {
@@ -193,6 +225,7 @@ const Homepage = () => {
 
   const dateCellRender = (value) => {
     const listData = getListData(value);
+    const meetingsData = getMeetingsData(value);
     const gregorianDate = value.toDate();
     const holidays = getJewishHolidays(gregorianDate.getFullYear());
 
@@ -230,6 +263,34 @@ const Homepage = () => {
                     : item.content
                   : windowSize.width > 626
                   ? "הגשה"
+                  : ""
+              }
+            />
+          </li>
+        ))}
+        {meetingsData.map((item) => (
+          <li key={item.content}>
+            <Badge
+              color={item.color}
+              text={
+                windowSize.width > 1920
+                  ? item.content.length > 18
+                    ? `${item.content.substring(0, 18)}...`
+                    : item.content
+                  : windowSize.width > 1600
+                  ? item.content.length > 10
+                    ? `${item.content.substring(0, 10)}...`
+                    : item.content
+                  : windowSize.width > 1200
+                  ? item.content.length > 8
+                    ? `${item.content.substring(0, 8)}...`
+                    : item.content
+                  : windowSize.width > 768
+                  ? item.content.length > 8
+                    ? `${item.content.substring(0, 8)}...`
+                    : item.content
+                  : windowSize.width > 626
+                  ? "פגישה"
                   : ""
               }
             />
@@ -277,6 +338,7 @@ const Homepage = () => {
   };
 
   const selectedDateSubmissions = getListData(selectedValue);
+  const selectedDateMeetings = getMeetingsData(selectedValue);
   const selectedDateHolidays = getJewishHolidays(selectedValue.year()).filter((holiday) => {
     const hDate = holiday.getDate().greg();
     return (
@@ -521,12 +583,28 @@ const Homepage = () => {
           className="list-info"
           message={`${selectedValue?.format("DD-MM-YYYY")}`}
           description={
-            selectedDateSubmissions.length > 0 || selectedDateHolidays.length > 0 ? (
+            selectedDateSubmissions.length > 0 || selectedDateHolidays.length > 0 || selectedDateMeetings.length > 0 ? (
               <ul>
                 {selectedDateSubmissions.map((item) => (
                   <Badge.Ribbon key={item.content} text="הגשה" color="purple">
                     <Card title="יום אחרון להגשה" size="small">
                       {item.content} - <strong>עד השעה: {dayjs(item.time).format("HH:mm")}</strong>
+                    </Card>
+                  </Badge.Ribbon>
+                ))}
+                {selectedDateMeetings.map((item) => (
+                  <Badge.Ribbon key={item.content} text="פגישה" color="blue">
+                    <Card title="פגישת זום" size="small">
+                      נושא: {item.content} - <strong>בשעה: {dayjs(item.time).format("HH:mm")}</strong> -{" "}
+                      {dayjs().isAfter(dayjs(item.endTime)) ? (
+                        "הפגישה הסתיימה"
+                      ) : item.link ? (
+                        <a href={item.link} target="_blank" rel="noopener noreferrer">
+                          הצטרף לפגישה
+                        </a>
+                      ) : (
+                        ""
+                      )}
                     </Card>
                   </Badge.Ribbon>
                 ))}

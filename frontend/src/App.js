@@ -28,6 +28,8 @@ import DeleteAll from "./components/DeleteAll/DeleteAll";
 import Groups from "./components/Groups/Groups";
 import Journal from "./components/Journal/Journal";
 import JournalStatus from "./components/JournalStatus/JournalStatus";
+import ZoomScheduler from "./components/ZoomScheduler/ZoomScheduler";
+import ListZoomMeetings from "./components/ListZoomMeetings/ListZoomMeetings";
 
 function App() {
   return (
@@ -67,6 +69,8 @@ const MainLayout = () => {
       "/journal": "יומן עבודה",
       "/journal-status": "מעקב עבודה",
       "/journal/:projectId": "יומן עבודה",
+      "/zoom-scheduler": "פגישת זום",
+      "/list-zoom-meetings": "רשימת פגישות",
     };
 
     const currentPath = Object.keys(routeTitles).find((path) =>
@@ -266,6 +270,22 @@ const MainLayout = () => {
                 element={
                   <ProtectedRoute privileges={["advisor"]}>
                     <Journal readOnly={true} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/zoom-scheduler"
+                element={
+                  <ProtectedRoute privileges={["advisor", "coordinator"]}>
+                    <ZoomScheduler />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/list-zoom-meetings"
+                element={
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
+                    <ListZoomMeetings />
                   </ProtectedRoute>
                 }
               />

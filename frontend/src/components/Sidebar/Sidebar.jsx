@@ -31,6 +31,7 @@ const Sidebar = () => {
     myProjects: false,
     manageUsers: false,
     manageProjects: false,
+    zoomMeetings: false,
   });
   const [open, setOpen] = useState(false);
   const [windowSize, setWindowSize] = useState({
@@ -104,6 +105,25 @@ const Sidebar = () => {
           d="M10.854 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 8.793l2.646-2.647a.5.5 0 0 1 .708 0z"></path>
         <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"></path>
         <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"></path>
+      </g>
+    </svg>
+  );
+
+  const ZoomMeetingSVG = () => (
+    <svg
+      className="special-sidebar-icon zoom-icon"
+      viewBox="0 0 192 192"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none">
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path
+          stroke="#e4dede"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="11.997"
+          d="M16.869 60.973v53.832c.048 12.173 10.87 21.965 24.072 21.925h85.406c2.42 0 4.385-1.797 4.385-3.978V78.92c-.064-12.164-10.887-21.965-24.073-21.917H21.237c-2.412 0-4.368 1.79-4.368 3.97zm119.294 21.006 35.27-23.666c3.06-2.332 5.432-1.749 5.432 2.468v72.171c0 4.8-2.9 4.217-5.432 2.468l-35.27-23.618V81.98z"></path>
       </g>
     </svg>
   );
@@ -371,6 +391,52 @@ const Sidebar = () => {
                       הצגת משתמשים
                     </li>
                   </ul>
+                </div>
+              </li>
+            )}
+            {(user.isCoordinator || user.isAdvisor) && (
+              <li className={`${openSubmenus.zoomMeetings ? "open" : "closed"}`}>
+                <div
+                  className="sidebar-option"
+                  onClick={() => toggleSubmenu("zoomMeetings")}
+                  onMouseDown={(e) => handleMouseDown(e, "/zoom-scheduler")}>
+                  <ZoomMeetingSVG />
+                  <span>ניהול פגישות</span>
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
+                      stroke="#0C0310"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+                <div className={`sidebar-drop-menu`}>
+                  <ul>
+                    <li
+                      className={`${isActive("/zoom-scheduler") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/zoom-scheduler")}
+                      onMouseDown={(e) => handleMouseDown(e, "/zoom-scheduler")}>
+                      קביעת פגישה חדשה
+                    </li>
+                    <li
+                      className={`${isActive("/list-zoom-meetings") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/list-zoom-meetings")}
+                      onMouseDown={(e) => handleMouseDown(e, "/list-zoom-meetings")}>
+                      רשימת פגישות
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            )}
+            {user.isStudent && (
+              <li>
+                <div
+                  className={`sidebar-option ${isActive("/list-zoom-meetings") ? "active" : ""}`}
+                  onClick={() => handleNavigate("/list-zoom-meetings")}
+                  onMouseDown={(e) => handleMouseDown(e, "/list-zoom-meetings")}>
+                  <ZoomMeetingSVG />
+                  <span>רשימת פגישות</span>
                 </div>
               </li>
             )}

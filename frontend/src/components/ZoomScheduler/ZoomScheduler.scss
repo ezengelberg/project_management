@@ -1,0 +1,61 @@
+.zoom-scheduler-container {
+  width: 40%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+
+  .form-buttons {
+    position: relative;
+    .ant-row {
+      .ant-col {
+        .ant-form-item-control-input {
+          .ant-form-item-control-input-content {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+          }
+        }
+      }
+    }
+  }
+
+  .copy-button {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+  }
+}
+
+@media screen and (max-width: 1600px) {
+  .zoom-scheduler-container {
+    width: 60%;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .zoom-scheduler-container {
+    width: 70%;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .zoom-scheduler-container {
+    width: 80%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .zoom-scheduler-container {
+    width: 90%;
+  }
+}
+
+@media screen and (max-width: 626px) {
+  .zoom-scheduler-container {
+    width: 100%;
+
+    .copy-button {
+      bottom: 7rem;
+    }
+  }
+}
