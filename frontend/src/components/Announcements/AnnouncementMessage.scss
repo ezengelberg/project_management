@@ -1,3 +1,14 @@
+.announcement-edit-container {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  margin: 0 auto;
+  .update-announcement-button {
+    margin-right: auto;
+    margin-top: 1rem;
+    width: fit-content;
+  }
+}
 .announcement-container {
   display: flex;
   flex-direction: column;
@@ -49,10 +60,19 @@
     margin-top: auto;
     min-height: 2rem;
 
-    .edit-button {
-      text-decoration: none;
-      color: #1677ff;
+    .edit-actions {
+      display: flex;
+      flex-direction: row-reverse;
+      gap: 0.8rem;
       margin-right: auto;
+      .edit-button {
+        text-decoration: none;
+        color: #1677ff;
+      }
+      .delete-button {
+        text-decoration: none;
+        color: #ff0000;
+      }
     }
   }
 }

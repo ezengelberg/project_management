@@ -59,14 +59,25 @@ export const getAnnouncements = async (req, res) => {
 
     const announcements = await Announcement.find({
       $or: [
-      { forStudent: student || coordinator },
-      { forAdvisor: advisor || coordinator },
-      { forJudge: judge || coordinator },
-      { forCoordinator: coordinator },
-      { group: group?._id },
+        { forStudent: student || coordinator },
+        { forAdvisor: advisor || coordinator },
+        { forJudge: judge || coordinator },
+        { forCoordinator: coordinator },
+        { group: group?._id },
       ],
-    }).populate('writtenBy', 'name');
+    }).populate("writtenBy", "name");
     res.status(200).json(announcements);
+  } catch (error) {
+    console.error("Error occurred:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const deleteAnnouncement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Announcement.findByIdAndDelete(id);
+    res.status(200).json({ message: "Announcement deleted" });
   } catch (error) {
     console.error("Error occurred:", error);
     res.status(500).json({ message: "Internal Server Error" });

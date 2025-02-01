@@ -128,6 +128,7 @@ app.use("/api/random", randomRoute);
 app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 app.use("/api/group", groupRoute);
+app.use("/api/announcement", announcementRoute);
 
 app.get("/", (req, res) => {
   res.send(`Version DEV: 13`);
