@@ -10,6 +10,7 @@ const announcementSchema = new mongoose.Schema(
     forAdvisor: { type: Boolean, default: true },
     forJudge: { type: Boolean, default: true },
     forCoordinator: { type: Boolean, default: true },
+    writtenBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true },
 );

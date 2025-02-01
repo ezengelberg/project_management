@@ -6,14 +6,13 @@ import Project from "../models/projects.js";
 export const createAnnouncement = async (req, res) => {
   const { title, description, roles, group } = req.body;
   try {
-    console.log("creating announcement");
-    console.log(req.body);
     const configFile = await Config.find();
     const year = configFile[0].currentYear;
     const newAnnouncement = new Announcement({
       title,
       content: description,
       year: year,
+      writtenBy: req.user._id,
     });
     if (group) {
       const groupRes = await Group.findById(group);
@@ -57,15 +56,16 @@ export const getAnnouncements = async (req, res) => {
     });
 
     const group = await Group.findOne({ projects: project._id });
+
     const announcements = await Announcement.find({
       $or: [
-        { forStudent: student || coordinator },
-        { forAdvisor: advisor || coordinator },
-        { forJudge: judge || coordinator },
-        { forCoordinator: coordinator },
-        { group: group._id },
+      { forStudent: student || coordinator },
+      { forAdvisor: advisor || coordinator },
+      { forJudge: judge || coordinator },
+      { forCoordinator: coordinator },
+      { group: group?._id },
       ],
-    });
+    }).populate('writtenBy', 'name');
     res.status(200).json(announcements);
   } catch (error) {
     console.error("Error occurred:", error);

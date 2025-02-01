@@ -3,6 +3,7 @@ import axios from "axios";
 import "./Announcements.scss";
 import { Editor } from "primereact/editor";
 import { Button, message, Checkbox, Input, Select } from "antd";
+import AnnouncementMessage from "./AnnouncementMessage";
 
 const Announcements = () => {
   const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
@@ -16,6 +17,7 @@ const Announcements = () => {
   });
   const [selectedGroup, setSelectedGroup] = useState("");
   const [groups, setGroups] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
 
   const fetchPrivileges = async () => {
     try {
@@ -39,7 +41,17 @@ const Announcements = () => {
     }
   };
 
-  const fetchAnnouncements = async () => {};
+  const fetchAnnouncements = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/announcement/get-all`, {
+        withCredentials: true,
+      });
+      setAnnouncements(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
+  };
 
   useEffect(() => {
     fetchAnnouncements();
@@ -48,9 +60,6 @@ const Announcements = () => {
   }, []);
 
   const submitAnnouncement = async () => {
-    console.log(title, description);
-    console.log(selectedGroup === "");
-    console.log("selected roles", selectedRoles);
     try {
       axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/announcement/create`,
@@ -151,6 +160,11 @@ const Announcements = () => {
         </div>
       )}
       <h2>הודעות</h2>
+      <div class="announcements-board">
+        {announcements.map((announcement) => (
+          <AnnouncementMessage key={announcement._id} announcement={announcement} />
+        ))}
+      </div>
     </div>
   );
 };
