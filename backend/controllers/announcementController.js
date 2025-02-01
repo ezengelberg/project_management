@@ -57,15 +57,20 @@ export const getAnnouncements = async (req, res) => {
 
     const group = await Group.findOne({ projects: project._id });
 
+    console.log(group);
+    console.log(student, advisor, judge, coordinator);
+
     const announcements = await Announcement.find({
       $or: [
         { forStudent: student || coordinator },
         { forAdvisor: advisor || coordinator },
         { forJudge: judge || coordinator },
         { forCoordinator: coordinator },
-        { group: group?._id },
+        { group: group?._id || { $exists: true } },
       ],
     }).populate("writtenBy", "name");
+
+    console.log(announcements);
     res.status(200).json(announcements);
   } catch (error) {
     console.error("Error occurred:", error);

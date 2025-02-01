@@ -196,15 +196,15 @@ const Homepage = () => {
 
   const getListData = (value) => {
     let listData = [];
-    // submissions?.forEach((submission) => {
-    //   if (dayjs(submission.submissionDate).isSame(value, "day")) {
-    //     listData.push({
-    //       color: "purple",
-    //       content: `${submission.name}`,
-    //       time: submission.submissionDate,
-    //     });
-    //   }
-    // });
+    submissions.forEach((submission) => {
+      if (dayjs(submission.submissionDate).isSame(value, "day")) {
+        listData.push({
+          color: "purple",
+          content: `${submission.name}`,
+          time: submission.submissionDate,
+        });
+      }
+    });
     return listData;
   };
 
