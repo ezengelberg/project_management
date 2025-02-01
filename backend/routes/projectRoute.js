@@ -35,6 +35,7 @@ import {
   getProjectJudges,
   getProjectsForExamTable,
   editExamTableDates,
+  getSelfProjectsAsStudent,
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../middleware/auth.js";
 
@@ -75,5 +76,6 @@ router.post("/add-exam-table-cell/:id", ensureAuthenticated, isCoordinator, addE
 router.get("/get-judges/:id", ensureAuthenticated, isCoordinator, getProjectJudges);
 router.get("/get-projects-for-exam-table", ensureAuthenticated, getProjectsForExamTable);
 router.put("/edit-exam-table-dates/:id", ensureAuthenticated, isCoordinator, editExamTableDates);
+router.get("/self-projects-student", ensureAuthenticated, getSelfProjectsAsStudent);
 
 export default router;

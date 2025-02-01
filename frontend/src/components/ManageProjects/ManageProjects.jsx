@@ -22,6 +22,7 @@ const ManageProjects = () => {
   const { Option } = Select;
   const { fetchNotifications } = useContext(NotificationsContext);
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editProjectData, setEditProjectData] = useState({});
@@ -56,17 +57,21 @@ const ManageProjects = () => {
 
   const getUsersNoProjects = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects`, {
         withCredentials: true,
       });
       setStudentsNoProject(response.data.usersNoProjects);
+      setLoading(false);
     } catch (error) {
       console.error("Error occurred:", error.response.data.message);
+      setLoading(false);
     }
   };
 
   const fetchData = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects/`, {
         withCredentials: true,
       });
@@ -108,6 +113,7 @@ const ManageProjects = () => {
             });
           } catch (error) {
             console.error("Error fetching student data:", error);
+            setLoading(false);
           }
         }
 
@@ -132,6 +138,7 @@ const ManageProjects = () => {
             });
           } catch (error) {
             console.error("Error fetching candidate data:", error);
+            setLoading(false);
           }
         }
 
@@ -149,19 +156,23 @@ const ManageProjects = () => {
             });
           } catch (error) {
             console.error("Error fetching terminated student data:", error);
+            setLoading(false);
           }
         }
         project.candidatesData = candidatesData;
         project.terminationRecord = terminationRecord;
       }
       setProjects(projectData);
+      setLoading(false);
     } catch (error) {
       console.error("Error occurred:", error);
+      setLoading(false);
     }
   };
 
   const fetchYears = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
         withCredentials: true,
       });
@@ -171,8 +182,10 @@ const ManageProjects = () => {
       const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
       const currentHebrewYearIndex = sortedYears.indexOf(currentHebrewYear);
       setYearFilter(currentHebrewYearIndex !== -1 ? sortedYears[currentHebrewYearIndex] : sortedYears[0]);
+      setLoading(false);
     } catch (error) {
       console.error("Error occurred:", error);
+      setLoading(false);
     }
   };
 
@@ -688,6 +701,7 @@ const ManageProjects = () => {
         columns={expandColumns}
         dataSource={record.candidatesData}
         pagination={false}
+        loading={loading}
         scroll={{
           x: "max-content",
         }}
@@ -767,6 +781,7 @@ const ManageProjects = () => {
         <Table
           columns={columns}
           dataSource={filteredProjects}
+          loading={loading}
           expandable={{ expandedRowRender: expandedRender }}
           scroll={{
             x: "max-content",
@@ -781,6 +796,7 @@ const ManageProjects = () => {
         <Table
           columns={terminatedProjectsColumns}
           dataSource={terminatedProjects}
+          loading={loading}
           scroll={{
             x: "max-content",
           }}

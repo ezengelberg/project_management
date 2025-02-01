@@ -246,6 +246,7 @@ const MoreInformation = () => {
   useEffect(() => {
     const fetchGroupsAndExamTable = async () => {
       try {
+        setLoading(true);
         const [groupRes, configRes, examTableRes, yearsRes, projectsRes] = await Promise.all([
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get`, {
             withCredentials: true,
@@ -270,8 +271,10 @@ const MoreInformation = () => {
         const sortedYears = yearsRes.data.sort((a, b) => b.localeCompare(a));
         setYears(sortedYears);
         setProjects(projectsRes.data);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching groups and exam table:", error);
+        setLoading(false);
       }
     };
     fetchGroupsAndExamTable();
@@ -1435,7 +1438,7 @@ const MoreInformation = () => {
             <Select.Option value={false}>כולם</Select.Option>
             <Select.Option value={true}>תכלית</Select.Option>
           </Select>
-          <Form form={formEditGrades} component={false}>
+          <Form form={formEditGrades} component={false} loading={loading}>
             <Table
               components={{
                 body: {
@@ -1631,6 +1634,7 @@ const MoreInformation = () => {
             dataSource={getCurrentPageData()}
             columns={examTableColumns}
             pagination={false}
+            loading={loading}
             bordered
             scroll={{ x: "max-content" }}
           />

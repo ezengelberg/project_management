@@ -24,6 +24,7 @@ const SafeTooltip = forwardRef(({ title, children }, ref) => (
 
 const UploadSubmissions = () => {
   const { fetchNotifications } = useContext(NotificationsContext);
+  const [loading, setLoading] = useState(false);
   const [submissions, setSubmissions] = useState([]);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -146,6 +147,7 @@ const UploadSubmissions = () => {
 
   const confirmDeleteSubmission = async () => {
     try {
+      setLoading(true);
       // Send POST request to delete the file & remove its' schema reference
       await axios.delete(
         `${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete/${currentSubmission.file}?destination=submissions`,
@@ -167,19 +169,24 @@ const UploadSubmissions = () => {
       message.info(`הגשה עבור ${currentSubmission.name} נמחקה בהצלחה`);
       setIsConfirmModalVisible(false);
       fetchNotifications();
+      setLoading(false);
     } catch (error) {
       console.error(error);
+      message.error("מחיקת הגשה נכשלה");
+      setLoading(false);
     }
   };
 
   const fetchPendingSubmissions = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-student-submissions`, {
         withCredentials: true,
       });
       const data = response.data || [];
       if (data.message === "No project found") {
         setSubmissions([]);
+        setLoading(false);
         return;
       } else if (!Array.isArray(data)) {
         throw new Error("Invalid data format");
@@ -196,9 +203,11 @@ const UploadSubmissions = () => {
         })
       );
       setSubmissions(submissionsWithProjectNames);
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching submissions:", error);
       setSubmissions([]);
+      setLoading(false);
     }
   };
 
@@ -674,6 +683,7 @@ const UploadSubmissions = () => {
       <Table
         dataSource={submissions}
         columns={columns}
+        loading={loading}
         scroll={{
           x: "max-content",
         }}

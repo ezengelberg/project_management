@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import "./HomePage.scss";
 import axios from "axios";
-import { Statistic, Alert, Calendar } from "antd";
+import { Alert, Calendar, Badge, Card } from "antd";
 import {
   ApartmentOutlined,
   ProjectOutlined,
@@ -13,16 +13,16 @@ import {
   TeamOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import CountUp from "react-countup";
 import dayjs from "dayjs";
 import "dayjs/locale/he";
-import localeData from "dayjs/plugin/localeData";
 import { useNavigate } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
 import StudentSubmissions from "../UploadSubmissions/UploadSubmissions";
 import AdvisorSubmissionsStatus from "../SubmissionsStatus/SubmissionsStatus";
 import SubmissionsManagement from "../Submissions/Submissions";
 import { NotificationsContext } from "../../utils/NotificationsContext";
+import locale from "antd/es/date-picker/locale/he_IL";
+import { HebrewCalendar } from "@hebcal/core";
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -38,6 +38,8 @@ const Homepage = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+  const [submissions, setSubmissions] = useState([]);
+  const [meetings, setMeetings] = useState([]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -112,11 +114,36 @@ const Homepage = () => {
       </g>
     </svg>
   );
+  const JournalSVG = () => (
+    <svg viewBox="0 0 16 16" fill="#000000" className="special-icons">
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path
+          fillRule="evenodd"
+          d="M10.854 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 8.793l2.646-2.647a.5.5 0 0 1 .708 0z"></path>
+        <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"></path>
+        <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"></path>
+      </g>
+    </svg>
+  );
+
+  const ZoomMeetingSVG = () => (
+    <svg className="special-icons" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg" fill="none">
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path
+          stroke="#000"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="11.997"
+          d="M16.869 60.973v53.832c.048 12.173 10.87 21.965 24.072 21.925h85.406c2.42 0 4.385-1.797 4.385-3.978V78.92c-.064-12.164-10.887-21.965-24.073-21.917H21.237c-2.412 0-4.368 1.79-4.368 3.97zm119.294 21.006 35.27-23.666c3.06-2.332 5.432-1.749 5.432 2.468v72.171c0 4.8-2.9 4.217-5.432 2.468l-35.27-23.618V81.98z"></path>
+      </g>
+    </svg>
+  );
 
   useEffect(() => {
-    dayjs.locale("he");
-    dayjs.extend(localeData);
-
     const fetchUserProject = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/user-project`, {
@@ -132,31 +159,209 @@ const Homepage = () => {
     fetchNotifications();
   }, []);
 
+  useEffect(() => {
+    const fetchSubmissions = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-student-submissions`,
+          {
+            withCredentials: true,
+          }
+        );
+        setSubmissions(response.data);
+      } catch (error) {
+        console.error("Error fetching submissions:", error);
+      }
+    };
+
+    fetchSubmissions();
+  }, []);
+
+  useEffect(() => {
+    const fetchMeetings = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/zoom/meetings`, {
+          withCredentials: true,
+        });
+        setMeetings(response.data);
+      } catch (error) {
+        console.error("Error fetching meetings:", error);
+      }
+    };
+
+    fetchMeetings();
+  }, []);
+
+  const getListData = (value) => {
+    let listData = [];
+    submissions.forEach((submission) => {
+      if (dayjs(submission.submissionDate).isSame(value, "day")) {
+        listData.push({
+          color: "purple",
+          content: `${submission.name}`,
+          time: submission.submissionDate,
+        });
+      }
+    });
+    return listData;
+  };
+
+  const getMeetingsData = (value) => {
+    let meetingsData = [];
+    meetings.forEach((meeting) => {
+      if (dayjs(meeting.startTime).isSame(value, "day")) {
+        meetingsData.push({
+          color: "blue",
+          content: `${meeting.topic}`,
+          time: meeting.startTime,
+          link: currentUser._id === meeting.creator ? meeting.startUrl : meeting.joinUrl,
+          endTime: meeting.endTime,
+        });
+      }
+    });
+    return meetingsData;
+  };
+
+  const getJewishHolidays = (year) => {
+    const holidays = HebrewCalendar.calendar({
+      year,
+      isHebrewYear: false,
+      noMinorFast: true,
+      noSpecialShabbat: true,
+      noModern: true,
+      noRoshChodesh: true,
+      sedrot: false,
+      omer: false,
+      candlelighting: false,
+      locale: "he",
+    });
+    return holidays;
+  };
+
+  const dateCellRender = (value) => {
+    const listData = getListData(value);
+    const meetingsData = getMeetingsData(value);
+    const gregorianDate = value.toDate();
+    const holidays = getJewishHolidays(gregorianDate.getFullYear());
+
+    const holiday = holidays.find((h) => {
+      const hDate = h.getDate().greg();
+      return (
+        hDate.getFullYear() === gregorianDate.getFullYear() &&
+        hDate.getMonth() === gregorianDate.getMonth() &&
+        hDate.getDate() === gregorianDate.getDate()
+      );
+    });
+
+    return (
+      <ul className="events">
+        {listData.map((item) => (
+          <li key={item.content}>
+            <Badge
+              color={item.color}
+              text={
+                windowSize.width > 1920
+                  ? item.content.length > 18
+                    ? `${item.content.substring(0, 18)}...`
+                    : item.content
+                  : windowSize.width > 1600
+                  ? item.content.length > 10
+                    ? `${item.content.substring(0, 10)}...`
+                    : item.content
+                  : windowSize.width > 1200
+                  ? item.content.length > 8
+                    ? `${item.content.substring(0, 8)}...`
+                    : item.content
+                  : windowSize.width > 768
+                  ? item.content.length > 8
+                    ? `${item.content.substring(0, 8)}...`
+                    : item.content
+                  : windowSize.width > 626
+                  ? "הגשה"
+                  : ""
+              }
+            />
+          </li>
+        ))}
+        {meetingsData.map((item) => (
+          <li key={item.content}>
+            <Badge
+              color={item.color}
+              text={
+                windowSize.width > 1920
+                  ? item.content.length > 18
+                    ? `${item.content.substring(0, 18)}...`
+                    : item.content
+                  : windowSize.width > 1600
+                  ? item.content.length > 10
+                    ? `${item.content.substring(0, 10)}...`
+                    : item.content
+                  : windowSize.width > 1200
+                  ? item.content.length > 8
+                    ? `${item.content.substring(0, 8)}...`
+                    : item.content
+                  : windowSize.width > 768
+                  ? item.content.length > 8
+                    ? `${item.content.substring(0, 8)}...`
+                    : item.content
+                  : windowSize.width > 626
+                  ? "פגישה"
+                  : ""
+              }
+            />
+          </li>
+        ))}
+        {holiday ? (
+          <Badge
+            className="holiday-badge"
+            color="gold"
+            text={
+              windowSize.width > 1920
+                ? holiday.render().length > 25
+                  ? `${holiday.render().substring(0, 25)}...`
+                  : holiday.render()
+                : windowSize.width > 1600
+                ? holiday.render().length > 20
+                  ? `${holiday.render().substring(0, 20)}...`
+                  : holiday.render()
+                : windowSize.width > 1200
+                ? holiday.render().length > 15
+                  ? `${holiday.render().substring(0, 15)}...`
+                  : holiday.render()
+                : windowSize.width > 768
+                ? holiday.render().length > 10
+                  ? `${holiday.render().substring(0, 10)}...`
+                  : holiday.render()
+                : windowSize.width > 626
+                ? "חג"
+                : ""
+            }
+          />
+        ) : null}
+      </ul>
+    );
+  };
+
+  const cellRender = (current, info) => {
+    if (info.type === "date") return dateCellRender(current);
+    return info.originNode;
+  };
+
   const onSelect = (newValue) => {
     setValue(newValue);
     setSelectedValue(newValue);
   };
-  const onPanelChange = (newValue) => {
-    setValue(newValue);
-  };
 
-  const getMonthLabel = (month, value) => {
-    const monthLables = {
-      0: "ינואר",
-      1: "פברואר",
-      2: "מרץ",
-      3: "אפריל",
-      4: "מאי",
-      5: "יוני",
-      6: "יולי",
-      7: "אוגוסט",
-      8: "ספטמבר",
-      9: "אוקטובר",
-      10: "נובמבר",
-      11: "דצמבר",
-    };
-    return monthLables[month];
-  };
+  const selectedDateSubmissions = getListData(selectedValue);
+  const selectedDateMeetings = getMeetingsData(selectedValue);
+  const selectedDateHolidays = getJewishHolidays(selectedValue.year()).filter((holiday) => {
+    const hDate = holiday.getDate().greg();
+    return (
+      hDate.getFullYear() === selectedValue.year() &&
+      hDate.getMonth() === selectedValue.month() &&
+      hDate.getDate() === selectedValue.date()
+    );
+  });
 
   const handleNotificationClick = (notification) => {
     if (notification.link) {
@@ -223,6 +428,15 @@ const Homepage = () => {
             {currentUser.isStudent && (
               <div
                 className="quick-link-item"
+                onClick={() => navigate("/journal")}
+                onMouseDown={(e) => handleMouseDown(e, "/journal")}>
+                <JournalSVG />
+                <p>יומן עבודה</p>
+              </div>
+            )}
+            {currentUser.isStudent && (
+              <div
+                className="quick-link-item"
                 onClick={() => navigate("/templates")}
                 onMouseDown={(e) => handleMouseDown(e, "/templates")}>
                 <FileSearchOutlined />
@@ -245,6 +459,15 @@ const Homepage = () => {
                 onMouseDown={(e) => handleMouseDown(e, "/list-projects")}>
                 <ProjectsStatusSVG />
                 <p>סטטוס פרויקטים</p>
+              </div>
+            )}
+            {(currentUser.isAdvisor || currentUser.isCoordinator) && (
+              <div
+                className="quick-link-item"
+                onClick={() => navigate("/zoom-scheduler")}
+                onMouseDown={(e) => handleMouseDown(e, "/zoom-scheduler")}>
+                <ZoomMeetingSVG />
+                <p>קביעת פגישה</p>
               </div>
             )}
             {currentUser.isJudge && (
@@ -378,29 +601,51 @@ const Homepage = () => {
           </>
         )}
       </div>
-
-      {/* <div className="home-page-upcoming-events">
-        <h2>אירועים קרובים</h2>
-        <div className="home-page-upcoming-events-list">
-          <Calendar
-            className="list-calendar"
-            value={value}
-            onSelect={onSelect}
-            onPanelChange={onPanelChange}
-            locale={{
-              lang: {
-                locale: "he",
-                month: getMonthLabel(value.month(), value),
-                year: value.year(),
-                day: value.day(),
-                shortWeekDays: ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"],
-              },
-            }}
-            firstDayOfWeek={0}
-          />
-          <Alert className="list-info" message={`You selected date: ${selectedValue?.format("DD-MM-YYYY")}`} />
-        </div>
-      </div> */}
+      <div className="home-page-upcoming-events">
+        <Calendar className="calendar" locale={locale} value={value} onSelect={onSelect} cellRender={cellRender} />
+        <Alert
+          className="list-info"
+          message={`${selectedValue?.format("DD-MM-YYYY")}`}
+          description={
+            selectedDateSubmissions.length > 0 || selectedDateHolidays.length > 0 || selectedDateMeetings.length > 0 ? (
+              <ul>
+                {selectedDateSubmissions.map((item) => (
+                  <Badge.Ribbon key={item.content} text="הגשה" color="purple">
+                    <Card title="יום אחרון להגשה" size="small">
+                      {item.content} - <strong>עד השעה: {dayjs(item.time).format("HH:mm")}</strong>
+                    </Card>
+                  </Badge.Ribbon>
+                ))}
+                {selectedDateMeetings.map((item) => (
+                  <Badge.Ribbon key={item.content} text="פגישה" color="blue">
+                    <Card title="פגישת זום" size="small">
+                      נושא: {item.content} - <strong>בשעה: {dayjs(item.time).format("HH:mm")}</strong> -{" "}
+                      {dayjs().isAfter(dayjs(item.endTime)) ? (
+                        "הפגישה הסתיימה"
+                      ) : item.link ? (
+                        <a href={item.link} target="_blank" rel="noopener noreferrer">
+                          הצטרף לפגישה
+                        </a>
+                      ) : (
+                        ""
+                      )}
+                    </Card>
+                  </Badge.Ribbon>
+                ))}
+                {selectedDateHolidays.map((holiday) => (
+                  <Badge.Ribbon key={holiday.render()} text="חג" color="gold">
+                    <Card title="חג" size="small">
+                      {holiday.render()}
+                    </Card>
+                  </Badge.Ribbon>
+                ))}
+              </ul>
+            ) : (
+              "אין אירועים מתוזמנים"
+            )
+          }
+        />
+      </div>
     </div>
   );
 };

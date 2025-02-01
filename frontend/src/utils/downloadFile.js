@@ -7,13 +7,12 @@ export const downloadFile = async (fileId, destination) => {
       withCredentials: true,
     });
     const fileName = fileResponse.data.filename;
-
     const response = await axios.get(
       `${process.env.REACT_APP_BACKEND_URL}/api/uploads/download/${fileId}?destination=${destination}`,
       {
         responseType: "blob",
         withCredentials: true,
-      },
+      }
     );
 
     const url = window.URL.createObjectURL(new Blob([response.data]));

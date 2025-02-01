@@ -11,6 +11,7 @@ import path from "path";
 import OpenAI from "openai";
 import ExamTable from "../models/examTable.js";
 import mongoose from "mongoose";
+import Mission from "../models/mission.js";
 
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
@@ -83,6 +84,24 @@ export const getSelfProjects = async (req, res) => {
   }
 };
 
+export const getSelfProjectsAsStudent = async (req, res) => {
+  try {
+    const userid = req.user._id;
+    const user = await User.findById(userid);
+    if (!user) {
+      return res.status(200).send({ projects: [] });
+    }
+    const projects = await Project.find({ students: { $elemMatch: { student: userid } } }).populate({
+      path: "students.student",
+      model: "User",
+      select: "-password", // Exclude the password field
+    });
+    res.status(200).send({ projects });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const createProject = async (req, res) => {
   try {
     const { title, description, year, suitableFor, type, continues, advisors, students } = req.body;
@@ -107,6 +126,7 @@ export const createProject = async (req, res) => {
         isTerminated: false,
         isTaken: false,
         grades: [],
+        journal: { missions: [] },
       });
     } else {
       if (advisors.length > 0) {
@@ -136,6 +156,7 @@ export const createProject = async (req, res) => {
         isTerminated: false,
         isTaken: false,
         grades: [],
+        journal: { missions: [] },
       });
     }
 
@@ -607,6 +628,12 @@ export const terminateProject = async (req, res) => {
       await submission.deleteOne();
     }
 
+    // Delete all related missions
+    await Mission.deleteMany({ _id: { $in: project.journal.missions } });
+
+    // Delete the journal
+    project.journal = { missions: [] };
+
     await project.save();
     res.status(200).send("Project terminated successfully");
   } catch (err) {
@@ -779,6 +806,9 @@ export const deleteAllProjects = async (req, res) => {
         }
       }
       await Submission.deleteMany({ project: project._id });
+
+      // Delete associated missions
+      await Mission.deleteMany({ _id: { $in: project.journal.missions } });
     }
     await Project.deleteMany();
     res.status(200).json({ message: "All projects deleted successfully" });

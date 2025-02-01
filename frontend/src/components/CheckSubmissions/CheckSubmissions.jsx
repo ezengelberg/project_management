@@ -89,7 +89,7 @@ const CheckSubmissions = () => {
           )}
           {item.fileNeeded && (
             <Tooltip title="הורד קובץ">
-              <DownloadOutlined className="icon" onClick={() => downloadFile(item.file, "submissions")} />
+              <DownloadOutlined className="icon" onClick={() => downloadFile(item.file._id, "submissions")} />
             </Tooltip>
           )}
         </>
@@ -111,7 +111,7 @@ const CheckSubmissions = () => {
           </div>
           {item.fileNeeded && (
             <Tooltip title="הורד קובץ">
-              <DownloadOutlined className="icon" onClick={() => downloadFile(item.file, "submissions")} />
+              <DownloadOutlined className="icon" onClick={() => downloadFile(item.file._id, "submissions")} />
             </Tooltip>
           )}
         </>

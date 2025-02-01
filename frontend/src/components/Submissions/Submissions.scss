@@ -188,4 +188,25 @@
       flex-wrap: wrap;
     }
   }
+  .table-row {
+    .table-col-div {
+      .table-col {
+        .submission-title {
+          font-size: 1.8rem;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 626px) {
+  .table-row {
+    .table-col-div {
+      .table-col {
+        .submission-title {
+          font-size: 2rem;
+        }
+      }
+    }
+  }
 }
