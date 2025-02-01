@@ -102,6 +102,7 @@
 .home-page-upcoming-events {
   display: flex;
   gap: 2rem;
+  margin-top: 2rem;
   .calendar {
     flex: 2;
     .ant-picker-calendar-date-content {
