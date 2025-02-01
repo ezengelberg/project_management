@@ -39,6 +39,28 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
     }
   };
 
+  const editAnnouncement = async () => {
+    console.log("Editing announcement");
+    console.log(description);
+    console.log(title);
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/announcement/edit/${announcement._id}`,
+        {
+          title,
+          content: description,
+        },
+        {
+          withCredentials: true,
+        },
+      );
+      message.success("ההודעה עודכנה בהצלחה");
+      updateAnnouncement();
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
+  };
+
   return (
     <>
       <Modal
@@ -52,7 +74,7 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
           deleteAnnouncement();
         }}
         okButtonProps={{ danger: true }}>
-        האם הינך בטוח שברצונך למחוק את ההודעה <span style={{ fontWeight: 600 }}>{announcement.title}</span>
+        האם הינך בטוח שברצונך למחוק את ההודעה <span style={{ fontWeight: 600 }}>{announcement.title}</span>, ההודעה תימחק לצמיתות
         <br />
         תוכן ההודעה:{" "}
         <div
@@ -78,13 +100,21 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
               style={{ height: "320px", wordBreak: "break-word" }}
             />
           </div>
-          <Button
-            className="update-announcement-button"
-            type="primary"
-            onClick={() => setIsEditing(false)}
-            disabled={description === announcement.content || title === announcement.content}>
-            עדכן הודעה
-          </Button>
+          <div className="update-announcement-actions">
+            <Button className="update-announcement-button" onClick={() => setIsEditing(false)}>
+              בטל
+            </Button>
+            <Button
+              className="update-announcement-button"
+              type="primary"
+              onClick={() => {
+                setIsEditing(false);
+                editAnnouncement();
+              }}
+              disabled={description === announcement.content && title === announcement.title}>
+              עדכן הודעה
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="announcement-container">
@@ -93,7 +123,7 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
               <div className="announcement-title">{announcement.title}</div>
               <div className="announcement-top-end">
                 <div className="announcement-author">פורסם ע"י {announcement.writtenBy.name}</div>
-                <div className="announcement-date">פורסם ב{formatDateWithoutSeconds(announcement.createdAt)}</div>
+                <div className="announcement-date">פורסם ב {formatDateWithoutSeconds(announcement.createdAt)}</div>
               </div>
             </div>
           </div>
@@ -108,14 +138,14 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
               </div>
             )}
             {canEdit && (
-              <div class="edit-actions">
+              <div className="edit-actions">
                 <a
                   href="#"
                   className="edit-button"
                   onClick={() => {
-                    setIsEditing(true);
                     setTitle(announcement.title);
                     setDescription(announcement.content);
+                    setIsEditing(true);
                   }}>
                   <EditOutlined />
                 </a>

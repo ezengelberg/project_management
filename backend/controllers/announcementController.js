@@ -83,3 +83,10 @@ export const deleteAnnouncement = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const editAnnouncement = async (req, res) => {
+  const { id } = req.params;
+  const { title, content } = req.body;
+  await Announcement.findByIdAndUpdate(id, { title, content });
+  res.status(200).json({ message: "Editing announcement" });
+};

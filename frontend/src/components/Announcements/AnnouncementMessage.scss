@@ -3,10 +3,14 @@
   flex-direction: column;
   width: 50%;
   margin: 0 auto;
-  .update-announcement-button {
+  .update-announcement-actions {
+    display: flex;
     margin-right: auto;
-    margin-top: 1rem;
-    width: fit-content;
+    gap: 1rem;
+    .update-announcement-button {
+      margin-top: 1rem;
+      width: fit-content;
+    }
   }
 }
 .announcement-container {
@@ -50,7 +54,10 @@
 
   .announcement-content {
     width: 95%;
-    margin: 0 auto;
+    margin: 0.8rem auto;
+    p {
+      margin: 0.5rem;
+    }
   }
   .announcement-footer {
     width: 95%;
@@ -58,6 +65,7 @@
     display: flex;
     align-items: center;
     margin-top: auto;
+    margin-bottom: 0.2rem;
     min-height: 2rem;
 
     .edit-actions {
