@@ -46,8 +46,7 @@ const Announcements = () => {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/announcement/get-all`, {
         withCredentials: true,
       });
-      setAnnouncements(response.data);
-      console.log(response.data);
+      setAnnouncements(response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
     } catch (error) {
       console.error("Error occurred:", error);
     }
@@ -144,7 +143,7 @@ const Announcements = () => {
 
           <div className="form-input-group template-input-group">
             <Editor
-              placeholder="תיאור לקובץ"
+              placeholder="תוכן ההודעה"
               value={description}
               onTextChange={handleEditorChange}
               style={{ height: "320px", wordBreak: "break-word" }}
@@ -160,9 +159,9 @@ const Announcements = () => {
         </div>
       )}
       <h2>הודעות</h2>
-      <div class="announcements-board">
+      <div className="announcements-board">
         {announcements.map((announcement) => (
-          <AnnouncementMessage key={announcement._id} announcement={announcement} />
+          <AnnouncementMessage key={announcement._id} announcement={announcement} canEdit={privileges.isCoordinator} />
         ))}
       </div>
     </div>

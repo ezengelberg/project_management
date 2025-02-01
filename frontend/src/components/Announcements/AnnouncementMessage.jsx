@@ -2,23 +2,43 @@ import React from "react";
 import "./AnnouncementMessage.scss";
 import { processContent } from "../../utils/htmlProcessor";
 
-const AnnouncementMessage = ({ announcement }) => {
-  console.log(announcement);
+const AnnouncementMessage = ({ announcement, canEdit }) => {
+  const formatDateWithoutSeconds = (date) => {
+    return new Date(date).toLocaleString("he-IL", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <div className="announcement-container">
-      <div class="announcement-top">
-        <div class="announcement-top-wrapper">
-          <div class="announcement-title">{announcement.title}</div>
-          <div class="announcement-author">{announcement.writtenBy.name}</div>
-          <div class="announcement-date">{announcement.createdAt}</div>
+      <div className="announcement-top">
+        <div className="announcement-top-wrapper">
+          <div className="announcement-title">{announcement.title}</div>
+          <div className="announcement-top-end">
+            <div className="announcement-author">פורסם ע"י {announcement.writtenBy.name}</div>
+            <div className="announcement-date">פורסם ב{formatDateWithoutSeconds(announcement.createdAt)}</div>
+          </div>
         </div>
       </div>
-      <div class="announcement-content" dangerouslySetInnerHTML={{ __html: processContent(announcement.content, 750) }}/>
-      <div class="announcement-footer">
-        <div class="announcement-update-date">עודכן לאחרונה ב {announcement.updatedAt}</div>
-        <a href="#" class="edit-button">
-          עריכה
-        </a>
+      <div
+        className="announcement-content"
+        dangerouslySetInnerHTML={{ __html: processContent(announcement.content, 750) }}
+      />
+      <div className="announcement-footer">
+        {announcement.updatedAt !== announcement.createdAt && (
+          <div className="announcement-update-date">
+            עודכן לאחרונה ב {formatDateWithoutSeconds(announcement.updatedAt)}
+          </div>
+        )}
+        {canEdit && (
+          <a href="#" className="edit-button" onClick={() => console.log("Edit")}>
+            עריכה
+          </a>
+        )}
       </div>
     </div>
   );

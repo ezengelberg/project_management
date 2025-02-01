@@ -6,8 +6,12 @@
   min-height: 20rem;
   border: 1px solid #ccc;
   border-radius: 10px;
+  font-size: 1.5rem;
 
   .announcement-top {
+    background-color: #f5f5f5;
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
     display: flex;
     justify-content: space-around;
     border-bottom: 1px solid #ccc;
@@ -15,6 +19,12 @@
       display: flex;
       align-items: center;
       width: 90%;
+      .announcement-top-end {
+        display: flex;
+        flex-direction: column;
+        margin-right: auto;
+        font-size: 1.3rem;
+      }
       div {
         display: block;
         width: fit-content;
@@ -27,6 +37,10 @@
     padding: 1rem;
   }
 
+  .announcement-content {
+    width: 95%;
+    margin: 0 auto;
+  }
   .announcement-footer {
     width: 95%;
     margin: 0 auto;
@@ -36,8 +50,9 @@
     min-height: 2rem;
 
     .edit-button {
-        text-decoration: none;
-        color: #1677ff
+      text-decoration: none;
+      color: #1677ff;
+      margin-right: auto;
     }
   }
 }
