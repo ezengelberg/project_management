@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import "./HomePage.scss";
 import axios from "axios";
-import { Alert, Calendar, Badge, Card } from "antd";
+import { Alert, Calendar, Badge, Card, Spin } from "antd";
 import {
   ApartmentOutlined,
   ProjectOutlined,
@@ -40,6 +40,7 @@ const Homepage = () => {
   });
   const [submissions, setSubmissions] = useState([]);
   const [meetings, setMeetings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const handleResize = () => {
@@ -144,53 +145,54 @@ const Homepage = () => {
   );
 
   useEffect(() => {
-    const fetchUserProject = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/user-project`, {
-          withCredentials: true,
-        });
-        setUserProject(response.data);
+        await fetchUserProject();
+        await fetchNotifications();
+        await fetchSubmissions();
+        await fetchMeetings();
       } catch (error) {
-        console.error("Error fetching user project:", error);
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchUserProject();
-    fetchNotifications();
+    fetchData();
   }, []);
 
-  useEffect(() => {
-    const fetchSubmissions = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-student-submissions`,
-          {
-            withCredentials: true,
-          }
-        );
-        setSubmissions(response.data);
-      } catch (error) {
-        console.error("Error fetching submissions:", error);
-      }
-    };
+  const fetchUserProject = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/user-project`, {
+        withCredentials: true,
+      });
+      setUserProject(response.data);
+    } catch (error) {
+      console.error("Error fetching user project:", error);
+    }
+  };
 
-    fetchSubmissions();
-  }, []);
+  const fetchSubmissions = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-student-submissions`, {
+        withCredentials: true,
+      });
+      setSubmissions(response.data);
+    } catch (error) {
+      console.error("Error fetching submissions:", error);
+    }
+  };
 
-  useEffect(() => {
-    const fetchMeetings = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/zoom/meetings`, {
-          withCredentials: true,
-        });
-        setMeetings(response.data);
-      } catch (error) {
-        console.error("Error fetching meetings:", error);
-      }
-    };
-
-    fetchMeetings();
-  }, []);
+  const fetchMeetings = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/zoom/meetings`, {
+        withCredentials: true,
+      });
+      setMeetings(response.data);
+    } catch (error) {
+      console.error("Error fetching meetings:", error);
+    }
+  };
 
   const getListData = (value) => {
     let listData = [];
@@ -373,6 +375,20 @@ const Homepage = () => {
   const handleNotificationClose = (notificationId) => {
     markNotificationAsRead(notificationId);
   };
+
+  if (loading) {
+    return (
+      <Spin tip="טוען..." size="large">
+        <div
+          style={{
+            padding: 50,
+            background: "rgba(0, 0, 0, 0.05)",
+            borderRadius: 4,
+          }}
+        />
+      </Spin>
+    );
+  }
 
   return (
     <div className="home-page">
