@@ -60,7 +60,7 @@ export const createMeeting = async (req, res) => {
         host_video: true,
         participant_video: true,
         join_before_host: false,
-        waiting_room: true,
+        waiting_room: false,
       },
       recurrence: recurring
         ? {

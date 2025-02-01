@@ -202,7 +202,7 @@ const ListZoomMeetings = () => {
               <Button
                 type="text"
                 icon={<CopyTwoTone className="meeting-table-icon" />}
-                onClick={() => copyLink(link)}
+                onClick={() => copyLink(record.joinUrl)}
               />
             </Tooltip>
           </div>
