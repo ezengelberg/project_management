@@ -55,19 +55,19 @@ export const getAnnouncements = async (req, res) => {
       ],
     });
 
-    const group = await Group.findOne({ projects: project._id });
+    let group;
+    if (project) group = await Group.findOne({ projects: project._id });
 
     console.log(group);
     console.log(student, advisor, judge, coordinator);
 
+    console.log(judge);
+    const conditions = [];
+    if (student || coordinator) conditions.push({ forStudent: student || coordinator });
+    if (advisor || coordinator) conditions.push({ forAdvisor: advisor || coordinator });
+    if (judge || coordinator) conditions.push({ forJudge: judge || coordinator });
     const announcements = await Announcement.find({
-      $or: [
-        { forStudent: student || coordinator },
-        { forAdvisor: advisor || coordinator },
-        { forJudge: judge || coordinator },
-        { forCoordinator: coordinator },
-        { group: group?._id || { $exists: true } },
-      ],
+      $or: [...conditions, { forCoordinator: coordinator }, { group: group?._id || { $exists: true } }],
     }).populate("writtenBy", "name");
 
     console.log(announcements);
