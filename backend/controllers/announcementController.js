@@ -33,6 +33,14 @@ export const createAnnouncement = async (req, res) => {
         newAnnouncement.forCoordinator = true;
       }
     }
+    if (
+      newAnnouncement.forStudent === false &&
+      newAnnouncement.forAdvisor === false &&
+      newAnnouncement.forJudge === false &&
+      newAnnouncement.forCoordinator === false
+    ) {
+      newAnnouncement.forCoordinator = true;
+    }
     await newAnnouncement.save();
     res.status(201).json({ message: "Announcement created" });
   } catch (error) {
@@ -58,10 +66,6 @@ export const getAnnouncements = async (req, res) => {
     let group;
     if (project) group = await Group.findOne({ projects: project._id });
 
-    console.log(group);
-    console.log(student, advisor, judge, coordinator);
-
-    console.log(judge);
     const conditions = [];
     if (student || coordinator) conditions.push({ forStudent: student || coordinator });
     if (advisor || coordinator) conditions.push({ forAdvisor: advisor || coordinator });
