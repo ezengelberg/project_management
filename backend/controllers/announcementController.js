@@ -26,7 +26,6 @@ export const createAnnouncement = async (req, res) => {
         newAnnouncement.forAdvisor = true;
       }
       if (roles.judge) {
-        console.log("ye");
         newAnnouncement.forJudge = true;
       }
       if (roles.coordinator) {
@@ -70,11 +69,13 @@ export const getAnnouncements = async (req, res) => {
     if (student || coordinator) conditions.push({ forStudent: student || coordinator });
     if (advisor || coordinator) conditions.push({ forAdvisor: advisor || coordinator });
     if (judge || coordinator) conditions.push({ forJudge: judge || coordinator });
+    const specificGroup = group?._id ? { group: group._id } : {};
+    console.log(specificGroup);
     const announcements = await Announcement.find({
-      $or: [...conditions, { forCoordinator: coordinator }, { group: group?._id || { $exists: true } }],
+      $or: [...conditions, { forCoordinator: coordinator }],
+      ...specificGroup, // This should be inside the query object
     }).populate("writtenBy", "name");
 
-    console.log(announcements);
     res.status(200).json(announcements);
   } catch (error) {
     console.error("Error occurred:", error);

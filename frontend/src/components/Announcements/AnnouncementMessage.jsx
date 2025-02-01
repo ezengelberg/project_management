@@ -3,8 +3,8 @@ import axios from "axios";
 import "./AnnouncementMessage.scss";
 import { processContent } from "../../utils/htmlProcessor";
 import { Editor } from "primereact/editor";
-import { Input, Button, Modal, message } from "antd";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Input, Button, Modal, message, Tooltip } from "antd";
+import { EditOutlined, DeleteOutlined, EyeOutlined, CalendarOutlined, UserOutlined } from "@ant-design/icons";
 
 const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -74,7 +74,8 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
           deleteAnnouncement();
         }}
         okButtonProps={{ danger: true }}>
-        האם הינך בטוח שברצונך למחוק את ההודעה <span style={{ fontWeight: 600 }}>{announcement.title}</span>, ההודעה תימחק לצמיתות
+        האם הינך בטוח שברצונך למחוק את ההודעה <span style={{ fontWeight: 600 }}>{announcement.title}</span>, ההודעה
+        תימחק לצמיתות
         <br />
         תוכן ההודעה:{" "}
         <div
@@ -122,8 +123,14 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
             <div className="announcement-top-wrapper">
               <div className="announcement-title">{announcement.title}</div>
               <div className="announcement-top-end">
-                <div className="announcement-author">פורסם ע"י {announcement.writtenBy.name}</div>
-                <div className="announcement-date">פורסם ב {formatDateWithoutSeconds(announcement.createdAt)}</div>
+                <div className="announcement-info-field">
+                  <UserOutlined />
+                  <div className="announcement-author">פורסם ע"י {announcement.writtenBy.name}</div>
+                </div>
+                <div className="announcement-info-field">
+                  <CalendarOutlined />
+                  <div className="announcement-date">פורסם ב {formatDateWithoutSeconds(announcement.createdAt)}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -147,7 +154,21 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
                     setDescription(announcement.content);
                     setIsEditing(true);
                   }}>
-                  <EditOutlined />
+                  <Tooltip title="עריכת הודעה">
+                    <EditOutlined />
+                  </Tooltip>
+                </a>
+                <a
+                  href="#"
+                  className="edit-button"
+                  onClick={() => {
+                    setTitle(announcement.title);
+                    setDescription(announcement.content);
+                    setIsEditing(true);
+                  }}>
+                  <Tooltip title="הרשאות צפיה">
+                    <EyeOutlined />
+                  </Tooltip>
                 </a>
                 <a
                   href="#"
@@ -155,7 +176,9 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
                   onClick={() => {
                     setDeleting(true);
                   }}>
-                  <DeleteOutlined />
+                  <Tooltip title="מחיקת הודעה">
+                    <DeleteOutlined />
+                  </Tooltip>
                 </a>
               </div>
             )}

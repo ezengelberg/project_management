@@ -33,12 +33,17 @@
     .announcement-top-wrapper {
       display: flex;
       align-items: center;
-      width: 90%;
+      width: 95%;
       .announcement-top-end {
         display: flex;
         flex-direction: column;
         margin-right: auto;
         font-size: 1.3rem;
+        .announcement-info-field {
+          display: flex;
+          gap: 0.5rem;
+          align-items: center;
+        }
       }
       div {
         display: block;
@@ -71,11 +76,15 @@
     .edit-actions {
       display: flex;
       flex-direction: row-reverse;
-      gap: 0.8rem;
+      gap: 1.5rem;
       margin-right: auto;
       .edit-button {
         text-decoration: none;
         color: #1677ff;
+        transition: transform 0.2s ease-in-out;
+        &:hover {
+          transform: scale(1.1);
+        }
       }
       .delete-button {
         text-decoration: none;
