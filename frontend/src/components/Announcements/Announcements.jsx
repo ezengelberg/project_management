@@ -61,7 +61,7 @@ const Announcements = () => {
 
     const submitAnnouncement = async () => {
         try {
-            await axios.post(
+            const response = await axios.post(
                 `${process.env.REACT_APP_BACKEND_URL}/api/announcement/create`,
                 {
                     title,
@@ -73,14 +73,14 @@ const Announcements = () => {
                     withCredentials: true,
                 },
             );
+            setAnnouncements([response.data.announcement, ...announcements]);
 
             message.success("ההודעה נוצרה בהצלחה");
-        } catch (error) {
-            console.error("Error occurred:", error);
-        } finally {
             setTitle("");
             setDescription("");
-            fetchAnnouncements();
+        } catch (error) {
+            console.error("Error occurred:", error);
+            message.error("יצירת ההודעה נכשלה");
         }
     };
 
