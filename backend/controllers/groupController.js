@@ -1,4 +1,5 @@
 import Group from "../models/groups.js";
+import Config from "../models/config.js";
 
 export const createNewGroup = async (req, res) => {
   try {
@@ -18,6 +19,16 @@ export const createNewGroup = async (req, res) => {
 export const getGroups = async (req, res) => {
   try {
     const groups = await Group.find();
+    res.status(200).json(groups);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getYearGroups = async (req, res) => {
+  try {
+    const config = await Config.findOne();
+    const groups = await Group.find({ year: config.currentYear });
     res.status(200).json(groups);
   } catch (error) {
     res.status(500).json({ error: error.message });
