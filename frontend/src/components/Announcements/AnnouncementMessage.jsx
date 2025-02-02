@@ -41,9 +41,6 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
     };
 
     const editAnnouncement = async () => {
-        console.log("Editing announcement");
-        console.log(description);
-        console.log(title);
         try {
             await axios.put(
                 `${process.env.REACT_APP_BACKEND_URL}/api/announcement/edit/${announcement._id}`,
@@ -163,7 +160,7 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
                                 setIsEditing(false);
                                 editAnnouncement();
                             }}
-                            disabled={description === announcement.content && title === announcement.title}>
+                            disabled={description === announcement.content && title === announcement.title || description === "" || title === ""}>
                             עדכן הודעה
                         </Button>
                     </div>
