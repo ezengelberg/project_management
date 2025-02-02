@@ -38,7 +38,6 @@ export const fetchUsers = async (req, res) => {
         const { name } = req.query;
         if (name) {
             const users = await User.find({ name: { $regex: name, $options: "i" } }).select("name _id");
-            console.log(users);
             return res.status(200).json(users);
         }
     } catch (error) {

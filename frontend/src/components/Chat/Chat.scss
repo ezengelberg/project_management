@@ -57,11 +57,11 @@
                     gap: 0.5rem;
                     padding: 0.5rem 0.8rem;
                     border-radius: 8px;
-                    background-color: #cbd8fc;
+                    background-color: #9EDF9C;
                     cursor: pointer;
                     transition: background-color 0.2s ease-in-out;
                     &:hover {
-                        background-color: #f7b8b8;
+                        background-color: #FF4C4C;
                     }
                     &-title {
                         padding: 0.5rem 0;
@@ -85,16 +85,23 @@
             .chat-user {
                 position: relative;
                 display: flex;
-                width: 80%;
+                width: 100%;
                 gap: 0.5rem;
                 padding: 0.6rem 0.8rem;
-                background-color: #f7b8b8;
+                background-color: #fce7c8;
                 border-radius: 6px;
                 align-items: center;
                 cursor: pointer;
                 .chat-action-icon {
                     position: absolute;
                     left: 1rem;
+                    cursor: pointer;
+                    transition: transform 0.3s ease-in-out;
+                }
+                &:hover {
+                    .chat-action-icon {
+                        animation: shrinkExtend 0.3s ease-in-out;
+                    }
                 }
             }
         }
@@ -154,10 +161,6 @@
         color: #ccc;
         cursor: pointer;
         transition: color 0.3s ease-in-out;
-        &:hover {
-            animation: shrinkExtend 0.3s ease-in-out;
-            color: #777;
-        }
     }
 }
 
