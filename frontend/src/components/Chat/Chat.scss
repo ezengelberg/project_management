@@ -21,44 +21,51 @@
         flex-direction: column;
 
         .participants-list {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            overflow-x: auto;
-            white-space: nowrap; /* Prevents wrapping of text */
-            &::-webkit-scrollbar {
-                height: 10px;
-            }
-
-            &::-webkit-scrollbar-track {
-                background: #f1f1f1;
-                border-radius: 10px;
-            }
-
-            &::-webkit-scrollbar-thumb {
-                background: #888;
-                border-radius: 10px;
-            }
-
-            &::-webkit-scrollbar-thumb:hover {
-                background: #555;
-            }
-
-            div {
-                font-size: 1.5rem;
-            }
-
-            .participant {
+            &--wrapper {
                 display: flex;
                 align-items: center;
                 gap: 0.5rem;
-                padding: 0.5rem 0.8rem;
-                border-radius: 8px;
-                background-color: #cbd8fc;
-                cursor: pointer;
-                transition: background-color 0.2s ease-in-out;
-                &:hover {
-                    background-color: #f7b8b8;
+                overflow-x: auto;
+                white-space: nowrap; /* Prevents wrapping of text */
+                padding: 0.5rem 0;
+
+                &::-webkit-scrollbar {
+                    height: 10px;
+                }
+
+                &::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 10px;
+                }
+
+                &::-webkit-scrollbar-thumb {
+                    background: #888;
+                    border-radius: 10px;
+                }
+
+                &::-webkit-scrollbar-thumb:hover {
+                    background: #555;
+                }
+
+                div {
+                    font-size: 1.5rem;
+                }
+
+                .participant {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    padding: 0.5rem 0.8rem;
+                    border-radius: 8px;
+                    background-color: #cbd8fc;
+                    cursor: pointer;
+                    transition: background-color 0.2s ease-in-out;
+                    &:hover {
+                        background-color: #f7b8b8;
+                    }
+                    &-title {
+                        padding: 0.5rem 0;
+                    }
                 }
             }
         }

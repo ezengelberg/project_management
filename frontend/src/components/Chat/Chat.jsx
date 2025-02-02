@@ -64,17 +64,19 @@ const Chat = ({ type }) => {
                 <div className="chat-wrapper">
                     <h3>יצירת שיחה חדשה</h3>
                     <div className="participants-list">
-                        <div className="participant-title">משתתפים:</div>
-                        {participants.map((participant, index) => (
-                            <div
-                                key={index}
-                                className="participant"
-                                onClick={() => setParticipants(participants.filter((p, i) => i !== index))}>
-                                <UserOutlined />
-                                <div className="participant-name">{participant.name}</div>
-                            </div>
-                        ))}
-                        {participants.length === 0 && <div className="no-participants">לא הוספו משתמשים</div>}
+                        <div className="participants-list--wrapper">
+                            <div className="participant-title">משתתפים:</div>
+                            {participants.map((participant, index) => (
+                                <div
+                                    key={index}
+                                    className="participant"
+                                    onClick={() => setParticipants(participants.filter((p, i) => i !== index))}>
+                                    <UserOutlined />
+                                    <div className="participant-name">{participant.name}</div>
+                                </div>
+                            ))}
+                            {participants.length === 0 && <div className="no-participants">לא הוספו משתמשים</div>}
+                        </div>
                     </div>
                     <div className="chat-search-container">
                         <Input
@@ -83,6 +85,10 @@ const Chat = ({ type }) => {
                             value={userSearch}
                             onChange={(e) => {
                                 setUserSearch(e.target.value);
+                                if (e.target.value.length < 3) {
+                                    setUserResults([]);
+                                    return;
+                                }
                                 findUser(e.target.value);
                             }}
                         />
@@ -96,11 +102,6 @@ const Chat = ({ type }) => {
                                         <div className="chat-user" key={user._id} onClick={() => handleUserClick(user)}>
                                             <UserOutlined />
                                             <div className="chat-user-name">{user.name}</div>
-                                            {/* {participants.filter((p) => p === user.name).length === 0 ? (
-                                                <UserAddOutlined className="chat-action-icon" />
-                                            ) : (
-                                                <UserDeleteOutlined className="chat-action-icon" />
-                                            )} */}
                                             {participants.filter((p) => p.name === user.name).length > 0 ? (
                                                 <UserDeleteOutlined className="chat-action-icon" />
                                             ) : (
@@ -111,7 +112,7 @@ const Chat = ({ type }) => {
                                 })}
                             </>
                         ) : (
-                            <>none</>
+                            <div className="no-users">אין משתמשים להצגה</div>
                         )}
                     </div>
                     <div className="chat-message-container">
