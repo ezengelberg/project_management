@@ -90,7 +90,7 @@
             }
             li.closed {
                 & > div > svg:not(.zoom-icon) {
-                    transform: rotate3d(1, 0, 0, 180deg);
+                    transform: rotate3d(0, 0, 0, 180deg);
                 }
                 .sidebar-drop-menu {
                     max-height: 0;
@@ -98,6 +98,9 @@
             }
             li.open {
                 color: white;
+                & > div > svg:not(.zoom-icon) {
+                    transform: rotate3d(1, 0, 0, 180deg);
+                }
                 .sidebar-drop-menu {
                     max-height: 20rem;
                 }

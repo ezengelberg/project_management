@@ -9,34 +9,37 @@
     left: 10rem;
     bottom: 0;
     z-index: 10;
+    display: flex;
+    flex-direction: column; /* Stack child elements vertically */
+    max-height: 90vh; /* Allow it to grow up to 90% of the viewport height */
 
     .chat-wrapper {
+        position: relative;
+        height: 100%; /* Full height of the parent */
         padding: 1rem 2rem;
+        display: flex;
+        flex-direction: column;
+
         .participants-list {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             overflow-x: auto;
             white-space: nowrap; /* Prevents wrapping of text */
-            padding-bottom: 1rem;
-            /* width */
             &::-webkit-scrollbar {
                 height: 10px;
             }
 
-            /* Track */
             &::-webkit-scrollbar-track {
                 background: #f1f1f1;
                 border-radius: 10px;
             }
 
-            /* Handle */
             &::-webkit-scrollbar-thumb {
                 background: #888;
                 border-radius: 10px;
             }
 
-            /* Handle on hover */
             &::-webkit-scrollbar-thumb:hover {
                 background: #555;
             }
@@ -44,6 +47,7 @@
             div {
                 font-size: 1.5rem;
             }
+
             .participant {
                 display: flex;
                 align-items: center;
@@ -56,6 +60,57 @@
                 &:hover {
                     background-color: #f7b8b8;
                 }
+            }
+        }
+
+        .chat-content {
+            flex-grow: 1; /* Take remaining space */
+            overflow: auto; /* Prevent overflow */
+        }
+
+        .chat-users {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            font-size: 1.6rem;
+            align-items: center;
+            .chat-user {
+                position: relative;
+                display: flex;
+                width: 80%;
+                gap: 0.5rem;
+                padding: 0.6rem 0.8rem;
+                background-color: #f7b8b8;
+                border-radius: 6px;
+                align-items: center;
+                cursor: pointer;
+                .chat-action-icon {
+                    position: absolute;
+                    left: 1rem;
+                }
+            }
+        }
+
+        .chat-message-container {
+            position: relative;
+            width: 100%;
+            flex-shrink: 0; /* Prevent shrinking */
+            margin-top: auto; /* Push this container to the bottom */
+            .chat-message {
+                display: flex;
+                padding-right: 3rem;
+            }
+            .chat-send-icon {
+                position: absolute;
+                translate: translateY(-50%);
+                left: 1rem;
+                bottom: 1rem;
+                color: #ccc;
+                transition: color 0.3s ease-in-out; /* Add transition for color */
+            }
+            .chat-send-icon.active {
+                color: #1677ff;
             }
         }
 
@@ -83,6 +138,7 @@
             }
         }
     }
+
     .chat-close {
         position: absolute;
         top: 0.5rem;
