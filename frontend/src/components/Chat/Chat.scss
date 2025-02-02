@@ -57,11 +57,11 @@
                     gap: 0.5rem;
                     padding: 0.5rem 0.8rem;
                     border-radius: 8px;
-                    background-color: #9EDF9C;
+                    background-color: #9edf9c;
                     cursor: pointer;
                     transition: background-color 0.2s ease-in-out;
                     &:hover {
-                        background-color: #FF4C4C;
+                        background-color: #ff4c4c;
                     }
                     &-title {
                         padding: 0.5rem 0;
@@ -77,6 +77,7 @@
 
         .chat-users {
             display: flex;
+            height: 100%;
             flex-direction: column;
             gap: 0.5rem;
             margin-top: 1rem;
@@ -102,6 +103,18 @@
                     .chat-action-icon {
                         animation: shrinkExtend 0.3s ease-in-out;
                     }
+                }
+            }
+            .no-users.loading {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
+                .searching-users {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    gap: 1.5rem;
                 }
             }
         }

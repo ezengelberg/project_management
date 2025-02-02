@@ -3,6 +3,7 @@ import axios from "axios";
 import "./Chat.scss";
 
 import {
+    LoadingOutlined,
     CloseOutlined,
     UserOutlined,
     SearchOutlined,
@@ -10,7 +11,7 @@ import {
     UserAddOutlined,
     UserDeleteOutlined,
 } from "@ant-design/icons";
-import { Input } from "antd";
+import { Input, Spin } from "antd";
 
 const { TextArea } = Input;
 
@@ -19,6 +20,7 @@ const Chat = ({ type }) => {
     const [userSearch, setUserSearch] = useState("");
     const [userResults, setUserResults] = useState([]);
     const [message, setMessage] = useState("");
+    const [loadingUsers, setLoadingUsers] = useState(false);
     const fetchChat = async () => {};
 
     const findUser = async (value) => {
@@ -26,7 +28,7 @@ const Chat = ({ type }) => {
         if (!/^[A-Za-z\u0590-\u05FF\s]+$/.test(value)) {
             return;
         }
-        // Fetch users
+        setLoadingUsers(true);
         try {
             const response = await axios.get(
                 `${process.env.REACT_APP_BACKEND_URL}/api/chat/fetch-users?name=${value}`,
@@ -38,6 +40,8 @@ const Chat = ({ type }) => {
             setUserResults(response.data);
         } catch (error) {
             console.error("Error fetching users:", error);
+        } finally {
+            setLoadingUsers(false);
         }
     };
 
@@ -103,16 +107,25 @@ const Chat = ({ type }) => {
                                             <UserOutlined />
                                             <div className="chat-user-name">{user.name}</div>
                                             {participants.filter((p) => p.name === user.name).length > 0 ? (
-                                                <UserDeleteOutlined className="chat-action-icon" />
+                                                <UserDeleteOutlined className="chat-action-icon" style={{"color": "red"}}/>
                                             ) : (
-                                                <UserAddOutlined className="chat-action-icon" />
+                                                <UserAddOutlined className="chat-action-icon" style={{"color" : "green"}}/>
                                             )}
                                         </div>
                                     );
                                 })}
                             </>
                         ) : (
-                            <div className="no-users">אין משתמשים להצגה</div>
+                            <div className={`no-users ${loadingUsers ? "loading" : ""}`}>
+                                {loadingUsers ? (
+                                    <div className="searching-users">
+                                        <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+                                        <div className="search-title">מחפש משתמשים...</div>
+                                    </div>
+                                ) : (
+                                    "לא נמצאו משתמשים"
+                                )}
+                            </div>
                         )}
                     </div>
                     <div className="chat-message-container">
