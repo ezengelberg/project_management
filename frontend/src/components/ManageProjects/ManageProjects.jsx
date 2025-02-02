@@ -224,6 +224,13 @@ const ManageProjects = () => {
     getColumnSearchPropsUtil(dataIndex, searchInput, handleSearch, handleReset, searchText);
 
   const closeRegistration = (record) => async () => {
+    if(record.students && record.students.length === 0) {
+      message.open({
+        type: "warning",
+        content: "לא ניתן לסגור פרויקט להרשמה ללא סטודנטים",
+      });
+      return;
+    }
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/switch-registration`,
