@@ -196,15 +196,19 @@ const Homepage = () => {
 
   const getListData = (value) => {
     let listData = [];
-    submissions.forEach((submission) => {
-      if (dayjs(submission.submissionDate).isSame(value, "day")) {
-        listData.push({
-          color: "purple",
-          content: `${submission.name}`,
-          time: submission.submissionDate,
-        });
-      }
-    });
+    if (Array.isArray(submissions)) {
+      submissions.forEach((submission) => {
+        if (dayjs(submission.submissionDate).isSame(value, "day")) {
+          listData.push({
+            color: "purple",
+            content: `${submission.name}`,
+            time: submission.submissionDate,
+          });
+        }
+      });
+    } else {
+      console.error("submissions is not an array:", submissions);
+    }
     return listData;
   };
 
