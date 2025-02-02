@@ -8,6 +8,7 @@ import { EditOutlined, DeleteOutlined, EyeOutlined, CalendarOutlined, UserOutlin
 
 const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [viewPermissions, setViewPermissions] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [description, setDescription] = useState("");
   const [title, setTitle] = useState("");
@@ -64,7 +65,57 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
   return (
     <>
       <Modal
-        title={"מחיקת הודעה"}
+        title={
+          <>
+            <EyeOutlined /> {"הרשאות צפיה"}
+          </>
+        }
+        open={viewPermissions}
+        okText="סגור"
+        cancelButtonProps={{ style: { display: "none" } }}
+        onCancel={() => setViewPermissions(false)}
+        onOk={() => setViewPermissions(false)}>
+        <div className="view-permissions">
+          {announcement.forStudent && (
+            <div className="permission-option">
+              <div className="permission-field">צפייה לתלמידים:</div>
+              <div className="permission-value">כן</div>
+            </div>
+          )}
+          {announcement.forAdvisor && (
+            <div className="permission-option">
+              <div className="permission-field">צפייה למנחים:</div>
+              <div className="permission-value">כן</div>
+            </div>
+          )}
+          {announcement.forJudge && (
+            <div className="permission-option">
+              <div className="permission-field">צפייה לשופטים:</div>
+              <div className="permission-value">כן</div>
+            </div>
+          )}
+          {announcement.forCoordinator && (
+            <div className="permission-option">
+              <div className="permission-field">צפייה לרכזים:</div>
+              <div className="permission-value">כן</div>
+            </div>
+          )}
+          <div className="permission-option">
+            <div className="permission-field">קבוצה רשאית לצפיה:</div>
+            {announcement.group ? (
+              <div className="permission-value">{announcement?.group?.name}</div>
+            ) : (
+              <div className="permission-value">כל הקבוצות</div>
+            )}
+          </div>
+        </div>
+      </Modal>
+      <Modal
+        title={
+          <>
+            <DeleteOutlined /> {"מחיקת הודעה"}
+          </>
+        }
         open={deleting}
         okText="מחק"
         cancelText="ביטול"
@@ -141,7 +192,10 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
           <div className="announcement-footer">
             {announcement.updatedAt !== announcement.createdAt && (
               <div className="announcement-update-date">
-                עודכן לאחרונה ב {formatDateWithoutSeconds(announcement.updatedAt)}
+                <CalendarOutlined />
+                <div class="update-date-content">
+                  עודכן לאחרונה ב {formatDateWithoutSeconds(announcement.updatedAt)}
+                </div>
               </div>
             )}
             {canEdit && (
@@ -162,9 +216,7 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
                   href="#"
                   className="edit-button"
                   onClick={() => {
-                    setTitle(announcement.title);
-                    setDescription(announcement.content);
-                    setIsEditing(true);
+                    setViewPermissions(true);
                   }}>
                   <Tooltip title="הרשאות צפיה">
                     <EyeOutlined />

@@ -72,7 +72,11 @@
     margin-top: auto;
     margin-bottom: 0.2rem;
     min-height: 2rem;
-
+    .announcement-update-date {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
     .edit-actions {
       display: flex;
       flex-direction: row-reverse;
@@ -90,6 +94,19 @@
         text-decoration: none;
         color: #ff0000;
       }
+    }
+  }
+}
+
+.view-permissions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  .permission-option {
+    display: flex;
+    gap: 0.5rem;
+    .permission-field {
+      font-weight: 500;
     }
   }
 }

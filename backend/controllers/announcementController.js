@@ -50,32 +50,48 @@ export const createAnnouncement = async (req, res) => {
 
 export const getAnnouncements = async (req, res) => {
   try {
-    const student = req.user.isStudent;
-    const advisor = req.user.isAdvisor;
-    const judge = req.user.isJudge;
-    const coordinator = req.user.isCoordinator;
+    const { isStudent, isAdvisor, isJudge, isCoordinator, _id } = req.user;
+    
+    const configFile = await Config.find();
+    const year = configFile[0].currentYear;
 
-    const project = await Project.findOne({
-      $or: [
-        { students: { $elemMatch: { student: req.user._id } } },
-        { advisors: { $elemMatch: { $eq: req.user._id } } },
-      ],
-    });
+    // Coordinators should see everything, so no need to filter by project
+    let group = null;
+    if (!isCoordinator) {
+      const project = await Project.findOne({
+        $or: [{ students: { $elemMatch: { student: _id } } }, { advisors: { $elemMatch: { $eq: _id } } }],
+      });
 
-    let group;
-    if (project) group = await Group.findOne({ projects: project._id });
+      if (project) {
+        group = await Group.findOne({ projects: project._id });
+      }
+    }
 
-    const conditions = [];
-    if (student || coordinator) conditions.push({ forStudent: student || coordinator });
-    if (advisor || coordinator) conditions.push({ forAdvisor: advisor || coordinator });
-    if (judge || coordinator) conditions.push({ forJudge: judge || coordinator });
-    const specificGroup = group?._id ? { group: group._id } : {};
-    console.log(specificGroup);
-    const announcements = await Announcement.find({
-      $or: [...conditions, { forCoordinator: coordinator }],
-      ...specificGroup, // This should be inside the query object
-    }).populate("writtenBy", "name");
+    // Define conditions based on user roles
+    const roleConditions = [];
+    if (isStudent) roleConditions.push({ forStudent: true });
+    if (isAdvisor) roleConditions.push({ forAdvisor: true });
+    if (isJudge) roleConditions.push({ forJudge: true });
 
+    // If the user is a coordinator, they see everything
+    let query = isCoordinator
+      ? {
+          year: year,
+      } // No filtering for coordinators
+      : {
+          $or: roleConditions,
+          ...(group?._id && { group: group._id }), // Apply group filter only if available
+          year: year,
+        };
+
+    // Coordinators also see all coordinator announcements
+    if (isCoordinator) {
+      query = { $or: [...roleConditions, { forCoordinator: true }] };
+    }
+    
+    const announcements = await Announcement.find(query)
+      .populate({ path: "writtenBy", select: "name" }) // Ensuring writtenBy is populated
+      .populate({ path: "group", select: "name" });
     res.status(200).json(announcements);
   } catch (error) {
     console.error("Error occurred:", error);
