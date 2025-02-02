@@ -1,0 +1,87 @@
+.chat-container {
+    position: absolute;
+    font-size: 1.3rem;
+    border-radius: 5px 5px 0 0;
+    border: 1px solid #ccc;
+    width: 40em;
+    height: 50rem;
+    background-color: white;
+    left: 10rem;
+    bottom: 0;
+    z-index: 10;
+
+    .chat-wrapper {
+        padding: 1rem 2rem;
+        .participants-list {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            overflow-x: auto;
+            white-space: nowrap; /* Prevents wrapping of text */
+            padding-bottom: 1rem;
+            /* width */
+            &::-webkit-scrollbar {
+                height: 10px;
+            }
+
+            /* Track */
+            &::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+
+            /* Handle */
+            &::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 10px;
+            }
+
+            /* Handle on hover */
+            &::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+            
+            div {
+                font-size: 1.5rem;
+            }
+            .participant {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 0.8rem;
+                border-radius: 8px;
+                background-color: #cbd8fc;
+                cursor: pointer;
+                transition: background-color 0.2s ease-in-out;
+                &:hover {
+                    background-color: #f7b8b8;
+                }
+            }
+        }
+    }
+    .chat-close {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        font-size: 2rem;
+        color: #ccc;
+        cursor: pointer;
+        transition: color 0.3s ease-in-out;
+        &:hover {
+            animation: shrinkExtend 0.3s ease-in-out;
+            color: #777;
+        }
+    }
+}
+
+@keyframes shrinkExtend {
+    0% {
+        transform: scale(0.9); /* Slight shrink */
+    }
+    50% {
+        transform: scale(1.1); /* Slight extend */
+    }
+    100% {
+        transform: scale(1); /* Back to normal */
+    }
+}

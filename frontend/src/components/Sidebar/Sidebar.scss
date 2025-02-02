@@ -1,161 +1,184 @@
 .sidebar-container {
-  background-color: #001529;
-  color: white;
+    background-color: #001529;
+    color: white;
 
-  .sidebar-actions {
-    .sidebar-greeting {
-      border-bottom: 1px solid #09243d;
-      text-align: center;
-      word-break: break-word;
-    }
-
-    ul {
-      color: rgb(228, 222, 222);
-      list-style-type: none;
-      font-size: 1.5rem;
-      padding: 0;
-      li {
-        cursor: pointer;
-        transition: 0.1s all ease-in-out;
-
-        .sidebar-option {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 1.2rem 1.5rem;
-          margin: 0 0.3rem;
-          transition: 0.2s all ease-in-out;
-
-          svg:not(.zoom-icon) {
-            fill: rgb(228, 222, 222);
-            width: 2.5rem;
-            margin-right: auto;
-            transition: 0.2s all ease-in-out;
-          }
-          &:hover {
-            color: white;
-
-            svg:not(.zoom-icon) {
-              fill: white;
-            }
-          }
-
-          .logout-icon {
-            svg {
-              fill: #ff4d4f;
-            }
-          }
-        }
-        .active {
-          background-color: #1677ff;
-          border-radius: 1rem;
-          color: white;
+    .sidebar-actions {
+        .sidebar-greeting {
+            border-bottom: 1px solid #09243d;
+            text-align: center;
+            word-break: break-word;
         }
 
-        .sidebar-drop-menu {
-          background-color: #000c17;
-          overflow: hidden;
-          transition: max-height 0.3s ease;
-          max-height: 0;
-
-          ul {
-            list-style: none;
-            margin: 0;
+        ul {
+            color: rgb(228, 222, 222);
+            list-style-type: none;
+            font-size: 1.5rem;
+            padding: 0;
             li {
-              padding: 1.2rem 0;
-              margin: 0 0.3rem;
-              text-indent: 4.2rem;
-              color: rgb(228, 222, 222);
-              transition: 0.1s all ease-in-out;
+                cursor: pointer;
+                transition: 0.1s all ease-in-out;
 
-              &:hover {
+                .sidebar-option {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    padding: 1.2rem 1.5rem;
+                    margin: 0 0.3rem;
+                    transition: 0.2s all ease-in-out;
+
+                    svg:not(.zoom-icon) {
+                        fill: rgb(228, 222, 222);
+                        width: 2.5rem;
+                        margin-right: auto;
+                        transition: 0.2s all ease-in-out;
+                    }
+                    &:hover {
+                        color: white;
+
+                        svg:not(.zoom-icon) {
+                            fill: white;
+                        }
+                    }
+
+                    .logout-icon {
+                        svg {
+                            fill: #ff4d4f;
+                        }
+                    }
+                }
+                .active {
+                    background-color: #1677ff;
+                    border-radius: 1rem;
+                    color: white;
+                }
+
+                .sidebar-drop-menu {
+                    background-color: #000c17;
+                    overflow: hidden;
+                    transition: max-height 0.3s ease;
+                    max-height: 0;
+
+                    ul {
+                        list-style: none;
+                        margin: 0;
+                        li {
+                            padding: 1.2rem 0;
+                            margin: 0 0.3rem;
+                            text-indent: 4.2rem;
+                            color: rgb(228, 222, 222);
+                            transition: 0.1s all ease-in-out;
+
+                            &:hover {
+                                color: white;
+                            }
+                        }
+                        .active {
+                            background-color: #1677ff;
+                            border-radius: 1rem;
+                            color: white;
+                        }
+                    }
+                }
+
+                .sidebar-drop-menu.open {
+                    max-height: 20rem;
+                }
+
+                .sidebar-drop-menu.closed {
+                    max-height: 0;
+                }
+            }
+            li.closed {
+                & > div > svg:not(.zoom-icon) {
+                    transform: rotate3d(1, 0, 0, 180deg);
+                }
+                .sidebar-drop-menu {
+                    max-height: 0;
+                }
+            }
+            li.open {
                 color: white;
-              }
+                .sidebar-drop-menu {
+                    max-height: 20rem;
+                }
             }
-            .active {
-              background-color: #1677ff;
-              border-radius: 1rem;
-              color: white;
-            }
-          }
         }
-
-        .sidebar-drop-menu.open {
-          max-height: 20rem;
-        }
-
-        .sidebar-drop-menu.closed {
-          max-height: 0;
-        }
-      }
-      li.closed {
-        & > div > svg:not(.zoom-icon) {
-          transform: rotate3d(1, 0, 0, 180deg);
-        }
-        .sidebar-drop-menu {
-          max-height: 0;
-        }
-      }
-      li.open {
-        color: white;
-        .sidebar-drop-menu {
-          max-height: 20rem;
-        }
-      }
     }
-  }
 }
 
 .special-sidebar-icon {
-  margin: 0 !important;
-  width: 2.2rem;
-  height: 2.2rem;
+    margin: 0 !important;
+    width: 2.2rem;
+    height: 2.2rem;
+}
+
+.chat-drawer-container {
+    .chat-item {
+		display: flex;
+		align-items: center;
+        width: 100%;
+        // background-color: #1677ff;
+        font-size: 1.5rem;
+        height: 4rem;
+        border-radius: 10px;
+        transition: background-color 0.2s ease-in-out;
+        .chat-item-wrapper {
+            display: flex;
+            align-items: center;
+			gap: 0.8rem;
+            padding-right: 1rem;
+        }
+        &:hover {
+            background-color: #eee;
+            cursor: pointer;
+        }
+    }
 }
 
 @media screen and (max-width: 1024px) {
-  .sidebar-container {
-    position: relative;
-    display: block;
-    position: absolute;
-    right: 0;
-    z-index: 1000;
-    height: 100%;
-    transform: translateX(100%);
-    transition: transform 0.3s ease-in-out;
+    .sidebar-container {
+        position: relative;
+        display: block;
+        position: absolute;
+        right: 0;
+        z-index: 1000;
+        height: 100%;
+        transform: translateX(100%);
+        transition: transform 0.3s ease-in-out;
 
-    .sidebar-actions {
-      .sidebar-greeting {
-        h3 {
-          margin-right: 6rem;
-          text-align: right;
-        }
-      }
-      ul {
-        font-size: 2rem;
-        li {
-          .sidebar-option {
-            padding: 1.5rem 2rem;
-            svg {
-              width: 3rem;
+        .sidebar-actions {
+            sidebar-greeting {
+                h3 {
+                    margin-right: 6rem;
+                    text-align: right;
+                }
             }
-          }
+            ul {
+                font-size: 2rem;
+                li {
+                    .sidebar-option {
+                        padding: 1.5rem 2rem;
+                        svg {
+                            width: 3rem;
+                        }
+                    }
+                }
+            }
         }
-      }
     }
-  }
-  .sidebar-container.open {
-    transform: translateX(0);
-  }
+    .sidebar-container.open {
+        transform: translateX(0);
+    }
 
-  .close-button {
-    position: absolute;
-    top: 1.5rem;
-    right: 1rem;
-    font-size: 2.5rem;
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    z-index: 1001;
-  }
+    .close-button {
+        position: absolute;
+        top: 1.5rem;
+        right: 1rem;
+        font-size: 2.5rem;
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        z-index: 1001;
+    }
 }

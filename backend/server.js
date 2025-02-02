@@ -24,6 +24,7 @@ import groupRoute from "./routes/groupRoute.js";
 import missionRoute from "./routes/missionRoute.js";
 import zoomRoute from "./routes/zoomRoute.js";
 import announcementRoute from "./routes/announcementRoute.js";
+import chatRoute from "./routes/chatRoute.js";
 
 import dotenv from "dotenv";
 
@@ -129,6 +130,7 @@ app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 app.use("/api/group", groupRoute);
 app.use("/api/announcement", announcementRoute);
+app.use("/api/chat", chatRoute);
 
 app.get("/", (req, res) => {
   res.send(`Version DEV: 13`);
