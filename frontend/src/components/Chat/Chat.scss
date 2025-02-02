@@ -40,7 +40,7 @@
             &::-webkit-scrollbar-thumb:hover {
                 background: #555;
             }
-            
+
             div {
                 font-size: 1.5rem;
             }
@@ -56,6 +56,30 @@
                 &:hover {
                     background-color: #f7b8b8;
                 }
+            }
+        }
+
+        .chat-search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+
+            .chat-search {
+                border-radius: 14px;
+                padding: 0.8rem 3rem 0.8rem 1rem;
+                height: 40px;
+                width: 100%; // Added to ensure input takes full container width
+            }
+
+            .search-icon {
+                position: absolute;
+                top: 50%;
+                right: 1rem;
+                transform: translateY(-50%);
+                font-size: 1.5rem;
+                color: #777;
+                pointer-events: none;
             }
         }
     }
