@@ -17,15 +17,15 @@ const Chat = ({ type }) => {
             {type === "new" ? (
                 <div className="chat-wrapper">
                     <h3>יצירת שיחה חדשה</h3>
-                    <div class="participants-list">
-                        <div class="participant-title">משתתפים:</div>
+                    <div className="participants-list">
+                        <div className="participant-title">משתתפים:</div>
                         {participants.map((participant, index) => (
                             <div
                                 key={index}
-                                class="participant"
+                                className="participant"
                                 onClick={() => setParticipants(participants.filter((p, i) => i !== index))}>
                                 <UserOutlined />
-                                <div class="participant-name">{participant}</div>
+                                <div className="participant-name">{participant}</div>
                             </div>
                         ))}
                     </div>

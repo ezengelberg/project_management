@@ -533,9 +533,9 @@ const Sidebar = () => {
                 style={{ direction: "ltr" }}
             />
             <Drawer title="צ'אטים" onClose={onClose} open={open} mask={false} maskClosable={false}>
-                <div class="chat-drawer-container">
-                    <div class="chat-item">
-                        <div class="chat-item-wrapper">
+                <div className="chat-drawer-container">
+                    <div className="chat-item">
+                        <div className="chat-item-wrapper">
                             <PlusCircleOutlined /> <span className="chat-title">יצירת צ'אט חדש</span>
                         </div>
                     </div>
