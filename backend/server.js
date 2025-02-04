@@ -2,6 +2,10 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 
+// socket.io
+import http from "http";
+import { Server } from "socket.io";
+
 import session from "express-session";
 import passport from "./config/passport.js";
 import { checkPassportState } from "./config/passport.js";
@@ -26,17 +30,28 @@ import zoomRoute from "./routes/zoomRoute.js";
 import announcementRoute from "./routes/announcementRoute.js";
 import chatRoute from "./routes/chatRoute.js";
 
+import Chat from "./models/chats.js";
+
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
-  console.error("MONGO_URI is not defined in environment variables");
-  process.exit(1);
+    console.error("MONGO_URI is not defined in environment variables");
+    process.exit(1);
 }
 
 const app = express();
+
+const server = http.createServer(app); // Create an HTTP server for socket.io
+const io = new Server(server, {
+    cors: {
+        origin: process.env.CORS_ORIGIN,
+        credentials: true,
+    },
+});
+
 const server_port = process.env.SERVER_PORT || 3000;
 
 // app.use((req, res, next) => {
@@ -48,67 +63,67 @@ const server_port = process.env.SERVER_PORT || 3000;
 
 // Allow cross-origin requests
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
-  credentials: true, // Allow cookies and credentials
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
-  allowedHeaders: ["Content-Type", "Authorization", "x-filename-encoding"],
-  preflightContinue: false, // Respond to OPTIONS automatically
-  optionsSuccessStatus: 204, // Add this
+    origin: process.env.CORS_ORIGIN, // Allow all origins for Development purposes only
+    credentials: true, // Allow cookies and credentials
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+    allowedHeaders: ["Content-Type", "Authorization", "x-filename-encoding"],
+    preflightContinue: false, // Respond to OPTIONS automatically
+    optionsSuccessStatus: 204, // Add this
 };
 
 // Apply CORS globally
 app.use(cors(corsOptions));
 
 if (process.env.NODE_ENV === "production") {
-  app.set("trust proxy", 1); // Trust the first proxy (e.g., Cloudflare or NGINX)
+    app.set("trust proxy", 1); // Trust the first proxy (e.g., Cloudflare or NGINX)
 }
 
 app.use(
-  session({
-    secret: process.env.SESSION_SECRET, // Set a strong secret in .env file
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.NODE_ENV === "production" ? process.env.MONGO_URI : process.env.MONGO_URI_LOCAL,
-      collectionName: "sessions",
-      ttl: 24 * 60 * 60, // Time to live - 1 day (in seconds)
+    session({
+        secret: process.env.SESSION_SECRET, // Set a strong secret in .env file
+        resave: false,
+        saveUninitialized: false,
+        store: MongoStore.create({
+            mongoUrl: process.env.NODE_ENV === "production" ? process.env.MONGO_URI : process.env.MONGO_URI_LOCAL,
+            collectionName: "sessions",
+            ttl: 24 * 60 * 60, // Time to live - 1 day (in seconds)
+        }),
+        cookie: {
+            maxAge: 24 * 60 * 60 * 1000 * 365, // Cookie will expire after 1 year
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax", // Use Lax for local development
+        },
     }),
-    cookie: {
-      maxAge: 24 * 60 * 60 * 1000 * 365, // Cookie will expire after 1 year
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax", // Use Lax for local development
-    },
-  }),
 );
 
 passport.serializeUser((user, done) => {
-  process.nextTick(() => {
-    try {
-      // console.log("🔵 Serializing user:", {
-      //   id: user._id.toString(),
-      //   email: user.email,
-      // });
+    process.nextTick(() => {
+        try {
+            // console.log("🔵 Serializing user:", {
+            //   id: user._id.toString(),
+            //   email: user.email,
+            // });
 
-      // Store the user ID or minimal session data
-      done(null, user._id.toString()); // Store only the ID here, or you can store a minimal session object if needed
-    } catch (error) {
-      // console.error("❌ Serialization error:", error);
-      done(error);
-    }
-  });
+            // Store the user ID or minimal session data
+            done(null, user._id.toString()); // Store only the ID here, or you can store a minimal session object if needed
+        } catch (error) {
+            // console.error("❌ Serialization error:", error);
+            done(error);
+        }
+    });
 });
 
 passport.deserializeUser(async (id, done) => {
-  try {
-    // console.log("🔵 Deserializing user with ID:", id);
-    const user = await User.findById(id).select("-password"); // Only fetch necessary user info
-    // console.log("🔑 User deserialized:", user.email);
-    done(null, user);
-  } catch (error) {
-    console.error("❌ Deserialization error:", error);
-    done(error);
-  }
+    try {
+        // console.log("🔵 Deserializing user with ID:", id);
+        const user = await User.findById(id).select("-password"); // Only fetch necessary user info
+        // console.log("🔑 User deserialized:", user.email);
+        done(null, user);
+    } catch (error) {
+        console.error("❌ Deserialization error:", error);
+        done(error);
+    }
 });
 
 app.use(passport.initialize());
@@ -133,29 +148,29 @@ app.use("/api/announcement", announcementRoute);
 app.use("/api/chat", chatRoute);
 
 app.get("/", (req, res) => {
-  res.send(`Version DEV: 13`);
+    res.send(`Version DEV: 13`);
 });
 
 async function initializeConfig() {
-  try {
-    const config = await Config.findOne();
-    if (!config) {
-      await Config.create({});
-      console.log("Default configuration created");
-    } else {
-      console.log("Configuration file loaded");
+    try {
+        const config = await Config.findOne();
+        if (!config) {
+            await Config.create({});
+            console.log("Default configuration created");
+        } else {
+            console.log("Configuration file loaded");
+        }
+    } catch (error) {
+        console.error("Error initializing configuration:", error);
     }
-  } catch (error) {
-    console.error("Error initializing configuration:", error);
-  }
 }
 
 app.listen(server_port, () => {
-  // awaiting for mongoDB connection before initializing config
-  connectDB().then(() => {
-    initializeConfig();
-  });
-  console.log(`Server is running at port: ${server_port}`);
+    // awaiting for mongoDB connection before initializing config
+    connectDB().then(() => {
+        initializeConfig();
+    });
+    console.log(`Server is running at port: ${server_port}`);
 });
 
 import updateRecurringMeetings from "./scheduler/meetingScheduler.js";
@@ -163,9 +178,40 @@ import schedule from "node-schedule";
 
 // Schedule the task to run every hour
 schedule.scheduleJob("0 * * * *", async () => {
-  try {
-    await updateRecurringMeetings();
-  } catch (error) {
-    console.error("Error updating recurring meetings:", error);
-  }
+    try {
+        await updateRecurringMeetings();
+    } catch (error) {
+        console.error("Error updating recurring meetings:", error);
+    }
+});
+
+// Socket.io
+io.on("connection", (socket) => {
+    console.log(`User connected to socket: ${socket.id}`);
+    socket.on("join_chats", (chats) => {
+        chats.forEach((chat) => {
+            socket.join(chat);
+            console.log(`User joined chat: ${chat}`);
+        });
+    });
+
+    socket.on("send_message", async ({ chatID, message, sender }) => {
+        try {
+            const chat = await Chat.findById(chatID);
+            if (!chat) {
+                console.log("Chat not found");
+                return;
+            }
+
+            const newMessage = new Message({ chat: chatID, sender, message });
+            await newMessage.save();
+
+            io.to(chatID).emit("receive_message", newMessage);
+        } catch (error) {
+            console.error("Error sending message:", error);
+        }
+    });
+    socket.on("disconnect", () => {
+        console.log(`User disconnected: ${socket.id}`);
+    });
 });

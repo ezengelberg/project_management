@@ -15,13 +15,15 @@ import { Input, Spin } from "antd";
 
 const { TextArea } = Input;
 
-const Chat = ({ type }) => {
+const Chat = ({ type, chatID, onClose }) => {
     const [participants, setParticipants] = useState([]);
     const [userSearch, setUserSearch] = useState("");
     const [userResults, setUserResults] = useState([]);
     const [message, setMessage] = useState("");
     const [loadingUsers, setLoadingUsers] = useState(false);
-    const fetchChat = async () => {};
+    const fetchChat = async () => {
+        if (chatID === "") return;
+    };
 
     const findUser = async (value) => {
         if (value.length < 3) return;
@@ -45,10 +47,31 @@ const Chat = ({ type }) => {
         }
     };
 
+    const sendMessage = async () => {
+        if (message === "") return;
+        try {
+            const response = await axios.post(
+                `${process.env.REACT_APP_BACKEND_URL}/api/chat/send`,
+                {
+                    message,
+                    recievers: participants.map((p) => p._id),
+                    chatID,
+                },
+                {
+                    withCredentials: true,
+                },
+            );
+            console.log("Message sent:", response.data);
+        } catch (error) {
+            console.error("Error sending message:", error);
+        }
+    };
+
     const handleKeyDown = (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             setMessage("");
+            sendMessage();
         }
     };
 
@@ -63,10 +86,10 @@ const Chat = ({ type }) => {
 
     return (
         <div className="chat-container">
-            <CloseOutlined className="chat-close" />
+            <CloseOutlined className="chat-close" onClick={() => onClose()} />
             {type === "new" ? (
                 <div className="chat-wrapper">
-                    <h3>יצירת שיחה חדשה</h3>
+                    <h3 className="chat-header">יצירת שיחה חדשה</h3>
                     <div className="participants-list">
                         <div className="participants-list--wrapper">
                             <div className="participant-title">משתתפים:</div>
@@ -107,9 +130,15 @@ const Chat = ({ type }) => {
                                             <UserOutlined />
                                             <div className="chat-user-name">{user.name}</div>
                                             {participants.filter((p) => p.name === user.name).length > 0 ? (
-                                                <UserDeleteOutlined className="chat-action-icon" style={{"color": "red"}}/>
+                                                <UserDeleteOutlined
+                                                    className="chat-action-icon"
+                                                    style={{ color: "red" }}
+                                                />
                                             ) : (
-                                                <UserAddOutlined className="chat-action-icon" style={{"color" : "green"}}/>
+                                                <UserAddOutlined
+                                                    className="chat-action-icon"
+                                                    style={{ color: "green" }}
+                                                />
                                             )}
                                         </div>
                                     );

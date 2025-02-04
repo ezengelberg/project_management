@@ -1,8 +1,9 @@
 import express from "express";
 import { ensureAuthenticated } from "../middleware/auth.js";
-import { fetchChats, fetchUsers } from "../controllers/chatController.js";
+import { fetchChats, fetchUsers, sendMessage } from "../controllers/chatController.js";
 
 const router = express.Router();
-router.get("/fetch", ensureAuthenticated, fetchChats);
+router.get("/", ensureAuthenticated, fetchChats);
 router.get("/fetch-users", ensureAuthenticated, fetchUsers);
+router.post("/send", ensureAuthenticated, sendMessage);
 export default router;

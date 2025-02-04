@@ -12,13 +12,31 @@
     display: flex;
     flex-direction: column; /* Stack child elements vertically */
     max-height: 90vh; /* Allow it to grow up to 90% of the viewport height */
-
+    .chat-close {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        font-size: 2rem;
+        color: #ccc;
+        cursor: pointer;
+        transition: color 0.3s linear;
+        z-index: 1;
+        &:hover {
+            color: #979797;
+        }
+    }
     .chat-wrapper {
         position: relative;
         height: 100%; /* Full height of the parent */
         padding: 1rem 2rem;
         display: flex;
         flex-direction: column;
+
+        .chat-header {
+            margin: 0.5rem 0;
+            padding: 0 0 0.5rem 0;
+            border-bottom: 1px solid #ccc;
+        }
 
         .participants-list {
             &--wrapper {
@@ -135,7 +153,7 @@
                 bottom: 1rem;
                 color: #ccc;
                 transition: color 0.3s ease-in-out; /* Add transition for color */
-                transform: rotate3d(0, 1, 0, 180deg)
+                transform: rotate3d(0, 1, 0, 180deg);
             }
             .chat-send-icon.active {
                 color: #1677ff;
@@ -165,16 +183,6 @@
                 pointer-events: none;
             }
         }
-    }
-
-    .chat-close {
-        position: absolute;
-        top: 0.5rem;
-        left: 0.5rem;
-        font-size: 2rem;
-        color: #ccc;
-        cursor: pointer;
-        transition: color 0.3s ease-in-out;
     }
 }
 

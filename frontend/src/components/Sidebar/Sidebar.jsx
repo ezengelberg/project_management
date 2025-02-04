@@ -30,6 +30,7 @@ const Sidebar = () => {
     const sidebarRef = useRef(null);
     const [user, setUser] = useState({});
     const [chats, setChats] = useState([]);
+    const [isChatVisible, setIsChatVisible] = useState(false);
     const [openSubmenus, setOpenSubmenus] = useState({
         myProject: false,
         myProjects: false,
@@ -69,11 +70,10 @@ const Sidebar = () => {
 
     const fetchChats = async () => {
         try {
-            console.log("FETCHING CHATS");
-            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/fetch-chats`, {
+            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/`, {
                 withCredentials: true,
             });
-            console.log(response.data);
+            setChats(response.data);
         } catch (error) {
             console.error("Error occurred:", error);
         }
@@ -536,13 +536,31 @@ const Sidebar = () => {
             <Drawer title="צ'אטים" onClose={onClose} open={open} mask={false} maskClosable={false}>
                 <div className="chat-drawer-container">
                     <div className="chat-item">
-                        <div className="chat-item-wrapper">
+                        <div className="chat-item-wrapper" onClick={() => setIsChatVisible(true)}>
                             <PlusCircleOutlined /> <span className="chat-title">יצירת צ'אט חדש</span>
                         </div>
                     </div>
+                    {chats.map((chat) => {
+                        return (
+                            <div key={chat._id} className="chat-item">
+                                <div className="chat-item-wrapper">
+                                    <span className="chat-title">
+                                        {chat.chatName
+                                            ? "ye"
+                                            : chat.participants.map((p, index) => (
+                                                  <span key={p._id}>
+                                                      {p.name}
+                                                      {index < chat.participants.length - 1 ? ", " : ""}
+                                                  </span>
+                                              ))}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </Drawer>
-            <Chat type="new" />
+            {isChatVisible && <Chat type="new" onClose={() => setIsChatVisible(false)} />}
         </>
     );
 };
