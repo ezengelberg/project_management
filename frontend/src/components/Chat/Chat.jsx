@@ -10,6 +10,7 @@ import {
     SendOutlined,
     UserAddOutlined,
     UserDeleteOutlined,
+    LockOutlined,
 } from "@ant-design/icons";
 import { Input, Spin } from "antd";
 
@@ -21,6 +22,7 @@ const Chat = ({ type, chatID, onClose }) => {
     const [userResults, setUserResults] = useState([]);
     const [message, setMessage] = useState("");
     const [loadingUsers, setLoadingUsers] = useState(false);
+    const [chatHistory, setChatHistory] = useState([]);
     const fetchChat = async () => {
         if (chatID === "") return;
     };
@@ -61,7 +63,7 @@ const Chat = ({ type, chatID, onClose }) => {
                     withCredentials: true,
                 },
             );
-            console.log("Message sent:", response.data);
+            console.log(response.data);
         } catch (error) {
             console.error("Error sending message:", error);
         }
@@ -159,17 +161,24 @@ const Chat = ({ type, chatID, onClose }) => {
                     </div>
                     <div className="chat-message-container">
                         <TextArea
-                            className="chat-message"
-                            placeholder="הקלד הודעה"
+                            className={`chat-message ${participants.length === 0 ? "inactive" : ""}`}
+                            placeholder={`${participants.length === 0 ? "אנא הוסף משתמשים לשיחה" : "הקלד הודעה"}`}
                             autoSize={{
                                 minRows: 1,
                                 maxRows: 5,
                             }}
                             value={message}
-                            onChange={(e) => setMessage(e.target.value)}
+                            onChange={(e) => {
+                                if (participants.length === 0) return;
+                                setMessage(e.target.value);
+                            }}
                             onKeyDown={handleKeyDown}
                         />
-                        <SendOutlined className={`chat-send-icon ${message !== "" ? "active" : ""}`} />
+                        {participants.length === 0 ? (
+                            <LockOutlined className="chat-send-icon" />
+                        ) : (
+                            <SendOutlined className={`chat-send-icon ${message !== "" ? "active" : ""}`} />
+                        )}
                     </div>
                 </div>
             ) : (

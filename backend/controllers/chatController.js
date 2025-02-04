@@ -17,8 +17,8 @@ export const sendMessage = async (req, res) => {
             }
         } else chatTarget = await Chat.findById(chatID);
 
-        const messageData = new Message({ chat: chatTarget._id, sender: req.user._id, message });
-        res.status(201).send("Message sent");
+        const messageData = await new Message({ chat: chatTarget._id, sender: req.user._id, message }).save();
+        res.status(201).json(messageData);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

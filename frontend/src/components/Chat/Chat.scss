@@ -158,6 +158,14 @@
             .chat-send-icon.active {
                 color: #1677ff;
             }
+            &:hover,
+            &:focus-within {
+                border-color: red;
+                outline-color: red;
+                .chat-send-icon {
+                    color: red;
+                }
+            }
         }
 
         .chat-search-container {
