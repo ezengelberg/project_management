@@ -196,7 +196,7 @@ const Homepage = () => {
 
   const getListData = (value) => {
     let listData = [];
-    if (Array.isArray(submissions)) {
+    if (submissions.length > 0) {
       submissions.forEach((submission) => {
         if (dayjs(submission.submissionDate).isSame(value, "day")) {
           listData.push({
@@ -206,25 +206,25 @@ const Homepage = () => {
           });
         }
       });
-    } else {
-      console.error("submissions is not an array:", submissions);
     }
     return listData;
   };
 
   const getMeetingsData = (value) => {
     let meetingsData = [];
-    meetings.forEach((meeting) => {
-      if (dayjs(meeting.startTime).isSame(value, "day")) {
-        meetingsData.push({
-          color: "blue",
-          content: `${meeting.topic}`,
-          time: meeting.startTime,
-          link: currentUser._id === meeting.creator ? meeting.startUrl : meeting.joinUrl,
-          endTime: meeting.endTime,
-        });
-      }
-    });
+    if (meetings.length > 0) {
+      meetings.forEach((meeting) => {
+        if (dayjs(meeting.startTime).isSame(value, "day")) {
+          meetingsData.push({
+            color: "blue",
+            content: `${meeting.topic}`,
+            time: meeting.startTime,
+            link: currentUser._id === meeting.creator ? meeting.startUrl : meeting.joinUrl,
+            endTime: meeting.endTime,
+          });
+        }
+      });
+    }
     return meetingsData;
   };
 
