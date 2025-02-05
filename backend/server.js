@@ -198,26 +198,14 @@ io.on("connection", (socket) => {
 
     socket.on("send_message", async ({ chatID, message, sender }) => {
         try {
-            const chat = await Chat.findById(chatID);
+            const chat = await Chat.findById(chatID).populate("lastMessage").populate("participants");;
             if (!chat) {
                 console.log("Chat not found");
                 return;
             }
 
-            // Increase unread count for all except sender
-            chat.participants.forEach((user) => {
-                if (user._id.toString() !== sender) {
-                    chat.unreadTotal = (chat.unreadTotal || 0) + 1;
-                }
-            });
-
-            await chat.save();
-
-            // Fetch updated chat with populated lastMessage
-            const updatedChat = await Chat.findById(chatID).populate("lastMessage").populate("participants");
-
             // Emit updated chat to all users in the chat room
-            io.to(chatID).emit("receive_message", updatedChat);
+            io.to(chatID).emit("receive_message", chat);
             console.log("transmitted");
         } catch (error) {
             console.error("Error sending message:", error);

@@ -36,7 +36,6 @@ export const sendMessage = async (req, res) => {
 
         // Emit message to all users in the chat
         io.to(chatTarget._id.toString()).emit("receive_message", updatedChat);
-        console.log(`Message sent to chat ${chatTarget._id}`);
 
         res.status(201).json(messageData);
     } catch (error) {
@@ -45,12 +44,16 @@ export const sendMessage = async (req, res) => {
 };
 
 export const fetchMessages = async (req, res) => {
-    // try {
-    //     const messages = await Chat.find();
-    //     res.status(200).json(messages);
-    // } catch (error) {
-    //     res.status(500).json({ message: error.message });
-    // }
+    try {
+        const { chatID } = req.query;
+        const messages = await Message.find({ chat: chatID })
+            .populate("sender", "name")
+            .sort({ createdAt: 1 })
+            .populate("seenBy", "name");
+        res.status(200).json(messages);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };
 export const checkUnreadMessages = async (chatID, user) => {
     const chat = await Chat.findById(chatID);
@@ -84,7 +87,6 @@ export const fetchChats = async (req, res) => {
             chat.unreadTotal = await checkUnreadMessages(chat._id, user);
         }
 
-        console.log(chats);
         res.status(200).json(chats);
     } catch (error) {
         res.status(500).json({ message: error.message });

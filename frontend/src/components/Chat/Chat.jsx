@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./Chat.scss";
 
@@ -24,6 +24,9 @@ const Chat = ({ chatID, onClose, socket }) => {
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [chatHistory, setChatHistory] = useState([]);
 
+    const firstUnreadMessage = useRef(null);
+    const user = JSON.parse(localStorage.getItem("user"));
+
     const checkmarkSVG = (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
             <g transform="translate(0, 960)">
@@ -41,9 +44,23 @@ const Chat = ({ chatID, onClose, socket }) => {
         fetchChat();
     }, [chatID]);
 
+    useEffect(() => {
+        console.log(user);
+    }, [user]);
+
     const fetchChat = async () => {
         if (chatID === "") return;
-        // Fetch chat data based on chatID
+        try {
+            const response = await axios.get(
+                `${process.env.REACT_APP_BACKEND_URL}/api/chat/messages?chatID=${chatID._id}`,
+                {
+                    withCredentials: true,
+                },
+            );
+            setChatHistory(response.data);
+        } catch (error) {
+            console.error("Error fetching chat:", error);
+        }
     };
 
     const findUser = async (value) => {
@@ -84,13 +101,6 @@ const Chat = ({ chatID, onClose, socket }) => {
                 },
             );
             const newMessage = response.data;
-
-            // // Emit the message to other users via Socket.io
-            // socket.emit("send_message", {
-            //     chatID,
-            //     message: newMessage.message,
-            //     sender: newMessage.sender,
-            // });
         } catch (error) {
             console.error("Error sending message:", error);
         }
@@ -230,58 +240,29 @@ const Chat = ({ chatID, onClose, socket }) => {
                               })()}
                     </h3>
                     <div className="chat-history">
-                        <div className="message">
-                            <div className="speech-triangle"></div>
-                            <div className="message-header">
-                                <div className="sender">יוסי כהן</div>
-                                <div className="time">13:45</div>
-                            </div>
-                            <div className="message-text">My message</div>
-                            <div className="seen">{checkmarkSVG}</div>
-                        </div>
-                        <div className="message else">
-                            <div className="speech-triangle"></div>
-                            <div className="message-header">
-                                <div className="sender">אביתר בן חיון עם שם מאוד ארוך</div>
-                                <div className="time">13:45</div>
-                            </div>
-                            <div className="message-text">Your message</div>
-                        </div>
-                        <div className="message else">
-                            <div className="speech-triangle"></div>
-                            <div className="message-header">
-                                <div className="sender">אביתר בן חיון עם שם מאוד ארוך</div>
-                                <div className="time">13:45</div>
-                            </div>
-                            <div className="message-text">.</div>
-                        </div>
-                        <div className="message">
-                            <div className="speech-triangle"></div>
-                            <div className="message-header">
-                                <div className="sender">יוסי המלך לא לגמרי כהן בלה בלה דגלחיד דחלג</div>
-                                <div className="time">13:45</div>
-                            </div>
-                            <div className="message-text">.</div>
-                            <div className="seen all">{checkmarkSVG}</div>
-                        </div>
-                        <div className="message">
-                            <div className="speech-triangle"></div>
-                            <div className="message-header">
-                                <div className="sender">יוסי המלך לא לגמרי כהן בלה בלה דגלחיד דחלג</div>
-                                <div className="time">13:45</div>
-                            </div>
-                            <div className="message-text">.</div>
-                            <div className="seen all">{checkmarkSVG}</div>
-                        </div>
-                        <div className="message">
-                            <div className="speech-triangle"></div>
-                            <div className="message-header">
-                                <div className="sender">יוסי המלך לא לגמרי כהן בלה בלה דגלחיד דחלג</div>
-                                <div className="time">13:45</div>
-                            </div>
-                            <div className="message-text">.</div>
-                            <div className="seen all">{checkmarkSVG}</div>
-                        </div>
+                        {chatHistory.length === 0 ? <div className="no-messages">אין היסטורית הודעות</div> : null}
+
+                        {chatHistory.map((message) => {
+                            return (
+                                <div
+                                    key={message._id}
+                                    className={`message ${
+                                        message.sender._id.toString() === user._id.toString() ? "" : "else"
+                                    }`}>
+                                    <div className="speech-triangle"></div>
+                                    <div className="message-header">
+                                        <div className="sender">{message.sender.name}</div>
+                                        <div className="time">
+                                            {new Date(message.createdAt).toLocaleDateString("he-IL")}
+                                        </div>
+                                    </div>
+                                    <div className="message-text">{message.message}</div>
+                                    {message.sender._id.toString() === user._id.toString() && (
+                                        <div className="seen">{checkmarkSVG}</div>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                     <div className="chat-message-container">
                         <TextArea

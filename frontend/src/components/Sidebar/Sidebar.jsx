@@ -658,10 +658,10 @@ const Sidebar = () => {
                                             </svg>
                                         </div>
                                         <span className="last-message-content">
-                                            {chat.lastMessage.sender.name}:{" "}
-                                            {chat.lastMessage.message.length > 10
-                                                ? `${chat.lastMessage.message.substring(0, 50)}...`
-                                                : chat.lastMessage.message}
+                                            {chat?.lastMessage?.sender?.name}:{" "}
+                                            {chat?.lastMessage?.message?.length > 10
+                                                ? `${chat?.lastMessage?.message?.substring(0, 50)}...`
+                                                : chat?.lastMessage?.message}
                                         </span>
                                     </div>
                                 </div>
