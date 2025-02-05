@@ -94,25 +94,23 @@ const Sidebar = () => {
             });
 
             socketRef.current.on("receive_message", (updatedChat) => {
-                console.log("Updated chat received:", updatedChat);
-                console.log("Chats:", chats);
-                let targetchat = chats.find((chat) => chat._id.toString() === updatedChat._id.toString());
-                console.log("target chat:", targetchat);
-                // console.log("Updated unread:", updatedUnread);
-                let updatedUnread = targetchat.unreadTotal + 1;
-                const updatedChatWithUnread = { ...updatedChat, unreadTotal: updatedUnread }; // Create a new object to avoid mutation
-
-                console.log("Updated chat:", updatedChat);
-
-                setChats(
-                    (prevChats) =>
-                        prevChats
-                            .map((chat) =>
-                                chat._id === updatedChat._id
-                                    ? { ...updatedChatWithUnread } // Replace with the updated chat and increment unreadTotal
-                                    : chat,
-                            )
-                            .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)), // Keep latest chats on top
+                console.log("Received message:", updatedChat);
+                console.log(updatedChat.lastMessage.sender, user._id);
+                console.log(updatedChat.lastMessage.sender === user._id);
+                setChats((prevChats) =>
+                    prevChats
+                        .map((chat) =>
+                            chat._id === updatedChat._id
+                                ? {
+                                      ...updatedChat,
+                                      unreadTotal:
+                                          updatedChat.lastMessage.sender === user._id
+                                              ? chat.unreadTotal
+                                              : chat.unreadTotal + 1,
+                                  }
+                                : chat,
+                        )
+                        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)),
                 );
             });
 
@@ -124,7 +122,6 @@ const Sidebar = () => {
                             ? {
                                   ...chat,
                                   lastMessage: data, // Update last message
-                                  unreadTotal: chat.unreadTotal + 1, // Increment unread count
                               }
                             : chat,
                     ),

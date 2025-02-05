@@ -183,7 +183,6 @@ schedule.scheduleJob("0 * * * *", async () => {
 const activeChats = {};
 // Socket.io
 io.on("connection", (socket) => {
-    console.log(`User connected to socket: ${socket.id}`);
     socket.on("join_chats", (chats) => {
         chats.forEach((chat) => {
             socket.join(chat);
@@ -225,8 +224,6 @@ io.on("connection", (socket) => {
         }
     });
     socket.on("disconnect", () => {
-        console.log(`User disconnected: ${socket.id}`);
-
         // Remove user from all active chats
         for (const chatID in activeChats) {
             activeChats[chatID].delete(socket.id);
