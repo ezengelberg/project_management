@@ -630,10 +630,10 @@ export const terminateProject = async (req, res) => {
     }
 
     // Delete all related missions
-    await Mission.deleteMany({ _id: { $in: project.journal.missions } });
+    // await Mission.deleteMany({ _id: { $in: project.journal.missions } });
 
-    // Delete the journal
-    project.journal = { missions: [] };
+    // // Delete the journal
+    // project.journal = { missions: [] };
 
     await project.save();
     res.status(200).send("Project terminated successfully");
@@ -809,7 +809,7 @@ export const deleteAllProjects = async (req, res) => {
       await Submission.deleteMany({ project: project._id });
 
       // Delete associated missions
-      await Mission.deleteMany({ _id: { $in: project.journal.missions } });
+      // await Mission.deleteMany({ _id: { $in: project.journal.missions } });
     }
     await Project.deleteMany();
     res.status(200).json({ message: "All projects deleted successfully" });
