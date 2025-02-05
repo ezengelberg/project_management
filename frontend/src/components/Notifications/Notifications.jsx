@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import "./Notifications.scss";
 import { Tooltip, List, Skeleton, Tabs, message } from "antd";
 import { CloseOutlined, DeleteOutlined } from "@ant-design/icons";
@@ -7,8 +7,12 @@ import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const Notifications = () => {
   const navigate = useNavigate();
-  const { newNotifications, oldNotifications, markNotificationAsRead, deleteNotification } =
+  const { newNotifications, oldNotifications, markNotificationAsRead, deleteNotification, fetchNotifications } =
     useContext(NotificationsContext);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
   const handleDeleteNotification = async (notificationId) => {
     await deleteNotification(notificationId);
