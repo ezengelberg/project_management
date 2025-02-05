@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./Chat.scss";
 
@@ -16,15 +16,23 @@ import { Input, Spin } from "antd";
 
 const { TextArea } = Input;
 
-const Chat = ({ type, chatID, onClose }) => {
+const Chat = ({ chatID, onClose }) => {
     const [participants, setParticipants] = useState([]);
     const [userSearch, setUserSearch] = useState("");
     const [userResults, setUserResults] = useState([]);
     const [message, setMessage] = useState("");
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [chatHistory, setChatHistory] = useState([]);
+
+    useEffect(() => {
+        if (chatID === "new") return;
+        setParticipants(chatID.participants);
+        fetchChat();
+    }, [chatID]);
+
     const fetchChat = async () => {
         if (chatID === "") return;
+        // Fetch chat data based on chatID
     };
 
     const findUser = async (value) => {
@@ -88,8 +96,18 @@ const Chat = ({ type, chatID, onClose }) => {
 
     return (
         <div className="chat-container">
-            <CloseOutlined className="chat-close" onClick={() => onClose()} />
-            {type === "new" ? (
+            <CloseOutlined
+                className="chat-close"
+                onClick={() => {
+                    onClose();
+                    setParticipants([]);
+                    setUserSearch("");
+                    setUserResults([]);
+                    setMessage("");
+                    setChatHistory([]);
+                }}
+            />
+            {chatID === "new" ? (
                 <div className="chat-wrapper">
                     <h3 className="chat-header">יצירת שיחה חדשה</h3>
                     <div className="participants-list">
@@ -182,7 +200,38 @@ const Chat = ({ type, chatID, onClose }) => {
                     </div>
                 </div>
             ) : (
-                <div className="chat-wrapper"></div>
+                <div className="chat-wrapper">
+                    <h3 className="chat-header">
+                        {chatID.chatName
+                            ? chatID.chatName
+                            : (() => {
+                                  let title = participants.map((p) => p.name).join(", ");
+                                  if (title.length > 40) title = title.substring(0, 40).concat("...");
+                                  return title;
+                              })()}
+                    </h3>
+                    <div className="chat-message-container">
+                        <TextArea
+                            className={`chat-message ${participants.length === 0 ? "inactive" : ""}`}
+                            placeholder={`${participants.length === 0 ? "אנא הוסף משתמשים לשיחה" : "הקלד הודעה"}`}
+                            autoSize={{
+                                minRows: 1,
+                                maxRows: 5,
+                            }}
+                            value={message}
+                            onChange={(e) => {
+                                if (participants.length === 0) return;
+                                setMessage(e.target.value);
+                            }}
+                            onKeyDown={handleKeyDown}
+                        />
+                        {participants.length === 0 ? (
+                            <LockOutlined className="chat-send-icon lock" />
+                        ) : (
+                            <SendOutlined className={`chat-send-icon ${message !== "" ? "active" : ""}`} />
+                        )}
+                    </div>
+                </div>
             )}
         </div>
     );

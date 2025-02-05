@@ -158,8 +158,8 @@
             .chat-send-icon.active {
                 color: #1677ff;
             }
-            &:hover,
-            &:focus-within {
+            &.lock:hover,
+            &.lock:focus-within {
                 border-color: red;
                 outline-color: red;
                 .chat-send-icon {

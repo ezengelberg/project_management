@@ -100,15 +100,8 @@ app.use(
 passport.serializeUser((user, done) => {
     process.nextTick(() => {
         try {
-            // console.log("🔵 Serializing user:", {
-            //   id: user._id.toString(),
-            //   email: user.email,
-            // });
-
-            // Store the user ID or minimal session data
             done(null, user._id.toString()); // Store only the ID here, or you can store a minimal session object if needed
         } catch (error) {
-            // console.error("❌ Serialization error:", error);
             done(error);
         }
     });
@@ -165,7 +158,7 @@ async function initializeConfig() {
     }
 }
 
-app.listen(server_port, () => {
+server.listen(server_port, () => {
     // awaiting for mongoDB connection before initializing config
     connectDB().then(() => {
         initializeConfig();
@@ -185,6 +178,7 @@ schedule.scheduleJob("0 * * * *", async () => {
     }
 });
 
+const activeChats = {};
 // Socket.io
 io.on("connection", (socket) => {
     console.log(`User connected to socket: ${socket.id}`);
@@ -192,6 +186,12 @@ io.on("connection", (socket) => {
         chats.forEach((chat) => {
             socket.join(chat);
             console.log(`User joined chat: ${chat}`);
+
+            if (!activeChats[chat]) {
+                activeChats[chat] = new Set();
+            }
+            activeChats[chat].add(socket.id);
+            console.log(`Active users in chat ${chat}:`, activeChats[chat]);
         });
     });
 
@@ -213,5 +213,17 @@ io.on("connection", (socket) => {
     });
     socket.on("disconnect", () => {
         console.log(`User disconnected: ${socket.id}`);
+
+        // Remove user from all active chats
+        for (const chatID in activeChats) {
+            activeChats[chatID].delete(socket.id);
+            console.log(`Active users in chat ${chatID}:`, activeChats[chatID]);
+
+            // If no users are left in the chat, you can deactivate or remove the chat from activeChats
+            if (activeChats[chatID].size === 0) {
+                delete activeChats[chatID];
+                console.log(`Chat ${chatID} is now inactive`);
+            }
+        }
     });
 });

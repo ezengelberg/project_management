@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import "./Sidebar.scss";
 import "../../index.css";
 import axios from "axios";
+import { io } from "socket.io-client";
 import { FloatButton, Drawer } from "antd";
 import {
     HomeOutlined,
@@ -30,7 +31,6 @@ const Sidebar = () => {
     const sidebarRef = useRef(null);
     const [user, setUser] = useState({});
     const [chats, setChats] = useState([]);
-    const [isChatVisible, setIsChatVisible] = useState(false);
     const [openSubmenus, setOpenSubmenus] = useState({
         myProject: false,
         myProjects: false,
@@ -39,11 +39,15 @@ const Sidebar = () => {
         zoomMeetings: false,
     });
     const [open, setOpen] = useState(false);
+    const [chatTarget, setChatTarget] = useState(null);
     const [windowSize, setWindowSize] = useState({
         width: window.innerWidth,
         height: window.innerHeight,
     });
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+
+    const socket = io(process.env.REACT_APP_BACKEND_URL, { withCredentials: true });
+    const socketRef = useRef();
 
     const toggleSidebar = () => {
         setIsSidebarVisible(!isSidebarVisible);
@@ -68,12 +72,50 @@ const Sidebar = () => {
         }
     };
 
+    useEffect(() => {
+        // Only create socket if it doesn't exist
+        if (!socketRef.current) {
+            socketRef.current = io(process.env.REACT_APP_BACKEND_URL, {
+                withCredentials: true,
+                transports: ["websocket", "polling"],
+            });
+
+            socketRef.current.on("connect", () => {
+                console.log("Connected to socket server");
+                fetchChats().then((userChats) => {
+                    console.log("User chats:", userChats);
+                    if (userChats?.length) {
+                        socketRef.current.emit(
+                            "join_chats",
+                            userChats.map((chat) => chat._id),
+                        );
+                    }
+                });
+            });
+
+            socketRef.current.on("new_message", (data) => {
+                console.log("New message received:", data);
+                fetchChats();
+            });
+        }
+
+        // Cleanup socket only when component unmounts
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+                socketRef.current = null;
+            }
+        };
+    }, []); // Empty dependency array
+
     const fetchChats = async () => {
         try {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/`, {
                 withCredentials: true,
             });
-            setChats(response.data);
+            setChats(response.data.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)));
+            // returning for socket purposes
+            return response.data;
         } catch (error) {
             console.error("Error occurred:", error);
         }
@@ -535,14 +577,18 @@ const Sidebar = () => {
             />
             <Drawer title="צ'אטים" onClose={onClose} open={open} mask={false} maskClosable={false}>
                 <div className="chat-drawer-container">
-                    <div className="chat-item">
-                        <div className="chat-header-wrapper" onClick={() => setIsChatVisible(true)}>
+                    <div
+                        className="chat-item"
+                        onClick={() => {
+                            setChatTarget("new");
+                        }}>
+                        <div className="chat-header-wrapper">
                             <PlusCircleOutlined /> <span className="chat-title">יצירת צ'אט חדש</span>
                         </div>
                     </div>
                     {chats.map((chat) => {
                         return (
-                            <div key={chat._id} className="chat-item">
+                            <div key={chat._id} className="chat-item" onClick={() => setChatTarget(chat)}>
                                 <div className="chat-header-wrapper">
                                     <span className="chat-title">
                                         {chat.chatName
@@ -585,7 +631,15 @@ const Sidebar = () => {
                     })}
                 </div>
             </Drawer>
-            {isChatVisible && <Chat type="new" onClose={() => setIsChatVisible(false)} />}
+            {chatTarget && (
+                <Chat
+                    key={chatTarget._id || "new"}
+                    chatID={chatTarget}
+                    onClose={() => {
+                        setChatTarget(null);
+                    }}
+                />
+            )}
         </>
     );
 };
