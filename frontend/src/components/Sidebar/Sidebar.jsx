@@ -217,7 +217,7 @@ const Sidebar = () => {
                 <span>בית</span>
               </div>
             </li>
-            {(user.isStudent || user.isAdvisor || user.isCoordinator) && (
+            {/* {(user.isStudent || user.isAdvisor || user.isCoordinator) && (
               <li>
                 <div
                   className={`sidebar-option ${isActive("/announcements") ? "active" : ""}`}
@@ -227,7 +227,7 @@ const Sidebar = () => {
                   <span>הודעות</span>
                 </div>
               </li>
-            )}
+            )} */}
 
             {user.isStudent && (
               <li>
