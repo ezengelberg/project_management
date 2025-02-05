@@ -52,6 +52,8 @@ const io = new Server(server, {
     },
 });
 
+export { io };
+
 const server_port = process.env.SERVER_PORT || 3000;
 
 // app.use((req, res, next) => {
@@ -203,10 +205,21 @@ io.on("connection", (socket) => {
                 return;
             }
 
-            const newMessage = new Message({ chat: chatID, sender, message });
-            await newMessage.save();
+            // Increase unread count for all except sender
+            chat.participants.forEach((user) => {
+                if (user._id.toString() !== sender) {
+                    chat.unreadTotal = (chat.unreadTotal || 0) + 1;
+                }
+            });
 
-            io.to(chatID).emit("receive_message", newMessage);
+            await chat.save();
+
+            // Fetch updated chat with populated lastMessage
+            const updatedChat = await Chat.findById(chatID).populate("lastMessage").populate("participants");
+
+            // Emit updated chat to all users in the chat room
+            io.to(chatID).emit("receive_message", updatedChat);
+            console.log("transmitted");
         } catch (error) {
             console.error("Error sending message:", error);
         }

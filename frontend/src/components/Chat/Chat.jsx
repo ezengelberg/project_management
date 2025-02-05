@@ -16,7 +16,7 @@ import { Input, Spin } from "antd";
 
 const { TextArea } = Input;
 
-const Chat = ({ chatID, onClose }) => {
+const Chat = ({ chatID, onClose, socket }) => {
     const [participants, setParticipants] = useState([]);
     const [userSearch, setUserSearch] = useState("");
     const [userResults, setUserResults] = useState([]);
@@ -58,7 +58,8 @@ const Chat = ({ chatID, onClose }) => {
     };
 
     const sendMessage = async () => {
-        if (message === "") return;
+        if (message === "" || message.trim() === "") return;
+        console.log("sending msg");
         try {
             const response = await axios.post(
                 `${process.env.REACT_APP_BACKEND_URL}/api/chat/send`,
@@ -71,7 +72,14 @@ const Chat = ({ chatID, onClose }) => {
                     withCredentials: true,
                 },
             );
-            console.log(response.data);
+            const newMessage = response.data;
+
+            // // Emit the message to other users via Socket.io
+            // socket.emit("send_message", {
+            //     chatID,
+            //     message: newMessage.message,
+            //     sender: newMessage.sender,
+            // });
         } catch (error) {
             console.error("Error sending message:", error);
         }
@@ -212,7 +220,7 @@ const Chat = ({ chatID, onClose }) => {
                     </h3>
                     <div className="chat-message-container">
                         <TextArea
-                            className={`chat-message ${participants.length === 0 ? "inactive" : ""}`}
+                            className={`chat-message`}
                             placeholder={`${participants.length === 0 ? "אנא הוסף משתמשים לשיחה" : "הקלד הודעה"}`}
                             autoSize={{
                                 minRows: 1,

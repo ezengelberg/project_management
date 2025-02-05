@@ -142,9 +142,42 @@
             width: 100%;
             flex-shrink: 0; /* Prevent shrinking */
             margin-top: auto; /* Push this container to the bottom */
+
             .chat-message {
                 display: flex;
                 padding-right: 3rem;
+                padding-left: 10px;
+                position: relative;
+                // overflow-y: auto; // Ensure scrollbar is enabled
+
+                &::after {
+                    content: "";
+                    width: 10px; // Adjust to control the left spacing
+                    height: 100%;
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    background: transparent;
+                    pointer-events: none; // So it doesn’t interfere with scrolling
+                }
+
+                &::-webkit-scrollbar {
+                    width: 5px;
+                }
+
+                &::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 10px;
+                }
+
+                &::-webkit-scrollbar-thumb {
+                    background: #888;
+                    border-radius: 10px;
+
+                    &:hover {
+                        background: #555;
+                    }
+                }
             }
             .chat-send-icon {
                 position: absolute;

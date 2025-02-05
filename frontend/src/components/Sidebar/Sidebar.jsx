@@ -3,7 +3,7 @@ import "./Sidebar.scss";
 import "../../index.css";
 import axios from "axios";
 import { io } from "socket.io-client";
-import { FloatButton, Drawer } from "antd";
+import { FloatButton, Drawer, Badge } from "antd";
 import {
     HomeOutlined,
     ProjectOutlined,
@@ -93,9 +93,42 @@ const Sidebar = () => {
                 });
             });
 
+            socketRef.current.on("receive_message", (updatedChat) => {
+                console.log("Updated chat received:", updatedChat);
+                console.log("Chats:", chats);
+                let targetchat = chats.find((chat) => chat._id.toString() === updatedChat._id.toString());
+                console.log("target chat:", targetchat);
+                // console.log("Updated unread:", updatedUnread);
+                let updatedUnread = targetchat.unreadTotal + 1;
+                const updatedChatWithUnread = { ...updatedChat, unreadTotal: updatedUnread }; // Create a new object to avoid mutation
+
+                console.log("Updated chat:", updatedChat);
+
+                setChats(
+                    (prevChats) =>
+                        prevChats
+                            .map((chat) =>
+                                chat._id === updatedChat._id
+                                    ? { ...updatedChatWithUnread } // Replace with the updated chat and increment unreadTotal
+                                    : chat,
+                            )
+                            .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)), // Keep latest chats on top
+                );
+            });
+
             socketRef.current.on("new_message", (data) => {
                 console.log("New message received:", data);
-                fetchChats();
+                setChats((prevChats) =>
+                    prevChats.map((chat) =>
+                        chat._id === data.chatID
+                            ? {
+                                  ...chat,
+                                  lastMessage: data, // Update last message
+                                  unreadTotal: chat.unreadTotal + 1, // Increment unread count
+                              }
+                            : chat,
+                    ),
+                );
             });
         }
 
@@ -589,6 +622,15 @@ const Sidebar = () => {
                     {chats.map((chat) => {
                         return (
                             <div key={chat._id} className="chat-item" onClick={() => setChatTarget(chat)}>
+                                {chat?.unreadTotal > 0 && (
+                                    <Badge
+                                        count={chat?.unreadTotal}
+                                        className="unread-total"
+                                        style={{
+                                            backgroundColor: "#1daa61",
+                                        }}
+                                    />
+                                )}
                                 <div className="chat-header-wrapper">
                                     <span className="chat-title">
                                         {chat.chatName
@@ -638,6 +680,7 @@ const Sidebar = () => {
                     onClose={() => {
                         setChatTarget(null);
                     }}
+                    socket={socketRef.current}
                 />
             )}
         </>
