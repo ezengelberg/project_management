@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import "./Sidebar.scss";
 import axios from "axios";
+import { FloatButton, Drawer } from "antd";
 import {
   HomeOutlined,
   ProjectOutlined,
@@ -15,6 +16,7 @@ import {
   CloseOutlined,
   LogoutOutlined,
   DeleteOutlined,
+  CommentOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -29,7 +31,9 @@ const Sidebar = () => {
     myProjects: false,
     manageUsers: false,
     manageProjects: false,
+    zoomMeetings: false,
   });
+  const [open, setOpen] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -38,6 +42,13 @@ const Sidebar = () => {
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
+  };
+
+  const showDrawer = () => {
+    setOpen(true);
+  };
+  const onClose = () => {
+    setOpen(false);
   };
 
   useEffect(() => {
@@ -80,6 +91,39 @@ const Sidebar = () => {
         <path
           d="M13.63 15.74C13.44 15.74 13.25 15.67 13.1 15.52L6.03 8.44998C5.74 8.15998 5.74 7.67999 6.03 7.38999C6.32 7.09999 6.8 7.09999 7.09 7.38999L14.16 14.46C14.45 14.75 14.45 15.23 14.16 15.52C14.02 15.67 13.82 15.74 13.63 15.74Z"
           fill="#e4dede"></path>
+      </g>
+    </svg>
+  );
+
+  const JournalSVG = () => (
+    <svg viewBox="0 0 16 16" fill="#e4dede" className="special-sidebar-icon" style={{ height: "16px" }}>
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path
+          fillRule="evenodd"
+          d="M10.854 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 8.793l2.646-2.647a.5.5 0 0 1 .708 0z"></path>
+        <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"></path>
+        <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"></path>
+      </g>
+    </svg>
+  );
+
+  const ZoomMeetingSVG = () => (
+    <svg
+      className="special-sidebar-icon zoom-icon"
+      viewBox="0 0 192 192"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none">
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path
+          stroke="#e4dede"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="11.997"
+          d="M16.869 60.973v53.832c.048 12.173 10.87 21.965 24.072 21.925h85.406c2.42 0 4.385-1.797 4.385-3.978V78.92c-.064-12.164-10.887-21.965-24.073-21.917H21.237c-2.412 0-4.368 1.79-4.368 3.97zm119.294 21.006 35.27-23.666c3.06-2.332 5.432-1.749 5.432 2.468v72.171c0 4.8-2.9 4.217-5.432 2.468l-35.27-23.618V81.98z"></path>
       </g>
     </svg>
   );
@@ -173,6 +217,29 @@ const Sidebar = () => {
                 <span>בית</span>
               </div>
             </li>
+            {(user.isStudent || user.isAdvisor || user.isCoordinator) && (
+              <li>
+                <div
+                  className={`sidebar-option ${isActive("/announcements") ? "active" : ""}`}
+                  onClick={() => handleNavigate("/announcements")}
+                  onMouseDown={(e) => handleMouseDown(e, "/announcements")}>
+                  <MessageOutlined />
+                  <span>הודעות</span>
+                </div>
+              </li>
+            )}
+
+            {user.isStudent && (
+              <li>
+                <div
+                  className={`sidebar-option ${isActive("/journal") ? "active" : ""}`}
+                  onClick={() => handleNavigate("/journal")}
+                  onMouseDown={(e) => handleMouseDown(e, "/journal")}>
+                  <JournalSVG />
+                  <span>יומן עבודה</span>
+                </div>
+              </li>
+            )}
             {user.isStudent && (
               <li>
                 <div
@@ -245,6 +312,12 @@ const Sidebar = () => {
                       onClick={() => handleNavigate("/list-projects")}
                       onMouseDown={(e) => handleMouseDown(e, "/list-projects")}>
                       סטטוס פרויקטים
+                    </li>
+                    <li
+                      className={`${isActive("/journal-status") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/journal-status")}
+                      onMouseDown={(e) => handleMouseDown(e, "/journal-status")}>
+                      מעקב עבודה
                     </li>
                     <li
                       className={`${isActive("/submission-status") ? "active" : ""}`}
@@ -333,6 +406,52 @@ const Sidebar = () => {
                 </div>
               </li>
             )}
+            {(user.isCoordinator || user.isAdvisor) && (
+              <li className={`${openSubmenus.zoomMeetings ? "open" : "closed"}`}>
+                <div
+                  className="sidebar-option"
+                  onClick={() => toggleSubmenu("zoomMeetings")}
+                  onMouseDown={(e) => handleMouseDown(e, "/zoom-scheduler")}>
+                  <ZoomMeetingSVG />
+                  <span>ניהול פגישות</span>
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
+                      stroke="#0C0310"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+                <div className={`sidebar-drop-menu`}>
+                  <ul>
+                    <li
+                      className={`${isActive("/zoom-scheduler") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/zoom-scheduler")}
+                      onMouseDown={(e) => handleMouseDown(e, "/zoom-scheduler")}>
+                      קביעת פגישה חדשה
+                    </li>
+                    <li
+                      className={`${isActive("/list-zoom-meetings") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/list-zoom-meetings")}
+                      onMouseDown={(e) => handleMouseDown(e, "/list-zoom-meetings")}>
+                      רשימת פגישות
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            )}
+            {!user.isAdvisor && !user.isCoordinator && (
+              <li>
+                <div
+                  className={`sidebar-option ${isActive("/list-zoom-meetings") ? "active" : ""}`}
+                  onClick={() => handleNavigate("/list-zoom-meetings")}
+                  onMouseDown={(e) => handleMouseDown(e, "/list-zoom-meetings")}>
+                  <ZoomMeetingSVG />
+                  <span>רשימת פגישות</span>
+                </div>
+              </li>
+            )}
             {user.isJudge && (
               <li>
                 <div
@@ -386,6 +505,21 @@ const Sidebar = () => {
           </ul>
         </div>
       </div>
+      <FloatButton
+        icon={<CommentOutlined />}
+        onClick={showDrawer}
+        badge={{
+          count: 10,
+          overflowCount: 999,
+          style: { direction: "ltr" },
+        }}
+        style={{ direction: "ltr" }}
+      />
+      <Drawer title="צ'אטים" onClose={onClose} open={open} mask={false} maskClosable={false}>
+        <p>Some contents...</p>
+        <p>Some contents...</p>
+        <p>Some contents...</p>
+      </Drawer>
     </>
   );
 };

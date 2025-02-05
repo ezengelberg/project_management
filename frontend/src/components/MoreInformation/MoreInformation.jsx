@@ -52,7 +52,6 @@ const MoreInformation = () => {
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
   const [gradesData, setGradesData] = useState([]);
-  const [filterTachlit, setFilterTachlit] = useState(false);
   const [gradeWeightDescription, setGradeWeightDescription] = useState("");
   const [randomText, setRandomText] = useState("");
   const [randomTextId, setRandomTextId] = useState(null);
@@ -66,7 +65,11 @@ const MoreInformation = () => {
   const [editDescription, setEditDescription] = useState("");
   const [currentFile, setCurrentFile] = useState({});
   const [groups, setGroups] = useState([]);
+  const [thisYearGroups, setThisYearGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState("all");
+  const [allGradeStructures, setAllGradeStructures] = useState([]);
+  const [deleteGradeStructureModal, setDeleteGradeStructureModal] = useState(false);
+  const [selectedGradeStructure, setSelectedGradeStructure] = useState("");
   const [configYear, setConfigYear] = useState("");
   const [tableData, setTableData] = useState([]);
   const [allTables, setAllTables] = useState([]);
@@ -165,11 +168,14 @@ const MoreInformation = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [advisorsRes, gradesRes] = await Promise.all([
+        const [advisorsRes, randomTextRes, filesRes] = await Promise.all([
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/advisors-for-users-info`, {
             withCredentials: true,
           }),
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/grade-structure`, {
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/random/description-for-grade-structure`, {
+            withCredentials: true,
+          }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=moreInformation`, {
             withCredentials: true,
           }),
         ]);
@@ -180,12 +186,12 @@ const MoreInformation = () => {
         }));
         setData(advisors);
 
-        const gradeStructures = gradesRes.data.map((grade) => ({
-          ...grade,
-          key: grade._id,
-          date: dayjs(grade.date), // Ensure date is a dayjs object
-        }));
-        setGradesData(gradeStructures);
+        if (randomTextRes.data.length > 0) {
+          setRandomText(randomTextRes.data[0].descriptionForGradeStructure);
+          setRandomTextId(randomTextRes.data[0]._id);
+        }
+
+        setMoreInformationFiles(filesRes.data);
 
         setLoading(false);
       } catch (error) {
@@ -194,41 +200,6 @@ const MoreInformation = () => {
       }
     };
     fetchData();
-  }, []);
-
-  useEffect(() => {
-    const fetchRandomText = async () => {
-      try {
-        const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/random/description-for-grade-structure`, {
-          withCredentials: true,
-        });
-        if (res.data.length > 0) {
-          setRandomText(res.data[0].descriptionForGradeStructure);
-          setRandomTextId(res.data[0]._id);
-        }
-      } catch (error) {
-        console.error("Error occurred:", error);
-      }
-    };
-    fetchRandomText();
-  }, []);
-
-  useEffect(() => {
-    const fetchMoreInformationFiles = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=moreInformation`,
-          {
-            withCredentials: true,
-          }
-        );
-        setMoreInformationFiles(response.data);
-      } catch (error) {
-        console.error("Error fetching more information files:", error);
-      }
-    };
-
-    fetchMoreInformationFiles();
   }, []);
 
   const getExamTables = async (callback) => {
@@ -247,7 +218,7 @@ const MoreInformation = () => {
     const fetchGroupsAndExamTable = async () => {
       try {
         setLoading(true);
-        const [groupRes, configRes, examTableRes, yearsRes, projectsRes] = await Promise.all([
+        const [groupRes, configRes, examTableRes, yearsRes, projectsRes, currentYearGroupsRes] = await Promise.all([
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get`, {
             withCredentials: true,
           }),
@@ -263,6 +234,7 @@ const MoreInformation = () => {
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-projects-for-exam-table`, {
             withCredentials: true,
           }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get-current-year`, { withCredentials: true }),
         ]);
         setGroups(groupRes.data);
         setConfigYear(configRes.data.currentYear);
@@ -271,6 +243,7 @@ const MoreInformation = () => {
         const sortedYears = yearsRes.data.sort((a, b) => b.localeCompare(a));
         setYears(sortedYears);
         setProjects(projectsRes.data);
+        setThisYearGroups(currentYearGroupsRes.data);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching groups and exam table:", error);
@@ -278,6 +251,21 @@ const MoreInformation = () => {
       }
     };
     fetchGroupsAndExamTable();
+  }, []);
+
+  const fetchGradeStructure = async () => {
+    try {
+      const allGradeStructuresRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/grade-structure/`, {
+        withCredentials: true,
+      });
+      setAllGradeStructures(allGradeStructuresRes.data);
+    } catch (error) {
+      console.error("Error fetching groups:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchGradeStructure();
   }, []);
 
   useEffect(() => {
@@ -349,7 +337,7 @@ const MoreInformation = () => {
       ) : dataIndex === "date" ? (
         <DatePicker locale={locale} />
       ) : dataIndex === "weight" ? (
-        <InputNumber />
+        <InputNumber min={0} max={100} />
       ) : (
         <Input />
       );
@@ -398,8 +386,31 @@ const MoreInformation = () => {
 
   const save = async (key, isGrade) => {
     if (isGrade) {
-      await handleEditSave(key, formEditGrades, gradesData, setGradesData, "/api/grade-structure");
-      setEditingGradesKey("");
+      try {
+        const row = await formEditGrades.validateFields();
+        const newData = [...allGradeStructures];
+        const gradeIndex = newData.findIndex((grade) => grade.items.some((item) => item._id === key));
+        if (gradeIndex > -1) {
+          const itemIndex = newData[gradeIndex].items.findIndex((item) => item._id === key);
+          if (itemIndex > -1) {
+            const item = newData[gradeIndex].items[itemIndex];
+            const updatedItem = { ...item, ...row };
+            newData[gradeIndex].items.splice(itemIndex, 1, updatedItem);
+            await axios.put(
+              `${process.env.REACT_APP_BACKEND_URL}/api/grade-structure/${newData[gradeIndex]._id}`,
+              updatedItem,
+              {
+                withCredentials: true,
+              }
+            );
+            fetchGradeStructure();
+            formEditGrades.resetFields();
+            setEditingGradesKey("");
+          }
+        }
+      } catch (errInfo) {
+        console.log("Validate Failed:", errInfo);
+      }
     } else {
       await handleEditSave(key, form, data, setData, "/api/user/edit-user-coordinator", {
         interests: form.getFieldValue("interests"),
@@ -536,15 +547,16 @@ const MoreInformation = () => {
     };
   });
 
-  const handleGradesDelete = async (key) => {
+  const handleGradeItemDelete = async (structId, itemId) => {
     try {
-      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/grade-structure/${key}`, {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/grade-structure/item/${structId}/${itemId}`, {
         withCredentials: true,
       });
-      const newData = gradesData.filter((item) => item.key !== key);
-      setGradesData(newData);
+      fetchGradeStructure();
+      message.success("הפריט נמחק בהצלחה");
     } catch (error) {
       console.error("Error occurred:", error);
+      message.error("מחיקת הפריט נכשלה");
     }
   };
 
@@ -555,18 +567,49 @@ const MoreInformation = () => {
       });
       const newGrade = res.data;
       newGrade.key = newGrade._id;
-      setGradesData([...gradesData, newGrade]);
+      fetchGradeStructure();
       formGrades.resetFields();
+      message.success("הפריט נוסף בהצלחה");
     } catch (error) {
       console.error("Error occurred:", error);
+      message.error("הוספת הפריט נכשלה");
+    }
+  };
+
+  const handleDeleteGradeStructure = async () => {
+    try {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/grade-structure/${selectedGradeStructure}`, {
+        withCredentials: true,
+      });
+      fetchGradeStructure();
+      message.success("מבנה הציונים נמחק בהצלחה");
+      setDeleteGradeStructureModal(false);
+      setSelectedGradeStructure("");
+      setSelectedGroup("");
+    } catch (error) {
+      console.error("Error occurred:", error);
+      message.error("מחיקת מבנה הציונים נכשלה");
     }
   };
 
   const handleFilterChange = (value) => {
-    setFilterTachlit(value);
+    setSelectedGroup(value);
+    const selectedGrade = allGradeStructures.find(
+      (grade) => grade.group === value || (value === "all" && grade.group === null)
+    );
+    setSelectedGradeStructure(selectedGrade ? selectedGrade._id : "");
   };
 
-  const filteredGradesData = gradesData.filter((item) => item.tachlit === filterTachlit);
+  const filteredGradesData = allGradeStructures
+    .filter((grade) => {
+      if (selectedGroup === "all") {
+        return grade.group === null;
+      }
+      return grade.group === selectedGroup;
+    })
+    .flatMap((grade) =>
+      grade.items.map((item) => ({ ...item, key: item._id, structId: grade._id, group: grade.groupName }))
+    );
 
   const gradesColumns = [
     {
@@ -630,7 +673,7 @@ const MoreInformation = () => {
               okText="כן"
               okButtonProps={{ danger: true }}
               cancelText="לא"
-              onConfirm={() => handleGradesDelete(record.key)}>
+              onConfirm={() => handleGradeItemDelete(record.structId, record.key)}>
               <Typography.Link>
                 <Tooltip title="מחיקה">
                   <DeleteOutlined className="grade-weight-icon" />
@@ -1403,7 +1446,7 @@ const MoreInformation = () => {
                 <Input placeholder="שם" style={{ width: 200, marginBottom: "10px" }} />
               </Form.Item>
               <Form.Item name="weight" rules={[{ required: true, message: "הכנס משקל" }]}>
-                <InputNumber placeholder="משקל" style={{ width: 200, marginBottom: "10px" }} />
+                <InputNumber placeholder="משקל" style={{ width: 200, marginBottom: "10px" }} min={0} max={100} />
               </Form.Item>
               <Form.Item
                 name="description"
@@ -1417,10 +1460,14 @@ const MoreInformation = () => {
               <Form.Item name="date" rules={[{ required: true, message: "הכנס תאריך" }]}>
                 <DatePicker placeholder="תאריך" locale={locale} style={{ width: 200, marginBottom: "10px" }} />
               </Form.Item>
-              <Form.Item name="tachlit" rules={[{ required: true, message: "בחר קבוצה" }]}>
+              <Form.Item name="group" label={`לשנת ${configYear}`} rules={[{ required: true, message: "בחר קבוצה" }]}>
                 <Select placeholder="בחר קבוצה" style={{ width: 200, marginBottom: "10px" }}>
-                  <Select.Option value={false}>כולם</Select.Option>
-                  <Select.Option value={true}>תכלית</Select.Option>
+                  <Select.Option value="all">כולם</Select.Option>
+                  {thisYearGroups.map((group) => (
+                    <Select.Option key={group._id} value={group._id}>
+                      {group.name}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
               <Form.Item>
@@ -1430,14 +1477,30 @@ const MoreInformation = () => {
               </Form.Item>
             </Form>
           )}
-          <Select
-            placeholder="סנן לפי סוג"
-            onChange={handleFilterChange}
-            style={{ marginBottom: 16, width: 200 }}
-            defaultValue={false}>
-            <Select.Option value={false}>כולם</Select.Option>
-            <Select.Option value={true}>תכלית</Select.Option>
-          </Select>
+          <div className="grades-filter">
+            <Select
+              placeholder="סנן לפי קבוצה"
+              value={selectedGroup}
+              onChange={handleFilterChange}
+              style={{ marginBottom: 16, width: 200 }}>
+              <Select.Option value="all">כולם</Select.Option>
+              {thisYearGroups.map((group) => (
+                <Select.Option key={group._id} value={group._id}>
+                  {group.name}
+                </Select.Option>
+              ))}
+            </Select>
+            {currentUser.isCoordinator && selectedGradeStructure && (
+              <Button
+                color="danger"
+                variant="solid"
+                onClick={() => {
+                  setDeleteGradeStructureModal(true);
+                }}>
+                מחק מבנה ציון
+              </Button>
+            )}
+          </div>
           <Form form={formEditGrades} component={false} loading={loading}>
             <Table
               components={{
@@ -1545,19 +1608,19 @@ const MoreInformation = () => {
                   <p>*לא חובה לבחור כיתות או תאריך בשלב זה</p>
                   <div className="exam-table-classes">
                     <Form.Item name="class1" label="כיתה 1">
-                      <Input placeholder="הכנס כיתה" />
+                      <Input placeholder="הכנס כיתה" style={{ width: 150 }} />
                     </Form.Item>
                     <Form.Item name="class2" label="כיתה 2">
-                      <Input placeholder="הכנס כיתה" />
+                      <Input placeholder="הכנס כיתה" style={{ width: 150 }} />
                     </Form.Item>
                     <Form.Item name="class3" label="כיתה 3">
-                      <Input placeholder="הכנס כיתה" />
+                      <Input placeholder="הכנס כיתה" style={{ width: 150 }} />
                     </Form.Item>
                     <Form.Item name="class4" label="כיתה 4">
-                      <Input placeholder="הכנס כיתה" />
+                      <Input placeholder="הכנס כיתה" style={{ width: 150 }} />
                     </Form.Item>
                     <Form.Item name="date" label="תאריך התחלה">
-                      <DatePicker placeholder="תאריך" locale={locale} />
+                      <DatePicker placeholder="תאריך" locale={locale} style={{ width: 150 }} />
                     </Form.Item>
                   </div>
 
@@ -1869,6 +1932,17 @@ const MoreInformation = () => {
             </Form.Item>
           ))}
         </Form>
+      </Modal>
+
+      <Modal
+        title="מחיקת מבנה ציון"
+        open={deleteGradeStructureModal}
+        onOk={handleDeleteGradeStructure}
+        onCancel={() => setDeleteGradeStructureModal(false)}
+        okText="מחק"
+        cancelText="ביטול"
+        okButtonProps={{ danger: true }}>
+        <p>האם אתה בטוח שברצונך למחוק את מבנה הציון?</p>
       </Modal>
     </div>
   );

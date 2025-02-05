@@ -1,0 +1,164 @@
+.journal {
+  width: 70%;
+  margin: 0 auto;
+
+  .journal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    .journal-header-counter {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      p {
+        margin: 0;
+      }
+    }
+    .journal-header-filter {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+  }
+
+  .ant-collapse-header {
+    align-items: center !important;
+  }
+
+  .journal-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .journal-item-labels {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+
+      .ant-tag {
+        margin: 0;
+      }
+    }
+  }
+
+  .journal-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+
+    .journal-item-actions-buttons {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      span {
+        font-size: 2.5rem;
+        transition: all 0.2s linear;
+
+        &:hover {
+          scale: 1.1;
+        }
+      }
+    }
+  }
+
+  .ant-col {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        .ant-select {
+          .ant-select-selector {
+            .ant-select-selection-wrap {
+              .ant-select-selection-overflow {
+                .ant-select-selection-overflow-item {
+                  .ant-tag {
+                    .anticon-close {
+                      color: #000;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.edit-mission-form {
+  .ant-col {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        .ant-select {
+          .ant-select-selector {
+            .ant-select-selection-wrap {
+              .ant-select-selection-overflow {
+                .ant-select-selection-overflow-item {
+                  .ant-tag {
+                    .anticon-close {
+                      color: #000;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 1600px) {
+  .journal {
+    width: 80%;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .journal {
+    width: 95%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .journal {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 626px) {
+  .journal {
+    .ant-list-items {
+      .ant-collapse-item {
+        .ant-collapse-header {
+          .ant-collapse-header-text {
+            .ant-list-item {
+              display: flex;
+              flex-direction: column;
+              width: 100%;
+              .ant-list-item-meta {
+                width: 100%;
+              }
+              .journal-item-actions {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                .journal-item-actions-buttons {
+                  span {
+                    font-size: 3rem;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+.announcements-container {
+  .create-announcement {
+    margin: 0 auto;
+    width: 50%;
+  }
+
+  .announcements-board {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+}

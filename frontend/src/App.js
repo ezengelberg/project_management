@@ -26,6 +26,11 @@ import SubmissionsStatus from "./components/SubmissionsStatus/SubmissionsStatus"
 import ProfilePage from "./components/ProfilePage/ProfilePage";
 import DeleteAll from "./components/DeleteAll/DeleteAll";
 import Groups from "./components/Groups/Groups";
+import Announcements from "./components/Announcements/Announcements";
+import Journal from "./components/Journal/Journal";
+import JournalStatus from "./components/JournalStatus/JournalStatus";
+import ZoomScheduler from "./components/ZoomScheduler/ZoomScheduler";
+import ListZoomMeetings from "./components/ListZoomMeetings/ListZoomMeetings";
 
 function App() {
   return (
@@ -44,6 +49,7 @@ const MainLayout = () => {
     const routeTitles = {
       "/profile/:userId": "פרופיל",
       "/home": "דף הבית",
+      "/announcements": "הודעות",
       "/projects": "פרויקטים",
       "/project/:projectID": "דף פרויקט",
       "/templates": "תבניות",
@@ -62,10 +68,15 @@ const MainLayout = () => {
       "/system": "בקרת מערכת",
       "/delete-all": "מחיקת הכל",
       "/notifications": "התראות",
+      "/journal": "יומן עבודה",
+      "/journal-status": "מעקב עבודה",
+      "/journal/:projectId": "יומן עבודה",
+      "/zoom-scheduler": "פגישת זום",
+      "/list-zoom-meetings": "רשימת פגישות",
     };
 
     const currentPath = Object.keys(routeTitles).find((path) =>
-      new RegExp(`^${path.replace(/:\w+/g, "\\w+")}$`).test(location.pathname),
+      new RegExp(`^${path.replace(/:\w+/g, "\\w+")}$`).test(location.pathname)
     );
 
     document.title = `ניהול פרויקטים | ${routeTitles[currentPath] || "כניסה"}`;
@@ -100,6 +111,14 @@ const MainLayout = () => {
                 }
               />
               <Route
+                path="/announcements"
+                element={
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
+                    <Announcements />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/projects"
                 element={
                   <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
@@ -114,6 +133,14 @@ const MainLayout = () => {
                 element={
                   <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
                     <Templates />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/journal"
+                element={
+                  <ProtectedRoute privileges={["student"]}>
+                    <Journal />
                   </ProtectedRoute>
                 }
               />
@@ -199,6 +226,14 @@ const MainLayout = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/journal-status"
+                element={
+                  <ProtectedRoute privileges={["advisor"]}>
+                    <JournalStatus />
+                  </ProtectedRoute>
+                }
+              />
               {/* TODO privileges */}
               <Route
                 path="/grade-submission/:submissionId"
@@ -241,6 +276,30 @@ const MainLayout = () => {
                 }
               />
               <Route
+                path="/journal/:projectId"
+                element={
+                  <ProtectedRoute privileges={["advisor"]}>
+                    <Journal readOnly={true} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/zoom-scheduler"
+                element={
+                  <ProtectedRoute privileges={["advisor", "coordinator"]}>
+                    <ZoomScheduler />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/list-zoom-meetings"
+                element={
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
+                    <ListZoomMeetings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="*"
                 element={
                   <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
@@ -257,6 +316,7 @@ const MainLayout = () => {
         <Routes>
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/dev" element={<Announcements />} />
           <Route path="*" element={<WrongPath />} />
         </Routes>
       )}

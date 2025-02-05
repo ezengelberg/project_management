@@ -31,6 +31,12 @@
   font-size: 2.5rem;
 }
 
+.grades-filter {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .grade-weight-random-description-editor {
   display: flex;
   flex-direction: column;
