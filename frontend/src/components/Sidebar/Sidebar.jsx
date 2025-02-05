@@ -599,7 +599,7 @@ const Sidebar = () => {
                 icon={<CommentOutlined />}
                 onClick={showDrawer}
                 badge={{
-                    count: 10,
+                    count: chats.reduce((acc, chat) => acc + chat.unreadTotal, 0),
                     overflowCount: 999,
                     style: { direction: "ltr" },
                 }}

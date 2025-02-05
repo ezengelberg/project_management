@@ -24,7 +24,7 @@ $chat-color-other-line: #dabb89;
         font-size: 2rem;
         color: #ccc;
         cursor: pointer;
-        transition: color 0.3s linear;
+        transition: color 0.2s linear;
         z-index: 1;
         &:hover {
             color: #979797;
@@ -41,6 +41,13 @@ $chat-color-other-line: #dabb89;
             margin: 0.5rem 0;
             padding: 0 0 0.5rem 0;
             border-bottom: 1px solid #ccc;
+            &.changeable {
+                transition: color 0.2s linear;
+                cursor: pointer;
+                &:hover {
+                    color: #1677ff;
+                }
+            }
         }
 
         .participants-list {

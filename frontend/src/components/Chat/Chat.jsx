@@ -220,7 +220,7 @@ const Chat = ({ chatID, onClose, socket }) => {
                 </div>
             ) : (
                 <div className="chat-wrapper">
-                    <h3 className="chat-header">
+                    <h3 className="chat-header changeable" onClick={() => console.log("Future chat rename")}>
                         {chatID.chatName
                             ? chatID.chatName
                             : (() => {
