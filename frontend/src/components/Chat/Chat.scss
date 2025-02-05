@@ -1,3 +1,8 @@
+$chat-color-self: #bdf0d6;
+$chat-color-self-line: #98dab8;
+$chat-color-other: #fce7c8;
+$chat-color-other-line: #dabb89;
+
 .chat-container {
     position: absolute;
     font-size: 1.3rem;
@@ -87,10 +92,82 @@
                 }
             }
         }
+        .chat-history {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start; /* Default right alignment */
+            overflow-y: auto; /* Enable vertical scrolling */
+            overflow-x: hidden; /* Disable horizontal scrolling */
+            .message {
+                display: flex;
+                flex-direction: column;
+                position: relative;
+                gap: 0.5rem;
+                padding: 1.2rem 1.5rem;
+                border-radius: 8px;
+                background-color: $chat-color-self;
+                max-width: 70%;
+                .speech-triangle {
+                    position: absolute;
+                    top: 1.1rem;
+                    right: -1.2rem;
 
-        .chat-content {
-            flex-grow: 1; /* Take remaining space */
-            overflow: auto; /* Prevent overflow */
+                    // background-color: red;
+                    width: 0;
+                    height: 0;
+                    border-left: 10px solid transparent;
+                    border-right: 10px solid transparent;
+                    border-top: 10px solid $chat-color-self;
+                    // border-top: 10px solid navy;
+                    margin-left: 10px;
+                    transform: rotate(-90deg);
+                }
+
+                .message-header {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 1rem;
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                    border-bottom: 1px solid $chat-color-self-line;
+                }
+                .message-text {
+                    font-size: 1.6rem;
+                }
+                .seen {
+                    position: absolute;
+                    width: 1.5rem;
+                    left: 0.2rem;
+                    bottom: -0.3rem;
+                    cursor: pointer;
+                    &.all {
+                        svg {
+                            path {
+                                fill: #1677ff;
+                            }
+                        }
+                    }
+                }
+            }
+            .message.else {
+                position: relative;
+                align-self: flex-end;
+                background-color: $chat-color-other;
+                // margin-right: 1.2rem; /* Add space for triangle */
+                .message-header {
+                    border-bottom: 1px solid $chat-color-other-line;
+                }
+                .speech-triangle {
+                    position: absolute;
+                    right: auto; /* Reset right position */
+                    top: 1.1rem; /* Match the same top value as the regular message triangle */
+                    left: -2.1rem;
+                    transform: rotate(90deg);
+                    border-top: 10px solid $chat-color-other;
+                    // border-top: 10px solid red;
+                }
+            }
         }
 
         .chat-users {

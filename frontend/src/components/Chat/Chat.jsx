@@ -24,6 +24,17 @@ const Chat = ({ chatID, onClose, socket }) => {
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [chatHistory, setChatHistory] = useState([]);
 
+    const checkmarkSVG = (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
+            <g transform="translate(0, 960)">
+                <path
+                    d="M268-240 42-466l57-56 170 170 56 56-57 56Zm226 0L268-466l56-57 170 170 368-368 56 57-424 424Zm0-226-57-56 198-198 57 56-198 198Z"
+                    fill="#666"
+                />
+            </g>
+        </svg>
+    );
+
     useEffect(() => {
         if (chatID === "new") return;
         setParticipants(chatID.participants);
@@ -218,6 +229,60 @@ const Chat = ({ chatID, onClose, socket }) => {
                                   return title;
                               })()}
                     </h3>
+                    <div className="chat-history">
+                        <div className="message">
+                            <div className="speech-triangle"></div>
+                            <div className="message-header">
+                                <div className="sender">יוסי כהן</div>
+                                <div className="time">13:45</div>
+                            </div>
+                            <div className="message-text">My message</div>
+                            <div className="seen">{checkmarkSVG}</div>
+                        </div>
+                        <div className="message else">
+                            <div className="speech-triangle"></div>
+                            <div className="message-header">
+                                <div className="sender">אביתר בן חיון עם שם מאוד ארוך</div>
+                                <div className="time">13:45</div>
+                            </div>
+                            <div className="message-text">Your message</div>
+                        </div>
+                        <div className="message else">
+                            <div className="speech-triangle"></div>
+                            <div className="message-header">
+                                <div className="sender">אביתר בן חיון עם שם מאוד ארוך</div>
+                                <div className="time">13:45</div>
+                            </div>
+                            <div className="message-text">.</div>
+                        </div>
+                        <div className="message">
+                            <div className="speech-triangle"></div>
+                            <div className="message-header">
+                                <div className="sender">יוסי המלך לא לגמרי כהן בלה בלה דגלחיד דחלג</div>
+                                <div className="time">13:45</div>
+                            </div>
+                            <div className="message-text">.</div>
+                            <div className="seen all">{checkmarkSVG}</div>
+                        </div>
+                        <div className="message">
+                            <div className="speech-triangle"></div>
+                            <div className="message-header">
+                                <div className="sender">יוסי המלך לא לגמרי כהן בלה בלה דגלחיד דחלג</div>
+                                <div className="time">13:45</div>
+                            </div>
+                            <div className="message-text">.</div>
+                            <div className="seen all">{checkmarkSVG}</div>
+                        </div>
+                        <div className="message">
+                            <div className="speech-triangle"></div>
+                            <div className="message-header">
+                                <div className="sender">יוסי המלך לא לגמרי כהן בלה בלה דגלחיד דחלג</div>
+                                <div className="time">13:45</div>
+                            </div>
+                            <div className="message-text">.</div>
+                            <div className="seen all">{checkmarkSVG}</div>
+                        </div>
+                    </div>
                     <div className="chat-message-container">
                         <TextArea
                             className={`chat-message`}
