@@ -17,7 +17,14 @@ export const sendMessage = async (req, res) => {
             }
         } else chatTarget = await Chat.findById(chatID);
 
-        const messageData = await new Message({ chat: chatTarget._id, sender: req.user._id, message }).save();
+        const messageData = await new Message({
+            chat: chatTarget._id,
+            sender: req.user._id,
+            message,
+            seenBy: [req.user._id],
+        }).save();
+        chatTarget.lastMessage = messageData._id;
+        await chatTarget.save();
         res.status(201).json(messageData);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -38,7 +45,16 @@ export const fetchChats = async (req, res) => {
         const user = req.user._id;
         const chats = await Chat.find({
             participants: { $in: [user] },
-        }).populate("participants", "name");
+        })
+            .populate("participants", "name")
+            .populate({
+                path: "lastMessage",
+                select: "message createdAt",
+                populate: {
+                    path: "sender",
+                    select: "name",
+                },
+            });
         res.status(200).json(chats);
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -536,17 +536,17 @@ const Sidebar = () => {
             <Drawer title="צ'אטים" onClose={onClose} open={open} mask={false} maskClosable={false}>
                 <div className="chat-drawer-container">
                     <div className="chat-item">
-                        <div className="chat-item-wrapper" onClick={() => setIsChatVisible(true)}>
+                        <div className="chat-header-wrapper" onClick={() => setIsChatVisible(true)}>
                             <PlusCircleOutlined /> <span className="chat-title">יצירת צ'אט חדש</span>
                         </div>
                     </div>
                     {chats.map((chat) => {
                         return (
                             <div key={chat._id} className="chat-item">
-                                <div className="chat-item-wrapper">
+                                <div className="chat-header-wrapper">
                                     <span className="chat-title">
                                         {chat.chatName
-                                            ? "ye"
+                                            ? chat.chatName
                                             : chat.participants.map((p, index) => (
                                                   <span key={p._id}>
                                                       {p.name}
@@ -554,6 +554,31 @@ const Sidebar = () => {
                                                   </span>
                                               ))}
                                     </span>
+                                </div>
+                                <div className="message-description">
+                                    <div className="last-message">
+                                        <div
+                                            className={`seen ${
+                                                chat.lastMessage?.seenBy?.length === chat.participants.length
+                                                    ? "all"
+                                                    : ""
+                                            }`}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
+                                                <g transform="translate(0, 960)">
+                                                    <path
+                                                        d="M268-240 42-466l57-56 170 170 56 56-57 56Zm226 0L268-466l56-57 170 170 368-368 56 57-424 424Zm0-226-57-56 198-198 57 56-198 198Z"
+                                                        fill="#666"
+                                                    />
+                                                </g>
+                                            </svg>
+                                        </div>
+                                        <span className="last-message-content">
+                                            {chat.lastMessage.sender.name}:{" "}
+                                            {chat.lastMessage.message.length > 10
+                                                ? `${chat.lastMessage.message.substring(0, 50)}...`
+                                                : chat.lastMessage.message}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         );
