@@ -39,7 +39,6 @@ export const fetchChats = async (req, res) => {
         const chats = await Chat.find({
             participants: { $in: [user] },
         }).populate("participants", "name");
-        console.log(chats);
         res.status(200).json(chats);
     } catch (error) {
         res.status(500).json({ message: error.message });

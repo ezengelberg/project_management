@@ -62,21 +62,23 @@ export const getAnnouncements = async (req, res) => {
 
         // Coordinators should see everything, so no need to filter by project
         let group = null;
-        if (!isCoordinator) {
-            const project = await Project.findOne({
-                $or: [{ students: { $elemMatch: { student: _id } } }, { advisors: { $elemMatch: { $eq: _id } } }],
-            });
+        const project = await Project.findOne({
+            $or: [{ students: { $elemMatch: { student: _id } } }, { advisors: { $elemMatch: { $eq: _id } } }],
+        });
 
-            if (project) {
-                group = await Group.findOne({ projects: project._id });
-            }
+        if (project) {
+            group = await Group.findOne({ projects: project._id });
         }
 
+        console.log("fetch announcements");
         // Define conditions based on user roles
         const roleConditions = [];
         if (isStudent) roleConditions.push({ forStudent: true });
         if (isAdvisor) roleConditions.push({ forAdvisor: true });
         if (isJudge) roleConditions.push({ forJudge: true });
+
+        console.log("roleConditions", roleConditions);
+        console.log(isCoordinator);
 
         // If the user is a coordinator, they see everything
         let query = isCoordinator
@@ -84,19 +86,16 @@ export const getAnnouncements = async (req, res) => {
                   year: year,
               } // No filtering for coordinators
             : {
-                  $or: roleConditions,
-                  ...(group?._id && { group: group._id }), // Apply group filter only if available
+                  $or: [...roleConditions, ...(group?._id ? [{ group: group._id }] : [])],
                   year: year,
               };
 
-        // Coordinators also see all coordinator announcements
-        if (isCoordinator) {
-            query = { $or: [...roleConditions, { forCoordinator: true }] };
-        }
+        console.log("query", query);
 
         const announcements = await Announcement.find(query)
             .populate({ path: "writtenBy", select: "name" }) // Ensuring writtenBy is populated
             .populate({ path: "group", select: "name" });
+        console.log(announcements);
         res.status(200).json(announcements);
     } catch (error) {
         console.error("Error occurred:", error);
