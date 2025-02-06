@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import "./MoreInformation.scss";
 import axios from "axios";
 import {
@@ -29,8 +29,10 @@ import { Editor } from "primereact/editor";
 import { processContent } from "../../utils/htmlProcessor";
 import FileCard from "../FileCard/FileCard";
 import * as XLSX from "xlsx";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const MoreInformation = () => {
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
@@ -200,6 +202,7 @@ const MoreInformation = () => {
       }
     };
     fetchData();
+    fetchNotifications();
   }, []);
 
   const getExamTables = async (callback) => {

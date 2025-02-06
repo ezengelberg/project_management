@@ -101,6 +101,7 @@ const OverviewProjects = () => {
     };
 
     fetchData();
+    fetchNotifications();
   }, []);
 
   const handleAddStudents = async () => {

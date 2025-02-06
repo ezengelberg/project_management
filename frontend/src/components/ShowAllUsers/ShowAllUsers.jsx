@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import "./ShowAllUsers.scss";
 import axios from "axios";
 import {
@@ -21,8 +21,10 @@ import { useNavigate } from "react-router-dom";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const ShowAllUsers = () => {
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
@@ -116,6 +118,7 @@ const ShowAllUsers = () => {
     };
 
     fetchData();
+    fetchNotifications();
   }, []);
 
   useEffect(() => {
@@ -214,7 +217,11 @@ const ShowAllUsers = () => {
       showSorterTooltip: {
         target: "full-header",
       },
-      sorter: (a, b) => new Date(a.registerDate) - new Date(b.registerDate),
+      sorter: (a, b) => {
+        const [dayA, monthA, yearA] = a.registerDate.split(".");
+        const [dayB, monthB, yearB] = b.registerDate.split(".");
+        return new Date(`${yearA}-${monthA}-${dayA}`) - new Date(`${yearB}-${monthB}-${dayB}`);
+      },
       sortDirections: ["descend", "ascend"],
       width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 170 : 170,
     },
@@ -526,7 +533,11 @@ const ShowAllUsers = () => {
       showSorterTooltip: {
         target: "full-header",
       },
-      sorter: (a, b) => new Date(a.registerDate) - new Date(b.registerDate),
+      sorter: (a, b) => {
+        const [dayA, monthA, yearA] = a.registerDate.split(".");
+        const [dayB, monthB, yearB] = b.registerDate.split(".");
+        return new Date(`${yearA}-${monthA}-${dayA}`) - new Date(`${yearB}-${monthB}-${dayB}`);
+      },
       sortDirections: ["descend", "ascend"],
       width: windowSize.width > 1920 ? "8%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 170 : 170,
     },
