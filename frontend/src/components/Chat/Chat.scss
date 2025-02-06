@@ -1,7 +1,10 @@
-$chat-color-self: #bdf0d6;
-$chat-color-self-line: #98dab8;
-$chat-color-other: #fce7c8;
-$chat-color-other-line: #dabb89;
+$chat-color-self: #90beee;
+$chat-color-self-line: #578fca;
+$chat-color-other: #e5effa;
+$chat-color-other-line: #a3bedb;
+
+$chat-background: #bcccdc;
+$chat-header: #a1bbd4;
 
 .chat-container {
     position: absolute;
@@ -17,35 +20,39 @@ $chat-color-other-line: #dabb89;
     display: flex;
     flex-direction: column; /* Stack child elements vertically */
     max-height: 90vh; /* Allow it to grow up to 90% of the viewport height */
+    background-color: $chat-background;
     .chat-close {
         position: absolute;
         top: 0.5rem;
         left: 0.5rem;
         font-size: 2rem;
-        color: #ccc;
+        color: #696969;
         cursor: pointer;
         transition: color 0.2s linear;
         z-index: 1;
         &:hover {
-            color: #979797;
+            color: #000;
         }
     }
     .chat-wrapper {
         position: relative;
-        height: 100%; /* Full height of the parent */
-        padding: 1rem 2rem;
+        height: 100%;
         display: flex;
         flex-direction: column;
 
         .chat-header {
-            margin: 0.5rem 0;
-            padding: 0 0 0.5rem 0;
-            border-bottom: 1px solid #ccc;
-            &.changeable {
-                transition: color 0.2s linear;
-                cursor: pointer;
-                &:hover {
-                    color: #1677ff;
+            border-bottom: 1px solid #758ca1;
+            .chat-header-title {
+                margin: 0;
+                padding: 1rem 0.5rem;
+                background-color: $chat-header;
+                box-shadow: 1px 1px 5px #207baf71;
+                &.changeable {
+                    transition: color 0.2s linear;
+                    cursor: pointer;
+                    &:hover {
+                        color: #1677ff;
+                    }
                 }
             }
         }
@@ -102,15 +109,17 @@ $chat-color-other-line: #dabb89;
         .chat-history {
             display: flex;
             flex-direction: column;
+            padding-left: 1rem;
             gap: 1rem;
             align-items: flex-start; /* Default right alignment */
             overflow-x: hidden; /* Disable horizontal scrolling */
             overflow-y: auto; /* Enable vertical scrolling */
-            scrollbar-width: auto; /* For Firefox */
-            scrollbar-color: #888 #f1f1f1; /* For Firefox */
+            // scrollbar-width: auto; /* For Firefox */
+            // scrollbar-color: #888 #f1f1f1; /* For Firefox */
+            margin: 1rem;
 
             &::-webkit-scrollbar {
-                width: 10px;
+                width: 8px;
             }
 
             &::-webkit-scrollbar-track {
@@ -136,9 +145,6 @@ $chat-color-other-line: #dabb89;
                 border-radius: 8px;
                 background-color: $chat-color-self;
                 max-width: 70%;
-                &:last-child {
-                    margin-bottom: 1rem;
-                }
 
                 .message-header {
                     display: flex;

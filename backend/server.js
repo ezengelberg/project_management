@@ -31,6 +31,7 @@ import announcementRoute from "./routes/announcementRoute.js";
 import chatRoute from "./routes/chatRoute.js";
 
 import Chat from "./models/chats.js";
+import Message from "./models/messages.js";
 
 import dotenv from "dotenv";
 
@@ -198,7 +199,7 @@ io.on("connection", (socket) => {
 
     socket.on("send_message", async ({ chatID, message, sender }) => {
         try {
-            const chat = await Chat.findById(chatID).populate("lastMessage").populate("participants");;
+            const chat = await Chat.findById(chatID).populate("lastMessage").populate("participants");
             if (!chat) {
                 console.log("Chat not found");
                 return;
@@ -210,6 +211,23 @@ io.on("connection", (socket) => {
             console.error("Error sending message:", error);
         }
     });
+
+    socket.on("seen_message", async ({ messageID, chatID, user }) => {
+        try {
+            const message = await Message.findById(messageID);
+            console.log(message);
+            if (message.seenBy.indexOf(user) === -1) {
+                message.seenBy.push(user);
+                console.log("seen ?")
+                await message.save();
+                const seenMessage = await Message.findById(messageID).populate("sender", "name").populate("seenBy", "name");
+                io.to(chatID).emit("receive_seen", seenMessage);
+            }
+        } catch (error) {
+            console.error("Error updating seen status:", error);
+        }
+    });
+
     socket.on("disconnect", () => {
         // Remove user from all active chats
         for (const chatID in activeChats) {

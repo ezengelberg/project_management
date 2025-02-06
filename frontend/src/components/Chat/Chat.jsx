@@ -25,7 +25,7 @@ const Chat = ({ chatID, onClose, socket }) => {
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [chatHistory, setChatHistory] = useState([]);
 
-    const firstUnreadMessage = useRef(null);
+    const messageRefs = useRef([]);
     const user = JSON.parse(localStorage.getItem("user"));
 
     const checkmarkSVG = (
@@ -55,6 +55,17 @@ const Chat = ({ chatID, onClose, socket }) => {
                     return newHistory;
                 });
             });
+            socket.on("receive_seen", (message) => {
+                setChatHistory((prevHistory) => {
+                    const newHistory = prevHistory.map((msg) => {
+                        if (msg._id.toString() === message._id.toString()) {
+                            return message;
+                        }
+                        return msg;
+                    });
+                    return newHistory;
+                });
+            });
         }
         return () => {
             if (socket) {
@@ -62,6 +73,53 @@ const Chat = ({ chatID, onClose, socket }) => {
             }
         };
     }, [socket]);
+
+    const scrollIntoView = () => {
+        if (chatHistory.length > 0) {
+            const unreadMessage = chatHistory.find(
+                (message) => !message.seenBy.some((u) => u._id.toString() === user._id.toString()),
+            );
+            console.log(unreadMessage);
+            if (unreadMessage && messageRefs.current[unreadMessage._id]) {
+                messageRefs.current[unreadMessage._id].scrollIntoView({ behavior: "smooth", block: "end" });
+                return;
+            }
+        }
+    };
+
+    const observerRef = useRef(new Map());
+
+    const messageObserver = (message, el) => {
+        if (!el || observerRef.current.has(message._id)) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    const isSeenByUser = message.seenBy.some((u) => u._id.toString() === user._id.toString());
+                    if (!isSeenByUser) {
+                        socket.emit("seen_message", { messageID: message._id, chatID: chatID._id, user: user._id });
+                    }
+                    observer.disconnect();
+                    observerRef.current.delete(message._id);
+                }
+            },
+            { threshold: 1.0 },
+        );
+
+        observerRef.current.set(message._id, observer);
+        observer.observe(el);
+    };
+
+    useEffect(() => {
+        return () => {
+            observerRef.current.forEach((observer) => observer.disconnect());
+            observerRef.current.clear();
+        };
+    }, []);
+
+    useEffect(() => {
+        scrollIntoView();
+    }, [chatHistory]);
 
     const fetchChat = async () => {
         if (chatID === "") return;
@@ -73,7 +131,6 @@ const Chat = ({ chatID, onClose, socket }) => {
                 },
             );
             setChatHistory(response.data);
-            console.log("Chat fetched:", response.data);
         } catch (error) {
             console.error("Error fetching chat:", error);
         }
@@ -115,7 +172,6 @@ const Chat = ({ chatID, onClose, socket }) => {
                     withCredentials: true,
                 },
             );
-            const newMessage = response.data;
         } catch (error) {
             console.error("Error sending message:", error);
         }
@@ -153,7 +209,9 @@ const Chat = ({ chatID, onClose, socket }) => {
             />
             {chatID === "new" ? (
                 <div className="chat-wrapper">
-                    <h3 className="chat-header">יצירת שיחה חדשה</h3>
+                    <div className="chat-header">
+                        <h3 className="chat-header-title">יצירת שיחה חדשה</h3>
+                    </div>
                     <div className="participants-list">
                         <div className="participants-list--wrapper">
                             <div className="participant-title">משתתפים:</div>
@@ -245,19 +303,21 @@ const Chat = ({ chatID, onClose, socket }) => {
                 </div>
             ) : (
                 <div className="chat-wrapper">
-                    <h3
-                        className={`chat-header ${participants.length > 2 ? "changeable" : ""}`}
-                        onClick={() => console.log("Future chat rename")}>
-                        {participants.length === 2
-                            ? participants.filter((p) => p._id !== user._id)[0].name
-                            : chatID.chatName
-                            ? chatID.chatName
-                            : (() => {
-                                  let title = participants.map((p) => p.name).join(", ");
-                                  if (title.length > 40) title = title.substring(0, 40).concat("...");
-                                  return title;
-                              })()}
-                    </h3>
+                    <div className="chat-header">
+                        <h3
+                            className={`chat-header-title ${participants.length > 2 ? "changeable" : ""}`}
+                            onClick={() => console.log("Future chat rename")}>
+                            {participants.length === 2
+                                ? participants.filter((p) => p._id !== user._id)[0].name
+                                : chatID.chatName
+                                ? chatID.chatName
+                                : (() => {
+                                      let title = participants.map((p) => p.name).join(", ");
+                                      if (title.length > 40) title = title.substring(0, 40).concat("...");
+                                      return title;
+                                  })()}
+                        </h3>
+                    </div>
                     <div className="chat-history">
                         {chatHistory.length === 0 ? <div className="no-messages">אין היסטורית הודעות</div> : null}
 
@@ -267,16 +327,31 @@ const Chat = ({ chatID, onClose, socket }) => {
                                     key={message._id}
                                     className={`message ${
                                         message.sender._id.toString() === user._id.toString() ? "" : "else"
-                                    }`}>
+                                    }`}
+                                    ref={(el) => {
+                                        if (el) {
+                                            messageRefs.current[message._id] = el;
+                                            messageObserver(message, el);
+                                        }
+                                    }}>
                                     <div className="message-header">
                                         <div className="sender">{message.sender.name}</div>
                                         <div className="time">
-                                            {new Date(message.createdAt).toLocaleDateString("he-IL")}
+                                            {new Date(message.createdAt).toLocaleDateString("he-IL", {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            })}
                                         </div>
                                     </div>
                                     <div className="message-text">{message.message}</div>
                                     {message.sender._id.toString() === user._id.toString() && (
-                                        <div className="seen">{checkmarkSVG}</div>
+                                        <div
+                                            className={`seen ${
+                                                message.seenBy.length === participants.length ? "all" : ""
+                                            }`}
+                                            onClick={() => console.log(message.seenBy)}>
+                                            {checkmarkSVG}
+                                        </div>
                                     )}
                                 </div>
                             );

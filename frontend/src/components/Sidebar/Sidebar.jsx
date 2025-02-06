@@ -638,14 +638,6 @@ const Sidebar = () => {
                                                   if (title.length > 40) title = title.substring(0, 40).concat("...");
                                                   return title;
                                               })()}
-                                        {/* {chat.chatName
-                                            ? chat.chatName
-                                            : chat.participants.map((p, index) => (
-                                                  <span key={p._id}>
-                                                      {p.name}
-                                                      {index < chat.participants.length - 1 ? ", " : ""}
-                                                  </span>
-                                              ))} */}
                                     </span>
                                 </div>
                                 <div className="message-description">
