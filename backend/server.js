@@ -199,12 +199,13 @@ io.on("connection", (socket) => {
 
     socket.on("send_message", async ({ chatID, message, sender }) => {
         try {
+            console.log("SENDING MESSAGE");
             const chat = await Chat.findById(chatID).populate("lastMessage").populate("participants");
             if (!chat) {
                 console.log("Chat not found");
                 return;
             }
-
+            console.log("Chat found:", chat);
             // Emit updated chat to all users in the chat room
             io.to(chatID).emit("receive_chat", chat);
         } catch (error) {

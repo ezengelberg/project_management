@@ -18,7 +18,7 @@ import MessageReadList from "./MessageReadList";
 
 const { TextArea } = Input;
 
-const Chat = ({ chatID, onClose, socket }) => {
+const Chat = ({ chatID, onClose, socket, onWatch }) => {
     const [participants, setParticipants] = useState([]);
     const [userSearch, setUserSearch] = useState("");
     const [userResults, setUserResults] = useState([]);
@@ -111,6 +111,7 @@ const Chat = ({ chatID, onClose, socket }) => {
                     });
                     if (!isSeenByUser) {
                         socket.emit("seen_message", { messageID: message._id, chatID: chatID._id, user: user._id });
+                        onWatch();
                     }
                     observer.disconnect();
                     observerRef.current.delete(message._id);

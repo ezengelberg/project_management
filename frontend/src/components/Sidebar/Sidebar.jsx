@@ -90,6 +90,21 @@ const Sidebar = () => {
                     }
                 });
             });
+            socketRef.current.on("receive_message", (msg) => {
+                console.log(msg);
+                setChats((prevChats) => {
+                    const updatedChats = prevChats.map((chat) => {
+                        if (
+                            chat._id.toString() === msg.chat.toString() &&
+                            msg.sender._id.toString() !== user._id.toString()
+                        ) {
+                            chat.unreadTotal = chat.unreadTotal ? chat.unreadTotal + 1 : 1;
+                        }
+                        return chat;
+                    });
+                    return updatedChats;
+                });
+            });
         }
 
         // Cleanup socket only when component unmounts
@@ -645,6 +660,17 @@ const Sidebar = () => {
                         setChatTarget(null);
                     }}
                     socket={socketRef.current}
+                    onWatch={() => {
+                        setChats((prevChats) => {
+                            const updatedChats = prevChats.map((chat) => {
+                                if (chat._id.toString() === chatTarget._id.toString()) {
+                                    chat.unreadTotal = chat.unreadTotal ? chat.unreadTotal - 1 : 0;
+                                }
+                                return chat;
+                            });
+                            return updatedChats;
+                        });
+                    }}
                 />
             )}
         </>
