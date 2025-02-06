@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { io } from "socket.io-client";
 import "./Chat.scss";
 
 import {
@@ -45,8 +46,22 @@ const Chat = ({ chatID, onClose, socket }) => {
     }, [chatID]);
 
     useEffect(() => {
-        console.log(user);
-    }, [user]);
+        if (socket) {
+            socket.on("receive_message", (msg) => {
+                setChatHistory((prevHistory) => {
+                    const newHistory = [...prevHistory, msg];
+                    // Sort the new array
+                    newHistory.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                    return newHistory;
+                });
+            });
+        }
+        return () => {
+            if (socket) {
+                socket.off("receive_message");
+            }
+        };
+    }, [socket]);
 
     const fetchChat = async () => {
         if (chatID === "") return;
@@ -58,6 +73,7 @@ const Chat = ({ chatID, onClose, socket }) => {
                 },
             );
             setChatHistory(response.data);
+            console.log("Chat fetched:", response.data);
         } catch (error) {
             console.error("Error fetching chat:", error);
         }
@@ -87,7 +103,6 @@ const Chat = ({ chatID, onClose, socket }) => {
 
     const sendMessage = async () => {
         if (message === "" || message.trim() === "") return;
-        console.log("sending msg");
         try {
             const response = await axios.post(
                 `${process.env.REACT_APP_BACKEND_URL}/api/chat/send`,
@@ -249,7 +264,6 @@ const Chat = ({ chatID, onClose, socket }) => {
                                     className={`message ${
                                         message.sender._id.toString() === user._id.toString() ? "" : "else"
                                     }`}>
-                                    <div className="speech-triangle"></div>
                                     <div className="message-header">
                                         <div className="sender">{message.sender.name}</div>
                                         <div className="time">

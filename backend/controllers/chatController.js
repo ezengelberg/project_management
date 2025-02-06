@@ -5,10 +5,10 @@ import { io } from "../server.js";
 
 export const sendMessage = async (req, res) => {
     try {
+        console.log("sending msg");
         const { chatID, message, recievers } = req.body;
         let chatTarget;
-
-        if (!chatID) {
+        if (chatID === "new" || !chatID) {
             chatTarget = await Chat.findOne({
                 participants: { $all: [...recievers, req.user._id] },
                 $expr: { $eq: [{ $size: "$participants" }, recievers.length + 1] },
@@ -21,21 +21,25 @@ export const sendMessage = async (req, res) => {
             chatTarget = await Chat.findById(chatID);
         }
 
-        const messageData = await new Message({
+        let messageData = new Message({
             chat: chatTarget._id,
             sender: req.user._id,
             message,
             seenBy: [req.user._id],
-        }).save();
+        });
+
+        // First save the message
+        messageData = await messageData.save();
+
+        // Then populate the fields
+        messageData = await Message.findById(messageData._id).populate("sender", "name").populate("seenBy", "name");
+
 
         chatTarget.lastMessage = messageData._id;
         await chatTarget.save();
 
-        // Fetch updated chat with populated lastMessage
-        const updatedChat = await Chat.findById(chatTarget._id).populate("lastMessage").populate("participants");
-
         // Emit message to all users in the chat
-        io.to(chatTarget._id.toString()).emit("receive_message", updatedChat);
+        io.to(chatTarget._id.toString()).emit("receive_message", messageData, chatTarget._id);
 
         res.status(201).json(messageData);
     } catch (error) {

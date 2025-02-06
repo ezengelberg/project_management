@@ -81,7 +81,6 @@ const Sidebar = () => {
             });
 
             socketRef.current.on("connect", () => {
-                console.log("Connected to socket server");
                 fetchChats().then((userChats) => {
                     console.log("User chats:", userChats);
                     if (userChats?.length) {
@@ -93,10 +92,7 @@ const Sidebar = () => {
                 });
             });
 
-            socketRef.current.on("receive_message", (updatedChat) => {
-                console.log("Received message:", updatedChat);
-                console.log(updatedChat.lastMessage.sender, user._id);
-                console.log(updatedChat.lastMessage.sender === user._id);
+            socketRef.current.on("receive_chat", (updatedChat) => {
                 setChats((prevChats) =>
                     prevChats
                         .map((chat) =>

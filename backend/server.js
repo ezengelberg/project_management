@@ -205,8 +205,7 @@ io.on("connection", (socket) => {
             }
 
             // Emit updated chat to all users in the chat room
-            io.to(chatID).emit("receive_message", chat);
-            console.log("transmitted");
+            io.to(chatID).emit("receive_chat", chat);
         } catch (error) {
             console.error("Error sending message:", error);
         }
