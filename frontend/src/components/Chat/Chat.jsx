@@ -245,8 +245,12 @@ const Chat = ({ chatID, onClose, socket }) => {
                 </div>
             ) : (
                 <div className="chat-wrapper">
-                    <h3 className="chat-header changeable" onClick={() => console.log("Future chat rename")}>
-                        {chatID.chatName
+                    <h3
+                        className={`chat-header ${participants.length > 2 ? "changeable" : ""}`}
+                        onClick={() => console.log("Future chat rename")}>
+                        {participants.length === 2
+                            ? participants.filter((p) => p._id !== user._id)[0].name
+                            : chatID.chatName
                             ? chatID.chatName
                             : (() => {
                                   let title = participants.map((p) => p.name).join(", ");

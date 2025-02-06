@@ -104,8 +104,29 @@ $chat-color-other-line: #dabb89;
             flex-direction: column;
             gap: 1rem;
             align-items: flex-start; /* Default right alignment */
-            overflow-y: auto; /* Enable vertical scrolling */
             overflow-x: hidden; /* Disable horizontal scrolling */
+            overflow-y: auto; /* Enable vertical scrolling */
+            scrollbar-width: auto; /* For Firefox */
+            scrollbar-color: #888 #f1f1f1; /* For Firefox */
+
+            &::-webkit-scrollbar {
+                width: 10px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 10px;
+            }
+
+            &::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+
             .message {
                 display: flex;
                 flex-direction: column;
@@ -115,6 +136,9 @@ $chat-color-other-line: #dabb89;
                 border-radius: 8px;
                 background-color: $chat-color-self;
                 max-width: 70%;
+                &:last-child {
+                    margin-bottom: 1rem;
+                }
 
                 .message-header {
                     display: flex;

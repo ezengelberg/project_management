@@ -614,7 +614,10 @@ const Sidebar = () => {
                     </div>
                     {chats.map((chat) => {
                         return (
-                            <div key={chat._id} className="chat-item" onClick={() => setChatTarget(chat)}>
+                            <div
+                                key={chat._id}
+                                className={`chat-item ${chatTarget?._id === chat._id ? "selected" : ""}`}
+                                onClick={() => setChatTarget(chat)}>
                                 {chat?.unreadTotal > 0 && (
                                     <Badge
                                         count={chat?.unreadTotal}
@@ -626,14 +629,23 @@ const Sidebar = () => {
                                 )}
                                 <div className="chat-header-wrapper">
                                     <span className="chat-title">
-                                        {chat.chatName
+                                        {chat.participants.length === 2
+                                            ? chat.participants.filter((p) => p._id !== user._id)[0].name
+                                            : chat.chatName
+                                            ? chat.chatName
+                                            : (() => {
+                                                  let title = chat.participants.map((p) => p.name).join(", ");
+                                                  if (title.length > 40) title = title.substring(0, 40).concat("...");
+                                                  return title;
+                                              })()}
+                                        {/* {chat.chatName
                                             ? chat.chatName
                                             : chat.participants.map((p, index) => (
                                                   <span key={p._id}>
                                                       {p.name}
                                                       {index < chat.participants.length - 1 ? ", " : ""}
                                                   </span>
-                                              ))}
+                                              ))} */}
                                     </span>
                                 </div>
                                 <div className="message-description">

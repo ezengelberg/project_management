@@ -187,6 +187,10 @@
             cursor: pointer;
         }
     }
+    .chat-item.selected {
+        background-color: #eee;
+        // color: white;
+    }
 }
 
 @media screen and (max-width: 1024px) {

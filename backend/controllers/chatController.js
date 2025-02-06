@@ -5,7 +5,6 @@ import { io } from "../server.js";
 
 export const sendMessage = async (req, res) => {
     try {
-        console.log("sending msg");
         const { chatID, message, recievers } = req.body;
         let chatTarget;
         if (chatID === "new" || !chatID) {
@@ -33,7 +32,6 @@ export const sendMessage = async (req, res) => {
 
         // Then populate the fields
         messageData = await Message.findById(messageData._id).populate("sender", "name").populate("seenBy", "name");
-
 
         chatTarget.lastMessage = messageData._id;
         await chatTarget.save();
