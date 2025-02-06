@@ -24,6 +24,7 @@ const Chat = ({ chatID, onClose, socket }) => {
     const [message, setMessage] = useState("");
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [chatHistory, setChatHistory] = useState([]);
+    const [seenUnread, setSeenUnread] = useState(false);
 
     const messageRefs = useRef([]);
     const user = JSON.parse(localStorage.getItem("user"));
@@ -70,6 +71,7 @@ const Chat = ({ chatID, onClose, socket }) => {
         return () => {
             if (socket) {
                 socket.off("receive_message");
+                socket.off("receive_seen");
             }
         };
     }, [socket]);
@@ -79,11 +81,19 @@ const Chat = ({ chatID, onClose, socket }) => {
             const unreadMessage = chatHistory.find(
                 (message) => !message.seenBy.some((u) => u._id.toString() === user._id.toString()),
             );
-            console.log(unreadMessage);
-            if (unreadMessage && messageRefs.current[unreadMessage._id]) {
+            if (unreadMessage && messageRefs.current[unreadMessage._id] && !seenUnread) {
                 messageRefs.current[unreadMessage._id].scrollIntoView({ behavior: "smooth", block: "end" });
+                setSeenUnread(true);
                 return;
             }
+            if (!seenUnread) scrollToBottom();
+        }
+    };
+
+    const scrollToBottom = () => {
+        if (chatHistory.length > 0) {
+            const lastMessageId = chatHistory[chatHistory.length - 1]._id;
+            messageRefs.current[lastMessageId]?.scrollIntoView({ behavior: "smooth", block: "end" });
         }
     };
 
@@ -118,8 +128,12 @@ const Chat = ({ chatID, onClose, socket }) => {
     }, []);
 
     useEffect(() => {
-        scrollIntoView();
+        if (!seenUnread) scrollIntoView();
     }, [chatHistory]);
+
+    useEffect(() => {
+        if (seenUnread) scrollToBottom();
+    }, [chatHistory.length]);
 
     const fetchChat = async () => {
         if (chatID === "") return;
