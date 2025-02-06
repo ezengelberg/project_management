@@ -25,8 +25,11 @@ const Chat = ({ chatID, onClose, socket }) => {
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [chatHistory, setChatHistory] = useState([]);
     const [seenUnread, setSeenUnread] = useState(false);
+    const [sentMessage, setSentMessage] = useState(false);
 
     const messageRefs = useRef([]);
+    const observerRef = useRef(new Map());
+
     const user = JSON.parse(localStorage.getItem("user"));
 
     const checkmarkSVG = (
@@ -51,7 +54,6 @@ const Chat = ({ chatID, onClose, socket }) => {
             socket.on("receive_message", (msg) => {
                 setChatHistory((prevHistory) => {
                     const newHistory = [...prevHistory, msg];
-                    // Sort the new array
                     newHistory.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
                     return newHistory;
                 });
@@ -84,9 +86,8 @@ const Chat = ({ chatID, onClose, socket }) => {
             if (unreadMessage && messageRefs.current[unreadMessage._id] && !seenUnread) {
                 messageRefs.current[unreadMessage._id].scrollIntoView({ behavior: "smooth", block: "end" });
                 setSeenUnread(true);
-                return;
             }
-            if (!seenUnread) scrollToBottom();
+            if (!seenUnread && sentMessage) scrollToBottom();
         }
     };
 
@@ -96,8 +97,6 @@ const Chat = ({ chatID, onClose, socket }) => {
             messageRefs.current[lastMessageId]?.scrollIntoView({ behavior: "smooth", block: "end" });
         }
     };
-
-    const observerRef = useRef(new Map());
 
     const messageObserver = (message, el) => {
         if (!el || observerRef.current.has(message._id)) return;
@@ -128,11 +127,16 @@ const Chat = ({ chatID, onClose, socket }) => {
     }, []);
 
     useEffect(() => {
-        if (!seenUnread) scrollIntoView();
+        if (!seenUnread) {
+            scrollIntoView();
+        }
     }, [chatHistory]);
 
     useEffect(() => {
-        if (seenUnread) scrollToBottom();
+        if (seenUnread && sentMessage) {
+            scrollToBottom();
+            setSentMessage(false);
+        }
     }, [chatHistory.length]);
 
     const fetchChat = async () => {
@@ -174,6 +178,7 @@ const Chat = ({ chatID, onClose, socket }) => {
 
     const sendMessage = async () => {
         if (message === "" || message.trim() === "") return;
+        setSentMessage(true);
         try {
             const response = await axios.post(
                 `${process.env.REACT_APP_BACKEND_URL}/api/chat/send`,

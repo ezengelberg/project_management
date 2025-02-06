@@ -218,7 +218,6 @@ io.on("connection", (socket) => {
             console.log(message);
             if (message.seenBy.indexOf(user) === -1) {
                 message.seenBy.push(user);
-                console.log("seen ?")
                 await message.save();
                 const seenMessage = await Message.findById(messageID).populate("sender", "name").populate("seenBy", "name");
                 io.to(chatID).emit("receive_seen", seenMessage);
