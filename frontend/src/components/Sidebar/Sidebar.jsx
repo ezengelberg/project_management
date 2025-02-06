@@ -82,7 +82,6 @@ const Sidebar = () => {
 
             socketRef.current.on("connect", () => {
                 fetchChats().then((userChats) => {
-                    console.log("User chats:", userChats);
                     if (userChats?.length) {
                         socketRef.current.emit(
                             "join_chats",
@@ -90,38 +89,6 @@ const Sidebar = () => {
                         );
                     }
                 });
-            });
-
-            socketRef.current.on("receive_chat", (updatedChat) => {
-                setChats((prevChats) =>
-                    prevChats
-                        .map((chat) =>
-                            chat._id === updatedChat._id
-                                ? {
-                                      ...updatedChat,
-                                      unreadTotal:
-                                          updatedChat.lastMessage.sender === user._id
-                                              ? chat.unreadTotal
-                                              : chat.unreadTotal + 1,
-                                  }
-                                : chat,
-                        )
-                        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)),
-                );
-            });
-
-            socketRef.current.on("new_message", (data) => {
-                console.log("New message received:", data);
-                setChats((prevChats) =>
-                    prevChats.map((chat) =>
-                        chat._id === data.chatID
-                            ? {
-                                  ...chat,
-                                  lastMessage: data, // Update last message
-                              }
-                            : chat,
-                    ),
-                );
             });
         }
 

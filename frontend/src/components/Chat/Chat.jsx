@@ -14,6 +14,7 @@ import {
     LockOutlined,
 } from "@ant-design/icons";
 import { Input, Spin } from "antd";
+import MessageReadList from "./MessageReadList";
 
 const { TextArea } = Input;
 
@@ -26,6 +27,7 @@ const Chat = ({ chatID, onClose, socket }) => {
     const [chatHistory, setChatHistory] = useState([]);
     const [seenUnread, setSeenUnread] = useState(false);
     const [sentMessage, setSentMessage] = useState(false);
+    const [watchMessage, setWatchMessage] = useState(null);
 
     const messageRefs = useRef([]);
     const observerRef = useRef(new Map());
@@ -81,13 +83,13 @@ const Chat = ({ chatID, onClose, socket }) => {
     const scrollIntoView = () => {
         if (chatHistory.length > 0) {
             const unreadMessage = chatHistory.find(
-                (message) => !message.seenBy.some((u) => u._id.toString() === user._id.toString()),
+                (message) => !message.seenBy.some((u) => u.user._id.toString() === user._id.toString()),
             );
             if (unreadMessage && messageRefs.current[unreadMessage._id] && !seenUnread) {
                 messageRefs.current[unreadMessage._id].scrollIntoView({ behavior: "smooth", block: "end" });
                 setSeenUnread(true);
             }
-            if (!seenUnread && sentMessage) scrollToBottom();
+            if (!seenUnread && !unreadMessage) scrollToBottom();
         }
     };
 
@@ -104,7 +106,9 @@ const Chat = ({ chatID, onClose, socket }) => {
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
-                    const isSeenByUser = message.seenBy.some((u) => u._id.toString() === user._id.toString());
+                    const isSeenByUser = message.seenBy.some((u) => {
+                        return u.user._id.toString() === user._id.toString();
+                    });
                     if (!isSeenByUser) {
                         socket.emit("seen_message", { messageID: message._id, chatID: chatID._id, user: user._id });
                     }
@@ -167,7 +171,6 @@ const Chat = ({ chatID, onClose, socket }) => {
                     withCredentials: true,
                 },
             );
-            console.log("Users fetched:", response.data);
             setUserResults(response.data);
         } catch (error) {
             console.error("Error fetching users:", error);
@@ -205,7 +208,6 @@ const Chat = ({ chatID, onClose, socket }) => {
     };
 
     const handleUserClick = (user) => {
-        console.log(user);
         if (participants.filter((p) => p.name === user.name).length === 0) {
             setParticipants([...participants, user]);
         } else {
@@ -325,7 +327,7 @@ const Chat = ({ chatID, onClose, socket }) => {
                     <div className="chat-header">
                         <h3
                             className={`chat-header-title ${participants.length > 2 ? "changeable" : ""}`}
-                            onClick={() => console.log("Future chat rename")}>
+                            onClick={() => console.log("Change chat name")}>
                             {participants.length === 2
                                 ? participants.filter((p) => p._id !== user._id)[0].name
                                 : chatID.chatName
@@ -368,7 +370,7 @@ const Chat = ({ chatID, onClose, socket }) => {
                                             className={`seen ${
                                                 message.seenBy.length === participants.length ? "all" : ""
                                             }`}
-                                            onClick={() => console.log(message.seenBy)}>
+                                            onClick={() => setWatchMessage(message)}>
                                             {checkmarkSVG}
                                         </div>
                                     )}
@@ -398,6 +400,13 @@ const Chat = ({ chatID, onClose, socket }) => {
                         )}
                     </div>
                 </div>
+            )}
+            {watchMessage && (
+                <MessageReadList
+                    message={watchMessage}
+                    participants={participants}
+                    onClose={() => setWatchMessage(null)}
+                />
             )}
         </div>
     );

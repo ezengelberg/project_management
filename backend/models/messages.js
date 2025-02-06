@@ -6,10 +6,13 @@ const messageSchema = new mongoose.Schema(
         sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         message: { type: String, required: true },
         seenBy: [
-            {
-                user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-                time: { type: Date, default: Date.now },
-            },
+            new mongoose.Schema(
+                {
+                    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+                    time: { type: Date, default: Date.now },
+                },
+                { _id: false }, // Prevents automatic _id assignment
+            ),
         ],
     },
     { timestamps: true },

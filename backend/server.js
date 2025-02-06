@@ -187,13 +187,13 @@ io.on("connection", (socket) => {
     socket.on("join_chats", (chats) => {
         chats.forEach((chat) => {
             socket.join(chat);
-            console.log(`User joined chat: ${chat}`);
+            // console.log(`User joined chat: ${chat}`);
 
             if (!activeChats[chat]) {
                 activeChats[chat] = new Set();
             }
             activeChats[chat].add(socket.id);
-            console.log(`Active users in chat ${chat}:`, activeChats[chat]);
+            // console.log(`Active users in chat ${chat}:`, activeChats[chat]);
         });
     });
 
@@ -215,11 +215,24 @@ io.on("connection", (socket) => {
     socket.on("seen_message", async ({ messageID, chatID, user }) => {
         try {
             const message = await Message.findById(messageID);
-            console.log(message);
-            if (message.seenBy.indexOf(user) === -1) {
-                message.seenBy.push(user);
+            if (!message) return;
+
+            // Check if user is already in seenBy
+            const alreadySeen = message.seenBy.some((seen) => seen.user.toString() === user);
+
+            if (!alreadySeen) {
+                message.seenBy.push({ user, time: new Date() }); // Push user with timestamp
                 await message.save();
-                const seenMessage = await Message.findById(messageID).populate("sender", "name").populate("seenBy", "name");
+
+                // Populate the updated message
+                const seenMessage = await Message.findById(messageID)
+                    .populate("sender", "name")
+                    .populate({
+                        path: "seenBy.user",
+                        select: "name",
+                    })
+                    .lean();
+
                 io.to(chatID).emit("receive_seen", seenMessage);
             }
         } catch (error) {
@@ -231,7 +244,7 @@ io.on("connection", (socket) => {
         // Remove user from all active chats
         for (const chatID in activeChats) {
             activeChats[chatID].delete(socket.id);
-            console.log(`Active users in chat ${chatID}:`, activeChats[chatID]);
+            // console.log(`Active users in chat ${chatID}:`, activeChats[chatID]);
 
             // If no users are left in the chat, you can deactivate or remove the chat from activeChats
             if (activeChats[chatID].size === 0) {

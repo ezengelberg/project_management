@@ -24,14 +24,25 @@ export const sendMessage = async (req, res) => {
             chat: chatTarget._id,
             sender: req.user._id,
             message,
-            seenBy: [req.user._id],
+            seenBy: [
+                {
+                    user: req.user._id,
+                },
+            ],
         });
 
         // First save the message
         messageData = await messageData.save();
+        console.log(messageData);
 
         // Then populate the fields
-        messageData = await Message.findById(messageData._id).populate("sender", "name").populate("seenBy", "name");
+        messageData = await Message.findById(messageData._id)
+            .populate("sender", "name")
+            .populate({
+                path: "seenBy.user",
+                select: "name",
+            })
+            .lean();
 
         chatTarget.lastMessage = messageData._id;
         await chatTarget.save();
@@ -51,7 +62,11 @@ export const fetchMessages = async (req, res) => {
         const messages = await Message.find({ chat: chatID })
             .populate("sender", "name")
             .sort({ createdAt: 1 })
-            .populate("seenBy", "name");
+            .populate({
+                path: "seenBy.user",
+                select: "name",
+            })
+            .lean();
         res.status(200).json(messages);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -63,7 +78,7 @@ export const checkUnreadMessages = async (chatID, user) => {
     const unreadMessages = await Message.countDocuments({
         chat: chatID,
         sender: { $ne: user },
-        seenBy: { $ne: user },
+        "seenBy.user": { $ne: user },
     });
     return unreadMessages;
 };
