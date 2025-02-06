@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import "./Journal.scss";
 import axios from "axios";
 import {
@@ -20,9 +20,11 @@ import {
 import { CheckCircleTwoTone, EditOutlined, DeleteTwoTone, RollbackOutlined } from "@ant-design/icons";
 import { missionLabels } from "../../utils/labelsUtil";
 import { useParams } from "react-router-dom";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const Journal = ({ readOnly }) => {
   const { projectId } = useParams();
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
@@ -69,6 +71,10 @@ const Journal = ({ readOnly }) => {
       </Tag>
     );
   };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
   useEffect(() => {
     const fetchProjectDetails = async () => {

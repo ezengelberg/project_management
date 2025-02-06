@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import "./ListZoomMeetings.scss";
 import { Table, Button, Tag, message, Tooltip, Popconfirm } from "antd";
 import { CopyTwoTone, DeleteTwoTone } from "@ant-design/icons";
 import axios from "axios";
 import dayjs from "dayjs";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const ListZoomMeetings = () => {
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(() => {
@@ -57,6 +59,7 @@ const ListZoomMeetings = () => {
       setLoading(false);
     };
     fetchMeetings();
+    fetchNotifications();
   }, []);
 
   const copyLink = (link) => {

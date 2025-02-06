@@ -213,6 +213,7 @@ const UploadSubmissions = () => {
 
   useEffect(() => {
     fetchPendingSubmissions();
+    fetchNotifications();
   }, []);
 
   const handleUpload = async () => {

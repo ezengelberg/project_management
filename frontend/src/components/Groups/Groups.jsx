@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import "./Groups.scss";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 import { Button, Form, Input, Select, message, Transfer, Divider, Table, Radio, Modal } from "antd";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const Groups = () => {
   const navigate = useNavigate();
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [targetKeys, setTargetKeys] = useState([]);
   const [createGroupForm] = Form.useForm();
   const [renameGroupForm] = Form.useForm();
@@ -87,6 +89,7 @@ const Groups = () => {
 
   useEffect(() => {
     fetchData();
+    fetchNotifications();
   }, []);
 
   useEffect(() => {

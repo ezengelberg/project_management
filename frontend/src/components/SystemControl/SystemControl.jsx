@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import "./SystemControl.scss";
 import {
@@ -17,9 +17,11 @@ import {
 } from "antd";
 import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const SystemControl = () => {
   const [manageStudents, setManageStudents] = useState(true);
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [currentYear, setCurrentYear] = useState("");
   const [years, setYears] = useState([]);
   const [form] = Form.useForm();
@@ -120,6 +122,7 @@ const SystemControl = () => {
     setLoading(true);
     fetchGrades();
     fetchConfigurations();
+    fetchNotifications();
   }, []);
 
   useEffect(() => {

@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import "./Projects.scss";
 import ProjectBox from "./ProjectBox";
 import { LoadingOutlined } from "@ant-design/icons";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const Projects = () => {
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [isLoading, setIsLoading] = useState(true);
   const [projects, setProjects] = useState([]);
 
@@ -38,6 +40,7 @@ const Projects = () => {
       }
     };
     grabProjects();
+    fetchNotifications();
   }, []);
 
   useEffect(() => {

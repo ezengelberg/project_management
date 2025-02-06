@@ -153,6 +153,7 @@ const Submissions = () => {
     fetchActiveProjects();
     fetchYears();
     fetchGroups();
+    fetchNotifications();
   }, []);
 
   const handleResetJudges = async (values) => {

@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import "./Templates.scss";
 import axios from "axios";
 import FileCard from "../FileCard/FileCard";
 import { InboxOutlined } from "@ant-design/icons";
 import { Button, message, Upload, Input, Modal, Spin } from "antd";
 import { Editor } from "primereact/editor";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const Templates = () => {
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [fileList, setFileList] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [title, setTitle] = useState("");
@@ -46,6 +48,7 @@ const Templates = () => {
 
     fetchPrivileges();
     fetchTemplateFiles();
+    fetchNotifications();
     setLoading(false);
   }, []);
 

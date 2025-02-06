@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import "./ZoomScheduler.scss";
 import axios from "axios";
 import {
@@ -17,8 +17,10 @@ import {
 import { CopyOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL";
 import dayjs from "dayjs";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const ZoomScheduler = () => {
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
@@ -62,6 +64,7 @@ const ZoomScheduler = () => {
 
     fetchYears();
     fetchAllUsers();
+    fetchNotifications();
   }, []);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import "./CheckSubmissions.scss";
 import axios from "axios";
 import { Tooltip, List, Skeleton, Modal, Tabs } from "antd";
@@ -6,9 +6,11 @@ import { useNavigate } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { DownloadOutlined } from "@ant-design/icons";
 import { downloadFile } from "../../utils/downloadFile";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const CheckSubmissions = () => {
   const navigate = useNavigate();
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [initLoading, setInitLoading] = useState(true);
   const [submissions, setSubmissions] = useState([]);
   const [moreDetailsModal, setMoreDetailsModal] = useState(false);
@@ -43,6 +45,7 @@ const CheckSubmissions = () => {
       }
     };
     fetchData();
+    fetchNotifications();
   }, []);
 
   const getSumbissionDetails = async (submissionId) => {
