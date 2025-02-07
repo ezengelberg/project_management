@@ -1,15 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 import { Avatar } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 import "./MessageReadList.scss";
 
 const MessageReadList = ({ message, participants, onClose }) => {
+    const [isClosing, setIsClosing] = useState(false);
+
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            onClose();
+        }, 400);
+    };
     return (
-        <div className="chat-read-list">
+        <div className={`chat-read-list ${isClosing ? "close" : ""}`}>
             <CloseOutlined
                 className="chat-close"
                 onClick={() => {
-                    onClose();
+                    handleClose();
                 }}
             />
             <div className="read-title">נקרא ע"י</div>
