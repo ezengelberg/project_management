@@ -151,9 +151,10 @@ const ProfilePage = () => {
           </h3>
           {(currentUser.isCoordinator || currentUser._id === user?._id) && (
             <div className="private-info">
-              {(currentUser.isCoordinator || (currentUser._id === user?._id && currentUser.isAdvisor)) && (
+              {((currentUser.isCoordinator && (user?.isAdvisor || user?.isJudge || user?.isCoordinator)) ||
+                (currentUser._id === user?._id && currentUser.isAdvisor)) && (
                 <h3>
-                  <InterestsSVG /> תחומי עניין: {user?.interests}
+                  <InterestsSVG /> תחומי עניין: {user?.interests || "לא צוין"}
                 </h3>
               )}
               <h3>

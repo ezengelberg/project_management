@@ -17,7 +17,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
           const advisors = [];
           for (const advisor of props.advisors) {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-name/${advisor}`, {
-              withCredentials: true
+              withCredentials: true,
             });
             advisors.push(response.data.name);
           }
@@ -73,7 +73,7 @@ const ProjectBox = ({ markFavorite, ...props }) => {
           </div>
           <div
             className="project-description rich-text-content"
-            dangerouslySetInnerHTML={{ __html: processContent(props.description, 750) }}
+            dangerouslySetInnerHTML={{ __html: processContent(props.description, 550) }}
           />
 
           <div className="project-actions">
