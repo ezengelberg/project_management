@@ -4,7 +4,7 @@
   flex-direction: column;
   justify-content: space-between;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  height: 23rem;
+  height: 34rem;
   min-width: 45rem;
   max-width: 45rem;
 
@@ -14,6 +14,12 @@
 
   .file-card-meta {
     width: 100%;
+
+    .file-video {
+      width: 100%;
+      height: auto;
+      max-height: 100%;
+    }
 
     .file-icon {
       font-size: 2.5rem;
@@ -32,47 +38,24 @@
       width: 100%;
       font-size: 1.5rem;
       word-break: break-word;
-      max-height: 77px;
-      overflow: hidden;
-      position: relative;
 
-      &.expanded {
-        max-height: none;
-      }
-    }
-    .ellipsis-container {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      height: 1.7rem;
-      width: 100%;
-
-      span {
+      &.clickable {
         cursor: pointer;
-      }
-
-      .ellipsis-icon {
-        font-size: 3rem;
-        color: #1677ff;
-        transition: 0.2s ease-in-out all;
-
-        &:hover {
-          color: #1890ff;
-        }
       }
     }
   }
+
   .upload-date {
     position: absolute;
-    bottom: 22%;
-    left: 2%;
+    bottom: 5rem;
+    left: 1rem;
     color: rgba(0, 0, 0, 0.45);
   }
 
   .file-original-name {
     position: absolute;
-    bottom: 22%;
-    right: 2%;
+    bottom: 5rem;
+    right: 1rem;
     color: rgba(0, 0, 0, 0.45);
   }
 }
@@ -114,21 +97,23 @@
   }
 }
 
+@media screen and (max-width: 1200px) {
+  .file-card {
+    .file-original-name {
+      bottom: 5.5rem;
+    }
+    .upload-date {
+      bottom: 5.5rem;
+    }
+  }
+}
+
 @media screen and (max-width: 1024px) {
   .file-card {
     .file-card-meta {
       .file-title {
         font-size: 1.5rem;
       }
-      .file-description {
-        font-size: 1.3rem;
-      }
-    }
-    .file-original-name {
-      bottom: 25%;
-    }
-    .upload-date {
-      bottom: 25%;
     }
   }
   .edit-record-modal {
@@ -143,16 +128,12 @@
 
 @media screen and (max-width: 768px) {
   .file-card {
+    height: 35rem;
     .file-original-name {
-      bottom: 26%;
+      bottom: 6rem;
     }
     .upload-date {
-      bottom: 26%;
-    }
-    .file-card-meta {
-      .file-description {
-        max-height: 67px;
-      }
+      bottom: 6rem;
     }
   }
   .edit-record-modal {
@@ -168,17 +149,16 @@
 
 @media screen and (max-width: 626px) {
   .file-card {
+    height: 36rem;
     .file-original-name {
-      bottom: 29%;
-      font-size: 1.4rem;
+      bottom: 6.8rem;
     }
     .upload-date {
-      bottom: 29%;
-      font-size: 1.4rem;
+      bottom: 6.8rem;
     }
     .file-card-meta {
       .file-description {
-        max-height: 46px;
+        max-height: 17rem;
       }
     }
   }

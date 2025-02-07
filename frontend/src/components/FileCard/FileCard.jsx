@@ -5,8 +5,8 @@ import {
   DeleteOutlined,
   FileOutlined,
   EditOutlined,
-  EllipsisOutlined,
   HistoryOutlined,
+  VideoCameraOutlined,
 } from "@ant-design/icons";
 import { Tooltip, Modal, Card, message, Descriptions } from "antd";
 import axios from "axios";
@@ -79,17 +79,63 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
       return "אין פרטים נוספים";
     }
 
+    const processedDescription = processContent(file.description);
+    const truncatedDescription = processContent(file.description, 180);
+
     return (
       <div className="description-container">
-        <div
-          className="rich-text-content file-description"
-          dangerouslySetInnerHTML={{ __html: processContent(file.description) }}
-        />
-        <div className="ellipsis-container">
-          <EllipsisOutlined className="ellipsis-icon" onClick={() => setIsDescriptionModalVisible(true)} />
-        </div>
+        {file.description.length > 310 ? (
+          <div
+            onClick={() => setIsDescriptionModalVisible(true)}
+            className="rich-text-content file-description clickable"
+            dangerouslySetInnerHTML={{ __html: truncatedDescription }}
+          />
+        ) : (
+          <div
+            className="rich-text-content file-description"
+            dangerouslySetInnerHTML={{ __html: processedDescription }}
+          />
+        )}
       </div>
     );
+  };
+
+  const renderFileContent = () => {
+    if (file.filename.endsWith(".mp4")) {
+      return (
+        <Card.Meta
+          className="file-card-meta"
+          avatar={<VideoCameraOutlined className="file-icon" />}
+          title={
+            <Tooltip title={file.title}>
+              <div className="file-title">{file.title}</div>
+            </Tooltip>
+          }
+          description={
+            <video controls className="file-video">
+              <source
+                src={`${process.env.REACT_APP_BACKEND_URL}/uploads/${destination}/${encodeURIComponent(file.filename)}`}
+                type="video/mp4"
+              />
+              הדפדפן לא תומך בהרצת וידאו, אפשר להוריד את הקובץ במקום.
+            </video>
+          }
+        />
+      );
+    } else {
+      return (
+        <Card.Meta
+          className="file-card-meta"
+          avatar={<FileOutlined className="file-icon" />}
+          title={
+            <Tooltip title={file.title}>
+              <div className="file-title">{file.title}</div>
+            </Tooltip>
+          }
+          description={renderDescription()}
+        />
+      );
+    }
   };
 
   return (
@@ -123,16 +169,7 @@ const FileCard = ({ file, onEdit, onDelete, destination }) => {
             <DownloadOutlined key="download" className="action-icon" onClick={handleDownload} />
           </Tooltip>,
         ]}>
-        <Card.Meta
-          className="file-card-meta"
-          avatar={<FileOutlined className="file-icon" />}
-          title={
-            <Tooltip title={file.title}>
-              <div className="file-title">{file.title}</div>
-            </Tooltip>
-          }
-          description={renderDescription()}
-        />
+        {renderFileContent()}
         <div className="upload-date">{new Date(file.uploadDate).toLocaleDateString("he-IL")}</div>
         <div className="file-original-name">
           <Tooltip title={file.filename}>
