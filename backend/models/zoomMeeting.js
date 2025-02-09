@@ -2,16 +2,16 @@ import mongoose from "mongoose";
 
 const zoomMeetingSchema = new mongoose.Schema(
   {
-    meetingId: { type: String, required: true, unique: true },
     topic: { type: String, required: true },
     startTime: { type: Date, required: false },
     duration: { type: Number, required: true, default: 60 },
     participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     creator: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    joinUrl: { type: String, required: true },
-    startUrl: { type: String, required: true },
+    joinUrl: { type: String },
+    startUrl: { type: String },
     recurring: { type: Boolean, default: false },
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
+    location: { type: String },
     recurrence: {
       type: {
         type: String,

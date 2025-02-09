@@ -158,6 +158,8 @@ app.listen(server_port, () => {
   console.log(`Server is running at port: ${server_port}`);
 });
 
+// ----------------- Scheduler -----------------
+
 import updateRecurringMeetings from "./scheduler/meetingScheduler.js";
 import schedule from "node-schedule";
 

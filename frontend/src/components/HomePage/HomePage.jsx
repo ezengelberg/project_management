@@ -216,10 +216,11 @@ const Homepage = () => {
       meetings.forEach((meeting) => {
         if (dayjs(meeting.startTime).isSame(value, "day")) {
           meetingsData.push({
-            color: "blue",
-            content: `${meeting.topic}`,
+            color: meeting.location === "זום" ? "blue" : "cyan",
+            content: meeting.topic,
             time: meeting.startTime,
             link: currentUser._id === meeting.creator ? meeting.startUrl : meeting.joinUrl,
+            location: meeting.location,
             endTime: meeting.endTime,
           });
         }
@@ -274,10 +275,6 @@ const Homepage = () => {
                   ? item.content.length > 10
                     ? `${item.content.substring(0, 10)}...`
                     : item.content
-                  : windowSize.width > 1200
-                  ? item.content.length > 8
-                    ? `${item.content.substring(0, 8)}...`
-                    : item.content
                   : windowSize.width > 768
                   ? item.content.length > 8
                     ? `${item.content.substring(0, 8)}...`
@@ -295,19 +292,21 @@ const Homepage = () => {
               color={item.color}
               text={
                 windowSize.width > 1920
-                  ? item.content.length > 18
+                  ? item.content === "לא צוין"
+                    ? "פגישה"
+                    : item.content.length > 18
                     ? `${item.content.substring(0, 18)}...`
                     : item.content
                   : windowSize.width > 1600
-                  ? item.content.length > 10
+                  ? item.content === "לא צוין"
+                    ? "פגישה"
+                    : item.content.length > 10
                     ? `${item.content.substring(0, 10)}...`
                     : item.content
-                  : windowSize.width > 1200
-                  ? item.content.length > 8
-                    ? `${item.content.substring(0, 8)}...`
-                    : item.content
                   : windowSize.width > 768
-                  ? item.content.length > 8
+                  ? item.content === "לא צוין"
+                    ? "פגישה"
+                    : item.content.length > 8
                     ? `${item.content.substring(0, 8)}...`
                     : item.content
                   : windowSize.width > 626
@@ -637,18 +636,18 @@ const Homepage = () => {
                   </Badge.Ribbon>
                 ))}
                 {selectedDateMeetings.map((item) => (
-                  <Badge.Ribbon key={item.content} text="פגישה" color="blue">
-                    <Card title="פגישת זום" size="small">
+                  <Badge.Ribbon key={item.content} text="פגישה" color={item.color}>
+                    <Card title={item.location === "זום" ? "פגישת זום" : "פגישה פיזית"} size="small">
                       נושא: {item.content} - <strong>בשעה: {dayjs(item.time).format("HH:mm")}</strong> -{" "}
-                      {dayjs().isAfter(dayjs(item.endTime)) ? (
-                        "הפגישה הסתיימה"
-                      ) : item.link ? (
-                        <a href={item.link} target="_blank" rel="noopener noreferrer">
-                          הצטרף לפגישה
-                        </a>
-                      ) : (
-                        ""
-                      )}
+                      {dayjs().isAfter(dayjs(item.endTime))
+                        ? "הפגישה הסתיימה"
+                        : item.location === "זום"
+                        ? item.link && (
+                            <a href={item.link} target="_blank" rel="noopener noreferrer">
+                              הצטרף לפגישה
+                            </a>
+                          )
+                        : `מיקום: ${item.location}`}
                     </Card>
                   </Badge.Ribbon>
                 ))}
