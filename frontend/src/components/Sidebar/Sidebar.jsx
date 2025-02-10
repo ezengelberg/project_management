@@ -20,6 +20,7 @@ import {
     DeleteOutlined,
     CommentOutlined,
     PlusCircleOutlined,
+    SearchOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -31,6 +32,7 @@ const Sidebar = () => {
     const sidebarRef = useRef(null);
     const [user, setUser] = useState({});
     const [chats, setChats] = useState([]);
+    const [chatListOpen, setChatListOpen] = useState(false);
     const [openSubmenus, setOpenSubmenus] = useState({
         myProject: false,
         myProjects: false,
@@ -152,6 +154,29 @@ const Sidebar = () => {
         };
     }, []);
 
+    const ChevronSVG = () => (
+        <svg className="chevron" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10" stroke="#0C0310" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+    );
+
+    const MessageSVG = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="#FFF">
+            <path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z" />
+        </svg>
+    );
+
+    const WriteMessageSVG = () => (
+        <svg
+            className="chat-new-message"
+            xmlns="http://www.w3.org/2000/svg"
+            height="24px"
+            viewBox="0 -960 960 960"
+            width="24px"
+            fill="#FFFFFF">
+            <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z" />
+        </svg>
+    );
     const JudgeSVG = () => (
         <svg className="special-sidebar-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
@@ -574,6 +599,7 @@ const Sidebar = () => {
                 </div>
             </div>
             <FloatButton
+                className="chat-float-button"
                 icon={<CommentOutlined />}
                 onClick={showDrawer}
                 badge={{
@@ -583,6 +609,45 @@ const Sidebar = () => {
                 }}
                 style={{ direction: "ltr" }}
             />
+            <div className={`chat-list ${chatListOpen ? "open" : ""}`}>
+                <div className="header">
+                    <div className="right-side">
+                        <MessageSVG />
+                        <span>צא'טים</span>
+                    </div>
+                    <div className="left-side">
+                        <WriteMessageSVG />
+                        <ChevronSVG />
+                    </div>
+                </div>
+                <div className="filter-chat">
+                    <div className="search-wrapper">
+                        <SearchOutlined />
+                        <input type="text" placeholder="חפש שיחות..." />
+                    </div>
+                </div>
+                <div className="chat-list-items">
+                    {chats.map((chat) => {
+                        return (
+                            <div key={chat._id} className="chat-item">
+                                <div className="chat-header">
+                                    <span className="chat-title">
+                                        {chat.participants.length === 2
+                                            ? chat.participants.filter((p) => p._id !== user._id)[0].name
+                                            : chat.chatName
+                                            ? chat.chatName
+                                            : (() => {
+                                                  let title = chat.participants.map((p) => p.name).join(", ");
+                                                  if (title.length > 40) title = title.substring(0, 40).concat("...");
+                                                  return title;
+                                              })()}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
             <Drawer title="צ'אטים" onClose={onClose} open={open} mask={false} maskClosable={false}>
                 <div className="chat-drawer-container">
                     <div
