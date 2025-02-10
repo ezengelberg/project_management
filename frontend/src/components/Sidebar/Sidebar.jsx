@@ -75,8 +75,8 @@ const Sidebar = () => {
                 return prev;
             }
 
-            // Maintain max length of 3
-            if (prev.length < 3) {
+            // Maintain max length of 2
+            if (prev.length < 2) {
                 return [...prev, chat];
             } else {
                 return [...prev.slice(1), chat]; // Remove the oldest
@@ -147,6 +147,25 @@ const Sidebar = () => {
             setChats(response.data.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)));
             // returning for socket purposes
             return response.data;
+        } catch (error) {
+            console.error("Error occurred:", error);
+        }
+    };
+
+    const handleCreateChat = async (chatID) => {
+        setSelectedChats((prev) => {
+            return prev.filter((chat) => chat !== "new");
+        });
+
+        try {
+            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/${chatID}`, {
+                withCredentials: true,
+            });
+            setChats((prev) => {
+                const newChats = [response.data, ...prev];
+                return newChats;
+            });
+            selectChat(response.data);
         } catch (error) {
             console.error("Error occurred:", error);
         }
@@ -302,10 +321,6 @@ const Sidebar = () => {
         } catch (error) {
             console.error("Error occurred:", error);
         }
-    };
-
-    const handleCreateChat = async (chatID) => {
-        console.log(chatID);
     };
 
     return (

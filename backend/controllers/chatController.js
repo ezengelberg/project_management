@@ -112,7 +112,6 @@ export const fetchChats = async (req, res) => {
 
 export const fetchChat = async (req, res) => {
     try {
-        console.log("fetching chat");
         const { id } = req.params;
         const chat = await Chat.findById(id)
             .populate("participants", "name")
