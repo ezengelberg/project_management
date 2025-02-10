@@ -73,17 +73,21 @@ const Chat = ({ chatID, onClose, socket, onWatch }) => {
                     return newHistory;
                 });
             });
-            socket.on("typing_start", (user) => {
-                console.log(participants);
-                console.log(`${user} is typing...`);
+            socket.on("typing_start", (chatUser, chat) => {
+                if (chatID._id.toString() !== chat.toString()) return;
+                if (chatUser.toString() === user._id.toString()) return;
+                console.log(`${chatUser} is typing...`);
                 setTypingUsers((prevUsers) => {
-                    if (prevUsers.includes(user)) return prevUsers;
-                    return [...prevUsers, user];
+                    if (prevUsers.includes(chatUser)) return prevUsers;
+                    return [...prevUsers, chatUser];
                 });
             });
-            socket.on("typing_stop", (user) => {
+            socket.on("typing_stop", (user, chat) => {
+                if (chatID._id.toString() !== chat.toString()) return;
                 console.log(`${user} stopped typing...`);
                 setTypingUsers((prevUsers) => prevUsers.filter((u) => u.toString() !== user.toString()));
+                console.log("removed user from typing users");
+                console.log("typing users:", typingUsers);
             });
         }
         return () => {
@@ -142,7 +146,6 @@ const Chat = ({ chatID, onClose, socket, onWatch }) => {
 
     const updateTyping = () => {
         if (isTyping) return;
-        console.log("Emitting maybe");
         socket.emit("typing start", { chatID: chatID._id, user: user._id });
         setIsTyping(true);
         setTimeout(() => {
@@ -209,6 +212,7 @@ const Chat = ({ chatID, onClose, socket, onWatch }) => {
 
     const sendMessage = async () => {
         if (message === "" || message.trim() === "") return;
+        socket.emit("typing stop", { chatID: chatID._id, user: user._id });
         setSentMessage(true);
         try {
             const response = await axios.post(

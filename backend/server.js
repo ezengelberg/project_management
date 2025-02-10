@@ -199,13 +199,10 @@ io.on("connection", (socket) => {
 
     socket.on("send_message", async ({ chatID, message, sender }) => {
         try {
-            console.log("SENDING MESSAGE");
             const chat = await Chat.findById(chatID).populate("lastMessage").populate("participants");
             if (!chat) {
-                console.log("Chat not found");
                 return;
             }
-            console.log("Chat found:", chat);
             // Emit updated chat to all users in the chat room
             io.to(chatID).emit("receive_chat", chat);
         } catch (error) {
@@ -216,8 +213,7 @@ io.on("connection", (socket) => {
     socket.on("typing start", async ({ chatID, user }) => {
         try {
             console.log("typing start");
-            io.to(chatID).emit("typing_start", user);
-            console.log("emitted?");
+            io.to(chatID).emit("typing_start", user, chatID);
         } catch (error) {
             console.error("Error sending typing start:", error);
         }
@@ -226,7 +222,7 @@ io.on("connection", (socket) => {
     socket.on("typing stop", async ({ chatID, user }) => {
         try {
             console.log("typing stop");
-            io.to(chatID).emit("typing_stop", user);
+            io.to(chatID).emit("typing_stop", user, chatID);
         } catch (error) {
             console.error("Error sending typing stop:", error);
         }

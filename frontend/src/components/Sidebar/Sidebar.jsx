@@ -115,7 +115,6 @@ const Sidebar = () => {
                 });
             });
             socketRef.current.on("receive_message", (msg) => {
-                console.log(msg);
                 setChats((prevChats) => {
                     const updatedChats = prevChats.map((chat) => {
                         if (
