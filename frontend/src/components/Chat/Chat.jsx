@@ -28,6 +28,8 @@ const Chat = ({ chatID, onClose, socket, onWatch }) => {
     const [seenUnread, setSeenUnread] = useState(false);
     const [sentMessage, setSentMessage] = useState(false);
     const [watchMessage, setWatchMessage] = useState(null);
+    const [isTyping, setIsTyping] = useState(false);
+    const [typingUsers, setTypingUsers] = useState([]);
 
     const messageRefs = useRef([]);
     const observerRef = useRef(new Map());
@@ -71,11 +73,25 @@ const Chat = ({ chatID, onClose, socket, onWatch }) => {
                     return newHistory;
                 });
             });
+            socket.on("typing_start", (user) => {
+                console.log(participants);
+                console.log(`${user} is typing...`);
+                setTypingUsers((prevUsers) => {
+                    if (prevUsers.includes(user)) return prevUsers;
+                    return [...prevUsers, user];
+                });
+            });
+            socket.on("typing_stop", (user) => {
+                console.log(`${user} stopped typing...`);
+                setTypingUsers((prevUsers) => prevUsers.filter((u) => u.toString() !== user.toString()));
+            });
         }
         return () => {
             if (socket) {
                 socket.off("receive_message");
                 socket.off("receive_seen");
+                socket.off("typing_start");
+                socket.off("typing_stop");
             }
         };
     }, [socket]);
@@ -122,6 +138,17 @@ const Chat = ({ chatID, onClose, socket, onWatch }) => {
 
         observerRef.current.set(message._id, observer);
         observer.observe(el);
+    };
+
+    const updateTyping = () => {
+        if (isTyping) return;
+        console.log("Emitting maybe");
+        socket.emit("typing start", { chatID: chatID._id, user: user._id });
+        setIsTyping(true);
+        setTimeout(() => {
+            setIsTyping(false);
+            socket.emit("typing stop", { chatID: chatID._id, user: user._id });
+        }, 5000);
     };
 
     useEffect(() => {
@@ -379,6 +406,32 @@ const Chat = ({ chatID, onClose, socket, onWatch }) => {
                             );
                         })}
                     </div>
+                    <div className="actively-typing">
+                        {typingUsers.length > 0 && (
+                            <div className="typing-users">
+                                {typingUsers.length === 1 &&
+                                    typingUsers.map((user) => (
+                                        <div key={user} className="typing-user">
+                                            <span>
+                                                {participants.find((p) => p._id.toString() === user.toString()).name}{" "}
+                                                מקליד\ה...
+                                            </span>
+                                        </div>
+                                    ))}
+                                {typingUsers.length > 1 && (
+                                    <div className="typing-user">
+                                        {() => {
+                                            const names = typingUsers.map((user) => {
+                                                return participants.find((p) => p._id.toString() === user.toString())
+                                                    .name;
+                                            });
+                                            return `${names.join(", ")} מקלידים...`;
+                                        }}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                     <div className="chat-message-container">
                         <TextArea
                             className={`chat-message`}
@@ -390,6 +443,11 @@ const Chat = ({ chatID, onClose, socket, onWatch }) => {
                             value={message}
                             onChange={(e) => {
                                 if (participants.length === 0) return;
+                                if (e.target.value.length > 0) updateTyping();
+                                else {
+                                    setIsTyping(false);
+                                    socket.emit("typing stop", { chatID: chatID._id, user: user._id });
+                                }
                                 setMessage(e.target.value);
                             }}
                             onKeyDown={handleKeyDown}

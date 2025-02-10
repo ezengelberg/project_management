@@ -213,6 +213,25 @@ io.on("connection", (socket) => {
         }
     });
 
+    socket.on("typing start", async ({ chatID, user }) => {
+        try {
+            console.log("typing start");
+            io.to(chatID).emit("typing_start", user);
+            console.log("emitted?");
+        } catch (error) {
+            console.error("Error sending typing start:", error);
+        }
+    });
+
+    socket.on("typing stop", async ({ chatID, user }) => {
+        try {
+            console.log("typing stop");
+            io.to(chatID).emit("typing_stop", user);
+        } catch (error) {
+            console.error("Error sending typing stop:", error);
+        }
+    });
+
     socket.on("seen_message", async ({ messageID, chatID, user }) => {
         try {
             const message = await Message.findById(messageID);
