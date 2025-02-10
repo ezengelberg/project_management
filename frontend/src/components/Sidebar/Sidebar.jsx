@@ -304,6 +304,10 @@ const Sidebar = () => {
         }
     };
 
+    const handleCreateChat = async (chatID) => {
+        console.log(chatID);
+    };
+
     return (
         <>
             {!isSidebarVisible && windowSize.width <= 1024 && (
@@ -732,6 +736,7 @@ const Sidebar = () => {
                                     return updatedChats;
                                 });
                             }}
+                            onCreateChat={handleCreateChat}
                         />
                     );
                 })}

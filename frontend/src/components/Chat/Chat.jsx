@@ -195,6 +195,7 @@ const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
             return;
         }
         setLoadingUsers(true);
+        console.log("Loaded users");
         try {
             const response = await axios.get(
                 `${process.env.REACT_APP_BACKEND_URL}/api/chat/fetch-users?name=${value}`,
@@ -226,9 +227,9 @@ const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
                     withCredentials: true,
                 },
             );
-            console.log(response.data.isNewChat);
+            console.log(response.data);
             if (response.data.isNewChat) {
-                onCreateChat();
+                onCreateChat(response.data.messageData.chat);
             }
         } catch (error) {
             console.error("Error sending message:", error);

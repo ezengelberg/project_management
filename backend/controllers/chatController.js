@@ -51,7 +51,7 @@ export const sendMessage = async (req, res) => {
         // Emit message to all users in the chat
         io.to(chatTarget._id.toString()).emit("receive_message", messageData, chatTarget._id);
         res.status(201).json({ messageData, isNewChat });
-    } catch (error) { 
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
@@ -105,6 +105,29 @@ export const fetchChats = async (req, res) => {
         }
 
         res.status(200).json(chats);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const fetchChat = async (req, res) => {
+    try {
+        console.log("fetching chat");
+        const { id } = req.params;
+        const chat = await Chat.findById(id)
+            .populate("participants", "name")
+            .populate({
+                path: "lastMessage",
+                select: "message createdAt",
+                populate: {
+                    path: "sender",
+                    select: "name",
+                },
+            })
+            .lean();
+
+        chat.unreadTotal = await checkUnreadMessages(chat, req.user._id);
+        res.status(200).json(chat);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
