@@ -7,6 +7,7 @@ export const sendMessage = async (req, res) => {
     try {
         const { chatID, message, recievers } = req.body;
         let chatTarget;
+        let isNewChat = false;
         if (chatID === "new" || !chatID) {
             chatTarget = await Chat.findOne({
                 participants: { $all: [...recievers, req.user._id] },
@@ -15,6 +16,7 @@ export const sendMessage = async (req, res) => {
             if (!chatTarget) {
                 chatTarget = new Chat({ participants: [...recievers, req.user._id] });
                 await chatTarget.save();
+                isNewChat = true;
             }
         } else {
             chatTarget = await Chat.findById(chatID);
@@ -33,7 +35,6 @@ export const sendMessage = async (req, res) => {
 
         // First save the message
         messageData = await messageData.save();
-        console.log(messageData);
 
         // Then populate the fields
         messageData = await Message.findById(messageData._id)
@@ -49,9 +50,8 @@ export const sendMessage = async (req, res) => {
 
         // Emit message to all users in the chat
         io.to(chatTarget._id.toString()).emit("receive_message", messageData, chatTarget._id);
-
-        res.status(201).json(messageData);
-    } catch (error) {
+        res.status(201).json({ messageData, isNewChat });
+    } catch (error) { 
         res.status(500).json({ message: error.message });
     }
 };

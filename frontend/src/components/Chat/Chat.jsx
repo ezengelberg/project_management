@@ -18,7 +18,7 @@ import MessageReadList from "./MessageReadList";
 
 const { TextArea } = Input;
 
-const Chat = ({ chatID, onClose, socket, onWatch }) => {
+const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
     const [participants, setParticipants] = useState([]);
     const [userSearch, setUserSearch] = useState("");
     const [userResults, setUserResults] = useState([]);
@@ -226,6 +226,10 @@ const Chat = ({ chatID, onClose, socket, onWatch }) => {
                     withCredentials: true,
                 },
             );
+            console.log(response.data.isNewChat);
+            if (response.data.isNewChat) {
+                onCreateChat();
+            }
         } catch (error) {
             console.error("Error sending message:", error);
         }
@@ -409,32 +413,36 @@ const Chat = ({ chatID, onClose, socket, onWatch }) => {
                                 </div>
                             );
                         })}
-                    </div>
-                    <div className="actively-typing">
-                        {typingUsers.length > 0 && (
-                            <div className="typing-users">
-                                {typingUsers.length === 1 &&
-                                    typingUsers.map((user) => (
-                                        <div key={user} className="typing-user">
-                                            <span>
-                                                {participants.find((p) => p._id.toString() === user.toString()).name}{" "}
-                                                מקליד\ה...
-                                            </span>
+                        <div className="actively-typing">
+                            {typingUsers.length > 0 && (
+                                <div className="typing-users">
+                                    {typingUsers.length === 1 &&
+                                        typingUsers.map((user) => (
+                                            <div key={user} className="typing-user">
+                                                <span>
+                                                    {
+                                                        participants.find((p) => p._id.toString() === user.toString())
+                                                            .name
+                                                    }{" "}
+                                                    מקליד\ה...
+                                                </span>
+                                            </div>
+                                        ))}
+                                    {typingUsers.length > 1 && (
+                                        <div className="typing-user">
+                                            {() => {
+                                                const names = typingUsers.map((user) => {
+                                                    return participants.find(
+                                                        (p) => p._id.toString() === user.toString(),
+                                                    ).name;
+                                                });
+                                                return `${names.join(", ")} מקלידים...`;
+                                            }}
                                         </div>
-                                    ))}
-                                {typingUsers.length > 1 && (
-                                    <div className="typing-user">
-                                        {() => {
-                                            const names = typingUsers.map((user) => {
-                                                return participants.find((p) => p._id.toString() === user.toString())
-                                                    .name;
-                                            });
-                                            return `${names.join(", ")} מקלידים...`;
-                                        }}
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className="chat-message-container">
                         <TextArea
