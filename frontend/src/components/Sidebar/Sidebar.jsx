@@ -33,6 +33,7 @@ const Sidebar = () => {
     const [user, setUser] = useState({});
     const [chats, setChats] = useState([]);
     const [chatListOpen, setChatListOpen] = useState(false);
+    const [selectedChats, setSelectedChats] = useState([]);
     const [openSubmenus, setOpenSubmenus] = useState({
         myProject: false,
         myProjects: false,
@@ -60,6 +61,27 @@ const Sidebar = () => {
     };
     const onClose = () => {
         setOpen(false);
+    };
+
+    const selectChat = (chat) => {
+        setSelectedChats((prev) => {
+            // Prevent duplicates
+            if (prev.some((c) => c._id?.toString() === chat._id?.toString())) {
+                return prev;
+            }
+
+            // Ensure "new" is unique
+            if (chat === "new" && prev.includes("new")) {
+                return prev;
+            }
+
+            // Maintain max length of 3
+            if (prev.length < 3) {
+                return [...prev, chat];
+            } else {
+                return [...prev.slice(1), chat]; // Remove the oldest
+            }
+        });
     };
 
     const loadUser = async () => {
@@ -609,44 +631,111 @@ const Sidebar = () => {
                 }}
                 style={{ direction: "ltr" }}
             />
-            <div className={`chat-list ${chatListOpen ? "open" : ""}`}>
-                <div className="header">
-                    <div className="right-side">
-                        <MessageSVG />
-                        <span>צא'טים</span>
+            <div className="chat-list-container">
+                <div className={`chat-list ${chatListOpen ? "open" : ""}`}>
+                    <div className="header">
+                        <div className="right-side">
+                            <MessageSVG />
+                            <span>צא'טים</span>
+                        </div>
+                        <div className="left-side">
+                            <div className="new-message-chat" onClick={() => selectChat("new")}>
+                                <WriteMessageSVG />
+                            </div>
+                            <div
+                                className="open-close-chat"
+                                onClick={() => {
+                                    setChatListOpen(!chatListOpen);
+                                }}>
+                                <ChevronSVG />
+                            </div>
+                        </div>
                     </div>
-                    <div className="left-side">
-                        <WriteMessageSVG />
-                        <ChevronSVG />
-                    </div>
-                </div>
-                <div className="filter-chat">
-                    <div className="search-wrapper">
-                        <SearchOutlined />
-                        <input type="text" placeholder="חפש שיחות..." />
-                    </div>
-                </div>
-                <div className="chat-list-items">
-                    {chats.map((chat) => {
-                        return (
-                            <div key={chat._id} className="chat-item">
-                                <div className="chat-header">
-                                    <span className="chat-title">
-                                        {chat.participants.length === 2
-                                            ? chat.participants.filter((p) => p._id !== user._id)[0].name
-                                            : chat.chatName
-                                            ? chat.chatName
-                                            : (() => {
-                                                  let title = chat.participants.map((p) => p.name).join(", ");
-                                                  if (title.length > 40) title = title.substring(0, 40).concat("...");
-                                                  return title;
-                                              })()}
-                                    </span>
+                    {chatListOpen && (
+                        <>
+                            <div className="filter-chat">
+                                <div className="search-wrapper">
+                                    <SearchOutlined />
+                                    <input type="text" placeholder="חפש שיחות..." />
                                 </div>
                             </div>
-                        );
-                    })}
+                            <div className="chat-list-items">
+                                {chats.length === 0 && <p>אין שיחות זמינות</p>}
+                                {chats.map((chat) => {
+                                    return (
+                                        <div key={chat._id} className="chat-item" onClick={() => selectChat(chat)}>
+                                            <div className="chat-header">
+                                                <span className="chat-title">
+                                                    {chat.participants.length === 2
+                                                        ? chat.participants.filter((p) => p._id !== user._id)[0].name
+                                                        : chat.chatName
+                                                        ? chat.chatName
+                                                        : (() => {
+                                                              let title = chat.participants
+                                                                  .map((p) => p.name)
+                                                                  .join(", ");
+                                                              if (title.length > 40)
+                                                                  title = title.substring(0, 40).concat("...");
+                                                              return title;
+                                                          })()}
+                                                </span>
+                                            </div>
+                                            <div className="message-description">
+                                                <div className="last-message">
+                                                    <div
+                                                        className={`seen ${
+                                                            chat.lastMessage?.seenBy?.length ===
+                                                            chat.participants.length
+                                                                ? "all"
+                                                                : ""
+                                                        }`}>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
+                                                            <g transform="translate(0, 960)">
+                                                                <path
+                                                                    d="M268-240 42-466l57-56 170 170 56 56-57 56Zm226 0L268-466l56-57 170 170 368-368 56 57-424 424Zm0-226-57-56 198-198 57 56-198 198Z"
+                                                                    fill="#666"
+                                                                />
+                                                            </g>
+                                                        </svg>
+                                                    </div>
+                                                    <span className="last-message-content">
+                                                        {chat?.lastMessage?.sender?.name}:{" "}
+                                                        {chat?.lastMessage?.message?.length > 10
+                                                            ? `${chat?.lastMessage?.message?.substring(0, 50)}...`
+                                                            : chat?.lastMessage?.message}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
+                    )}
                 </div>
+                {selectedChats.map((chat) => {
+                    return (
+                        <Chat
+                            key={chat._id}
+                            chatID={chat}
+                            onClose={() => {
+                                setSelectedChats((prev) => prev.filter((c) => c._id !== chat._id));
+                            }}
+                            socket={socketRef.current}
+                            onWatch={() => {
+                                setChats((prevChats) => {
+                                    const updatedChats = prevChats.map((c) => {
+                                        if (c._id.toString() === chat._id.toString()) {
+                                            c.unreadTotal = c.unreadTotal ? c.unreadTotal - 1 : 0;
+                                        }
+                                        return c;
+                                    });
+                                    return updatedChats;
+                                });
+                            }}
+                        />
+                    );
+                })}
             </div>
             <Drawer title="צ'אטים" onClose={onClose} open={open} mask={false} maskClosable={false}>
                 <div className="chat-drawer-container">
@@ -717,7 +806,7 @@ const Sidebar = () => {
                     })}
                 </div>
             </Drawer>
-            {chatTarget && (
+            {/* {chatTarget && (
                 <Chat
                     key={chatTarget._id || "new"}
                     chatID={chatTarget}
@@ -737,7 +826,7 @@ const Sidebar = () => {
                         });
                     }}
                 />
-            )}
+            )} */}
         </>
     );
 };

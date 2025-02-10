@@ -7,14 +7,13 @@ $chat-background: #bcccdc;
 $chat-header: #a1bbd4;
 
 .chat-container {
-    position: absolute;
+    position: relative;
     font-size: 1.3rem;
     border-radius: 5px 5px 0 0;
     border: 1px solid #ccc;
     width: 35em;
     height: 50rem;
     background-color: white;
-    left: 10rem;
     bottom: 0;
     z-index: 3;
     display: flex;
