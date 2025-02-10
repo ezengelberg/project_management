@@ -199,22 +199,23 @@ $background-blue: #001529;
     animation: wave 2s ease-in-out infinite alternate;
 }
 .chat-list-container {
+    position: absolute;
     display: flex;
     flex-direction: row-reverse;
+    align-items: flex-end;
     gap: 0.2rem;
-    position: absolute;
     bottom: 0;
     left: 3rem;
     width: auto;
     z-index: 3;
-    height: fit-content;
     .chat-list {
+        // position: relative;
         display: flex;
         flex-direction: column;
         width: 35rem;
         background-color: $background-blue;
+        height: fit-content;
         bottom: 0;
-        left: 3rem;
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
         color: #fff;
