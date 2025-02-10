@@ -49,7 +49,7 @@ export const sendMessage = async (req, res) => {
         await chatTarget.save();
 
         // Emit message to all users in the chat
-        io.to(chatTarget._id.toString()).emit("receive_message", messageData, chatTarget._id);
+        io.to(chatTarget._id.toString()).emit("receive_message", messageData);
         res.status(201).json({ messageData, isNewChat });
     } catch (error) {
         res.status(500).json({ message: error.message });

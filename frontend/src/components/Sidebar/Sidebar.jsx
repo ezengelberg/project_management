@@ -98,21 +98,18 @@ const Sidebar = () => {
 
     useEffect(() => {
         // Only create socket if it doesn't exist
-        if (!socketRef.current) {
+        if (!socketRef.current && chats) {
             socketRef.current = io(process.env.REACT_APP_BACKEND_URL, {
                 withCredentials: true,
                 transports: ["websocket", "polling"],
             });
-
             socketRef.current.on("connect", () => {
-                fetchChats().then((userChats) => {
-                    if (userChats?.length) {
-                        socketRef.current.emit(
-                            "join_chats",
-                            userChats.map((chat) => chat._id),
-                        );
-                    }
-                });
+                if (chats?.length) {
+                    socketRef.current.emit(
+                        "join_chats",
+                        chats.map((chat) => chat._id),
+                    );
+                }
             });
             socketRef.current.on("receive_message", (msg) => {
                 setChats((prevChats) => {
@@ -137,16 +134,17 @@ const Sidebar = () => {
                 socketRef.current = null;
             }
         };
-    }, []); // Empty dependency array
+    }, [chats]); // Empty dependency array
 
     const fetchChats = async () => {
+        console.log("fetching chats");
         try {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/`, {
                 withCredentials: true,
             });
             setChats(response.data.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)));
             // returning for socket purposes
-            return response.data;
+            // return response.data;
         } catch (error) {
             console.error("Error occurred:", error);
         }
@@ -285,6 +283,7 @@ const Sidebar = () => {
 
     useEffect(() => {
         fetchChats();
+
         loadUser();
     }, []);
 
