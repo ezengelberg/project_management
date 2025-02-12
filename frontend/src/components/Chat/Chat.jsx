@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useInView } from "react-intersection-observer";
 import axios from "axios";
-import { io } from "socket.io-client";
 import "./Chat.scss";
 
 import {
@@ -15,6 +15,7 @@ import {
 } from "@ant-design/icons";
 import { Input, Spin } from "antd";
 import MessageReadList from "./MessageReadList";
+import Message from "./Message";
 
 const { TextArea } = Input;
 
@@ -32,7 +33,6 @@ const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
     const [typingUsers, setTypingUsers] = useState([]);
 
     const messageRefs = useRef([]);
-    const observerRef = useRef(new Map());
 
     const user = JSON.parse(localStorage.getItem("user"));
 
@@ -56,6 +56,7 @@ const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
     useEffect(() => {
         if (socket) {
             socket.on("receive_message", (msg) => {
+                console.log("Received message");
                 setChatHistory((prevHistory) => {
                     const newHistory = [...prevHistory, msg];
                     newHistory.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
@@ -120,29 +121,30 @@ const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
         }
     };
 
-    const messageObserver = (message, el) => {
-        if (!el || observerRef.current.has(message._id)) return;
+    // const messageObserver = (message, el) => {
+    //     if (!el || observerRef.current.has(message._id)) return;
+    //     console.log("OBSERVING MESSAGE");
+    //     const observer = new IntersectionObserver(
+    //         ([entry]) => {
+    //             if (entry.isIntersecting) {
+    //                 const isSeenByUser = message.seenBy.some((u) => {
+    //                     return u.user._id.toString() === user._id.toString();
+    //                 });
+    //                 if (!isSeenByUser) {
+    //                     message.seenBy.push({ time: new Date(), user: { _id: user._id, name: user.name } });
+    //                     onWatch();
+    //                     socket.emit("seen_message", { messageID: message._id, chatID: chatID._id, user: user._id });
+    //                 }
+    //                 observer.disconnect();
+    //                 observerRef.current.delete(message._id);
+    //             }
+    //         },
+    //         { threshold: 1.0 },
+    //     );
 
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    const isSeenByUser = message.seenBy.some((u) => {
-                        return u.user._id.toString() === user._id.toString();
-                    });
-                    if (!isSeenByUser) {
-                        socket.emit("seen_message", { messageID: message._id, chatID: chatID._id, user: user._id });
-                        onWatch();
-                    }
-                    observer.disconnect();
-                    observerRef.current.delete(message._id);
-                }
-            },
-            { threshold: 1.0 },
-        );
-
-        observerRef.current.set(message._id, observer);
-        observer.observe(el);
-    };
+    //     observerRef.current.set(message._id, observer);
+    //     observer.observe(el);
+    // };
 
     const updateTyping = () => {
         if (isTyping) return;
@@ -153,13 +155,6 @@ const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
             socket.emit("typing stop", { chatID: chatID._id, user: user._id });
         }, 5000);
     };
-
-    useEffect(() => {
-        return () => {
-            observerRef.current.forEach((observer) => observer.disconnect());
-            observerRef.current.clear();
-        };
-    }, []);
 
     useEffect(() => {
         if (!seenUnread) {
@@ -381,37 +376,46 @@ const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
 
                         {chatHistory.map((message) => {
                             return (
-                                <div
+                                <Message
                                     key={message._id}
-                                    className={`message ${
-                                        message.sender._id.toString() === user._id.toString() ? "" : "else"
-                                    }`}
-                                    ref={(el) => {
-                                        if (el) {
-                                            messageRefs.current[message._id] = el;
-                                            messageObserver(message, el);
-                                        }
-                                    }}>
-                                    <div className="message-header">
-                                        <div className="sender">{message.sender.name}</div>
-                                        <div className="time">
-                                            {new Date(message.createdAt).toLocaleDateString("he-IL", {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            })}
-                                        </div>
-                                    </div>
-                                    <div className="message-text">{message.message}</div>
-                                    {message.sender._id.toString() === user._id.toString() && (
-                                        <div
-                                            className={`seen ${
-                                                message.seenBy.length === participants.length ? "all" : ""
-                                            }`}
-                                            onClick={() => setWatchMessage(message)}>
-                                            {checkmarkSVG}
-                                        </div>
-                                    )}
-                                </div>
+                                    message={message}
+                                    user={user}
+                                    participants={participants}
+                                    onWatch={() => onWatch()}
+                                    socket={socket}
+                                    chatID={chatID}
+                                    checkWatchers={() => setWatchMessage(message)}
+                                />
+                                // <div
+                                //     key={message._id}
+                                //     className={`message ${
+                                //         message.sender._id.toString() === user._id.toString() ? "" : "else"
+                                //     }`}
+                                //     ref={(el) => {
+                                //         if (el) {
+                                //             messageRefs.current[message._id] = el;
+                                //         }
+                                //     }}>
+                                //     <div className="message-header">
+                                //         <div className="sender">{message.sender.name}</div>
+                                //         <div className="time">
+                                //             {new Date(message.createdAt).toLocaleDateString("he-IL", {
+                                //                 hour: "2-digit",
+                                //                 minute: "2-digit",
+                                //             })}
+                                //         </div>
+                                //     </div>
+                                //     <div className="message-text">{message.message}</div>
+                                //     {message.sender._id.toString() === user._id.toString() && (
+                                //         <div
+                                //             className={`seen ${
+                                //                 message.seenBy.length === participants.length ? "all" : ""
+                                //             }`}
+                                //             onClick={() => setWatchMessage(message)}>
+                                //             {checkmarkSVG}
+                                //         </div>
+                                //     )}
+                                // </div>
                             );
                         })}
                         <div className="actively-typing">

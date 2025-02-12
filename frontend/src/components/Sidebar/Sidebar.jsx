@@ -98,7 +98,7 @@ const Sidebar = () => {
 
     useEffect(() => {
         // Only create socket if it doesn't exist
-        if (!socketRef.current && chats) {
+        if (!socketRef.current || !socketRef.current.connected) {
             socketRef.current = io(process.env.REACT_APP_BACKEND_URL, {
                 withCredentials: true,
                 transports: ["websocket", "polling"],
@@ -129,9 +129,8 @@ const Sidebar = () => {
 
         // Cleanup socket only when component unmounts
         return () => {
-            if (socketRef.current) {
+            if (socketRef.current && socketRef.current.connected) {
                 socketRef.current.disconnect();
-                socketRef.current = null;
             }
         };
     }, [chats]); // Empty dependency array
@@ -637,7 +636,7 @@ const Sidebar = () => {
                     </ul>
                 </div>
             </div>
-            <FloatButton
+            {/* <FloatButton
                 className="chat-float-button"
                 icon={<CommentOutlined />}
                 onClick={showDrawer}
@@ -647,7 +646,7 @@ const Sidebar = () => {
                     style: { direction: "ltr" },
                 }}
                 style={{ direction: "ltr" }}
-            />
+            /> */}
             <div className="chat-list-container">
                 <div className={`chat-list ${chatListOpen ? "open" : ""}`}>
                     <div className="header">
@@ -733,7 +732,7 @@ const Sidebar = () => {
                 {selectedChats.map((chat) => {
                     return (
                         <Chat
-                            key={chat._id}
+                            key={chat._id || "new"}
                             chatID={chat}
                             onClose={() => {
                                 setSelectedChats((prev) => prev.filter((c) => c._id !== chat._id));
@@ -755,7 +754,7 @@ const Sidebar = () => {
                     );
                 })}
             </div>
-            <Drawer title="צ'אטים" onClose={onClose} open={open} mask={false} maskClosable={false}>
+            {/* <Drawer title="צ'אטים" onClose={onClose} open={open} mask={false} maskClosable={false}>
                 <div className="chat-drawer-container">
                     <div
                         className="chat-item"
@@ -823,7 +822,7 @@ const Sidebar = () => {
                         );
                     })}
                 </div>
-            </Drawer>
+            </Drawer> */}
             {/* {chatTarget && (
                 <Chat
                     key={chatTarget._id || "new"}

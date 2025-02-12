@@ -228,6 +228,7 @@ io.on("connection", (socket) => {
 
     socket.on("seen_message", async ({ messageID, chatID, user }) => {
         try {
+            console.log("User seen message:", messageID, chatID, user);
             const message = await Message.findById(messageID);
             if (!message) return;
 
