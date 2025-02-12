@@ -678,7 +678,7 @@ const OverviewProjects = () => {
         ),
         sorter: (a, b) => a.name.localeCompare(b.name),
         sortDirections: ["descend", "ascend"],
-        width: windowSize.width > 1200 ? "35%" : windowSize.width > 626 ? 300 : 200,
+        width: windowSize.width > 1200 ? "25%" : windowSize.width > 626 ? 300 : 200,
       },
       {
         title: "תאריך הרשמה",
@@ -687,7 +687,7 @@ const OverviewProjects = () => {
         render: (joinDate) => new Date(joinDate).toLocaleString("he-IL", { dateStyle: "short", timeStyle: "medium" }),
         sorter: (a, b) => new Date(a.joinDate) - new Date(b.joinDate),
         sortDirections: ["descend", "ascend"],
-        width: windowSize.width > 1200 ? "35%" : windowSize.width > 626 ? 300 : 200,
+        width: windowSize.width > 1200 ? "25%" : windowSize.width > 626 ? 300 : 200,
       },
       {
         title: "סטטוס",
@@ -728,7 +728,7 @@ const OverviewProjects = () => {
             </Button>
           </div>
         ),
-        width: windowSize.width > 1200 ? "30%" : windowSize.width > 626 ? 300 : 200,
+        width: windowSize.width > 1200 ? "20%" : windowSize.width > 626 ? 300 : 200,
       },
     ];
 
