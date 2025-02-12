@@ -13,6 +13,7 @@ import {
   FloatButton,
   InputNumber,
   Tabs,
+  Radio,
 } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL";
@@ -35,6 +36,11 @@ const ZoomScheduler = () => {
   const [recurrenceType, setRecurrenceType] = useState(null);
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [allUsers, setAllUsers] = useState([]);
+  const [value, setValue] = useState(1);
+
+  const onChange = (e) => {
+    setValue(e.target.value);
+  };
 
   useEffect(() => {
     const fetchYears = async () => {
@@ -127,6 +133,7 @@ const ZoomScheduler = () => {
       generalMeeting.resetFields();
     }
     setRecurrenceType(null);
+    setValue(1);
   };
 
   const handleSubmit = async (values, formType) => {
@@ -144,12 +151,19 @@ const ZoomScheduler = () => {
         participants: formType === "general" ? values.participants : null,
         recurrenceType: values.recurrenceType,
         recurrenceInterval: values.recurrenceInterval,
+        location: values.meetingType === 2 ? values.location : "זום",
       };
+
       const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/zoom/create-meeting`, meetingData, {
         withCredentials: true,
       });
 
-      setGeneratedLink(response.data.meeting.joinUrl);
+      if (values.meetingType === 1) {
+        setGeneratedLink(response.data.meeting.joinUrl);
+      }
+      if (values.meetingType === 2) {
+        setGeneratedLink(null);
+      }
       message.success("הפגישה נוצרה בהצלחה");
       handleClear(formType);
     } catch (error) {
@@ -178,7 +192,21 @@ const ZoomScheduler = () => {
       key: "1",
       label: "פגישה עם פרויקט",
       children: (
-        <Form layout="vertical" onFinish={(values) => handleSubmit(values, "project")} form={form}>
+        <Form
+          layout="vertical"
+          onFinish={(values) => handleSubmit(values, "project")}
+          form={form}
+          initialValues={{ meetingType: 1 }}>
+          <Form.Item label="סוג פגישה" name="meetingType" rules={[{ required: true, message: "בחר סוג פגישה" }]}>
+            <Radio.Group
+              onChange={onChange}
+              value={value}
+              options={[
+                { value: 1, label: "פגישת זום" },
+                { value: 2, label: "פגישה פיזית" },
+              ]}
+            />
+          </Form.Item>
           <Form.Item label="שנה" name="year" rules={[{ required: true, message: "בחר שנה" }]}>
             <Select value={yearFilter} onChange={handleYearChange} placeholder="בחר שנה">
               {years.map((year) => (
@@ -200,6 +228,11 @@ const ZoomScheduler = () => {
           <Form.Item label="סטודנטים" name="students">
             <Input disabled />
           </Form.Item>
+          {value === 2 && (
+            <Form.Item label="מיקום" name="location" rules={[{ required: true, message: "הזן מיקום" }]}>
+              <Input />
+            </Form.Item>
+          )}
           <Form.Item
             label="נושא הפגישה"
             name="topic"
@@ -292,7 +325,26 @@ const ZoomScheduler = () => {
       key: "2",
       label: "פגישה כללית",
       children: (
-        <Form layout="vertical" onFinish={(values) => handleSubmit(values, "general")} form={generalMeeting}>
+        <Form
+          layout="vertical"
+          onFinish={(values) => handleSubmit(values, "general")}
+          form={generalMeeting}
+          initialValues={{ meetingType: 1 }}>
+          <Form.Item label="סוג פגישה" name="meetingType" rules={[{ required: true, message: "בחר סוג פגישה" }]}>
+            <Radio.Group
+              onChange={onChange}
+              value={value}
+              options={[
+                { value: 1, label: "פגישת זום" },
+                { value: 2, label: "פגישה פיזית" },
+              ]}
+            />
+          </Form.Item>
+          {value === 2 && (
+            <Form.Item label="מיקום" name="location" rules={[{ required: true, message: "הזן מיקום" }]}>
+              <Input />
+            </Form.Item>
+          )}
           <Form.Item
             label="נושא הפגישה"
             name="topic"

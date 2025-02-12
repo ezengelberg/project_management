@@ -35,7 +35,8 @@ const getZoomAccessToken = async () => {
 
 export const createMeeting = async (req, res) => {
   try {
-    const { topic, date, time, recurring, projectId, recurrenceType, recurrenceInterval, participants } = req.body;
+    const { topic, date, time, recurring, projectId, recurrenceType, recurrenceInterval, participants, location } =
+      req.body;
     const user = req.user;
     const truncatedTopic = topic ? (topic.length > 200 ? topic.substring(0, 200) : topic) : "לא צוין";
 
@@ -46,60 +47,84 @@ export const createMeeting = async (req, res) => {
     // Calculate endTime
     const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // Default to 60 minutes
 
-    // Get Zoom access token
-    const accessToken = await getZoomAccessToken();
+    let zoomMeeting;
 
-    // Zoom meeting payload
-    const meetingPayload = {
-      topic: truncatedTopic,
-      type: recurring ? 8 : 2, // 2 = scheduled, 8 = recurring
-      start_time: utcStartTime,
-      duration: 60, // Default to 60 minutes
-      timezone: "UTC",
-      settings: {
-        host_video: true,
-        participant_video: true,
-        join_before_host: false,
-        waiting_room: false,
-      },
-      recurrence: recurring
-        ? {
-            type: recurrenceType === "daily" ? 1 : recurrenceType === "weekly" ? 2 : 3,
-            repeat_interval: recurrenceInterval || 1,
-          }
-        : undefined,
-    };
+    if (location === "זום") {
+      // Get Zoom access token
+      const accessToken = await getZoomAccessToken();
 
-    // Create Zoom meeting
-    const response = await axios.post("https://api.zoom.us/v2/users/me/meetings", meetingPayload, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
+      // Zoom meeting payload
+      const meetingPayload = {
+        topic: truncatedTopic,
+        type: recurring ? 8 : 2, // 2 = scheduled, 8 = recurring
+        start_time: utcStartTime,
+        duration: 60, // Default to 60 minutes
+        timezone: "UTC",
+        settings: {
+          host_video: true,
+          participant_video: true,
+          join_before_host: false,
+          waiting_room: false,
+        },
+        recurrence: recurring
+          ? {
+              type: recurrenceType === "daily" ? 1 : recurrenceType === "weekly" ? 2 : 3,
+              repeat_interval: recurrenceInterval || 1,
+            }
+          : undefined,
+      };
 
-    // Save meeting to database
-    const zoomMeeting = new ZoomMeeting({
-      meetingId: response.data.id,
-      topic: response.data.topic,
-      startTime: utcStartTime,
-      duration: response.data.duration,
-      participants: projectId
-        ? (await Project.findById(projectId).populate("students.student")).students.map((student) => student.student)
-        : participants,
-      creator: user._id,
-      joinUrl: response.data.join_url,
-      startUrl: response.data.start_url,
-      recurring,
-      project: projectId || null,
-      endTime,
-      recurrence: recurring
-        ? {
-            type: recurrenceType,
-            interval: recurrenceInterval,
-          }
-        : undefined,
-    });
+      // Create Zoom meeting
+      const response = await axios.post("https://api.zoom.us/v2/users/me/meetings", meetingPayload, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      // Save meeting to database
+      zoomMeeting = new ZoomMeeting({
+        topic: response.data.topic,
+        startTime: utcStartTime,
+        duration: response.data.duration,
+        participants: projectId
+          ? (await Project.findById(projectId).populate("students.student")).students.map((student) => student.student)
+          : participants,
+        creator: user._id,
+        joinUrl: response.data.join_url,
+        startUrl: response.data.start_url,
+        recurring,
+        project: projectId || null,
+        endTime,
+        location,
+        recurrence: recurring
+          ? {
+              type: recurrenceType,
+              interval: recurrenceInterval,
+            }
+          : undefined,
+      });
+    } else {
+      zoomMeeting = new ZoomMeeting({
+        topic: truncatedTopic,
+        startTime: utcStartTime,
+        duration: 60,
+        participants: projectId
+          ? (await Project.findById(projectId).populate("students.student")).students.map((student) => student.student)
+          : participants,
+        creator: user._id,
+        recurring,
+        project: projectId || null,
+        endTime,
+        location,
+        recurrence: recurring
+          ? {
+              type: recurrenceType,
+              interval: recurrenceInterval,
+            }
+          : undefined,
+      });
+    }
 
     await zoomMeeting.save();
 
@@ -125,6 +150,9 @@ export const createMeeting = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating meeting:", error);
+    if (error.code === 11000) {
+      console.error("Duplicate key error:", error.keyValue);
+    }
     res.status(500).json({
       message: "Error creating meeting",
       error: error.response?.data || error.message,

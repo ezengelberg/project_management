@@ -313,6 +313,7 @@ const ManageProjects = () => {
         duration: 2,
       });
       fetchNotifications();
+      await fetchData();
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
           if (project.key === record.projectID) {
@@ -441,6 +442,7 @@ const ManageProjects = () => {
           return project;
         })
       );
+      await fetchData();
       fetchNotifications();
     } catch (error) {
       console.error("Error occurred:", error);

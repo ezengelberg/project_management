@@ -85,49 +85,50 @@ const ListZoomMeetings = () => {
       fixed: windowSize.width > 768 && "left",
       dataIndex: "project",
       key: "projectTitle",
-      render: (project) => (
-        <Tooltip title={project ? project.title : "פגישה כללית"}>
-          {windowSize.width > 1920
-            ? project && project.title.length > 100
-              ? `${project.title.substring(0, 100)}...`
-              : project
-              ? project.title
-              : "פגישה כללית"
-            : windowSize.width > 1600
-            ? project && project.title.length > 65
-              ? `${project.title.substring(0, 65)}...`
-              : project
-              ? project.title
-              : "פגישה כללית"
-            : windowSize.width > 1200
-            ? project && project.title.length > 50
-              ? `${project.title.substring(0, 50)}...`
-              : project
-              ? project.title
-              : "פגישה כללית"
-            : windowSize.width > 1024
-            ? project && project.title.length > 40
-              ? `${project.title.substring(0, 40)}...`
-              : project
-              ? project.title
-              : "פגישה כללית"
-            : windowSize.width > 768
-            ? project && project.title.length > 35
-              ? `${project.title.substring(0, 35)}...`
-              : project
-              ? project.title
-              : "פגישה כללית"
-            : project && project.title.length > 35
-            ? `${project.title.substring(0, 35)}...`
-            : project
-            ? project.title
-            : "פגישה כללית"}
-        </Tooltip>
-      ),
+      render: (project) =>
+        windowSize.width > 1920 ? (
+          project && project.title.length > 75 ? (
+            <Tooltip title={project.title}>{project.title.substring(0, 75)}...</Tooltip>
+          ) : project ? (
+            project.title
+          ) : (
+            "פגישה כללית"
+          )
+        ) : windowSize.width > 1600 ? (
+          project && project.title.length > 65 ? (
+            <Tooltip title={project.title}>{project.title.substring(0, 65)}...</Tooltip>
+          ) : project ? (
+            project.title
+          ) : (
+            "פגישה כללית"
+          )
+        ) : windowSize.width > 1200 ? (
+          project && project.title.length > 50 ? (
+            <Tooltip title={project.title}>{project.title.substring(0, 50)}...</Tooltip>
+          ) : project ? (
+            project.title
+          ) : (
+            "פגישה כללית"
+          )
+        ) : windowSize.width > 1024 ? (
+          project && project.title.length > 40 ? (
+            <Tooltip title={project.title}>{project.title.substring(0, 40)}...</Tooltip>
+          ) : project ? (
+            project.title
+          ) : (
+            "פגישה כללית"
+          )
+        ) : project && project.title.length > 35 ? (
+          <Tooltip title={project.title}>{project.title.substring(0, 35)}...</Tooltip>
+        ) : project ? (
+          project.title
+        ) : (
+          "פגישה כללית"
+        ),
       sorter: (a, b) => (a.project ? a.project.title.localeCompare(b.project.title) : -1),
       width:
         windowSize.width > 1920
-          ? "35%"
+          ? 580
           : windowSize.width > 1600
           ? 500
           : windowSize.width > 1200
@@ -140,36 +141,33 @@ const ListZoomMeetings = () => {
       title: "נושא",
       dataIndex: "topic",
       key: "topic",
-      render: (topic) => (
-        <Tooltip title={topic}>
-          {windowSize.width > 1920
-            ? topic.length > 60
-              ? `${topic.substring(0, 60)}...`
-              : topic
-            : windowSize.width > 1600
-            ? topic.length > 45
-              ? `${topic.substring(0, 45)}...`
-              : topic
-            : windowSize.width > 1200
-            ? topic.length > 35
-              ? `${topic.substring(0, 35)}...`
-              : topic
-            : windowSize.width > 1024
-            ? topic.length > 23
-              ? `${topic.substring(0, 23)}...`
-              : topic
-            : windowSize.width > 768
-            ? topic.length > 23
-              ? `${topic.substring(0, 23)}...`
-              : topic
-            : topic.length > 23
-            ? `${topic.substring(0, 23)}...`
-            : topic}
-        </Tooltip>
-      ),
+      render: (topic) =>
+        windowSize.width > 1920 ? (
+          topic.length > 60 ? (
+            <Tooltip title={topic}>{topic.substring(0, 60)}...</Tooltip>
+          ) : (
+            topic
+          )
+        ) : windowSize.width > 1600 ? (
+          topic.length > 45 ? (
+            <Tooltip title={topic}>{topic.substring(0, 45)}...</Tooltip>
+          ) : (
+            topic
+          )
+        ) : windowSize.width > 1200 ? (
+          topic.length > 35 ? (
+            <Tooltip title={topic}>{topic.substring(0, 35)}...</Tooltip>
+          ) : (
+            topic
+          )
+        ) : topic.length > 23 ? (
+          <Tooltip title={topic}>{topic.substring(0, 23)}...</Tooltip>
+        ) : (
+          topic
+        ),
       width:
         windowSize.width > 1920
-          ? "20%"
+          ? 450
           : windowSize.width > 1600
           ? 350
           : windowSize.width > 1200
@@ -179,13 +177,21 @@ const ListZoomMeetings = () => {
           : 200,
     },
     {
+      title: "מיקום",
+      dataIndex: "location",
+      key: "location",
+      render: (location) =>
+        location.length > 20 ? <Tooltip title={location}>{location.substring(0, 20)}...</Tooltip> : location,
+      width: windowSize.width > 1920 ? 180 : windowSize.width > 1600 ? 180 : 180,
+    },
+    {
       title: "תאריך",
       dataIndex: "startTime",
       key: "startTime",
       render: (date) => dayjs(date).locale("he").format("DD/MM/YYYY HH:mm"),
       sorter: (a, b) => new Date(a.startTime) - new Date(b.startTime),
       defaultSortOrder: "ascend",
-      width: windowSize.width > 1920 ? "10%" : windowSize.width > 1600 ? 150 : 150,
+      width: 150,
     },
     {
       title: "לינק",
@@ -196,7 +202,7 @@ const ListZoomMeetings = () => {
         const isMeetingEnded = dayjs().isAfter(dayjs(record.endTime));
         return isMeetingEnded ? (
           <span>הפגישה הסתיימה</span>
-        ) : (
+        ) : link ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <a href={link} target="_blank" rel="noopener noreferrer" style={{ flex: 1 }}>
               הצטרף לפגישה
@@ -209,9 +215,11 @@ const ListZoomMeetings = () => {
               />
             </Tooltip>
           </div>
+        ) : (
+          <span>פגישה פיזית</span>
         );
       },
-      width: windowSize.width > 1920 ? "10%" : windowSize.width > 1600 ? 200 : 200,
+      width: 200,
     },
     {
       title: "משתתפים",
@@ -229,7 +237,7 @@ const ListZoomMeetings = () => {
           ))}
         </div>
       ),
-      width: windowSize.width > 1920 ? "20%" : windowSize.width > 1600 ? 350 : 350,
+      width: 350,
     },
     isCoordinatorOrAdvisor && {
       title: "פעולות",
@@ -251,7 +259,7 @@ const ListZoomMeetings = () => {
             />
           </Popconfirm>
         ),
-      width: windowSize.width > 1920 ? "5%" : windowSize.width > 1600 ? 100 : 100,
+      width: 100,
     },
   ].filter(Boolean);
 
