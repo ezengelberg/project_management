@@ -190,7 +190,7 @@ const activeChats = {};
 io.on("connection", (socket) => {
     socket.on("join_chats", (chats) => {
         chats.forEach((chat) => {
-            console.log(`User ${socket.id} joining chat: ${chat}`);
+            // console.log(`User ${socket.id} joining chat: ${chat}`);
             socket.join(chat);
             console.log(`User joined chat: ${chat}`);
 
@@ -198,7 +198,7 @@ io.on("connection", (socket) => {
                 activeChats[chat] = new Set();
             }
             activeChats[chat].add(socket.id);
-            console.log(`Active users in chat ${chat}:`, activeChats[chat]);
+            // console.log(`Active users in chat ${chat}:`, activeChats[chat]);
         });
     });
 
@@ -217,7 +217,7 @@ io.on("connection", (socket) => {
 
     socket.on("typing start", async ({ chatID, user }) => {
         try {
-            console.log("User started typing:", user, chatID);
+            // console.log("User started typing:", user, chatID);
             io.to(chatID).emit("typing_start", user, chatID);
         } catch (error) {
             console.error("Error sending typing start:", error);
@@ -226,7 +226,7 @@ io.on("connection", (socket) => {
 
     socket.on("typing stop", async ({ chatID, user }) => {
         try {
-            console.log("User stopped typing:", user, chatID);
+            // console.log("User stopped typing:", user, chatID);
             io.to(chatID).emit("typing_stop", user, chatID);
         } catch (error) {
             console.error("Error sending typing stop:", error);
@@ -235,7 +235,6 @@ io.on("connection", (socket) => {
 
     socket.on("seen_message", async ({ messageID, chatID, user }) => {
         try {
-            console.log("User seen message:", messageID, chatID, user);
             const message = await Message.findById(messageID);
             if (!message) return;
 
@@ -254,7 +253,6 @@ io.on("connection", (socket) => {
                         select: "name",
                     })
                     .lean();
-
                 io.to(chatID).emit("receive_seen", seenMessage);
             }
         } catch (error) {

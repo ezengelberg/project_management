@@ -7,6 +7,7 @@ const Message = ({ message, user, participants, onWatch, socket, chatID, checkWa
         triggerOnce: true, // Ensures it only fires once per message
         threshold: 1.0, // Ensures the message is fully visible before triggering
     });
+    const [seen, setSeen] = useState(false);
 
     const checkmarkSVG = (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
@@ -19,19 +20,18 @@ const Message = ({ message, user, participants, onWatch, socket, chatID, checkWa
         </svg>
     );
 
-    const [seen, setSeen] = useState(false);
-
-    // useEffect(() => {
-    //     if (inView && !seen) {
-    //         const isSeenByUser = message.seenBy.some((u) => u.user._id.toString() === user._id.toString());
-
-    //         if (!isSeenByUser) {
-    //             onWatch(); // Trigger parent update
-    //             socket.emit("seen_message", { messageID: message._id, chatID: chatID._id, user: user._id });
-    //             setSeen(true);
-    //         }
-    //     }
-    // }, [inView, seen, message, user, chatID, onWatch, socket]);
+    useEffect(() => {
+        if (inView && !seen) {
+            setSeen(true);
+            const isSeenByUser = message.seenBy.some((u) => u.user._id.toString() === user._id.toString());
+            if (!isSeenByUser) {
+                onWatch(); // Trigger parent update
+                socket.emit("seen_message", { messageID: message._id, chatID: chatID._id, user: user._id });
+                console.log(`Message ${message.message} seen by ${user.name}`);
+                setSeen(true);
+            }
+        }
+    }, [inView, seen]);
 
     return (
         <div ref={ref} className={`message ${message.sender._id.toString() === user._id.toString() ? "" : "else"}`}>

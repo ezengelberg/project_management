@@ -25,6 +25,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
 import Chat from "../Chat/Chat";
+import { useSocket } from "../../utils/SocketContext";
 
 const Sidebar = () => {
     const navigate = useNavigate();
@@ -48,9 +49,7 @@ const Sidebar = () => {
         height: window.innerHeight,
     });
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);
-
-    const socket = io(process.env.REACT_APP_BACKEND_URL, { withCredentials: true });
-    const socketRef = useRef();
+    const { socket, isConnected } = useSocket();
 
     const toggleSidebar = () => {
         setIsSidebarVisible(!isSidebarVisible);
@@ -97,54 +96,82 @@ const Sidebar = () => {
     };
 
     useEffect(() => {
-        // Only create socket if it doesn't exist
-        if (!socketRef.current || !socketRef.current.connected) {
-            socketRef.current = io(process.env.REACT_APP_BACKEND_URL, {
-                withCredentials: true,
-                transports: ["websocket"],
-            });
-            socketRef.current.on("connect", () => {
-                if (chats?.length) {
-                    socketRef.current.emit(
-                        "join_chats",
-                        chats.map((chat) => chat._id),
-                    );
-                }
-            });
-
-            socketRef.current.on("reconnect", () => {
-                console.log("Reconnected! Rejoining chats...");
-                if (chats?.length) {
-                    socketRef.current.emit(
-                        "join_chats",
-                        chats.map((chat) => chat._id),
-                    );
-                }
-            });
-
-            // socketRef.current.on("receive_message", (msg) => {
-            //     setChats((prevChats) => {
-            //         const updatedChats = prevChats.map((chat) => {
-            //             if (
-            //                 chat._id.toString() === msg.chat.toString() &&
-            //                 msg.sender._id.toString() !== user._id.toString()
-            //             ) {
-            //                 chat.unreadTotal = chat.unreadTotal ? chat.unreadTotal + 1 : 1;
-            //             }
-            //             return chat;
-            //         });
-            //         return updatedChats;
-            //     });
-            // });
-        }
-
-        // Cleanup socket only when component unmounts
-        return () => {
-            if (socketRef.current && socketRef.current.connected) {
-                socketRef.current.disconnect();
+        if (!socket) return;
+        socket.on("connect", () => {
+            console.log("Connected to socket! Rejoining chats...");
+            if (chats?.length) {
+                socket.emit(
+                    "join_chats",
+                    chats.map((chat) => chat._id),
+                );
             }
+        });
+
+        socket.on("reconnect", () => {
+            console.log("Reconnected! Rejoining chats...");
+            if (chats?.length) {
+                socket.emit(
+                    "join_chats",
+                    chats.map((chat) => chat._id),
+                );
+            }
+        });
+
+        return () => {
+            socket.off("connect");
+            socket.off("reconnect");
         };
-    }, [chats]); // Empty dependency array
+    }, [socket, chats]);
+
+    // useEffect(() => {
+    //     // Only create socket if it doesn't exist
+    //     if (!socketRef.current || !socketRef.current.connected) {
+    //         socketRef.current = io(process.env.REACT_APP_BACKEND_URL, {
+    //             withCredentials: true,
+    //             transports: ["websocket"],
+    //         });
+    //         socketRef.current.on("connect", () => {
+    //             if (chats?.length) {
+    //                 socketRef.current.emit(
+    //                     "join_chats",
+    //                     chats.map((chat) => chat._id),
+    //                 );
+    //             }
+    //         });
+
+    //         socketRef.current.on("reconnect", () => {
+    //             console.log("Reconnected! Rejoining chats...");
+    //             if (chats?.length) {
+    //                 socketRef.current.emit(
+    //                     "join_chats",
+    //                     chats.map((chat) => chat._id),
+    //                 );
+    //             }
+    //         });
+
+    //         // socketRef.current.on("receive_message", (msg) => {
+    //         //     setChats((prevChats) => {
+    //         //         const updatedChats = prevChats.map((chat) => {
+    //         //             if (
+    //         //                 chat._id.toString() === msg.chat.toString() &&
+    //         //                 msg.sender._id.toString() !== user._id.toString()
+    //         //             ) {
+    //         //                 chat.unreadTotal = chat.unreadTotal ? chat.unreadTotal + 1 : 1;
+    //         //             }
+    //         //             return chat;
+    //         //         });
+    //         //         return updatedChats;
+    //         //     });
+    //         // });
+    //     }
+
+    //     // Cleanup socket only when component unmounts
+    //     return () => {
+    //         if (socketRef.current && socketRef.current.connected) {
+    //             socketRef.current.disconnect();
+    //         }
+    //     };
+    // }, [chats]); // Empty dependency array
 
     const fetchChats = async () => {
         console.log("fetching chats");
@@ -748,7 +775,6 @@ const Sidebar = () => {
                             onClose={() => {
                                 setSelectedChats((prev) => prev.filter((c) => c._id !== chat._id));
                             }}
-                            socket={socketRef.current}
                             onWatch={() => {
                                 setChats((prevChats) => {
                                     const updatedChats = prevChats.map((c) => {

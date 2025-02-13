@@ -16,10 +16,12 @@ import {
 import { Input, Spin } from "antd";
 import MessageReadList from "./MessageReadList";
 import Message from "./Message";
+import { useSocket } from "../../utils/SocketContext";
 
 const { TextArea } = Input;
 
-const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
+const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
+    const { socket, isConnected } = useSocket();
     const [participants, setParticipants] = useState([]);
     const [userSearch, setUserSearch] = useState("");
     const [userResults, setUserResults] = useState([]);
@@ -53,53 +55,106 @@ const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
         fetchChat();
     }, [chatID]);
 
+    // useEffect(() => {
+    //     if (socket) {
+    //         socket.on("receive_message", (msg) => {
+    //             console.log("📩 Received new message:", msg);
+    //             setChatHistory((prevHistory) => {
+    //                 const newHistory = [...prevHistory, msg];
+    //                 newHistory.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    //                 return newHistory;
+    //             });
+    //         });
+    //         socket.on("receive_seen", (message) => {
+    //             setChatHistory((prevHistory) => {
+    //                 const newHistory = prevHistory.map((msg) => {
+    //                     if (msg._id.toString() === message._id.toString()) {
+    //                         return message;
+    //                     }
+    //                     return msg;
+    //                 });
+    //                 return newHistory;
+    //             });
+    //         });
+    //         socket.on("typing_start", (chatUser, chat) => {
+    //             if (chatID._id.toString() !== chat.toString()) return;
+    //             if (chatUser.toString() === user._id.toString()) return;
+    //             console.log(`${chatUser} is typing...`);
+    //             setTypingUsers((prevUsers) => {
+    //                 if (prevUsers.includes(chatUser)) return prevUsers;
+    //                 return [...prevUsers, chatUser];
+    //             });
+    //         });
+    //         socket.on("typing_stop", (user, chat) => {
+    //             if (chatID._id.toString() !== chat.toString()) return;
+    //             console.log(`${user} stopped typing...`);
+    //             setTypingUsers((prevUsers) => prevUsers.filter((u) => u.toString() !== user.toString()));
+    //             console.log("removed user from typing users");
+    //             console.log("typing users:", typingUsers);
+    //         });
+    //     }
+    //     return () => {
+    //         if (socket) {
+    //             socket.off("receive_message");
+    //             socket.off("receive_seen");
+    //             socket.off("typing_start");
+    //             socket.off("typing_stop");
+    //         }
+    //     };
+    // }, [socket]);
+
     useEffect(() => {
-        if (socket) {
-            socket.on("receive_message", (msg) => {
-                console.log("📩 Received new message:", msg);
-                setChatHistory((prevHistory) => {
-                    const newHistory = [...prevHistory, msg];
-                    newHistory.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-                    return newHistory;
+        if (!socket) return; // Wait for socket to be available
+
+        // Listen for new messages
+        socket.on("receive_message", (msg) => {
+            console.log("📩 Received new message:", msg);
+            setChatHistory((prevHistory) => {
+                const newHistory = [...prevHistory, msg];
+                newHistory.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                return newHistory;
+            });
+        });
+
+        // Listen for "seen" updates
+        socket.on("receive_seen", (message) => {
+            setChatHistory((prevHistory) => {
+                const newHistory = prevHistory.map((msg) => {
+                    if (msg._id.toString() === message._id.toString()) {
+                        return message;
+                    }
+                    return msg;
                 });
+                return newHistory;
             });
-            socket.on("receive_seen", (message) => {
-                setChatHistory((prevHistory) => {
-                    const newHistory = prevHistory.map((msg) => {
-                        if (msg._id.toString() === message._id.toString()) {
-                            return message;
-                        }
-                        return msg;
-                    });
-                    return newHistory;
-                });
+        });
+
+        // Listen for typing status updates
+        socket.on("typing_start", (chatUser, chat) => {
+            if (chatID._id.toString() !== chat.toString()) return;
+            if (chatUser.toString() === user._id.toString()) return;
+            console.log(`${chatUser} is typing...`);
+            setTypingUsers((prevUsers) => {
+                if (prevUsers.includes(chatUser)) return prevUsers;
+                return [...prevUsers, chatUser];
             });
-            socket.on("typing_start", (chatUser, chat) => {
-                if (chatID._id.toString() !== chat.toString()) return;
-                if (chatUser.toString() === user._id.toString()) return;
-                console.log(`${chatUser} is typing...`);
-                setTypingUsers((prevUsers) => {
-                    if (prevUsers.includes(chatUser)) return prevUsers;
-                    return [...prevUsers, chatUser];
-                });
-            });
-            socket.on("typing_stop", (user, chat) => {
-                if (chatID._id.toString() !== chat.toString()) return;
-                console.log(`${user} stopped typing...`);
-                setTypingUsers((prevUsers) => prevUsers.filter((u) => u.toString() !== user.toString()));
-                console.log("removed user from typing users");
-                console.log("typing users:", typingUsers);
-            });
-        }
+        });
+
+        // Listen for typing stop
+        socket.on("typing_stop", (user, chat) => {
+            if (chatID._id.toString() !== chat.toString()) return;
+            console.log(`${user} stopped typing...`);
+            setTypingUsers((prevUsers) => prevUsers.filter((u) => u.toString() !== user.toString()));
+        });
+
+        // Cleanup on unmount
         return () => {
-            if (socket) {
-                socket.off("receive_message");
-                socket.off("receive_seen");
-                socket.off("typing_start");
-                socket.off("typing_stop");
-            }
+            socket.off("receive_message");
+            socket.off("receive_seen");
+            socket.off("typing_start");
+            socket.off("typing_stop");
         };
-    }, [socket]);
+    }, [socket, chatID]);
 
     const scrollIntoView = () => {
         if (chatHistory.length > 0) {
@@ -148,11 +203,11 @@ const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
 
     const updateTyping = () => {
         if (isTyping) return;
-        socket.emit("typing start", { chatID: chatID._id, user: user._id });
         setIsTyping(true);
+        socket.emit("typing start", { chatID: chatID._id, user: user._id });
         setTimeout(() => {
             setIsTyping(false);
-            if (isTyping) socket.emit("typing stop", { chatID: chatID._id, user: user._id });
+            socket.emit("typing stop", { chatID: chatID._id, user: user._id });
         }, 5000);
     };
 
@@ -425,11 +480,7 @@ const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
                                         typingUsers.map((user) => (
                                             <div key={user} className="typing-user">
                                                 <span>
-                                                    {
-                                                        participants.find((p) => p._id.toString() === user.toString())
-                                                            .name
-                                                    }{" "}
-                                                    מקליד\ה...
+                                                    {participants.find((p) => p._id.toString() === user).name} מקליד\ה...
                                                 </span>
                                             </div>
                                         ))}
