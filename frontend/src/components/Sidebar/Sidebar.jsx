@@ -101,7 +101,7 @@ const Sidebar = () => {
         if (!socketRef.current || !socketRef.current.connected) {
             socketRef.current = io(process.env.REACT_APP_BACKEND_URL, {
                 withCredentials: true,
-                transports: ["websocket", "polling"],
+                transports: ["websocket"],
             });
             socketRef.current.on("connect", () => {
                 if (chats?.length) {
@@ -111,6 +111,17 @@ const Sidebar = () => {
                     );
                 }
             });
+
+            socketRef.current.on("reconnect", () => {
+                console.log("Reconnected! Rejoining chats...");
+                if (chats?.length) {
+                    socketRef.current.emit(
+                        "join_chats",
+                        chats.map((chat) => chat._id),
+                    );
+                }
+            });
+
             socketRef.current.on("receive_message", (msg) => {
                 setChats((prevChats) => {
                     const updatedChats = prevChats.map((chat) => {

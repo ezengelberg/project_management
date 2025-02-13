@@ -26,7 +26,6 @@ const Message = ({ message, user, participants, onWatch, socket, chatID, checkWa
             const isSeenByUser = message.seenBy.some((u) => u.user._id.toString() === user._id.toString());
 
             if (!isSeenByUser) {
-                console.log("MESSAGE SEEN");
                 onWatch(); // Trigger parent update
                 socket.emit("seen_message", { messageID: message._id, chatID: chatID._id, user: user._id });
                 setSeen(true);
