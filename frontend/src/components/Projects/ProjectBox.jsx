@@ -5,7 +5,7 @@ import { Tooltip } from "antd";
 import axios from "axios";
 import { processContent } from "../../utils/htmlProcessor";
 
-const ProjectBox = ({ markFavorite, ...props }) => {
+const ProjectBox = ({ markFavorite, isMyProject, ...props }) => {
   const navigate = useNavigate();
   const [advisors, setAdvisors] = useState([]);
 
@@ -31,7 +31,8 @@ const ProjectBox = ({ markFavorite, ...props }) => {
   }, []);
 
   return (
-    <div className={`project-overlay ${props.isTaken ? "project-overlay-taken" : ""}`}>
+    <div
+      className={`project-overlay ${props.isTaken ? "project-overlay-taken" : ""} ${isMyProject ? "my-project" : ""}`}>
       <div className="taken-tag">נלקח</div>
       <div className={`project-box ${props.isTaken ? "project-box-taken" : ""}`}>
         <svg fill="#000000" width="32px" height="32px" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">

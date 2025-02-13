@@ -7,6 +7,10 @@ import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const Projects = () => {
   const { fetchNotifications } = useContext(NotificationsContext);
+  const [currentUser, setCurrentUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : {};
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [projects, setProjects] = useState([]);
 
@@ -27,12 +31,15 @@ const Projects = () => {
                   withCredentials: true,
                 }
               );
+              const myProject = project.students.map((student) => student.student).includes(currentUser._id);
               return {
                 ...project,
                 isFavorite: responsePerProject.data.favorite,
+                myProject,
               };
             })
         );
+
         setProjects(sortProjects(projectsWithFavorites)); // Set sorted projects
         setIsLoading(false);
       } catch (error) {
@@ -83,6 +90,10 @@ const Projects = () => {
 
   const sortProjects = (projectList) => {
     projectList.sort((a, b) => {
+      // If a project is the user's project, it should go first
+      if (a.myProject && !b.myProject) return -1;
+      if (!a.myProject && b.myProject) return 1;
+
       // If a project is taken, it should go last
       if (a.isTaken && !b.isTaken) return 1;
       if (!a.isTaken && b.isTaken) return -1;
@@ -90,6 +101,7 @@ const Projects = () => {
       // If neither or both are taken, sort by favorite
       if (a.isFavorite && !b.isFavorite) return -1;
       if (!a.isFavorite && b.isFavorite) return 1;
+
       return 0;
     });
 
@@ -123,6 +135,7 @@ const Projects = () => {
                   markFavorite={() => {
                     toggleFavorite(project);
                   }}
+                  isMyProject={project.myProject}
                 />
               ))
             ) : (
