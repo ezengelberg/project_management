@@ -190,14 +190,15 @@ const activeChats = {};
 io.on("connection", (socket) => {
     socket.on("join_chats", (chats) => {
         chats.forEach((chat) => {
+            console.log(`User ${socket.id} joining chat: ${chat}`);
             socket.join(chat);
-            // console.log(`User joined chat: ${chat}`);
+            console.log(`User joined chat: ${chat}`);
 
             if (!activeChats[chat]) {
                 activeChats[chat] = new Set();
             }
             activeChats[chat].add(socket.id);
-            // console.log(`Active users in chat ${chat}:`, activeChats[chat]);
+            console.log(`Active users in chat ${chat}:`, activeChats[chat]);
         });
     });
 
@@ -216,6 +217,7 @@ io.on("connection", (socket) => {
 
     socket.on("typing start", async ({ chatID, user }) => {
         try {
+            console.log("User started typing:", user, chatID);
             io.to(chatID).emit("typing_start", user, chatID);
         } catch (error) {
             console.error("Error sending typing start:", error);
@@ -224,6 +226,7 @@ io.on("connection", (socket) => {
 
     socket.on("typing stop", async ({ chatID, user }) => {
         try {
+            console.log("User stopped typing:", user, chatID);
             io.to(chatID).emit("typing_stop", user, chatID);
         } catch (error) {
             console.error("Error sending typing stop:", error);

@@ -21,17 +21,17 @@ const Message = ({ message, user, participants, onWatch, socket, chatID, checkWa
 
     const [seen, setSeen] = useState(false);
 
-    useEffect(() => {
-        if (inView && !seen) {
-            const isSeenByUser = message.seenBy.some((u) => u.user._id.toString() === user._id.toString());
+    // useEffect(() => {
+    //     if (inView && !seen) {
+    //         const isSeenByUser = message.seenBy.some((u) => u.user._id.toString() === user._id.toString());
 
-            if (!isSeenByUser) {
-                onWatch(); // Trigger parent update
-                socket.emit("seen_message", { messageID: message._id, chatID: chatID._id, user: user._id });
-                setSeen(true);
-            }
-        }
-    }, [inView, seen, message, user, chatID, onWatch, socket]);
+    //         if (!isSeenByUser) {
+    //             onWatch(); // Trigger parent update
+    //             socket.emit("seen_message", { messageID: message._id, chatID: chatID._id, user: user._id });
+    //             setSeen(true);
+    //         }
+    //     }
+    // }, [inView, seen, message, user, chatID, onWatch, socket]);
 
     return (
         <div ref={ref} className={`message ${message.sender._id.toString() === user._id.toString() ? "" : "else"}`}>

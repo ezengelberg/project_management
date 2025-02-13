@@ -56,7 +56,7 @@ const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
     useEffect(() => {
         if (socket) {
             socket.on("receive_message", (msg) => {
-                console.log("Received message");
+                console.log("📩 Received new message:", msg);
                 setChatHistory((prevHistory) => {
                     const newHistory = [...prevHistory, msg];
                     newHistory.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
@@ -152,7 +152,7 @@ const Chat = ({ chatID, onClose, socket, onWatch, onCreateChat }) => {
         setIsTyping(true);
         setTimeout(() => {
             setIsTyping(false);
-            socket.emit("typing stop", { chatID: chatID._id, user: user._id });
+            if (isTyping) socket.emit("typing stop", { chatID: chatID._id, user: user._id });
         }, 5000);
     };
 

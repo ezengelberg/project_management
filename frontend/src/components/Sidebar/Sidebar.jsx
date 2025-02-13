@@ -122,20 +122,20 @@ const Sidebar = () => {
                 }
             });
 
-            socketRef.current.on("receive_message", (msg) => {
-                setChats((prevChats) => {
-                    const updatedChats = prevChats.map((chat) => {
-                        if (
-                            chat._id.toString() === msg.chat.toString() &&
-                            msg.sender._id.toString() !== user._id.toString()
-                        ) {
-                            chat.unreadTotal = chat.unreadTotal ? chat.unreadTotal + 1 : 1;
-                        }
-                        return chat;
-                    });
-                    return updatedChats;
-                });
-            });
+            // socketRef.current.on("receive_message", (msg) => {
+            //     setChats((prevChats) => {
+            //         const updatedChats = prevChats.map((chat) => {
+            //             if (
+            //                 chat._id.toString() === msg.chat.toString() &&
+            //                 msg.sender._id.toString() !== user._id.toString()
+            //             ) {
+            //                 chat.unreadTotal = chat.unreadTotal ? chat.unreadTotal + 1 : 1;
+            //             }
+            //             return chat;
+            //         });
+            //         return updatedChats;
+            //     });
+            // });
         }
 
         // Cleanup socket only when component unmounts
