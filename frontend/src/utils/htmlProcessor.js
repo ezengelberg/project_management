@@ -1,4 +1,5 @@
 import DOMPurify from "dompurify";
+import truncate from "html-truncate";
 
 export const processContent = (content, maxLength = null) => {
   if (!content) return "";
@@ -72,10 +73,7 @@ export const processContent = (content, maxLength = null) => {
 
   // If maxLength is provided, truncate the content
   if (maxLength) {
-    const textContent = div.textContent;
-    if (textContent.length > maxLength) {
-      return DOMPurify.sanitize(textContent.slice(0, maxLength) + "...");
-    }
+    return truncate(div.innerHTML, maxLength);
   }
 
   return div.innerHTML;

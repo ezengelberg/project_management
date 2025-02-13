@@ -193,6 +193,7 @@ const ManageProjects = () => {
     fetchData();
     getUsersNoProjects();
     fetchYears();
+    fetchNotifications();
   }, []);
 
   useEffect(() => {
@@ -224,7 +225,7 @@ const ManageProjects = () => {
     getColumnSearchPropsUtil(dataIndex, searchInput, handleSearch, handleReset, searchText);
 
   const closeRegistration = (record) => async () => {
-    if(record.students && record.students.length === 0) {
+    if (record.students && record.students.length === 0) {
       message.open({
         type: "warning",
         content: "לא ניתן לסגור פרויקט להרשמה ללא סטודנטים",
@@ -312,6 +313,7 @@ const ManageProjects = () => {
         duration: 2,
       });
       fetchNotifications();
+      await fetchData();
       setProjects((prevProjects) =>
         prevProjects.map((project) => {
           if (project.key === record.projectID) {
@@ -440,6 +442,7 @@ const ManageProjects = () => {
           return project;
         })
       );
+      await fetchData();
       fetchNotifications();
     } catch (error) {
       console.error("Error occurred:", error);

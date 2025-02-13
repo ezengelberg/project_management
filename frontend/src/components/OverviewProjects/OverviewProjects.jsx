@@ -69,11 +69,36 @@ const OverviewProjects = () => {
         ]);
 
         const activeUsers = usersRes.data.filter((user) => !user.suspended);
-        setProjects(projectsRes.data);
+
+        const projectWithCandidates = await Promise.all(
+          projectsRes.data.map(async (project) => {
+            const candidates = await Promise.all(
+              project.candidates.map(async (candidate) => {
+                const candidateUser = activeUsers.find((user) => user._id === candidate.student);
+                const hasProjectResponse = await axios.get(
+                  `${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${candidate.student}`,
+                  { withCredentials: true }
+                );
+                return {
+                  ...candidate,
+                  ...candidateUser,
+                  hasProject: hasProjectResponse.data.hasProject,
+                  status: project.students.some((student) => student.student === candidate.student),
+                };
+              })
+            );
+            return {
+              ...project,
+              candidates,
+            };
+          })
+        );
+
+        setProjects(projectWithCandidates);
         setUsers(usersRes.data);
         setSubmissions(submissionsRes.data);
 
-        const years = Array.from(new Set(projectsRes.data.map((project) => project.year))).sort((a, b) =>
+        const years = Array.from(new Set(projectWithCandidates.map((project) => project.year))).sort((a, b) =>
           b.localeCompare(a)
         );
         setYears(years);
@@ -83,7 +108,7 @@ const OverviewProjects = () => {
 
         // Filter users without projects
         const usersWithProject = new Set(
-          projectsRes.data.flatMap((project) => project.students.map((student) => student.student.toString()))
+          projectWithCandidates.flatMap((project) => project.students.map((student) => student.student.toString()))
         );
 
         setUsersWithoutProjects(
@@ -101,6 +126,7 @@ const OverviewProjects = () => {
     };
 
     fetchData();
+    fetchNotifications();
   }, []);
 
   const handleAddStudents = async () => {
@@ -524,6 +550,199 @@ const OverviewProjects = () => {
     }
   };
 
+  const approveProject = async (projectId) => {
+    setLoading(true);
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/switch-registration`,
+        { projectID: projectId },
+        { withCredentials: true }
+      );
+
+      // Update local state
+      const updatedProjects = projects.map((project) => {
+        if (project._id === projectId) {
+          return {
+            ...project,
+            isTaken: !project.isTaken,
+          };
+        }
+        return project;
+      });
+
+      setProjects(updatedProjects);
+      message.success("הפרויקט אושר בהצלחה!");
+      fetchNotifications();
+    } catch (error) {
+      console.error("Error approving project:", error);
+      message.error("שגיאה באישור פרויקט");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const approveCandidate = async (projectId, studentId) => {
+    setLoading(true);
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/approve-candidate`,
+        {
+          projectID: projectId,
+          userID: studentId,
+        },
+        { withCredentials: true }
+      );
+
+      // Update local state
+      const updatedProjects = projects.map((project) => {
+        if (project._id === projectId) {
+          const updatedProject = {
+            ...project,
+            students: [...project.students, { student: studentId }],
+            candidates: project.candidates.filter((candidate) => candidate._id !== studentId),
+          };
+          return updatedProject;
+        }
+        return project;
+      });
+
+      setProjects(updatedProjects);
+      setUsersWithoutProjects(usersWithoutProjects.filter((user) => user._id !== studentId));
+
+      setSelectedProject(null);
+      setSelectedStudents([]);
+      message.success("הסטודנט אושר בהצלחה!");
+      fetchNotifications();
+    } catch (error) {
+      if (error.response.status === 409) {
+        message.info("כבר יש 2 סטודנטים בפרויקט זה");
+      } else {
+        message.error("שגיאה באישור סטודנט");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDenyCandidate = async (projectId, studentId) => {
+    setLoading(true);
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/project/remove-candidate`,
+        {
+          projectID: projectId,
+          userID: studentId,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      // Update local state
+      const updatedProjects = projects.map((project) => {
+        if (project._id === projectId) {
+          const updatedProject = {
+            ...project,
+            candidates: project.candidates.filter((candidate) => candidate._id !== studentId),
+          };
+          return updatedProject;
+        }
+        return project;
+      });
+
+      setProjects(updatedProjects);
+      setUsersWithoutProjects([...usersWithoutProjects, users.find((user) => user._id === studentId)]);
+
+      message.success("הסטודנט נדחה בהצלחה!");
+      fetchNotifications();
+    } catch (error) {
+      console.error("Error denying candidate:", error);
+      message.error("שגיאה בדחיית סטודנט");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const candidatesExpandedRowRender = (record) => {
+    const candidatesColumns = [
+      {
+        title: "שם הסטודנט",
+        dataIndex: "name",
+        key: "name",
+        render: (text, candidate) => (
+          <a
+            onClick={() => navigate(`/profile/${candidate._id}`)}
+            onMouseDown={(e) => handleMouseDown(e, `/profile/${candidate._id}`)}>
+            {candidate.name}
+          </a>
+        ),
+        sorter: (a, b) => a.name.localeCompare(b.name),
+        sortDirections: ["descend", "ascend"],
+        width: windowSize.width > 1200 ? "25%" : windowSize.width > 626 ? 300 : 200,
+      },
+      {
+        title: "תאריך הרשמה",
+        dataIndex: "joinDate",
+        key: "joinDate",
+        render: (joinDate) => new Date(joinDate).toLocaleString("he-IL", { dateStyle: "short", timeStyle: "medium" }),
+        sorter: (a, b) => new Date(a.joinDate) - new Date(b.joinDate),
+        sortDirections: ["descend", "ascend"],
+        width: windowSize.width > 1200 ? "25%" : windowSize.width > 626 ? 300 : 200,
+      },
+      {
+        title: "סטטוס",
+        dataIndex: "status",
+        key: "status",
+        render: (status, candidate) => {
+          if (status) {
+            return <Badge status="success" text="מאושר" />;
+          } else if (candidate.hasProject) {
+            return <Badge color="purple" text="לא מאושר - משוייך לפרויקט אחר" />;
+          } else {
+            return <Badge status="error" text="לא מאושר" />;
+          }
+        },
+        width: windowSize.width > 1200 ? "30%" : windowSize.width > 626 ? 300 : 200,
+      },
+      {
+        title: "פעולות",
+        key: "actions",
+        render: (_, candidate) => (
+          <div className="extended-actions">
+            <Button
+              color="cyan"
+              variant="filled"
+              disabled={candidate.hasProject}
+              onClick={() => {
+                approveCandidate(record._id, candidate._id);
+              }}>
+              אשר סטודנט
+            </Button>
+            <Button
+              color="danger"
+              variant="filled"
+              onClick={() => {
+                handleDenyCandidate(record._id, candidate._id);
+              }}>
+              דחה סטודנט
+            </Button>
+          </div>
+        ),
+        width: windowSize.width > 1200 ? "20%" : windowSize.width > 626 ? 300 : 200,
+      },
+    ];
+
+    return (
+      <Table
+        columns={candidatesColumns}
+        dataSource={record.candidates.map((candidate) => ({ ...candidate, key: candidate._id }))}
+        pagination={false}
+        bordered={true}
+        scroll={{ x: "max-content" }}
+      />
+    );
+  };
+
   const expandedRowRender = (record) => {
     const projectSubmissions = submissions.filter((submission) => submission.project === record._id);
     const expandColumns = projectSubmissions.map((submission, index) => ({
@@ -856,6 +1075,13 @@ const OverviewProjects = () => {
                 עדכן סטודנטים
               </Button>
             )}
+            <Button
+              color="cyan"
+              variant="filled"
+              onClick={() => approveProject(record._id)}
+              disabled={record.students.length === 0 || record.advisors.length === 0}>
+              אשר פרויקט
+            </Button>
             <Button
               color="danger"
               variant="filled"
@@ -1356,6 +1582,10 @@ const OverviewProjects = () => {
             dataSource={filteredOpenProjects}
             loading={loading}
             rowKey="_id"
+            expandable={{
+              expandedRowRender: candidatesExpandedRowRender,
+              defaultExpandedRowKeys: [],
+            }}
             scroll={{ x: "max-content" }}
           />
         </>

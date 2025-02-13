@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import "./GradeSubmission.scss";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Button, Form, Input, Select, message, Spin } from "antd";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const GradeSubmission = () => {
   const navigate = useNavigate();
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [form] = Form.useForm();
   const { Option } = Select;
   const [user, setUser] = useState(() => {
@@ -51,6 +53,7 @@ const GradeSubmission = () => {
     };
 
     fetchProjectData();
+    fetchNotifications();
   }, [submissionId]);
 
   const onFinish = async (values) => {

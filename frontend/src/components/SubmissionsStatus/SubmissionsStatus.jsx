@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import "./SubmissionsStatus.scss";
 import axios from "axios";
 import Highlighter from "react-highlight-words";
@@ -8,9 +8,11 @@ import { useNavigate } from "react-router-dom";
 import { Table, Divider, Badge, Button, Tooltip, Select } from "antd";
 import { downloadFile } from "../../utils/downloadFile";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const SubmissionsStatus = () => {
   const navigate = useNavigate();
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -102,6 +104,7 @@ const SubmissionsStatus = () => {
     };
 
     fetchData();
+    fetchNotifications();
   }, []);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {

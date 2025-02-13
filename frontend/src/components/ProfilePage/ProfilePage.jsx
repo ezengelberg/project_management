@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { useParams } from "react-router-dom";
 import "./ProfilePage.scss";
 import axios from "axios";
 import { Avatar, Modal, message, Button, Form, Input, Alert } from "antd";
 import { MailOutlined, IdcardOutlined, UserOutlined } from "@ant-design/icons";
 import { fetchUserProjectStatistics, renderUserProjectStatisticsChart } from "../../utils/basicStatistics";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const ProfilePage = () => {
   const { userId } = useParams();
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [currentUser, setCurrentUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
@@ -75,6 +77,7 @@ const ProfilePage = () => {
 
     fetchUser();
     renderStatisticsChart();
+    fetchNotifications();
 
     return () => {
       if (statisticsChartInstance.current) {
@@ -148,9 +151,10 @@ const ProfilePage = () => {
           </h3>
           {(currentUser.isCoordinator || currentUser._id === user?._id) && (
             <div className="private-info">
-              {(currentUser.isCoordinator || (currentUser._id === user?._id && currentUser.isAdvisor)) && (
+              {((currentUser.isCoordinator && (user?.isAdvisor || user?.isJudge || user?.isCoordinator)) ||
+                (currentUser._id === user?._id && currentUser.isAdvisor)) && (
                 <h3>
-                  <InterestsSVG /> תחומי עניין: {user?.interests}
+                  <InterestsSVG /> תחומי עניין: {user?.interests || "לא צוין"}
                 </h3>
               )}
               <h3>

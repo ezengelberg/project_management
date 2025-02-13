@@ -56,6 +56,7 @@ const CreateProject = () => {
   const [isOtherType, setIsOtherType] = useState(false);
   const [projectCreated, setProjectCreated] = useState(false);
   const [projectCreatedId, setProjectCreatedId] = useState("");
+  const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -193,6 +194,7 @@ const CreateProject = () => {
   };
 
   const onFinish = async (values) => {
+    setLoading(true);
     const processedDescription = processEditorContent(values.description);
     const finalValues = {
       ...values,
@@ -232,6 +234,8 @@ const CreateProject = () => {
       } else {
         message.error("שגיאה ביצירת הפרויקט");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -432,7 +436,7 @@ const CreateProject = () => {
 
         <Form.Item className="create-project-form-item">
           <div className="form-buttons">
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={loading}>
               צור פרויקט
             </Button>
             <Button danger onClick={onReset}>

@@ -140,6 +140,8 @@ app.use("/api/random", randomRoute);
 app.use("/api/config", configRoute);
 app.use("/uploads", express.static("uploads")); // Serve uploaded files
 app.use("/api/group", groupRoute);
+app.use("/api/mission", missionRoute);
+app.use("/api/zoom", zoomRoute);
 app.use("/api/announcement", announcementRoute);
 app.use("/api/chat", chatRoute);
 
@@ -168,6 +170,8 @@ server.listen(server_port, () => {
     });
     console.log(`Server is running at port: ${server_port}`);
 });
+
+// ----------------- Scheduler -----------------
 
 import updateRecurringMeetings from "./scheduler/meetingScheduler.js";
 import schedule from "node-schedule";

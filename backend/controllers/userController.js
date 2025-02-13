@@ -277,6 +277,7 @@ export const getUserName = async (req, res) => {
 };
 
 export const getUser = async (req, res) => {
+  console.log("fetching user");
   const user = req.user;
   const userObj = user.toObject();
   delete userObj.password;

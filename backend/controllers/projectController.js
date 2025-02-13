@@ -117,6 +117,15 @@ export const createProject = async (req, res) => {
     let newProject;
     const advisorsList = [];
     const studentsList = [];
+    if (students.length > 0) {
+      for (const stud of students) {
+        const studentUser = await User.findOne({ id: stud.id, isStudent: true });
+        if (!studentUser) {
+          return res.status(505).send({ message: `Student ${stud.name} not found` });
+        }
+        studentsList.push({ student: studentUser });
+      }
+    }
     if (req.user.isAdvisor && !req.user.isCoordinator) {
       newProject = new Project({
         ...req.body,
@@ -126,6 +135,7 @@ export const createProject = async (req, res) => {
         isTerminated: false,
         isTaken: false,
         grades: [],
+        students: studentsList,
         journal: { missions: [] },
       });
     } else {
@@ -136,15 +146,6 @@ export const createProject = async (req, res) => {
             return res.status(505).send({ message: `Advisor ${adv.name} not found` });
           }
           advisorsList.push(advisorUser);
-        }
-      }
-      if (students.length > 0) {
-        for (const stud of students) {
-          const studentUser = await User.findOne({ id: stud.id, isStudent: true });
-          if (!studentUser) {
-            return res.status(505).send({ message: `Student ${stud.name} not found` });
-          }
-          studentsList.push({ student: studentUser });
         }
       }
       newProject = new Project({

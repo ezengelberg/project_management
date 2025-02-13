@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
 import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
@@ -6,9 +6,11 @@ import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/ta
 import { useNavigate } from "react-router-dom";
 import { Table, Divider, Select } from "antd";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const JournalStatus = () => {
   const navigate = useNavigate();
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -82,6 +84,7 @@ const JournalStatus = () => {
     };
 
     fetchData();
+    fetchNotifications();
   }, []);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {

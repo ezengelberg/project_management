@@ -27,7 +27,7 @@ const ProjectPage = () => {
           `${process.env.REACT_APP_BACKEND_URL}/api/project/check-if-candidate/${projectID}`,
           {
             withCredentials: true,
-          },
+          }
         );
         setIsCandidate(response.data.isCandidate);
       } catch (error) {
@@ -53,6 +53,7 @@ const ProjectPage = () => {
     };
     checkIfUserCandidate();
     getAdvisorInfo();
+    fetchNotifications();
   }, [projectData, projectID]);
 
   useEffect(() => {
@@ -63,7 +64,7 @@ const ProjectPage = () => {
           `${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${user._id}`,
           {
             withCredentials: true,
-          },
+          }
         );
         setHasProject(response.data.hasProject);
       } catch (error) {
@@ -100,14 +101,16 @@ const ProjectPage = () => {
         type: "loading",
         content: "מבצע הסרת הרשמה מהפרויקט...",
       });
-      const response = await axios.get(`/api/user/get-user`, {
+      console.log("sending req");
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, {
         withCredentials: true,
       });
+      console.log("response", response);
       const userID = response.data._id;
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/remove-candidate`,
         { projectID: projectID, userID: userID },
-        { withCredentials: true },
+        { withCredentials: true }
       );
       setTimeout(() => {
         message.open({
@@ -137,7 +140,7 @@ const ProjectPage = () => {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/add-candidate`,
         { projectID: projectID },
-        { withCredentials: true },
+        { withCredentials: true }
       );
       setTimeout(() => {
         message.open({

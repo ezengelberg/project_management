@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import "./CreateUser.scss";
 import { DeleteOutlined, InboxOutlined } from "@ant-design/icons";
 import axios from "axios";
 import Papa from "papaparse";
 import { Popconfirm } from "antd";
 import { Button, Form, Input, Select, message, Upload, Table, Checkbox, Tooltip } from "antd";
+import { NotificationsContext } from "../../utils/NotificationsContext";
 const { Dragger } = Upload;
 
 const CreateUser = () => {
+  const { fetchNotifications } = useContext(NotificationsContext);
   const [form] = Form.useForm();
   const [users, setUsers] = useState([]);
   const [windowSize, setWindowSize] = useState({
@@ -25,6 +27,10 @@ const CreateUser = () => {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
   }, []);
 
   const onFinish = async (values) => {
