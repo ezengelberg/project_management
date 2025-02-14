@@ -484,21 +484,25 @@ const Submissions = () => {
           name = "דוח הצעה";
           isGraded = submissionOptions.find((option) => option.value === "proposalReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "proposalReport").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "proposalReport").fileNeeded;
           break;
         case "alphaReport":
           name = "דוח אלפה";
           isGraded = submissionOptions.find((option) => option.value === "alphaReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "alphaReport").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "proposalReport").fileNeeded;
           break;
         case "finalReport":
           name = "דוח סופי";
           isGraded = submissionOptions.find((option) => option.value === "finalReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "finalReport").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "proposalReport").fileNeeded;
           break;
         case "finalExam":
           name = "מבחן סוף";
           isGraded = submissionOptions.find((option) => option.value === "finalExam").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "finalExam").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "proposalReport").fileNeeded;
           break;
         default: // other...
           name = values.submissionName || "ללא שם";
