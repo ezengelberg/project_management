@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useInView } from "react-intersection-observer";
 import axios from "axios";
 import "./Chat.scss";
 
@@ -28,15 +27,14 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
     const [message, setMessage] = useState("");
     const [loadingUsers, setLoadingUsers] = useState(false);
     const [chatHistory, setChatHistory] = useState([]);
-    const [seenUnread, setSeenUnread] = useState(false);
-    const [sentMessage, setSentMessage] = useState(false);
     const [watchMessage, setWatchMessage] = useState(null);
     const [isTyping, setIsTyping] = useState(false);
     const [typingUsers, setTypingUsers] = useState([]);
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
+    const [loaded, setLoaded] = useState(false);
 
-    const messageRefs = useRef([]);
-
-    const user = JSON.parse(localStorage.getItem("user"));
+    const messageRefs = useRef({});
+    const typingRef = useRef(null);
 
     const checkmarkSVG = (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
@@ -55,56 +53,8 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
         fetchChat();
     }, [chatID]);
 
-    // useEffect(() => {
-    //     if (socket) {
-    //         socket.on("receive_message", (msg) => {
-    //             console.log("📩 Received new message:", msg);
-    //             setChatHistory((prevHistory) => {
-    //                 const newHistory = [...prevHistory, msg];
-    //                 newHistory.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    //                 return newHistory;
-    //             });
-    //         });
-    //         socket.on("receive_seen", (message) => {
-    //             setChatHistory((prevHistory) => {
-    //                 const newHistory = prevHistory.map((msg) => {
-    //                     if (msg._id.toString() === message._id.toString()) {
-    //                         return message;
-    //                     }
-    //                     return msg;
-    //                 });
-    //                 return newHistory;
-    //             });
-    //         });
-    //         socket.on("typing_start", (chatUser, chat) => {
-    //             if (chatID._id.toString() !== chat.toString()) return;
-    //             if (chatUser.toString() === user._id.toString()) return;
-    //             console.log(`${chatUser} is typing...`);
-    //             setTypingUsers((prevUsers) => {
-    //                 if (prevUsers.includes(chatUser)) return prevUsers;
-    //                 return [...prevUsers, chatUser];
-    //             });
-    //         });
-    //         socket.on("typing_stop", (user, chat) => {
-    //             if (chatID._id.toString() !== chat.toString()) return;
-    //             console.log(`${user} stopped typing...`);
-    //             setTypingUsers((prevUsers) => prevUsers.filter((u) => u.toString() !== user.toString()));
-    //             console.log("removed user from typing users");
-    //             console.log("typing users:", typingUsers);
-    //         });
-    //     }
-    //     return () => {
-    //         if (socket) {
-    //             socket.off("receive_message");
-    //             socket.off("receive_seen");
-    //             socket.off("typing_start");
-    //             socket.off("typing_stop");
-    //         }
-    //     };
-    // }, [socket]);
-
     useEffect(() => {
-        if (!socket) return; // Wait for socket to be available
+        if (!socket || !chatID) return; // Wait for socket to be available
 
         // Listen for new messages
         socket.on("receive_message", (msg) => {
@@ -118,6 +68,7 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
 
         // Listen for "seen" updates
         socket.on("receive_seen", (message) => {
+            console.log("👁️ Message seen by:", message.seenBy);
             setChatHistory((prevHistory) => {
                 const newHistory = prevHistory.map((msg) => {
                     if (msg._id.toString() === message._id.toString()) {
@@ -156,17 +107,34 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
         };
     }, [socket, chatID]);
 
-    const scrollIntoView = () => {
-        if (chatHistory.length > 0) {
-            const unreadMessage = chatHistory.find(
-                (message) => !message.seenBy.some((u) => u.user._id.toString() === user._id.toString()),
-            );
-            if (unreadMessage && messageRefs.current[unreadMessage._id] && !seenUnread) {
-                messageRefs.current[unreadMessage._id].scrollIntoView({ behavior: "smooth", block: "end" });
-                setSeenUnread(true);
-            }
-            if (!seenUnread && !unreadMessage) scrollToBottom();
+    useEffect(() => {
+        const unseenmessage = getLastUnread();
+        if (!unseenmessage && typingRef.current) {
+            typingRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
         }
+    }, [typingUsers]);
+
+    const getLastUnread = () => {
+        const unreadMessage = chatHistory.find(
+            (message) =>
+                !message.seenBy.some((u) => {
+                    return u.user._id.toString() === user._id.toString();
+                }),
+        );
+        return unreadMessage;
+    };
+
+    const scrollIntoView = (msg) => {
+        if (chatHistory.length === 0 || !chatHistory || !messageRefs.current) return;
+        console.log("SCROLLING TO MESSAGE");
+        console.log(msg);
+        console.log(messageRefs.current[msg._id]);
+        if (msg && messageRefs.current[msg._id]) {
+            console.log("SCROLLING TO MESSAGE ffff");
+            messageRefs.current[msg._id].scrollIntoView({ behavior: "smooth", block: "end" });
+        }
+        if (!msg) scrollToBottom();
+        setLoaded(true);
     };
 
     const scrollToBottom = () => {
@@ -212,17 +180,15 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
     };
 
     useEffect(() => {
-        if (!seenUnread) {
-            scrollIntoView();
+        console.log("loaded trigger");
+        if (!chatHistory || chatHistory.length === 0) return;
+        if (!loaded) {
+            const lastUnreadMessage = getLastUnread();
+            if (lastUnreadMessage) {
+                scrollIntoView(lastUnreadMessage);
+            }
         }
-    }, [chatHistory]);
-
-    useEffect(() => {
-        if (seenUnread && sentMessage) {
-            scrollToBottom();
-            setSentMessage(false);
-        }
-    }, [chatHistory.length]);
+    }, [chatHistory, user, loaded, messageRefs.current]);
 
     const fetchChat = async () => {
         if (chatID === "") return;
@@ -264,7 +230,6 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
     const sendMessage = async () => {
         if (message === "" || message.trim() === "") return;
         socket.emit("typing stop", { chatID: chatID._id, user: user._id });
-        setSentMessage(true);
         try {
             const response = await axios.post(
                 `${process.env.REACT_APP_BACKEND_URL}/api/chat/send`,
@@ -433,6 +398,7 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
                             return (
                                 <Message
                                     key={message._id}
+                                    ref={(el) => (messageRefs.current[message._id] = el)}
                                     message={message}
                                     user={user}
                                     participants={participants}
@@ -441,46 +407,17 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
                                     chatID={chatID}
                                     checkWatchers={() => setWatchMessage(message)}
                                 />
-                                // <div
-                                //     key={message._id}
-                                //     className={`message ${
-                                //         message.sender._id.toString() === user._id.toString() ? "" : "else"
-                                //     }`}
-                                //     ref={(el) => {
-                                //         if (el) {
-                                //             messageRefs.current[message._id] = el;
-                                //         }
-                                //     }}>
-                                //     <div className="message-header">
-                                //         <div className="sender">{message.sender.name}</div>
-                                //         <div className="time">
-                                //             {new Date(message.createdAt).toLocaleDateString("he-IL", {
-                                //                 hour: "2-digit",
-                                //                 minute: "2-digit",
-                                //             })}
-                                //         </div>
-                                //     </div>
-                                //     <div className="message-text">{message.message}</div>
-                                //     {message.sender._id.toString() === user._id.toString() && (
-                                //         <div
-                                //             className={`seen ${
-                                //                 message.seenBy.length === participants.length ? "all" : ""
-                                //             }`}
-                                //             onClick={() => setWatchMessage(message)}>
-                                //             {checkmarkSVG}
-                                //         </div>
-                                //     )}
-                                // </div>
                             );
                         })}
                         <div className="actively-typing">
                             {typingUsers.length > 0 && (
-                                <div className="typing-users">
+                                <div className="typing-users" ref={typingRef}>
                                     {typingUsers.length === 1 &&
                                         typingUsers.map((user) => (
                                             <div key={user} className="typing-user">
                                                 <span>
-                                                    {participants.find((p) => p._id.toString() === user).name} מקליד\ה...
+                                                    {participants.find((p) => p._id.toString() === user).name}{" "}
+                                                    מקליד\ה...
                                                 </span>
                                             </div>
                                         ))}

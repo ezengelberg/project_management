@@ -8,7 +8,6 @@ import { Server } from "socket.io";
 
 import session from "express-session";
 import passport from "./config/passport.js";
-import { checkPassportState } from "./config/passport.js";
 
 import { connectDB } from "./config/db.js";
 import MongoStore from "connect-mongo";
@@ -124,7 +123,6 @@ passport.deserializeUser(async (id, done) => {
 
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(checkPassportState);
 
 // Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
 app.use(bodyParser.json());
@@ -192,13 +190,13 @@ io.on("connection", (socket) => {
         chats.forEach((chat) => {
             // console.log(`User ${socket.id} joining chat: ${chat}`);
             socket.join(chat);
-            console.log(`User joined chat: ${chat}`);
+            // console.log(`User joined chat: ${chat}`);
 
             if (!activeChats[chat]) {
                 activeChats[chat] = new Set();
             }
             activeChats[chat].add(socket.id);
-            // console.log(`Active users in chat ${chat}:`, activeChats[chat]);
+            console.log(`Active users in chat ${chat}:`, activeChats[chat]);
         });
     });
 

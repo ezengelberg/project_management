@@ -1,11 +1,10 @@
-import React from "react";
+import React, { useEffect, useState, forwardRef } from "react";
 import { useInView } from "react-intersection-observer";
-import { useEffect, useState } from "react";
 
-const Message = ({ message, user, participants, onWatch, socket, chatID, checkWatchers }) => {
-    const { ref, inView } = useInView({
-        triggerOnce: true, // Ensures it only fires once per message
-        threshold: 1.0, // Ensures the message is fully visible before triggering
+const Message = forwardRef(({ message, user, participants, onWatch, socket, chatID, checkWatchers }, parentRef) => {
+    const { ref: inViewRef, inView } = useInView({
+        triggerOnce: true,
+        threshold: 1.0,
     });
     const [seen, setSeen] = useState(false);
 
@@ -25,16 +24,27 @@ const Message = ({ message, user, participants, onWatch, socket, chatID, checkWa
             setSeen(true);
             const isSeenByUser = message.seenBy.some((u) => u.user._id.toString() === user._id.toString());
             if (!isSeenByUser) {
-                onWatch(); // Trigger parent update
+                onWatch();
                 socket.emit("seen_message", { messageID: message._id, chatID: chatID._id, user: user._id });
                 console.log(`Message ${message.message} seen by ${user.name}`);
-                setSeen(true);
             }
         }
     }, [inView, seen]);
 
+    // Combine both refs using a callback ref
+    const setRefs = (element) => {
+        // Set the parent ref
+        if (typeof parentRef === "function") {
+            parentRef(element);
+        } else if (parentRef) {
+            parentRef.current = element;
+        }
+        // Set the inView ref
+        inViewRef(element);
+    };
+
     return (
-        <div ref={ref} className={`message ${message.sender._id.toString() === user._id.toString() ? "" : "else"}`}>
+        <div ref={setRefs} className={`message ${message.sender._id.toString() === user._id.toString() ? "" : "else"}`}>
             <div className="message-header">
                 <div className="sender">{message.sender.name}</div>
                 <div className="time">
@@ -54,6 +64,6 @@ const Message = ({ message, user, participants, onWatch, socket, chatID, checkWa
             )}
         </div>
     );
-};
+});
 
 export default Message;

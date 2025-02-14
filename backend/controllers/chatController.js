@@ -50,6 +50,7 @@ export const sendMessage = async (req, res) => {
 
         // Emit message to all users in the chat
         io.to(chatTarget._id.toString()).emit("receive_message", messageData);
+        console.log("📤 Message sent to chat:", chatTarget._id.toString());
         res.status(201).json({ messageData, isNewChat });
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -10,7 +10,7 @@ export const SocketProvider = ({ children }) => {
     useEffect(() => {
         const socketInstance = io(process.env.REACT_APP_BACKEND_URL, {
             withCredentials: true,
-            transports: ["websocket"],
+            transports: ["websocket", "polling"],
         });
 
         socketInstance.on("connect", () => {
