@@ -192,18 +192,12 @@ const Sidebar = () => {
             return prev.filter((chat) => chat !== "new");
         });
 
-        console.log(chatID);
-
         try {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/${chatID}`, {
                 withCredentials: true,
             });
-
-            console.log("Chat created:", response.data);
-            console.log("Current chats:", chats);
             setChats((prev) => {
                 const newChats = [response.data, ...prev];
-                console.log("New chats:", newChats);
                 return newChats;
             });
             selectChat(response.data);
