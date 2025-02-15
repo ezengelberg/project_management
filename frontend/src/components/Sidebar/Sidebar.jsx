@@ -362,10 +362,16 @@ const Sidebar = () => {
                       קבוצות
                     </li>
                     <li
-                      className={`sidebar-option ${isActive("/submissions") ? "active" : ""}`}
+                      className={`${isActive("/submissions") ? "active" : ""}`}
                       onClick={() => handleNavigate("/submissions")}
                       onMouseDown={(e) => handleMouseDown(e, "/submissions")}>
                       ניהול הגשות
+                    </li>
+                    <li
+                      className={`${isActive("/approve-extra-file") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/approve-extra-file")}
+                      onMouseDown={(e) => handleMouseDown(e, "/approve-extra-file")}>
+                      אישור הגשה נוספת
                     </li>
                   </ul>
                 </div>
