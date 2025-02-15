@@ -1,16 +1,9 @@
 import React, { useEffect, useState, useRef, forwardRef, useContext } from "react";
-import { Badge, Table, Tooltip, Modal, Upload, message, Divider } from "antd";
-import {
-  UploadOutlined,
-  DeleteOutlined,
-  InboxOutlined,
-  EyeOutlined,
-  DownloadOutlined,
-  BarChartOutlined,
-} from "@ant-design/icons";
+import "./UploadSubmissions.scss";
+import { Badge, Table, Tooltip, Modal, Upload, message, Divider, Button, Alert } from "antd";
+import { InboxOutlined, EyeOutlined, BarChartOutlined, FilePdfOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import axios from "axios";
-import "./UploadSubmissions.scss";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { downloadFile } from "../../utils/downloadFile";
 import { NotificationsContext } from "../../utils/NotificationsContext";
@@ -27,15 +20,15 @@ const UploadSubmissions = () => {
   const [loading, setLoading] = useState(false);
   const [submissions, setSubmissions] = useState([]);
   const [file, setFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
   const [fileList, setFileList] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
   const [currentSubmission, setCurrentSubmission] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
   const [gradeInfo, setGradeInfo] = useState(null);
+  const [extraFile, setExtraFile] = useState(null);
+  const [extraFileList, setExtraFileList] = useState([]);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -65,11 +58,6 @@ const UploadSubmissions = () => {
     setIsModalVisible(false);
     setFile(null); // Clear the file state when closing the modal
     setFileList([]); // Clear the file list
-  };
-
-  const showConfirmModal = (sub) => {
-    setCurrentSubmission(sub);
-    setIsConfirmModalVisible(true);
   };
 
   const showGradeDistributionModal = async (submissionId) => {
@@ -113,20 +101,20 @@ const UploadSubmissions = () => {
 
   const { Dragger } = Upload;
 
-  const props = {
+  const regularProps = {
     name: "file",
     multiple: false,
     accept: ".pdf",
     listType: "picture",
     fileList, // Bind the fileList state
     beforeUpload: (file) => {
-      if (file.name.length > 50) {
-        message.error(`שם קובץ יכול להכיל עד 50 תווים (רווח גם נחשב כתו)`);
+      if (!file.type.includes("pdf")) {
+        message.error("יש להעלות קובץ מסוג PDF בלבד");
         return Upload.LIST_IGNORE;
       }
 
-      if (!file.type.includes("pdf")) {
-        message.error("יש להעלות קובץ מסוג PDF בלבד");
+      if (file.name.length > 50) {
+        message.error(`שם קובץ יכול להכיל עד 50 תווים (רווח גם נחשב כתו)`);
         return Upload.LIST_IGNORE;
       }
 
@@ -143,31 +131,62 @@ const UploadSubmissions = () => {
       const { fileList: newFileList } = info;
       setFileList(newFileList); // Update file list
     },
+    iconRender: () => <FilePdfOutlined />,
   };
 
-  const confirmDeleteSubmission = async () => {
+  const extraProps = {
+    name: "file",
+    multiple: false,
+    listType: "picture",
+    extraFileList,
+    beforeUpload: (file) => {
+      if (file.name.length > 50) {
+        message.error(`שם קובץ יכול להכיל עד 50 תווים (רווח גם נחשב כתו)`);
+        return Upload.LIST_IGNORE;
+      }
+
+      setExtraFile(file);
+      setExtraFileList([file]);
+      return false; // Prevent auto-upload
+    },
+    onRemove: () => {
+      setExtraFile(null); // Clear the selected file
+      setExtraFileList([]); // Clear the file list
+      message.info("הקובץ הוסר");
+    },
+    onChange: (info) => {
+      const { fileList: newFileList } = info;
+      setExtraFileList(newFileList); // Update file list
+    },
+  };
+
+  const confirmDeleteSubmission = async (fileType) => {
     try {
       setLoading(true);
-      // Send POST request to delete the file & remove its' schema reference
-      await axios.delete(
-        `${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete/${currentSubmission.file}?destination=submissions`,
-        { withCredentials: true }
-      );
-      // POST request to remove file form submission schema
+      const fileId = fileType === "regular" ? currentSubmission.file._id : currentSubmission.extraUploadFile._id;
+      const updateData =
+        fileType === "regular" ? { file: null, sentFromDelete: true } : { extraUploadFile: null, sentFromDelete: true };
+
+      // Send DELETE request to delete the file & remove its' schema reference
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete/${fileId}?destination=submissions`, {
+        withCredentials: true,
+      });
+
+      // POST request to remove file from submission schema
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-file/${currentSubmission._id}`,
-        {
-          file: null,
-          sentFromDelete: true,
-        },
+        updateData,
         { withCredentials: true }
       );
+
       const submissionsUpdated = submissions.map((submission) =>
-        submission._id === currentSubmission._id ? { ...submission, file: null } : submission
+        submission._id === currentSubmission._id
+          ? { ...submission, [fileType === "regular" ? "file" : "extraUploadFile"]: null }
+          : submission
       );
       setSubmissions(submissionsUpdated);
-      message.info(`הגשה עבור ${currentSubmission.name} נמחקה בהצלחה`);
-      setIsConfirmModalVisible(false);
+      message.success(`הגשה עבור ${currentSubmission.name} נמחקה בהצלחה`);
+      setIsModalVisible(false);
       fetchNotifications();
       setLoading(false);
     } catch (error) {
@@ -217,36 +236,63 @@ const UploadSubmissions = () => {
   }, []);
 
   const handleUpload = async () => {
-    if (!file) {
+    if (!file && !extraFile) {
       message.error("לא נבחר קובץ להעלאה");
       return;
     }
 
     const formData = new FormData();
+    let regualrUpload = false;
+    let extraUpload = false;
     let projectName = currentSubmission.projectName;
-    let fileName = file.name;
+
+    let regularFileName = file?.name;
+    let extraFileName = extraFile?.name;
 
     // Ensure the combined length does not exceed 50 characters
     const maxLength = 50;
-    const combinedLength = `${projectName}-${fileName}`.length;
-    if (combinedLength > maxLength) {
-      const excessLength = combinedLength - maxLength;
-      if (projectName.length > excessLength) {
-        projectName = projectName.substring(0, projectName.length - excessLength);
-      } else {
-        fileName = fileName.substring(0, fileName.length - excessLength);
+    let combinedLength = 0;
+    if (regularFileName) {
+      combinedLength = `${projectName}-${regularFileName}`.length;
+      if (combinedLength > maxLength) {
+        const excessLength = combinedLength - maxLength;
+        if (projectName.length > excessLength) {
+          projectName = projectName.substring(0, projectName.length - excessLength);
+        } else {
+          regularFileName = regularFileName.substring(0, regularFileName.length - excessLength);
+        }
+        message.warning(`שם הקובץ קוצר ל-${maxLength} תווים`);
       }
-      message.warning(`שם הקובץ קוצר ל-${maxLength} תווים`);
+    }
+    if (extraFileName) {
+      combinedLength = `${projectName}-${extraFileName}`.length;
+      if (combinedLength > maxLength) {
+        const excessLength = combinedLength - maxLength;
+        if (projectName.length > excessLength) {
+          projectName = projectName.substring(0, projectName.length - excessLength);
+        } else {
+          extraFileName = extraFileName.substring(0, extraFileName.length - excessLength);
+        }
+        message.warning(`שם הקובץ קוצר ל-${maxLength} תווים`);
+      }
     }
 
-    const fileNameWithProject = `${projectName}-${fileName}`;
+    const regularFileNameWithProject = `${projectName}-${regularFileName}`;
+    const extraFileNameWithProject = `${projectName}-${extraFileName}`;
 
-    formData.append("files", file, encodeURIComponent(fileNameWithProject));
+    if (file) {
+      // Handle regular upload
+      formData.append("files", file, encodeURIComponent(regularFileNameWithProject));
+      regualrUpload = true;
+    }
+    if (extraFile) {
+      // Handle extra upload
+      formData.append("files", extraFile, encodeURIComponent(extraFileNameWithProject));
+      extraUpload = true;
+    }
     formData.append("title", "");
     formData.append("description", "");
     formData.append("destination", "submissions"); // Set destination for dynamic pathing
-
-    setUploading(true);
 
     try {
       // Send POST request to upload the file
@@ -261,19 +307,43 @@ const UploadSubmissions = () => {
           withCredentials: true,
         }
       );
-      // Show success message and reset file
-      const uploadedFile = response.data.files[0]._id;
+
+      let regualrFile = null;
+      let extraFile = null;
+
+      if (regualrUpload && extraUpload) {
+        regualrFile = response.data.files[0]._id;
+        extraFile = response.data.files[1]._id;
+      } else if (regualrUpload && !extraUpload) {
+        regualrFile = response.data.files[0]._id;
+      } else if (!regualrUpload && extraUpload) {
+        extraFile = response.data.files[0]._id;
+      }
 
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-submission-file/${currentSubmission._id}`,
         {
-          file: uploadedFile,
+          file: regualrUpload ? regualrFile : undefined,
+          extraUploadFile: extraUpload ? extraFile : undefined,
         },
         { withCredentials: true }
       );
 
       fetchPendingSubmissions();
-      setFile(null); // Clear the selected file
+
+      if (regualrUpload && extraUpload) {
+        setFile(null);
+        setFileList([]);
+        setExtraFile(null);
+        setExtraFileList([]);
+      } else if (regualrUpload) {
+        setFile(null);
+        setFileList([]);
+      } else {
+        setExtraFile(null);
+        setExtraFileList([]);
+      }
+
       closeModal(); // Close the modal
       message.success(`הגשה עבור ${currentSubmission.name} הועלתה בהצלחה`);
       fetchNotifications();
@@ -284,8 +354,26 @@ const UploadSubmissions = () => {
       } else {
         message.error("העלאת הקובץ נכשלה");
       }
-    } finally {
-      setUploading(false); // Reset uploading state
+    }
+  };
+
+  const handleExtraUpload = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/submission/ask-for-extra-upload/${currentSubmission._id}`,
+        {},
+        { withCredentials: true }
+      );
+      message.success("בקשה להעלאה נוספת נשלחה בהצלחה");
+      setCurrentSubmission(response.data.submission);
+      fetchPendingSubmissions();
+      fetchNotifications();
+      setLoading(false);
+    } catch (error) {
+      console.error("Error occurred:", error);
+      message.error("שליחת בקשה נכשלה");
+      setLoading(false);
     }
   };
 
@@ -448,22 +536,11 @@ const UploadSubmissions = () => {
       title: "פעולות",
       key: "action",
       render: (text, record) => (
-        <span>
-          {!record.file && record.fileNeeded ? (
-            <a>
-              <UploadOutlined className="edit-icon" onClick={() => showUploadModal(record)} />
-            </a>
-          ) : new Date(record.submissionDate) > new Date() && record.fileNeeded ? (
+        <span className="upload-submission-actions">
+          {record.fileNeeded ? <a onClick={() => showUploadModal(record)}>הגשה</a> : <span>לא נדרש קובץ</span>}
+          {record.editable === false ? (
             <div className="icon-group">
-              <a>
-                <DownloadOutlined className="edit-icon" onClick={() => downloadFile(record.file, "submissions")} />
-              </a>
-              <a>
-                <DeleteOutlined className="edit-icon" onClick={() => showConfirmModal(record)} />
-              </a>
-            </div>
-          ) : record.editable === false ? (
-            <div className="icon-group">
+              <Divider type="vertical" style={{ height: "1.9em" }} />
               <a>
                 <Tooltip title="צפיה בציון">
                   <EyeOutlined
@@ -475,36 +552,16 @@ const UploadSubmissions = () => {
                 </Tooltip>
               </a>
               <Divider type="vertical" style={{ height: "1.9em" }} />
-              {record.fileNeeded && (
-                <>
-                  <a>
-                    <Tooltip title="הורדת קובץ מקור">
-                      <DownloadOutlined
-                        className="edit-icon"
-                        onClick={() => downloadFile(record.file, "submissions")}
-                      />
-                    </Tooltip>
-                  </a>
-                  <Divider type="vertical" style={{ height: "1.9em" }} />
-                </>
-              )}
               <a>
                 <Tooltip className="edit-icon" title="כל הציונים">
                   <BarChartOutlined onClick={() => showGradeDistributionModal(record._id)} />
                 </Tooltip>
               </a>
             </div>
-          ) : record.fileNeeded ? (
-            <span>
-              תאריך הגשה עבר <br />
-              <Tooltip title="לחץ להורדת קובץ מקור">
-                <a style={{ fontWeight: "bold" }} onClick={() => downloadFile(record.file, "submissions")}>
-                  הורדת קובץ מקור
-                </a>
-              </Tooltip>
-            </span>
           ) : (
-            <span>הגשה ללא קובץ</span>
+            new Date(record.submissionDate) < new Date() &&
+            record.file &&
+            record.fileNeeded && <span style={{ marginRight: "10px" }}>תאריך הגשה עבר</span>
           )}
         </span>
       ),
@@ -603,36 +660,13 @@ const UploadSubmissions = () => {
         </div>
       </Modal>
       <Modal
-        title={`מחיקת הגשה עבור ${currentSubmission?.name}`}
-        open={isConfirmModalVisible}
-        width={
-          windowSize.width > 1600
-            ? "15%"
-            : windowSize.width > 1200
-            ? "25%"
-            : windowSize.width > 1024
-            ? "30%"
-            : windowSize.width > 768
-            ? "40%"
-            : windowSize.width > 626
-            ? "50%"
-            : "90%"
-        }
-        okText="אשר מחיקה"
-        okButtonProps={{ danger: true }}
-        cancelText="סגור"
-        onOk={() => confirmDeleteSubmission()}
-        onCancel={() => setIsConfirmModalVisible(false)}>
-        האם אתה בטוח שברצונך למחוק את ההגשה?
-      </Modal>
-      <Modal
         title={`הגשת מטלה - ${currentSubmission?.name}`}
         open={isModalVisible}
         onCancel={closeModal}
         onOk={handleUpload}
         okText="העלה הגשה"
         cancelText="ביטול"
-        okButtonProps={{ disabled: !file }}
+        okButtonProps={{ disabled: !file && !extraFile }}
         width={
           windowSize.width > 1600
             ? "30%"
@@ -662,15 +696,93 @@ const UploadSubmissions = () => {
               </b>
             </div>
           )}
-          <Dragger {...props}>
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">לחצו או גררו כדי להעלות קובץ</p>
-            <p className="ant-upload-hint">
-              עבור פרויקטים בזוגות רק על אחד השותפים להגיש את הנדרש. שימו לב שיש להגיש בקובץ PDF בלבד
-            </p>
-          </Dragger>
+          {currentSubmission?.file ? (
+            <div className="file-info">
+              <Upload
+                listType="picture"
+                showUploadList={{
+                  showRemoveIcon: new Date(currentSubmission?.submissionDate) > new Date(),
+                  showDownloadIcon: true,
+                  showPreviewIcon: false,
+                }}
+                defaultFileList={[
+                  {
+                    uid: "1",
+                    name: currentSubmission?.file.filename,
+                    status: "done",
+                    url: "",
+                  },
+                ]}
+                onDownload={() => downloadFile(currentSubmission?.file._id, "submissions")}
+                onRemove={() => confirmDeleteSubmission("regular")}
+                iconRender={() => <FilePdfOutlined />}
+              />
+            </div>
+          ) : (
+            <Dragger {...regularProps}>
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">לחצו או גררו כדי להעלות קובץ</p>
+              <p className="ant-upload-hint">קובץ PDF בלבד, רק אחד השותפים צריך להעלות קובץ </p>
+            </Dragger>
+          )}
+          <Divider />
+          <div className="extra-upload">
+            {currentSubmission?.askForExtraUpload && currentSubmission?.denyExtraUpload ? (
+              <p style={{ marginTop: "0" }}>נא צרו קשר עם רכז הפרויקטים לפני שליחת בקשה נוספת</p>
+            ) : currentSubmission?.gotExtraUpload ? (
+              <h3 style={{ marginTop: "0" }}>העלאת קובץ נוסף</h3>
+            ) : (
+              <p style={{ marginTop: "0" }}>
+                אם הגיט שלכם פרטי ואתם נדרשים להעלות את הקוד לחצו על הכפתור כדי להקבל הרשאה להעלאה נוספת (מומלץ לשלוח גם
+                מייל בנושא זה לרכז הפרויקטים).
+              </p>
+            )}
+            {currentSubmission?.extraUploadFile ? (
+              <div className="file-info">
+                <Upload
+                  listType="picture"
+                  showUploadList={{
+                    showRemoveIcon: new Date(currentSubmission?.submissionDate) > new Date(),
+                    showDownloadIcon: true,
+                    showPreviewIcon: false,
+                  }}
+                  defaultFileList={[
+                    {
+                      uid: "1",
+                      name: currentSubmission?.extraUploadFile.filename,
+                      status: "done",
+                      url: "",
+                    },
+                  ]}
+                  onDownload={() => downloadFile(currentSubmission?.extraUploadFile._id, "submissions")}
+                  onRemove={() => confirmDeleteSubmission("extra")}
+                  iconRender={() => <FilePdfOutlined />}
+                />
+              </div>
+            ) : currentSubmission?.askForExtraUpload && currentSubmission?.denyExtraUpload ? (
+              <div className="deny-extra-upload">
+                <Alert style={{ marginBottom: "10px" }} message="העלאה נוספת נדחתה." type="error" showIcon />
+                <Button type="primary" onClick={handleExtraUpload} loading={loading}>
+                  בקשה חוזרת להעלאה נוספת
+                </Button>
+              </div>
+            ) : currentSubmission?.gotExtraUpload ? (
+              <Dragger {...extraProps}>
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">לחצו או גררו כדי להעלות קובץ</p>
+              </Dragger>
+            ) : currentSubmission?.askForExtraUpload ? (
+              <Alert message="בקשה להעלאה נוספת נשלחה, תתקבל התראה כשתהיה תשובה." type="info" showIcon />
+            ) : (
+              <Button type="primary" onClick={handleExtraUpload} loading={loading}>
+                בקשה להעלאה נוספת
+              </Button>
+            )}
+          </div>
         </div>
       </Modal>
       <Modal

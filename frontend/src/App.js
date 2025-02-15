@@ -31,6 +31,7 @@ import Journal from "./components/Journal/Journal";
 import JournalStatus from "./components/JournalStatus/JournalStatus";
 import ZoomScheduler from "./components/ZoomScheduler/ZoomScheduler";
 import ListZoomMeetings from "./components/ListZoomMeetings/ListZoomMeetings";
+import ApproveExtraFile from "./components/ApproveExtraFile/ApproveExtraFile";
 
 function App() {
   return (
@@ -73,6 +74,7 @@ const MainLayout = () => {
       "/journal/:projectId": "יומן עבודה",
       "/zoom-scheduler": "פגישת זום",
       "/list-zoom-meetings": "רשימת פגישות",
+      "/approve-extra-file": "אישור קובץ נוסף",
     };
 
     const currentPath = Object.keys(routeTitles).find((path) =>
@@ -207,6 +209,14 @@ const MainLayout = () => {
                 element={
                   <ProtectedRoute privileges={["coordinator"]}>
                     <Submissions />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/approve-extra-file"
+                element={
+                  <ProtectedRoute privileges={["coordinator"]}>
+                    <ApproveExtraFile />
                   </ProtectedRoute>
                 }
               />

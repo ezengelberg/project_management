@@ -16,7 +16,15 @@
     font-size: 1.7rem;
     .upload-warning {
       text-decoration: underline;
-      cursor: pointer;
+    }
+  }
+  .ant-upload-list-item-actions.picture {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    .anticon {
+      font-size: 2.4rem;
     }
   }
 }
@@ -72,9 +80,13 @@
   }
 }
 
-.icon-group {
+.upload-submission-actions {
   display: flex;
-  gap: 1rem;
+  align-items: center;
+  .icon-group {
+    display: flex;
+    gap: 1rem;
+  }
 }
 
 @media screen and (max-width: 626px) {

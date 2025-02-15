@@ -20,6 +20,10 @@ import {
   deleteAllSubmissions,
   resetJudges,
   assignJudgesAI,
+  askForExtraUpload,
+  getExtraUploadSubmissions,
+  acceptExtraUpload,
+  denyExtraUpload,
 } from "../controllers/submissionController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -45,5 +49,9 @@ router.post("/assign-judge-auto", ensureAuthenticated, isCoordinator, assignJudg
 router.post("/assign-judge-ai", ensureAuthenticated, isCoordinator, assignJudgesAI);
 router.get("/grade-distribution/:id", ensureAuthenticated, getGradeDistribution);
 router.delete("/delete-all", ensureAuthenticated, isCoordinator, deleteAllSubmissions);
+router.post("/ask-for-extra-upload/:id", ensureAuthenticated, askForExtraUpload);
+router.get("/get-extra-upload-submissions", ensureAuthenticated, isCoordinator, getExtraUploadSubmissions);
+router.post("/accept-extra-upload/:id", ensureAuthenticated, isCoordinator, acceptExtraUpload);
+router.post("/deny-extra-upload/:id", ensureAuthenticated, isCoordinator, denyExtraUpload);
 
 export default router;
