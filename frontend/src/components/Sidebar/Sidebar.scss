@@ -237,11 +237,19 @@ $background-blue: #001529;
                         height: 3rem;
                     }
                 }
+                .svg-msg-icon {
+                    svg {
+                        width: 2.8rem;
+                        height: 2.8rem;
+                        fill: gold;
+                    }
+                }
                 div {
                     display: flex;
                     align-items: center;
                     svg {
                         width: 2rem;
+                        fill: white;
                     }
                     .chevron {
                         width: 2.5rem;

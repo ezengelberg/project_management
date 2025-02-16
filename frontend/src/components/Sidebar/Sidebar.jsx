@@ -663,10 +663,10 @@ const Sidebar = () => {
                         <div className="right-side">
                             <MessageSVG />
                             <span>צ'אטים</span>
-                            <div>
+                            <div className="svg-msg-icon">
                                 {chats.some((c) => c.unreadTotal > 0) && (
                                     <Tooltip title="יש לך הודעות חדשות">
-                                        <MessageAlertSVG className="svg-msg-icon" />
+                                        <MessageAlertSVG />
                                     </Tooltip>
                                 )}
                             </div>
