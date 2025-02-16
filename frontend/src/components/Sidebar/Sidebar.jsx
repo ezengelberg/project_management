@@ -100,7 +100,6 @@ const Sidebar = () => {
         socket.on("connect", () => {
             console.log("Connected to socket! Rejoining chats...");
             if (chats?.length) {
-                console.log("joining chats... WOO");
                 socket.emit(
                     "join_chats",
                     chats.map((chat) => chat._id),
@@ -147,11 +146,13 @@ const Sidebar = () => {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/${chatID}`, {
                 withCredentials: true,
             });
+            console.log("created chat", response.data);
             setChats((prev) => {
                 const newChats = [response.data, ...prev];
                 return newChats;
             });
             selectChat(response.data);
+            socket.emit("join_chats", [chatID]);
         } catch (error) {
             console.error("Error occurred:", error);
         }

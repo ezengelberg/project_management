@@ -151,7 +151,6 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
     };
 
     useEffect(() => {
-        console.log("loaded trigger");
         if (!chatHistory || chatHistory.length === 0) return;
         if (!loaded) {
             const lastUnreadMessage = getLastUnread();

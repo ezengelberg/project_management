@@ -188,7 +188,7 @@ const activeChats = {};
 io.on("connection", (socket) => {
     socket.on("join_chats", (chats) => {
         chats.forEach((chat) => {
-            // console.log(`User ${socket.id} joining chat: ${chat}`);
+            console.log(`User ${socket.id} joining chat: ${chat}`);
             socket.join(chat);
             // console.log(`User joined chat: ${chat}`);
 
