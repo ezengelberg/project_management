@@ -126,11 +126,7 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
 
     const scrollIntoView = (msg) => {
         if (chatHistory.length === 0 || !chatHistory || !messageRefs.current) return;
-        console.log("SCROLLING TO MESSAGE");
-        console.log(msg);
-        console.log(messageRefs.current[msg._id]);
         if (msg && messageRefs.current[msg._id]) {
-            console.log("SCROLLING TO MESSAGE ffff");
             messageRefs.current[msg._id].scrollIntoView({ behavior: "smooth", block: "end" });
         }
         if (!msg) scrollToBottom();
@@ -143,31 +139,6 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
             messageRefs.current[lastMessageId]?.scrollIntoView({ behavior: "smooth", block: "end" });
         }
     };
-
-    // const messageObserver = (message, el) => {
-    //     if (!el || observerRef.current.has(message._id)) return;
-    //     console.log("OBSERVING MESSAGE");
-    //     const observer = new IntersectionObserver(
-    //         ([entry]) => {
-    //             if (entry.isIntersecting) {
-    //                 const isSeenByUser = message.seenBy.some((u) => {
-    //                     return u.user._id.toString() === user._id.toString();
-    //                 });
-    //                 if (!isSeenByUser) {
-    //                     message.seenBy.push({ time: new Date(), user: { _id: user._id, name: user.name } });
-    //                     onWatch();
-    //                     socket.emit("seen_message", { messageID: message._id, chatID: chatID._id, user: user._id });
-    //                 }
-    //                 observer.disconnect();
-    //                 observerRef.current.delete(message._id);
-    //             }
-    //         },
-    //         { threshold: 1.0 },
-    //     );
-
-    //     observerRef.current.set(message._id, observer);
-    //     observer.observe(el);
-    // };
 
     const updateTyping = () => {
         if (isTyping) return;
