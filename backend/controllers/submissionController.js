@@ -1129,6 +1129,19 @@ export const askForExtraUpload = async (req, res) => {
     submission.denyExtraUpload = false;
     submission.requestExtraUploadDate = new Date();
     await submission.save();
+
+    // Create notifications for coordinators to know about the request
+    const coordinators = await User.find({ isCoordinator: true });
+    await Promise.all(
+      coordinators.map(async (coordinator) => {
+        const notification = new Notification({
+          user: coordinator._id,
+          message: `התקבלה בקשה להעלאת קובץ נוסף עבור: "${submission.name}"`,
+        });
+        await notification.save();
+      })
+    );
+
     res.status(200).json({ message: "Extra upload status updated successfully", submission });
   } catch (error) {
     console.log(error);
