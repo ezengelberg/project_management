@@ -100,6 +100,7 @@ const Sidebar = () => {
         socket.on("connect", () => {
             console.log("Connected to socket! Rejoining chats...");
             if (chats?.length) {
+                console.log("joining chats... WOO");
                 socket.emit(
                     "join_chats",
                     chats.map((chat) => chat._id),
@@ -122,56 +123,6 @@ const Sidebar = () => {
             socket.off("reconnect");
         };
     }, [socket, chats]);
-
-    // useEffect(() => {
-    //     // Only create socket if it doesn't exist
-    //     if (!socketRef.current || !socketRef.current.connected) {
-    //         socketRef.current = io(process.env.REACT_APP_BACKEND_URL, {
-    //             withCredentials: true,
-    //             transports: ["websocket"],
-    //         });
-    //         socketRef.current.on("connect", () => {
-    //             if (chats?.length) {
-    //                 socketRef.current.emit(
-    //                     "join_chats",
-    //                     chats.map((chat) => chat._id),
-    //                 );
-    //             }
-    //         });
-
-    //         socketRef.current.on("reconnect", () => {
-    //             console.log("Reconnected! Rejoining chats...");
-    //             if (chats?.length) {
-    //                 socketRef.current.emit(
-    //                     "join_chats",
-    //                     chats.map((chat) => chat._id),
-    //                 );
-    //             }
-    //         });
-
-    //         // socketRef.current.on("receive_message", (msg) => {
-    //         //     setChats((prevChats) => {
-    //         //         const updatedChats = prevChats.map((chat) => {
-    //         //             if (
-    //         //                 chat._id.toString() === msg.chat.toString() &&
-    //         //                 msg.sender._id.toString() !== user._id.toString()
-    //         //             ) {
-    //         //                 chat.unreadTotal = chat.unreadTotal ? chat.unreadTotal + 1 : 1;
-    //         //             }
-    //         //             return chat;
-    //         //         });
-    //         //         return updatedChats;
-    //         //     });
-    //         // });
-    //     }
-
-    //     // Cleanup socket only when component unmounts
-    //     return () => {
-    //         if (socketRef.current && socketRef.current.connected) {
-    //             socketRef.current.disconnect();
-    //         }
-    //     };
-    // }, [chats]); // Empty dependency array
 
     const fetchChats = async () => {
         console.log("fetching chats");
