@@ -11,6 +11,7 @@ export const SocketProvider = ({ children }) => {
         const socketInstance = io(process.env.REACT_APP_BACKEND_URL, {
             withCredentials: true,
             transports: ["websocket", "polling"],
+            autoConnect: true,
         });
 
         socketInstance.on("connect", () => {

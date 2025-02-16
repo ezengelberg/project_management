@@ -48,6 +48,7 @@ const server = http.createServer(app); // Create an HTTP server for socket.io
 const io = new Server(server, {
     cors: {
         origin: process.env.CORS_ORIGIN,
+        methods: ["GET", "POST"],
         credentials: true,
     },
 });
@@ -186,6 +187,7 @@ schedule.scheduleJob("0 * * * *", async () => {
 const activeChats = {};
 // Socket.io
 io.on("connection", (socket) => {
+    console.log("🔌 New user connected:", socket.id);
     socket.on("join_chats", (chats) => {
         chats.forEach((chat) => {
             console.log(`User ${socket.id} joining chat: ${chat}`);
@@ -200,18 +202,18 @@ io.on("connection", (socket) => {
         });
     });
 
-    socket.on("send_message", async ({ chatID, message, sender }) => {
-        try {
-            const chat = await Chat.findById(chatID).populate("lastMessage").populate("participants");
-            if (!chat) {
-                return;
-            }
-            // Emit updated chat to all users in the chat room
-            io.to(chatID).emit("receive_chat", chat);
-        } catch (error) {
-            console.error("Error sending message:", error);
-        }
-    });
+    // socket.on("send_message", async ({ chatID, message, sender }) => {
+    //     try {
+    //         const chat = await Chat.findById(chatID).populate("lastMessage").populate("participants");
+    //         if (!chat) {
+    //             return;
+    //         }
+    //         // Emit updated chat to all users in the chat room
+    //         io.to(chatID).emit("receive_chat", chat);
+    //     } catch (error) {
+    //         console.error("Error sending message:", error);
+    //     }
+    // });
 
     socket.on("typing start", async ({ chatID, user }) => {
         try {
@@ -262,7 +264,7 @@ io.on("connection", (socket) => {
         // Remove user from all active chats
         for (const chatID in activeChats) {
             activeChats[chatID].delete(socket.id);
-            // console.log(`Active users in chat ${chatID}:`, activeChats[chatID]);
+            console.log(`Active users in chat ${chatID}:`, activeChats[chatID]);
 
             // If no users are left in the chat, you can deactivate or remove the chat from activeChats
             if (activeChats[chatID].size === 0) {

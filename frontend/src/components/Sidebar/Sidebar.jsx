@@ -3,7 +3,7 @@ import "./Sidebar.scss";
 import "../../index.css";
 import axios from "axios";
 import { io } from "socket.io-client";
-import { FloatButton, Drawer, Badge } from "antd";
+import { FloatButton, Drawer, Badge, Tooltip } from "antd";
 import {
     HomeOutlined,
     ProjectOutlined,
@@ -117,14 +117,32 @@ const Sidebar = () => {
             }
         });
 
+        socket.on("receive_chat", (newChat, newMessage) => {
+            setChats((prev) => {
+                const updatedChats = prev.map((chat) => {
+                    if (chat._id === newChat._id && chat.lastMessage !== newChat.lastMessage) {
+                        if (newMessage.sender._id !== user._id) {
+                            chat.unreadTotal++;
+                        }
+                        return {
+                            ...chat,
+                            lastMessage: newMessage,
+                        };
+                    }
+                    return chat;
+                });
+                return updatedChats;
+            });
+        });
+
         return () => {
             socket.off("connect");
             socket.off("reconnect");
+            socket.off("receive_chat");
         };
     }, [socket, chats]);
 
     const fetchChats = async () => {
-        console.log("fetching chats");
         try {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/`, {
                 withCredentials: true,
@@ -190,6 +208,18 @@ const Sidebar = () => {
     const MessageSVG = () => (
         <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="#FFF">
             <path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z" />
+        </svg>
+    );
+
+    const MessageAlertSVG = () => (
+        <svg
+            height="200"
+            width="200"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+            fill="gold"
+            stroke="gold">
+            <path d="m512 255.996-63.305-51.631 29.002-76.362-80.633-13.07L383.993 34.3l-76.361 29.002L256 .004l-51.646 63.298L128.008 34.3l-13.07 80.634-80.633 13.07 28.988 76.362L0 255.996l63.292 51.632-28.988 76.368 80.633 13.07 13.07 80.633 76.347-29.002L256 511.996l51.632-63.299 76.361 29.002 13.07-80.633 80.633-13.07-29.002-76.368L512 255.996zm-299.171 57.652-14.382 2.834c-.973.183-1.649-.056-2.298-.811l-39.266-45.872-.606.12 10.151 51.596c.142.726-.253 1.304-.972 1.452l-13.662 2.686c-.719.141-1.297-.254-1.438-.98l-15.678-79.746c-.155-.734.24-1.304.959-1.445l14.508-2.855c.846-.169 1.635.056 2.284.811l39.181 46.013.592-.12-10.166-51.716c-.14-.733.254-1.304.973-1.452l13.662-2.686c.719-.141 1.297.24 1.438.973l15.678 79.745c.155.734-.239 1.312-.958 1.453zm70.834-13.93-52.689 10.364c-.733.14-1.296-.247-1.452-.973l-15.678-79.745c-.141-.734.24-1.312.973-1.452l52.688-10.364c.719-.14 1.298.247 1.438.98l2.538 12.922c.155.726-.24 1.305-.959 1.445l-35.418 6.966c-.479.092-.676.38-.578.867l3.201 16.312c.099.48.395.677.874.586l29.495-5.802c.719-.141 1.297.253 1.438.972l2.524 12.81c.141.726-.254 1.297-.972 1.438l-29.496 5.802c-.479.099-.676.388-.577.867l3.355 17.039c.084.486.38.676.86.578l35.417-6.965c.719-.141 1.298.254 1.438.98l2.538 12.93c.156.724-.239 1.302-.958 1.443zm88.233-18.611c.014.754-.493 1.361-1.339 1.523l-12.083 2.376c-.846.169-1.424-.226-1.805-.902L332.362 235.8l-.24.049-4.328 53.937c-.099.768-.494 1.354-1.34 1.515l-12.083 2.383c-.719.141-1.297-.254-1.692-.931l-36.94-75.565c-.268-.705-.127-1.234.719-1.403l15.594-3.059c.846-.17 1.423.212 1.678.923l21.995 49.263.24-.049 3.877-54.346c.099-.782.493-1.353 1.326-1.523l10.518-2.066c.719-.141 1.297.24 1.692.931l24.631 48.734.254-.05 1.212-53.816c-.042-.874.367-1.34 1.213-1.502l15.467-3.038c.846-.17 1.17.261 1.198 1.015l-5.457 83.905z" />
         </svg>
     );
 
@@ -303,6 +333,7 @@ const Sidebar = () => {
             const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/logout`, null, {
                 withCredentials: true,
             });
+            if (socket && socket.connected) socket.disconnect();
             navigate("/login", { replace: true });
             localStorage.removeItem("user");
             sessionStorage.removeItem("user");
@@ -626,23 +657,19 @@ const Sidebar = () => {
                     </ul>
                 </div>
             </div>
-            {/* <FloatButton
-                className="chat-float-button"
-                icon={<CommentOutlined />}
-                onClick={showDrawer}
-                badge={{
-                    count: chats.reduce((acc, chat) => acc + chat.unreadTotal, 0),
-                    overflowCount: 999,
-                    style: { direction: "ltr" },
-                }}
-                style={{ direction: "ltr" }}
-            /> */}
             <div className="chat-list-container">
                 <div className={`chat-list ${chatListOpen ? "open" : ""}`}>
                     <div className="header">
                         <div className="right-side">
                             <MessageSVG />
-                            <span>צא'טים</span>
+                            <span>צ'אטים</span>
+                            <div>
+                                {chats.some((c) => c.unreadTotal > 0) && (
+                                    <Tooltip title="יש לך הודעות חדשות">
+                                        <MessageAlertSVG className="svg-msg-icon" />
+                                    </Tooltip>
+                                )}
+                            </div>
                         </div>
                         <div className="left-side">
                             <div className="new-message-chat" onClick={() => selectChat("new")}>
@@ -712,6 +739,11 @@ const Sidebar = () => {
                                                     </span>
                                                 </div>
                                             </div>
+                                            {chat.unreadTotal > 0 && (
+                                                <div className="unread-total">
+                                                    <Badge count={chat?.unreadTotal} color="#1daa61" />
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })}

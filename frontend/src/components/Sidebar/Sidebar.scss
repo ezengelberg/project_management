@@ -117,83 +117,83 @@ $background-blue: #001529;
     height: 2.2rem;
 }
 
-.chat-drawer-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    .chat-item {
-        display: flex;
-        position: relative;
-        flex-direction: column;
-        justify-content: center;
-        width: 100%;
-        // background-color: #1677ff;
-        padding: 3rem 0.2rem;
-        font-size: 1.5rem;
-        height: 4rem;
-        border-radius: 10px;
-        transition: background-color 0.2s ease-in-out;
-        .unread-total {
-            position: absolute;
-            left: -0.5rem;
-            top: -0.5rem;
-            // top: 50%;
-            // transform: translateY(-50%);
-        }
-        .chat-header-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            padding-right: 1rem;
-            .chat-title {
-                font-weight: 600;
-            }
-        }
-        .message-description {
-            display: flex;
-            padding-right: 2rem;
-            font-size: 1.3rem;
-            color: #666;
-            .seen {
-                position: relative;
-                display: inline-block;
-                width: 1.5rem;
-                top: 2px;
-                margin-inline-end: 2px;
-                svg {
-                    // width: 1.4rem;
-                    path {
-                        fill: #777;
-                        // fill: red;
-                    }
-                }
-                .check {
-                    position: absolute;
-                    top: 0.3rem;
-                    width: 1.2rem;
-                }
-                .second {
-                    right: 0.5rem;
-                }
-            }
-            .seen.all {
-                svg {
-                    path {
-                        fill: #1677ff;
-                    }
-                }
-            }
-        }
-        &:hover {
-            background-color: #eee;
-            cursor: pointer;
-        }
-    }
-    .chat-item.selected {
-        background-color: #eee;
-        // color: white;
-    }
-}
+// .chat-drawer-container {
+//     display: flex;
+//     flex-direction: column;
+//     gap: 0.5rem;
+//     .chat-item {
+//         display: flex;
+//         position: relative;
+//         flex-direction: column;
+//         justify-content: center;
+//         width: 100%;
+//         // background-color: #1677ff;
+//         padding: 3rem 0.2rem;
+//         font-size: 1.5rem;
+//         height: 4rem;
+//         border-radius: 10px;
+//         transition: background-color 0.2s ease-in-out;
+//         .unread-total {
+//             position: absolute;
+//             left: -0.5rem;
+//             top: -0.5rem;
+//             // top: 50%;
+//             // transform: translateY(-50%);
+//         }
+//         .chat-header-wrapper {
+//             display: flex;
+//             align-items: center;
+//             gap: 0.8rem;
+//             padding-right: 1rem;
+//             .chat-title {
+//                 font-weight: 600;
+//             }
+//         }
+//         .message-description {
+//             display: flex;
+//             padding-right: 2rem;
+//             font-size: 1.3rem;
+//             color: #666;
+//             .seen {
+//                 position: relative;
+//                 display: inline-block;
+//                 width: 1.5rem;
+//                 top: 2px;
+//                 margin-inline-end: 2px;
+//                 svg {
+//                     // width: 1.4rem;
+//                     path {
+//                         fill: #777;
+//                         // fill: red;
+//                     }
+//                 }
+//                 .check {
+//                     position: absolute;
+//                     top: 0.3rem;
+//                     width: 1.2rem;
+//                 }
+//                 .second {
+//                     right: 0.5rem;
+//                 }
+//             }
+//             .seen.all {
+//                 svg {
+//                     path {
+//                         fill: #1677ff;
+//                     }
+//                 }
+//             }
+//         }
+//         &:hover {
+//             background-color: #eee;
+//             cursor: pointer;
+//         }
+//     }
+//     .chat-item.selected {
+//         background-color: #eee;
+//         // color: white;
+//     }
+// }
 
 .chat-float-button {
     animation: wave 2s ease-in-out infinite alternate;
@@ -209,7 +209,6 @@ $background-blue: #001529;
     width: auto;
     z-index: 3;
     .chat-list {
-        // position: relative;
         display: flex;
         flex-direction: column;
         width: 35rem;
@@ -232,12 +231,17 @@ $background-blue: #001529;
                 align-items: center;
                 height: 3rem;
                 gap: 1rem;
+                .svg-msg-icon {
+                    svg {
+                        width: 3rem;
+                        height: 3rem;
+                    }
+                }
                 div {
                     display: flex;
                     align-items: center;
                     svg {
                         width: 2rem;
-                        fill: white;
                     }
                     .chevron {
                         width: 2.5rem;
@@ -305,6 +309,7 @@ $background-blue: #001529;
             padding: 0.5rem 0;
             overflow-y: auto;
             .chat-item {
+                position: relative;
                 display: flex;
                 flex-direction: column;
                 width: 100%;
@@ -320,6 +325,13 @@ $background-blue: #001529;
                     cursor: pointer;
                 }
 
+                .unread-total {
+                    position: absolute;
+                    left: 1rem;
+                    top: 0.5rem;
+                    // top: 50%;
+                    // transform: translateY(-50%);
+                }
                 .message-description {
                     padding-right: 1rem;
                     .last-message {

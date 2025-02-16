@@ -45,12 +45,14 @@ export const sendMessage = async (req, res) => {
             })
             .lean();
 
-        chatTarget.lastMessage = messageData._id;
+        chatTarget.lastMessage = messageData;
         await chatTarget.save();
 
+        console.log(chatTarget);
         // Emit message to all users in the chat
         io.to(chatTarget._id.toString()).emit("receive_message", messageData);
         console.log("📤 Message sent to chat:", chatTarget._id.toString());
+        io.to(chatTarget._id.toString()).emit("receive_chat", chatTarget, messageData);
         res.status(201).json({ messageData, isNewChat });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -59,7 +61,7 @@ export const sendMessage = async (req, res) => {
 
 export const fetchMessages = async (req, res) => {
     try {
-        const { chatID } = req.query;
+        const { chatID, limit } = req.query;
         const messages = await Message.find({ chat: chatID })
             .populate("sender", "name")
             .sort({ createdAt: 1 })
@@ -68,7 +70,22 @@ export const fetchMessages = async (req, res) => {
                 select: "name",
             })
             .lean();
-        res.status(200).json(messages);
+        const returnMessages = messages.slice(-limit);
+        const unseenMessages = messages.filter((msg) => {
+            return (
+                msg.sender._id.toString() !== req.user._id.toString() &&
+                !msg.seenBy.some((s) => s.user._id.toString() === req.user._id.toString())
+            );
+        });
+
+        const uniqueMessages = [
+            ...new Map([...returnMessages, ...unseenMessages].map((item) => [item._id.toString(), item])).values(),
+        ];
+
+        uniqueMessages.sort((a, b) => a.createdAt - b.createdAt);
+
+        res.status(200).json(uniqueMessages);
+        // res.status(200).json(returnMessages);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

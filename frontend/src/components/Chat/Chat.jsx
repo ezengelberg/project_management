@@ -32,6 +32,8 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
     const [typingUsers, setTypingUsers] = useState([]);
     const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
     const [loaded, setLoaded] = useState(false);
+    const [scrollToEnd, setScrollToEnd] = useState(false);
+    const [messagesToFetch, setMessagesToFetch] = useState(20);
 
     const messageRefs = useRef({});
     const typingRef = useRef(null);
@@ -55,7 +57,8 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
 
     useEffect(() => {
         if (!socket || !chatID) return; // Wait for socket to be available
-
+        if (chatID === "new") return; // Don't listen for messages in new chat
+        console.log("Listening use effect");
         // Listen for new messages
         socket.on("receive_message", (msg) => {
             console.log("📩 Received new message:", msg);
@@ -64,6 +67,10 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
                 newHistory.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
                 return newHistory;
             });
+            const unseenmessage = getLastUnread();
+            if (!unseenmessage) {
+                setScrollToEnd(true);
+            }
         });
 
         // Listen for "seen" updates
@@ -84,7 +91,6 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
         socket.on("typing_start", (chatUser, chat) => {
             if (chatID._id.toString() !== chat.toString()) return;
             if (chatUser.toString() === user._id.toString()) return;
-            console.log(`${chatUser} is typing...`);
             setTypingUsers((prevUsers) => {
                 if (prevUsers.includes(chatUser)) return prevUsers;
                 return [...prevUsers, chatUser];
@@ -94,7 +100,6 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
         // Listen for typing stop
         socket.on("typing_stop", (user, chat) => {
             if (chatID._id.toString() !== chat.toString()) return;
-            console.log(`${user} stopped typing...`);
             setTypingUsers((prevUsers) => prevUsers.filter((u) => u.toString() !== user.toString()));
         });
 
@@ -113,6 +118,13 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
             typingRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
         }
     }, [typingUsers]);
+
+    useEffect(() => {
+        if (scrollToEnd) {
+            scrollToBottom();
+            setScrollToEnd(false);
+        }
+    }, [scrollToEnd, chatHistory]);
 
     const getLastUnread = () => {
         const unreadMessage = chatHistory.find(
@@ -145,8 +157,8 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
         setIsTyping(true);
         socket.emit("typing start", { chatID: chatID._id, user: user._id });
         setTimeout(() => {
+            if (isTyping) socket.emit("typing stop", { chatID: chatID._id, user: user._id });
             setIsTyping(false);
-            socket.emit("typing stop", { chatID: chatID._id, user: user._id });
         }, 5000);
     };
 
@@ -161,10 +173,27 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
     }, [chatHistory, user, loaded, messageRefs.current]);
 
     const fetchChat = async () => {
-        if (chatID === "") return;
+        if (chatID === "" || chatID === "new") return;
         try {
             const response = await axios.get(
-                `${process.env.REACT_APP_BACKEND_URL}/api/chat/messages?chatID=${chatID._id}`,
+                `${process.env.REACT_APP_BACKEND_URL}/api/chat/messages?chatID=${chatID._id}&limit=${messagesToFetch}`,
+                {
+                    withCredentials: true,
+                },
+            );
+            setChatHistory(response.data);
+        } catch (error) {
+            console.error("Error fetching chat:", error);
+        }
+    };
+
+    const fetchMoreMessages = async () => {
+        if (chatHistory.length === 0) return;
+        const amount = messagesToFetch + 20;
+        setMessagesToFetch(amount);
+        try {
+            const response = await axios.get(
+                `${process.env.REACT_APP_BACKEND_URL}/api/chat/messages?chatID=${chatID._id}&limit=${amount}`,
                 {
                     withCredentials: true,
                 },
@@ -181,7 +210,6 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
             return;
         }
         setLoadingUsers(true);
-        console.log("Loaded users");
         try {
             const response = await axios.get(
                 `${process.env.REACT_APP_BACKEND_URL}/api/chat/fetch-users?name=${value}`,
@@ -212,7 +240,6 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
                     withCredentials: true,
                 },
             );
-            console.log(response.data);
             if (response.data.isNewChat) {
                 onCreateChat(response.data.messageData.chat);
             }
@@ -362,6 +389,11 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
                         </h3>
                     </div>
                     <div className="chat-history">
+                        {chatHistory.length >= 20 && (
+                            <div className="load-more" onClick={() => fetchMoreMessages()}>
+                                טען הודעות נוספות
+                            </div>
+                        )}
                         {chatHistory.length === 0 ? <div className="no-messages">אין היסטורית הודעות</div> : null}
 
                         {chatHistory.map((message) => {
