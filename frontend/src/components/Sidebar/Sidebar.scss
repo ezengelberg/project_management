@@ -90,7 +90,7 @@
         }
       }
       li.closed {
-        & > div > svg:not(.zoom-icon) {
+        & > div > svg:not(.zoom-icon):not(.submission-icon) {
           transform: rotate3d(1, 0, 0, 180deg);
         }
         .sidebar-drop-menu {

@@ -7,6 +7,20 @@ const journalSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const studentSuggestionsSchema = new mongoose.Schema(
+  {
+    suggestedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    suggestedDate: { type: Date, default: Date.now },
+    stage: { type: Number },
+    denyProject: { type: Boolean, required: false, default: false },
+    denyDate: { type: Date, required: false },
+    denyReason: { type: String, required: false },
+    acceptProject: { type: Boolean, required: false, default: false },
+    acceptDate: { type: Date, required: false },
+  },
+  { timestamps: true }
+);
+
 const projectSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
@@ -67,6 +81,7 @@ const projectSchema = new mongoose.Schema({
     },
   ],
   journal: journalSchema,
+  studentSuggestions: studentSuggestionsSchema,
 });
 
 // Apply the option to disable _id for sub-documents within `candidates`

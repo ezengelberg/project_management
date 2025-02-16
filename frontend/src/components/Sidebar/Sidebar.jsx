@@ -32,6 +32,7 @@ const Sidebar = () => {
     manageUsers: false,
     manageProjects: false,
     zoomMeetings: false,
+    manageSubmissions: false,
   });
   const [open, setOpen] = useState(false);
   const [windowSize, setWindowSize] = useState({
@@ -124,6 +125,48 @@ const Sidebar = () => {
           strokeLinejoin="round"
           strokeWidth="11.997"
           d="M16.869 60.973v53.832c.048 12.173 10.87 21.965 24.072 21.925h85.406c2.42 0 4.385-1.797 4.385-3.978V78.92c-.064-12.164-10.887-21.965-24.073-21.917H21.237c-2.412 0-4.368 1.79-4.368 3.97zm119.294 21.006 35.27-23.666c3.06-2.332 5.432-1.749 5.432 2.468v72.171c0 4.8-2.9 4.217-5.432 2.468l-35.27-23.618V81.98z"></path>
+      </g>
+    </svg>
+  );
+
+  const CreateProjectSVG = () => (
+    <svg
+      className="special-sidebar-icon"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="#e4dede"
+      style={{ height: "17px" }}>
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <rect x="0" fill="none" width="24" height="24"></rect>
+        <g>
+          <path d="M21 14v5c0 1.105-.895 2-2 2H5c-1.105 0-2-.895-2-2V5c0-1.105.895-2 2-2h5v2H5v14h14v-5h2z"></path>
+          <path d="M21 7h-4V3h-2v4h-4v2h4v4h2V9h4"></path>
+        </g>
+      </g>
+    </svg>
+  );
+
+  const SubmissionsSVG = () => (
+    <svg
+      className="special-sidebar-icon submission-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg">
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path d="M7.5 15.5V11.7586H9V14H17V11.7586H18.5V15.5H7.5Z" fill="#e4dede"></path>
+        <path
+          d="M10.9904 10.1133L12.25 8.85369L12.25 12L13.75 12L13.75 8.85369L15.0096 10.1133L16.0702 9.05261L13 5.98237L9.92976 9.05261L10.9904 10.1133Z"
+          fill="#e4dede"></path>
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M5 3H21V19H5V3ZM6.5 4.5H19.5V17.5H6.5V4.5Z"
+          fill="#e4dede"></path>
+        <path d="M2 6V22H18V20.5H3.5V6H2Z" fill="#e4dede"></path>
       </g>
     </svg>
   );
@@ -282,6 +325,17 @@ const Sidebar = () => {
                 </div>
               </li>
             )}
+            {user.isStudent && (
+              <li>
+                <div
+                  className={`sidebar-option ${isActive("/suggest-project") ? "active" : ""}`}
+                  onClick={() => handleNavigate("/suggest-project")}
+                  onMouseDown={(e) => handleMouseDown(e, "/suggest-project")}>
+                  <CreateProjectSVG />
+                  <span>הצעת פרויקט</span>
+                </div>
+              </li>
+            )}
             {user.isAdvisor && (
               <li className={`${openSubmenus.myProjects ? "open" : "closed"}`}>
                 <div
@@ -361,6 +415,35 @@ const Sidebar = () => {
                       onMouseDown={(e) => handleMouseDown(e, "/groups")}>
                       קבוצות
                     </li>
+                    <li
+                      className={`${isActive("/approve-projects") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/approve-projects")}
+                      onMouseDown={(e) => handleMouseDown(e, "/approve-projects")}>
+                      אישור פרויקטים
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            )}
+            {user.isCoordinator && (
+              <li className={`sidebar-drop-menu ${openSubmenus.manageSubmissions ? "open" : "closed"}`}>
+                <div
+                  className="sidebar-option"
+                  onClick={() => toggleSubmenu("manageSubmissions")}
+                  onMouseDown={(e) => handleMouseDown(e, "/submissions")}>
+                  <SubmissionsSVG />
+                  <span>ניהול הגשות</span>
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10"
+                      stroke="#0C0310"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+                <div className={`sidebar-drop-menu ${openSubmenus.manageSubmissions ? "open" : "closed"}`}>
+                  <ul>
                     <li
                       className={`${isActive("/submissions") ? "active" : ""}`}
                       onClick={() => handleNavigate("/submissions")}

@@ -208,7 +208,7 @@ const ApproveExtraFile = () => {
     },
   ];
 
-  const closeColumns = [
+  const closedColumns = [
     {
       title: "פרויקט",
       dataIndex: "projectName",
@@ -291,7 +291,7 @@ const ApproveExtraFile = () => {
       label: "בקשות סגורות",
       children: (
         <Table
-          columns={closeColumns}
+          columns={closedColumns}
           dataSource={filteredClosedRequests}
           loading={loading}
           pagination={{
