@@ -72,6 +72,9 @@ const Submissions = () => {
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState("all");
   const [selectedGroupSubmissions, setSelectedGroupSubmissions] = useState([]);
+  const [fileListModal, setFileListModal] = useState(false);
+  const [submissionInfoModal, setSubmissionInfoModal] = useState(false);
+  const [submissionInfoModalData, setSubmissionInfoModalData] = useState([]);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -744,7 +747,12 @@ const Submissions = () => {
                           variant="filled"
                           onClick={(e) => {
                             e.stopPropagation();
-                            downloadFile(sub.file, "submissions");
+                            if (sub.gotExtraUpload) {
+                              setFileListModal(true);
+                              setSubmissionInfoModalData(sub);
+                            } else {
+                              downloadFile(sub.file._id, "submissions");
+                            }
                           }}>
                           הורד הגשה
                         </Button>
@@ -2020,6 +2028,33 @@ const Submissions = () => {
             </Form.Item>
           )}
         </Form>
+      </Modal>
+
+      <Modal
+        title="רשימת קבצים"
+        open={fileListModal}
+        onCancel={() => {
+          setFileListModal(false);
+          setSubmissionInfoModalData({});
+        }}
+        cancelText="סגור"
+        okButtonProps={{ style: { display: "none" } }}>
+        <ul>
+          {submissionInfoModalData.file && (
+            <li>
+              <a onClick={() => downloadFile(submissionInfoModalData.file._id, "submissions")}>
+                {submissionInfoModalData.file.filename}
+              </a>
+            </li>
+          )}
+          {submissionInfoModalData.extraUploadFile && (
+            <li>
+              <a onClick={() => downloadFile(submissionInfoModalData.extraUploadFile._id, "submissions")}>
+                {submissionInfoModalData.extraUploadFile.filename}
+              </a>
+            </li>
+          )}
+        </ul>
       </Modal>
     </div>
   );

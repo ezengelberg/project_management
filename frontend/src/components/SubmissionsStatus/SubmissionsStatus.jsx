@@ -5,7 +5,7 @@ import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { useNavigate } from "react-router-dom";
-import { Table, Divider, Badge, Button, Tooltip, Select } from "antd";
+import { Table, Divider, Badge, Button, Tooltip, Select, Modal } from "antd";
 import { downloadFile } from "../../utils/downloadFile";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 import { NotificationsContext } from "../../utils/NotificationsContext";
@@ -19,6 +19,8 @@ const SubmissionsStatus = () => {
   const [searchedColumn, setSearchedColumn] = useState("");
   const [yearFilter, setYearFilter] = useState("all");
   const [years, setYears] = useState([]);
+  const [fileListModal, setFileListModal] = useState(false);
+  const [submissionDetails, setSubmissionDetails] = useState({});
   const searchInput = useRef(null);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -81,10 +83,13 @@ const SubmissionsStatus = () => {
           submissions: submissionsResponses[index].data
             .map((submission) => {
               const { grades, ...rest } = submission;
-              return rest;
+              return { ...rest };
             })
             .sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)),
           students: studentResponses[index].map((response) => response.data),
+          gotExtraUpload: submissionsResponses[index].data.some((submission) => submission.gotExtraUpload),
+          extraUploadFile: submissionsResponses[index].data.find((submission) => submission.gotExtraUpload)
+            ?.extraUploadFile,
         }));
 
         setProjects(projectsWithSubmissionsAndStudents);
@@ -98,7 +103,7 @@ const SubmissionsStatus = () => {
 
         setLoading(false);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         setLoading(false);
       }
     };
@@ -264,7 +269,14 @@ const SubmissionsStatus = () => {
                 </div>
                 <Badge color={getBadgeStatus(submission).color} text={getBadgeStatus(submission).text} />
                 {submission.submitted && submission.file && (
-                  <Button color="primary" variant="filled" onClick={() => downloadFile(submission.file, "submissions")}>
+                  <Button
+                    color="primary"
+                    variant="filled"
+                    onClick={() =>
+                      record.gotExtraUpload
+                        ? (setFileListModal(true), setSubmissionDetails(record))
+                        : downloadFile(submission.file._id, "submissions")
+                    }>
                     הורד הגשה
                   </Button>
                 )}
@@ -303,6 +315,8 @@ const SubmissionsStatus = () => {
       students: project.students,
       projectYear: project.year,
       submissions: project.submissions,
+      gotExtraUpload: project.gotExtraUpload,
+      extraUploadFile: project.extraUploadFile,
     };
   });
 
@@ -319,6 +333,32 @@ const SubmissionsStatus = () => {
         </Select>
       </div>
       <Table columns={columns} dataSource={dataSource} loading={loading} scroll={{ x: "max-content" }} />
+      <Modal
+        title="רשימת קבצים"
+        open={fileListModal}
+        onCancel={() => {
+          setFileListModal(false);
+          setSubmissionDetails({});
+        }}
+        cancelText="סגור"
+        okButtonProps={{ style: { display: "none" } }}>
+        <ul>
+          {submissionDetails.submissions && (
+            <li>
+              <a onClick={() => downloadFile(submissionDetails.submissions[0].file._id, "submissions")}>
+                {submissionDetails.submissions[0].file.filename}
+              </a>
+            </li>
+          )}
+          {submissionDetails.extraUploadFile && (
+            <li>
+              <a onClick={() => downloadFile(submissionDetails.extraUploadFile._id, "submissions")}>
+                {submissionDetails.extraUploadFile.filename}
+              </a>
+            </li>
+          )}
+        </ul>
+      </Modal>
     </div>
   );
 };

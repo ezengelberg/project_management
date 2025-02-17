@@ -648,6 +648,7 @@ const Homepage = () => {
           </>
         )}
       </div>
+      <h2 style={{ margin: 0 }}>לוח אירועים קרובים</h2>
       <div className="home-page-upcoming-events">
         <Calendar className="calendar" locale={locale} value={value} onSelect={onSelect} cellRender={cellRender} />
         <Alert

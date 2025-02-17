@@ -16,8 +16,6 @@ const ProtectedRoute = ({ children, privileges = [] }) => {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/check-auth`, {
           withCredentials: true,
         });
-        
-        console.log("Auth response:", response.data); // Debugging log
 
         if (response.data.authenticated) {
           setIsAuthenticated(true);

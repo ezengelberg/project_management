@@ -250,6 +250,7 @@ const ApproveProjects = () => {
       render: (_, record) => new Date(record.studentSuggestions.suggestedDate).toLocaleDateString("he-IL"),
       sorter: (a, b) => new Date(a.studentSuggestions.suggestedDate) - new Date(b.studentSuggestions.suggestedDate),
       sortDirections: ["descend", "ascend"],
+      defaultSortOrder: "ascend",
       width: 200,
     },
     {
@@ -295,7 +296,6 @@ const ApproveProjects = () => {
         return new Date(a.studentSuggestions.denyDate) - new Date(b.studentSuggestions.denyDate);
       },
       sortDirections: ["descend", "ascend"],
-      defaultSortOrder: "descend",
       width: 200,
     },
   ];
