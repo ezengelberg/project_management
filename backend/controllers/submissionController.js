@@ -139,7 +139,7 @@ export const getAllProjectSubmissions = async (req, res) => {
     const activeProjects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
     const projectsList = await Promise.all(
       activeProjects.map(async (project) => {
-        const submissions = await Submission.find({ project: project._id });
+        const submissions = await Submission.find({ project: project._id }).populate("file extraUploadFile");
         const submissionsWithGrades = await Promise.all(
           submissions.map(async (submission) => {
             const grades = await Promise.all(
@@ -175,6 +175,8 @@ export const getAllProjectSubmissions = async (req, res) => {
               finalGrade: submission.finalGrade,
               file: submission.file,
               editable: submission.editable,
+              gotExtraUpload: submission.gotExtraUpload,
+              extraUploadFile: submission.extraUploadFile,
             };
           })
         );
@@ -967,7 +969,10 @@ export const getSubmissionDetails = async (req, res) => {
 export const getSpecificProjectSubmissions = async (req, res) => {
   try {
     const projectId = req.params.projectId;
-    const submissions = await Submission.find({ project: projectId }).populate("project", "title");
+    const submissions = await Submission.find({ project: projectId })
+      .populate("project", "title")
+      .populate("extraUploadFile")
+      .populate("file");
     const submissionsWithDetails = await Promise.all(
       submissions.map(async (submission) => {
         const grades = await Promise.all(
@@ -1005,6 +1010,8 @@ export const getSpecificProjectSubmissions = async (req, res) => {
           editable: submission.editable,
           file: submission.file,
           fileNeeded: submission.fileNeeded,
+          gotExtraUpload: submission.gotExtraUpload,
+          extraUploadFile: submission.extraUploadFile,
         };
       })
     );
