@@ -140,7 +140,7 @@ const Sidebar = () => {
             socket.off("reconnect");
             socket.off("receive_chat");
         };
-    }, [socket, chats]);
+    }, [socket, chats, user]);
 
     const fetchChats = async () => {
         try {
@@ -150,6 +150,17 @@ const Sidebar = () => {
             setChats(response.data.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)));
             // returning for socket purposes
             // return response.data;
+
+            if (socket && response.data.length) {
+                console.log(
+                    "Joining chats:",
+                    response.data.map((chat) => chat._id),
+                );
+                socket.emit(
+                    "join_chats",
+                    response.data.map((chat) => chat._id),
+                );
+            }
         } catch (error) {
             console.error("Error occurred:", error);
         }
@@ -664,11 +675,7 @@ const Sidebar = () => {
                             <MessageSVG />
                             <span>צ'אטים</span>
                             <div className="svg-msg-icon">
-                                {chats.some((c) => c.unreadTotal > 0) && (
-                                    <Tooltip title="יש לך הודעות חדשות">
-                                        <MessageAlertSVG />
-                                    </Tooltip>
-                                )}
+                                {chats.some((c) => c.unreadTotal > 0) && <MessageAlertSVG />}
                             </div>
                         </div>
                         <div className="left-side">
