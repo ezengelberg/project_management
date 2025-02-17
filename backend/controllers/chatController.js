@@ -48,7 +48,15 @@ export const sendMessage = async (req, res) => {
         chatTarget.lastMessage = messageData;
         await chatTarget.save();
 
-        console.log(chatTarget);
+        if (isNewChat) {
+            for (const participant of chatTarget.participants) {
+                if (req.user._id.toString() !== participant.toString()) {
+                    console.log("📤 Emitting new chat to user:", participant.toString());
+                    io.to(participant.toString()).emit("receive_new_chat", chatTarget);
+                }
+            }
+        }
+
         // Emit message to all users in the chat
         io.to(chatTarget._id.toString()).emit("receive_message", messageData);
         console.log("📤 Message sent to chat:", chatTarget._id.toString());

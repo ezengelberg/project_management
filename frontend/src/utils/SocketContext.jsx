@@ -6,7 +6,14 @@ const SocketContext = createContext(null);
 export const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null); // Use state for the socket
     const [isConnected, setIsConnected] = useState(false);
+    const [user, setUser] = useState(JSON.parse(sessionStorage.getItem("user")) || null);
 
+    useEffect(() => {
+        if (user) {
+            socket?.emit("join", user._id);
+        }
+    }, [user, socket]);
+    
     useEffect(() => {
         const socketInstance = io(process.env.REACT_APP_BACKEND_URL, {
             withCredentials: true,

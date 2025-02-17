@@ -9,7 +9,7 @@ import { Server } from "socket.io";
 import session from "express-session";
 import passport from "./config/passport.js";
 
-import dbInstance  from "./config/db.js";
+import dbInstance from "./config/db.js";
 import MongoStore from "connect-mongo";
 
 import User from "./models/users.js";
@@ -184,9 +184,15 @@ schedule.scheduleJob("0 * * * *", async () => {
 });
 
 const activeChats = {};
+const activeUsers = {};
 // Socket.io
 io.on("connection", (socket) => {
     console.log("🔌 New user connected:", socket.id);
+    socket.on("join", (userID) => {
+        activeUsers[userID] = socket.id;
+        socket.join(userID);
+    });
+
     socket.on("join_chats", (chats) => {
         chats.forEach((chat) => {
             console.log(`User ${socket.id} joining chat: ${chat}`);
@@ -200,19 +206,6 @@ io.on("connection", (socket) => {
             console.log(`Active users in chat ${chat}:`, activeChats[chat]);
         });
     });
-
-    // socket.on("send_message", async ({ chatID, message, sender }) => {
-    //     try {
-    //         const chat = await Chat.findById(chatID).populate("lastMessage").populate("participants");
-    //         if (!chat) {
-    //             return;
-    //         }
-    //         // Emit updated chat to all users in the chat room
-    //         io.to(chatID).emit("receive_chat", chat);
-    //     } catch (error) {
-    //         console.error("Error sending message:", error);
-    //     }
-    // });
 
     socket.on("typing start", async ({ chatID, user }) => {
         try {
@@ -269,6 +262,11 @@ io.on("connection", (socket) => {
             if (activeChats[chatID].size === 0) {
                 delete activeChats[chatID];
                 console.log(`Chat ${chatID} is now inactive`);
+            }
+        }
+        for (const userID in activeUsers) {
+            if (activeUsers[userID] === socket.id) {
+                delete activeUsers[userID];
             }
         }
     });

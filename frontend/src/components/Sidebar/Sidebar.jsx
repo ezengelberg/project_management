@@ -98,7 +98,6 @@ const Sidebar = () => {
     useEffect(() => {
         if (!socket) return;
         socket.on("connect", () => {
-            console.log("Connected to socket! Rejoining chats...");
             if (chats?.length) {
                 socket.emit(
                     "join_chats",
@@ -133,6 +132,15 @@ const Sidebar = () => {
                 });
                 return updatedChats;
             });
+        });
+
+        socket.on("receive_new_chat", (chat) => {
+            setChats((prev) => {
+                const newChats = [chat, ...prev];
+                return newChats;
+            });
+            selectChat(chat);
+            socket.emit("join_chats", [chat._id.toString()]);
         });
 
         return () => {
@@ -175,7 +183,6 @@ const Sidebar = () => {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/${chatID}`, {
                 withCredentials: true,
             });
-            console.log("created chat", response.data);
             setChats((prev) => {
                 const newChats = [response.data, ...prev];
                 return newChats;
