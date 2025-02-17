@@ -9,7 +9,7 @@ import { Server } from "socket.io";
 import session from "express-session";
 import passport from "./config/passport.js";
 
-import { connectDB } from "./config/db.js";
+import dbInstance  from "./config/db.js";
 import MongoStore from "connect-mongo";
 
 import User from "./models/users.js";
@@ -29,7 +29,6 @@ import zoomRoute from "./routes/zoomRoute.js";
 import announcementRoute from "./routes/announcementRoute.js";
 import chatRoute from "./routes/chatRoute.js";
 
-import Chat from "./models/chats.js";
 import Message from "./models/messages.js";
 
 import dotenv from "dotenv";
@@ -164,7 +163,7 @@ async function initializeConfig() {
 
 server.listen(server_port, () => {
     // awaiting for mongoDB connection before initializing config
-    connectDB().then(() => {
+    dbInstance.connect().then(() => {
         initializeConfig();
     });
     console.log(`Server is running at port: ${server_port}`);
