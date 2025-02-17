@@ -1400,3 +1400,168 @@ export const editExamTableDates = async (req, res) => {
     res.status(500).json({ message: "Failed to edit exam table dates" });
   }
 };
+
+export const suggestProject = async (req, res) => {
+  try {
+    const { title, description, suitableFor, year, candidates, type, externalEmail } = req.body;
+    const project = await Project.findOne({ title, year });
+    if (project) {
+      return res.status(400).send({ message: "This Project already exists in that year" });
+    }
+    const newProject = new Project({
+      title,
+      description,
+      suitableFor,
+      year,
+      type,
+      externalEmail,
+      candidates: candidates.map((student) => ({ student })),
+      studentSuggestions: {
+        suggestedBy: req.user._id,
+        suggestedDate: new Date(),
+        stage: 1,
+      },
+      journal: {
+        missions: [],
+      },
+    });
+
+    const savedProject = await newProject.save();
+
+    // Send notification to the students that aren't the suggester
+    const studentIds = candidates.map((student) => student._id.toString());
+    const filteredStudentIds = studentIds.filter((studentId) => studentId !== req.user._id.toString());
+    await Promise.all(
+      filteredStudentIds.map(async (studentId) => {
+        const notification = new Notification({
+          user: studentId,
+          message: `הצעת פרויקט: ${title}`,
+          link: `/project/${savedProject._id}`,
+        });
+        await notification.save();
+      })
+    );
+
+    const coordinators = await User.find({ isCoordinator: true });
+    await Promise.all(
+      coordinators.map(async (coordinator) => {
+        const notification = new Notification({
+          user: coordinator._id,
+          message: `פרויקט מחכה לאישור: ${title}`,
+          link: `/project/${savedProject._id}`,
+        });
+        await notification.save();
+      })
+    );
+
+    res.status(200).json({ project: savedProject });
+  } catch (error) {
+    console.error("Error suggesting project:", error);
+    res.status(500).json({ message: "Failed to suggest project" });
+  }
+};
+
+export const getProjectSuggestions = async (req, res) => {
+  try {
+    const projects = await Project.find({ $or: [{ "studentSuggestions.stage": 1 }, { "studentSuggestions.stage": 2 }] })
+      .populate("studentSuggestions.suggestedBy")
+      .populate("candidates.student");
+    res.status(200).json(projects);
+  } catch (error) {
+    console.error("Error fetching project suggestions:", error);
+    res.status(500).json({ message: "Failed to fetch project suggestions" });
+  }
+};
+
+export const approveProjectSuggestion = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    if (project.studentSuggestions.stage !== 1) {
+      return res.status(400).json({ message: "Project suggestion is not in the correct stage" });
+    }
+
+    // Check if any candidate is already assigned to a different project
+    for (const candidate of project.candidates) {
+      const existingProject = await Project.findOne({ students: { $elemMatch: { student: candidate.student } } });
+      if (existingProject) {
+        return res.status(409).json({
+          message: `הסטודנט: ${candidate.student.name}, כבר שייך לפרויקט: ${existingProject.title}`,
+        });
+      }
+    }
+
+    // Move students from candidates to students
+    project.students = project.candidates.map((candidate) => ({
+      student: candidate.student,
+      joinDate: new Date(),
+    }));
+    project.candidates = [];
+
+    project.studentSuggestions.stage = 2;
+    project.studentSuggestions.acceptProject = true;
+    project.studentSuggestions.acceptDate = new Date();
+    await project.save();
+
+    const notification = new Notification({
+      user: project.studentSuggestions.suggestedBy._id,
+      message: `הצעת הפרויקט: ${project.title} אושרה`,
+      link: `/project/${project._id}`,
+    });
+    await notification.save();
+
+    res.status(200).json(project);
+  } catch (error) {
+    console.error("Error approving project suggestion:", error);
+    res.status(500).json({ message: "Failed to approve project suggestion" });
+  }
+};
+
+export const rejectProjectSuggestion = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    if (project.studentSuggestions.stage !== 1) {
+      return res.status(400).json({ message: "Project suggestion is not in the correct stage" });
+    }
+
+    project.studentSuggestions.stage = 2;
+    project.studentSuggestions.denyProject = true;
+    project.studentSuggestions.denyDate = new Date();
+    project.studentSuggestions.denyReason = req.body.reason;
+    project.isTerminated = true;
+    await project.save();
+
+    const notification = new Notification({
+      user: project.studentSuggestions.suggestedBy._id,
+      message: `הצעת הפרויקט: ${project.title} נדחתה`,
+    });
+    await notification.save();
+
+    res.status(200).json(project);
+  } catch (error) {
+    console.error("Error rejecting project suggestion:", error);
+    res.status(500).json({ message: "Failed to reject project suggestion" });
+  }
+};
+
+export const deleteProjectSuggestion = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    await project.deleteOne();
+    res.status(200).json({ message: "Project suggestion deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting project suggestion:", error);
+    res.status(500).json({ message: "Failed to delete project suggestion" });
+  }
+};

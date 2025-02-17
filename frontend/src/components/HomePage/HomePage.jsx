@@ -129,6 +129,25 @@ const Homepage = () => {
     </svg>
   );
 
+  const SubmissionsSVG = () => (
+    <svg className="special-icons" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+      <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path d="M7.5 15.5V11.7586H9V14H17V11.7586H18.5V15.5H7.5Z" fill="#000000"></path>
+        <path
+          d="M10.9904 10.1133L12.25 8.85369L12.25 12L13.75 12L13.75 8.85369L15.0096 10.1133L16.0702 9.05261L13 5.98237L9.92976 9.05261L10.9904 10.1133Z"
+          fill="#000000"></path>
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M5 3H21V19H5V3ZM6.5 4.5H19.5V17.5H6.5V4.5Z"
+          fill="#000000"></path>
+        <path d="M2 6V22H18V20.5H3.5V6H2Z" fill="#000000"></path>
+      </g>
+    </svg>
+  );
+
   const ZoomMeetingSVG = () => (
     <svg className="special-icons" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg" fill="none">
       <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
@@ -406,6 +425,15 @@ const Homepage = () => {
                 onMouseDown={(e) => handleMouseDown(e, "/overview-projects")}>
                 <BarChartOutlined />
                 <p>ניהול פרויקטים</p>
+              </div>
+            )}
+            {currentUser.isCoordinator && (
+              <div
+                className="quick-link-item"
+                onClick={() => navigate("/submissions")}
+                onMouseDown={(e) => handleMouseDown(e, "/submissions")}>
+                <SubmissionsSVG />
+                <p>ניהול הגשות</p>
               </div>
             )}
             {currentUser.isCoordinator && (

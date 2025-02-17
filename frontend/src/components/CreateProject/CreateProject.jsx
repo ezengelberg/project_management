@@ -101,7 +101,11 @@ const CreateProject = () => {
           withCredentials: true,
         });
         const onlyStudents = response.data.usersNoProjects.filter(
-          (user) => user.isStudent === true && user.isAdvisor === false && user.isCoordinator === false
+          (user) =>
+            user.isStudent === true &&
+            user.isAdvisor === false &&
+            user.isCoordinator === false &&
+            user.suspended === false
         );
         setStudentsNoProject(onlyStudents);
       } catch (error) {

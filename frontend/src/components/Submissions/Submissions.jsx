@@ -484,21 +484,25 @@ const Submissions = () => {
           name = "דוח הצעה";
           isGraded = submissionOptions.find((option) => option.value === "proposalReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "proposalReport").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "proposalReport").fileNeeded;
           break;
         case "alphaReport":
           name = "דוח אלפה";
           isGraded = submissionOptions.find((option) => option.value === "alphaReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "alphaReport").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "proposalReport").fileNeeded;
           break;
         case "finalReport":
           name = "דוח סופי";
           isGraded = submissionOptions.find((option) => option.value === "finalReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "finalReport").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "proposalReport").fileNeeded;
           break;
         case "finalExam":
           name = "מבחן סוף";
           isGraded = submissionOptions.find((option) => option.value === "finalExam").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "finalExam").isReviewed;
+          fileNeeded = submissionOptions.find((option) => option.value === "proposalReport").fileNeeded;
           break;
         default: // other...
           name = values.submissionName || "ללא שם";
@@ -1232,7 +1236,7 @@ const Submissions = () => {
         title={`עריכת פרטי הגשה`}
         open={specificSubmissionInfo !== null}
         cancelText="סגור"
-        okText="ערוך"
+        okText="עדכן"
         onCancel={() => {
           editSpecificSubmission.resetFields();
           setSpecificSubmissionInfo(null);
@@ -1552,7 +1556,7 @@ const Submissions = () => {
       <Modal
         title={`שינוי ציון לפרויקט ${submissionInfo?.project?.title} - ${submissionInfo?.submission?.name}`}
         open={gradeFormOpen}
-        okText="ערוך ציון"
+        okText="עדכן ציון"
         cancelText="סגור"
         onOk={() => onOkHandlerGrade()}
         onCancel={() => {
@@ -1587,7 +1591,7 @@ const Submissions = () => {
       <Modal
         title="עריכת פרטי הגשה"
         open={editSubmissions}
-        okText="ערוך"
+        okText="עדכן"
         cancelText="סגור"
         onOk={() => onOkHandlerEdit()}
         onCancel={() => {

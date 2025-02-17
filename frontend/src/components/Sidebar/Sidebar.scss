@@ -1,6 +1,7 @@
 .sidebar-container {
   background-color: #001529;
   color: white;
+  overflow-y: auto;
 
   .sidebar-actions {
     .sidebar-greeting {
@@ -89,7 +90,7 @@
         }
       }
       li.closed {
-        & > div > svg:not(.zoom-icon) {
+        & > div > svg:not(.zoom-icon):not(.submission-icon) {
           transform: rotate3d(1, 0, 0, 180deg);
         }
         .sidebar-drop-menu {

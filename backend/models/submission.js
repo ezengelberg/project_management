@@ -21,6 +21,15 @@ const submissionSchema = new mongoose.Schema(
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     numericValues: { type: [numericValuesSchema], default: [] },
     editable: { type: Boolean, default: true },
+    askForExtraUpload: { type: Boolean, default: false },
+    requestExtraUploadDate: { type: Date },
+    gotExtraUpload: { type: Boolean, default: false },
+    gotExtraUploadDate: { type: Date },
+    denyExtraUpload: { type: Boolean, default: false },
+    askAgainForExtraUpload: { type: Boolean, default: false },
+    extraUploadFile: { type: mongoose.Schema.Types.ObjectId, ref: "Upload", required: false },
+    extraUploadDate: { type: Date },
+    extraUploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     overridden: {
       type: {
         by: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },

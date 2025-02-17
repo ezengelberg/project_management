@@ -36,7 +36,7 @@ const ZoomScheduler = () => {
   const [recurrenceType, setRecurrenceType] = useState(null);
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [allUsers, setAllUsers] = useState([]);
-  const [value, setValue] = useState(1);
+  const [value, setValue] = useState(2);
 
   const onChange = (e) => {
     setValue(e.target.value);
@@ -133,10 +133,14 @@ const ZoomScheduler = () => {
       generalMeeting.resetFields();
     }
     setRecurrenceType(null);
-    setValue(1);
+    setValue(2);
   };
 
   const handleSubmit = async (values, formType) => {
+    if (values.meetingType === 1) {
+      message.error("פגישות זום לא נתמכות עד אישור מהמכללה.");
+      return;
+    }
     setLoading(true);
     try {
       const formattedDate = dayjs(values.date).format("YYYY-MM-DD");
@@ -196,7 +200,7 @@ const ZoomScheduler = () => {
           layout="vertical"
           onFinish={(values) => handleSubmit(values, "project")}
           form={form}
-          initialValues={{ meetingType: 1 }}>
+          initialValues={{ meetingType: 2 }}>
           <Form.Item label="סוג פגישה" name="meetingType" rules={[{ required: true, message: "בחר סוג פגישה" }]}>
             <Radio.Group
               onChange={onChange}
@@ -329,7 +333,7 @@ const ZoomScheduler = () => {
           layout="vertical"
           onFinish={(values) => handleSubmit(values, "general")}
           form={generalMeeting}
-          initialValues={{ meetingType: 1 }}>
+          initialValues={{ meetingType: 2 }}>
           <Form.Item label="סוג פגישה" name="meetingType" rules={[{ required: true, message: "בחר סוג פגישה" }]}>
             <Radio.Group
               onChange={onChange}

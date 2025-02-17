@@ -1080,7 +1080,7 @@ const OverviewProjects = () => {
               variant="filled"
               onClick={() => approveProject(record._id)}
               disabled={record.students.length === 0 || record.advisors.length === 0}>
-              אשר פרויקט
+              הפעל פרויקט
             </Button>
             <Button
               color="danger"

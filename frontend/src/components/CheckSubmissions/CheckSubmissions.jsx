@@ -15,6 +15,7 @@ const CheckSubmissions = () => {
   const [submissions, setSubmissions] = useState([]);
   const [moreDetailsModal, setMoreDetailsModal] = useState(false);
   const [submissionDetails, setSubmissionDetails] = useState({});
+  const [fileListModal, setFileListModal] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -41,7 +42,7 @@ const CheckSubmissions = () => {
         setSubmissions(response.data);
         setInitLoading(false);
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     };
     fetchData();
@@ -59,7 +60,7 @@ const CheckSubmissions = () => {
       setSubmissionDetails(response.data);
       setMoreDetailsModal(true);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setSubmissionDetails({});
       setMoreDetailsModal(false);
     }
@@ -92,7 +93,14 @@ const CheckSubmissions = () => {
           )}
           {item.fileNeeded && (
             <Tooltip title="הורד קובץ">
-              <DownloadOutlined className="icon" onClick={() => downloadFile(item.file._id, "submissions")} />
+              <DownloadOutlined
+                className="icon"
+                onClick={() =>
+                  item.gotExtraUpload
+                    ? (setFileListModal(true), setSubmissionDetails(item))
+                    : downloadFile(item.file._id, "submissions")
+                }
+              />
             </Tooltip>
           )}
         </>
@@ -114,7 +122,14 @@ const CheckSubmissions = () => {
           </div>
           {item.fileNeeded && (
             <Tooltip title="הורד קובץ">
-              <DownloadOutlined className="icon" onClick={() => downloadFile(item.file._id, "submissions")} />
+              <DownloadOutlined
+                className="icon"
+                onClick={() =>
+                  item.gotExtraUpload
+                    ? (setFileListModal(true), setSubmissionDetails(item))
+                    : downloadFile(item.file._id, "submissions")
+                }
+              />
             </Tooltip>
           )}
         </>
@@ -178,7 +193,9 @@ const CheckSubmissions = () => {
                       </span>
                     </div>
                   }
-                  description={item.fileName ? item.fileName : "הגשה ללא קובץ"}
+                  description={
+                    item.gotExtraUpload ? "2 קבצים מצורפים" : item.file.filename ? item.file.filename : "הגשה ללא קובץ"
+                  }
                 />
                 {windowSize.width > 626 && <div className="submission-details">{renderSubmissionDetails(item)}</div>}
               </Skeleton>
@@ -242,7 +259,9 @@ const CheckSubmissions = () => {
                       </span>
                     </div>
                   }
-                  description={item.fileName ? item.fileName : "הגשה ללא קובץ"}
+                  description={
+                    item.gotExtraUpload ? "2 קבצים מצורפים" : item.file.filename ? item.file.filename : "הגשה ללא קובץ"
+                  }
                 />
                 <div className="submission-details">{renderSubmissionDetails(item)}</div>
               </Skeleton>
@@ -300,7 +319,9 @@ const CheckSubmissions = () => {
                       </span>
                     </div>
                   }
-                  description={item.fileName ? item.fileName : "הגשה ללא קובץ"}
+                  description={
+                    item.gotExtraUpload ? "2 קבצים מצורפים" : item.file.filename ? item.file.filename : "הגשה ללא קובץ"
+                  }
                 />
                 <div className="submission-details">{renderSubmissionDetails(item)}</div>
               </Skeleton>
@@ -314,6 +335,32 @@ const CheckSubmissions = () => {
   return (
     <div className="check-submissions-container">
       <Tabs defaultActiveKey="1" items={items} />
+      <Modal
+        title="רשימת קבצים"
+        open={fileListModal}
+        onCancel={() => {
+          setFileListModal(false);
+          setSubmissionDetails({});
+        }}
+        cancelText="סגור"
+        okButtonProps={{ style: { display: "none" } }}>
+        <ul>
+          {submissionDetails.file && (
+            <li>
+              <a onClick={() => downloadFile(submissionDetails.file._id, "submissions")}>
+                {submissionDetails.file.filename}
+              </a>
+            </li>
+          )}
+          {submissionDetails.extraUploadFile && (
+            <li>
+              <a onClick={() => downloadFile(submissionDetails.extraUploadFile._id, "submissions")}>
+                {submissionDetails.extraUploadFile.filename}
+              </a>
+            </li>
+          )}
+        </ul>
+      </Modal>
       <Modal
         title="פרטי שפיטה"
         open={moreDetailsModal}
