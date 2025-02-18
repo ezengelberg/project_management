@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import "./Sidebar.scss";
 import axios from "axios";
-import { FloatButton, Drawer } from "antd";
+import { Badge } from "antd";
 import {
   HomeOutlined,
   ProjectOutlined,
@@ -16,16 +16,22 @@ import {
   CloseOutlined,
   LogoutOutlined,
   DeleteOutlined,
-  CommentOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
+import Chat from "../Chat/Chat";
+import { useSocket } from "../../utils/SocketContext";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const sidebarRef = useRef(null);
   const [user, setUser] = useState({});
+  const [chats, setChats] = useState([]);
+  const [chatListOpen, setChatListOpen] = useState(false);
+  const [selectedChats, setSelectedChats] = useState([]);
+  const { socket } = useSocket();
   const [openSubmenus, setOpenSubmenus] = useState({
     myProject: false,
     myProjects: false,
@@ -34,7 +40,6 @@ const Sidebar = () => {
     zoomMeetings: false,
     manageSubmissions: false,
   });
-  const [open, setOpen] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -43,13 +48,6 @@ const Sidebar = () => {
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
-  };
-
-  const showDrawer = () => {
-    setOpen(true);
-  };
-  const onClose = () => {
-    setOpen(false);
   };
 
   useEffect(() => {
@@ -74,6 +72,168 @@ const Sidebar = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const selectChat = (chat) => {
+    setSelectedChats((prev) => {
+      // Prevent duplicates
+      if (prev.some((c) => c._id?.toString() === chat._id?.toString())) {
+        return prev;
+      }
+
+      // Ensure "new" is unique
+      if (chat === "new" && prev.includes("new")) {
+        return prev;
+      }
+
+      // Maintain max length of 2
+      if (prev.length < 2) {
+        return [...prev, chat];
+      } else {
+        return [...prev.slice(1), chat]; // Remove the oldest
+      }
+    });
+  };
+
+  const loadUser = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, {
+        withCredentials: true,
+      });
+      setUser(response.data);
+      localStorage.setItem("user", JSON.stringify(response.data));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("connect", () => {
+      if (chats?.length) {
+        socket.emit(
+          "join_chats",
+          chats.map((chat) => chat._id)
+        );
+      }
+    });
+
+    socket.on("reconnect", () => {
+      console.log("Reconnected! Rejoining chats...");
+      if (chats?.length) {
+        socket.emit(
+          "join_chats",
+          chats.map((chat) => chat._id)
+        );
+      }
+    });
+
+    socket.on("receive_chat", (newChat, newMessage) => {
+      setChats((prev) => {
+        const updatedChats = prev.map((chat) => {
+          if (chat._id === newChat._id && chat.lastMessage !== newChat.lastMessage) {
+            if (newMessage.sender._id !== user._id) {
+              chat.unreadTotal++;
+            }
+            return {
+              ...chat,
+              lastMessage: newMessage,
+            };
+          }
+          return chat;
+        });
+        return updatedChats;
+      });
+    });
+
+    socket.on("receive_new_chat", (chat) => {
+      setChats((prev) => {
+        const newChats = [chat, ...prev];
+        return newChats;
+      });
+      selectChat(chat);
+      socket.emit("join_chats", [chat._id.toString()]);
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("reconnect");
+      socket.off("receive_chat");
+    };
+  }, [socket, chats, user]);
+
+  const fetchChats = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/`, {
+        withCredentials: true,
+      });
+      setChats(response.data.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)));
+      // returning for socket purposes
+      // return response.data;
+
+      if (socket && response.data.length) {
+        console.log(
+          "Joining chats:",
+          response.data.map((chat) => chat._id)
+        );
+        socket.emit(
+          "join_chats",
+          response.data.map((chat) => chat._id)
+        );
+      }
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
+  };
+
+  const handleCreateChat = async (chatID) => {
+    setSelectedChats((prev) => {
+      return prev.filter((chat) => chat !== "new");
+    });
+
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/${chatID}`, {
+        withCredentials: true,
+      });
+      setChats((prev) => {
+        const newChats = [response.data, ...prev];
+        return newChats;
+      });
+      selectChat(response.data);
+      socket.emit("join_chats", [chatID]);
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
+  };
+
+  const ChevronSVG = () => (
+    <svg className="chevron" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 10L12.35 15.65a.5.5 0 01-.7 0L6 10" stroke="#0C0310" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+
+  const MessageSVG = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="#FFF">
+      <path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z" />
+    </svg>
+  );
+
+  const MessageAlertSVG = () => (
+    <svg height="200" width="200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="gold" stroke="gold">
+      <path d="m512 255.996-63.305-51.631 29.002-76.362-80.633-13.07L383.993 34.3l-76.361 29.002L256 .004l-51.646 63.298L128.008 34.3l-13.07 80.634-80.633 13.07 28.988 76.362L0 255.996l63.292 51.632-28.988 76.368 80.633 13.07 13.07 80.633 76.347-29.002L256 511.996l51.632-63.299 76.361 29.002 13.07-80.633 80.633-13.07-29.002-76.368L512 255.996zm-299.171 57.652-14.382 2.834c-.973.183-1.649-.056-2.298-.811l-39.266-45.872-.606.12 10.151 51.596c.142.726-.253 1.304-.972 1.452l-13.662 2.686c-.719.141-1.297-.254-1.438-.98l-15.678-79.746c-.155-.734.24-1.304.959-1.445l14.508-2.855c.846-.169 1.635.056 2.284.811l39.181 46.013.592-.12-10.166-51.716c-.14-.733.254-1.304.973-1.452l13.662-2.686c.719-.141 1.297.24 1.438.973l15.678 79.745c.155.734-.239 1.312-.958 1.453zm70.834-13.93-52.689 10.364c-.733.14-1.296-.247-1.452-.973l-15.678-79.745c-.141-.734.24-1.312.973-1.452l52.688-10.364c.719-.14 1.298.247 1.438.98l2.538 12.922c.155.726-.24 1.305-.959 1.445l-35.418 6.966c-.479.092-.676.38-.578.867l3.201 16.312c.099.48.395.677.874.586l29.495-5.802c.719-.141 1.297.253 1.438.972l2.524 12.81c.141.726-.254 1.297-.972 1.438l-29.496 5.802c-.479.099-.676.388-.577.867l3.355 17.039c.084.486.38.676.86.578l35.417-6.965c.719-.141 1.298.254 1.438.98l2.538 12.93c.156.724-.239 1.302-.958 1.443zm88.233-18.611c.014.754-.493 1.361-1.339 1.523l-12.083 2.376c-.846.169-1.424-.226-1.805-.902L332.362 235.8l-.24.049-4.328 53.937c-.099.768-.494 1.354-1.34 1.515l-12.083 2.383c-.719.141-1.297-.254-1.692-.931l-36.94-75.565c-.268-.705-.127-1.234.719-1.403l15.594-3.059c.846-.17 1.423.212 1.678.923l21.995 49.263.24-.049 3.877-54.346c.099-.782.493-1.353 1.326-1.523l10.518-2.066c.719-.141 1.297.24 1.692.931l24.631 48.734.254-.05 1.212-53.816c-.042-.874.367-1.34 1.213-1.502l15.467-3.038c.846-.17 1.17.261 1.198 1.015l-5.457 83.905z" />
+    </svg>
+  );
+
+  const WriteMessageSVG = () => (
+    <svg
+      className="chat-new-message"
+      xmlns="http://www.w3.org/2000/svg"
+      height="24px"
+      viewBox="0 -960 960 960"
+      width="24px"
+      fill="#FFFFFF">
+      <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z" />
+    </svg>
+  );
 
   const JudgeSVG = () => (
     <svg className="special-sidebar-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -184,17 +344,7 @@ const Sidebar = () => {
   );
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, {
-          withCredentials: true,
-        });
-        setUser(response.data);
-        localStorage.setItem("user", JSON.stringify(response.data));
-      } catch (error) {
-        console.error(error);
-      }
-    };
+    fetchChats();
     loadUser();
   }, []);
 
@@ -225,6 +375,7 @@ const Sidebar = () => {
       const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/logout`, null, {
         withCredentials: true,
       });
+      if (socket && socket.connected) socket.disconnect();
       navigate("/login", { replace: true });
       localStorage.removeItem("user");
       sessionStorage.removeItem("user");
@@ -594,21 +745,113 @@ const Sidebar = () => {
           </ul>
         </div>
       </div>
-      {/* <FloatButton
-        icon={<CommentOutlined />}
-        onClick={showDrawer}
-        badge={{
-          count: 10,
-          overflowCount: 999,
-          style: { direction: "ltr" },
-        }}
-        style={{ direction: "ltr" }}
-      />
-      <Drawer title="צ'אטים" onClose={onClose} open={open} mask={false} maskClosable={false}>
-        <p>Some contents...</p>
-        <p>Some contents...</p>
-        <p>Some contents...</p>
-      </Drawer> */}
+
+      <div className="chat-list-container">
+        <div className={`chat-list ${chatListOpen ? "open" : ""}`}>
+          <div className="header">
+            <div className="right-side">
+              <MessageSVG />
+              <span>צ'אטים</span>
+              <div className="svg-msg-icon">{chats.some((c) => c.unreadTotal > 0) && <MessageAlertSVG />}</div>
+            </div>
+            <div className="left-side">
+              <div className="new-message-chat" onClick={() => selectChat("new")}>
+                <WriteMessageSVG />
+              </div>
+              <div
+                className="open-close-chat"
+                onClick={() => {
+                  setChatListOpen(!chatListOpen);
+                }}>
+                <ChevronSVG />
+              </div>
+            </div>
+          </div>
+          {chatListOpen && (
+            <>
+              <div className="filter-chat">
+                <div className="search-wrapper">
+                  <SearchOutlined />
+                  <input type="text" placeholder="חפש שיחות..." />
+                </div>
+              </div>
+              <div className="chat-list-items">
+                {chats.length === 0 && <p>אין שיחות זמינות</p>}
+                {chats.map((chat) => {
+                  return (
+                    <div key={chat._id} className="chat-item" onClick={() => selectChat(chat)}>
+                      <div className="chat-header">
+                        <span className="chat-title">
+                          {chat.participants.length === 2
+                            ? chat.participants.filter((p) => p._id !== user._id)[0].name
+                            : chat.chatName
+                            ? chat.chatName
+                            : (() => {
+                                let title = chat.participants.map((p) => p.name).join(", ");
+                                if (title.length > 40) title = title.substring(0, 40).concat("...");
+                                return title;
+                              })()}
+                        </span>
+                      </div>
+                      <div className="message-description">
+                        <div className="last-message">
+                          <div
+                            className={`seen ${
+                              chat.lastMessage?.seenBy?.length === chat.participants.length ? "all" : ""
+                            }`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
+                              <g transform="translate(0, 960)">
+                                <path
+                                  d="M268-240 42-466l57-56 170 170 56 56-57 56Zm226 0L268-466l56-57 170 170 368-368 56 57-424 424Zm0-226-57-56 198-198 57 56-198 198Z"
+                                  fill="#666"
+                                />
+                              </g>
+                            </svg>
+                          </div>
+                          <span className="last-message-content">
+                            {chat?.lastMessage?.sender?.name}:{" "}
+                            {chat?.lastMessage?.message?.length > 10
+                              ? `${chat?.lastMessage?.message?.substring(0, 50)}...`
+                              : chat?.lastMessage?.message}
+                          </span>
+                        </div>
+                      </div>
+                      {chat.unreadTotal > 0 && (
+                        <div className="unread-total">
+                          <Badge count={chat?.unreadTotal} color="#1daa61" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+        {selectedChats.map((chat) => {
+          return (
+            <Chat
+              key={chat._id || "new"}
+              chatID={chat}
+              onClose={() => {
+                setSelectedChats((prev) => prev.filter((c) => c._id !== chat._id));
+              }}
+              onWatch={() => {
+                setChats((prevChats) => {
+                  const updatedChats = prevChats.map((c) => {
+                    if (c._id.toString() === chat._id.toString()) {
+                      c.unreadTotal = c.unreadTotal ? c.unreadTotal - 1 : 0;
+                    }
+                    return c;
+                  });
+                  return updatedChats;
+                });
+              }}
+              onCreateChat={handleCreateChat}
+            />
+          );
+        })}
+      </div>
     </>
   );
 };

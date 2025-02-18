@@ -36,17 +36,17 @@ import SuggestProject from "./components/SuggestProject/SuggestProject";
 import ApproveProjects from "./components/ApproveProjects/ApproveProjects";
 
 function App() {
-  return (
-    <Router>
-      <MainLayout />
-    </Router>
-  );
+    return (
+        <Router>
+            <MainLayout />
+        </Router>
+    );
 }
 
 const MainLayout = () => {
-  const location = useLocation();
-  const noSidebarRoutes = ["/login", "/", "*"];
-  const shouldDisplaySidebar = !noSidebarRoutes.includes(location.pathname);
+    const location = useLocation();
+    const noSidebarRoutes = ["/login", "/", "*"];
+    const shouldDisplaySidebar = !noSidebarRoutes.includes(location.pathname);
 
   useEffect(() => {
     const routeTitles = {
@@ -81,12 +81,12 @@ const MainLayout = () => {
       "/approve-projects": "אישור פרויקטים",
     };
 
-    const currentPath = Object.keys(routeTitles).find((path) =>
-      new RegExp(`^${path.replace(/:\w+/g, "\\w+")}$`).test(location.pathname)
-    );
+        const currentPath = Object.keys(routeTitles).find((path) =>
+            new RegExp(`^${path.replace(/:\w+/g, "\\w+")}$`).test(location.pathname),
+        );
 
-    document.title = `ניהול פרויקטים | ${routeTitles[currentPath] || "כניסה"}`;
-  }, [location.pathname]);
+        document.title = `ניהול פרויקטים | ${routeTitles[currentPath] || "כניסה"}`;
+    }, [location.pathname]);
 
   return (
     <>
