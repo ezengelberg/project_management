@@ -777,7 +777,6 @@ const Sidebar = () => {
                                         type="text"
                                         placeholder="חפש שיחות..."
                                         onChange={(e) => {
-                                            console.log(e.target.value);
                                             setChatFilter(e.target.value.toLowerCase());
                                         }}
                                     />
