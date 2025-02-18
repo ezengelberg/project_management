@@ -43,7 +43,6 @@ export const registerUser = async (req, res) => {
             isCoordinator: isCoordinator || false,
         });
         await newUser.save();
-        console.log(`User ${name} registered successfully`);
         res.status(201).send("User registered successfully");
     } catch (err) {
         res.status(500).send({ message: err.message });
@@ -107,8 +106,7 @@ export const createAdmin = async (req, res) => {
                 isCoordinator: true,
             });
             await newUser.save();
-            console.log("Admin user created successfully");
-        } else console.log("Admin user already exists");
+        }
         res.status(201).send("Admin user created successfully");
     } catch (err) {
         res.status(500).send({ message: err.message });
@@ -141,12 +139,6 @@ export const loginUser = (req, res, next) => {
                     console.error("Session save error:", err);
                     return next(err);
                 }
-
-                // console.log("Session after login:", {
-                //   id: req.sessionID,
-                //   passport: req.session.passport,
-                //   cookie: req.session.cookie,
-                // });
 
                 user.rememberMe = req.body.rememberMe;
                 user.expireDate = new Date().getTime() + 1000 * 60 * 60 * 24 * 30; // 1 month
@@ -281,7 +273,6 @@ export const getUser = async (req, res) => {
 };
 
 export const changePassword = async (req, res) => {
-    console.log("changing password...");
     const user = req.user;
     const { oldPassword, newPassword, interests } = req.body;
     try {

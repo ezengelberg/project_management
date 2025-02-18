@@ -14,7 +14,6 @@ class Database {
 
     async connect() {
         if (this.connection) {
-            console.log("Using existing MongoDB connection");
             return this.connection;
         }
 

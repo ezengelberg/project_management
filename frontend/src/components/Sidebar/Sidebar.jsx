@@ -31,6 +31,7 @@ const Sidebar = () => {
     const [chats, setChats] = useState([]);
     const [chatListOpen, setChatListOpen] = useState(false);
     const [selectedChats, setSelectedChats] = useState([]);
+    const [chatFilter, setChatFilter] = useState("");
     const { socket } = useSocket();
     const [openSubmenus, setOpenSubmenus] = useState({
         myProject: false,
@@ -171,10 +172,6 @@ const Sidebar = () => {
             // return response.data;
 
             if (socket && response.data.length) {
-                console.log(
-                    "Joining chats:",
-                    response.data.map((chat) => chat._id),
-                );
                 socket.emit(
                     "join_chats",
                     response.data.map((chat) => chat._id),
@@ -776,7 +773,11 @@ const Sidebar = () => {
                             <div className="filter-chat">
                                 <div className="search-wrapper">
                                     <SearchOutlined />
-                                    <input type="text" placeholder="חפש שיחות..." />
+                                    <input
+                                        type="text"
+                                        placeholder="חפש שיחות..."
+                                        onChange={(e) => setChatFilter(e.target.value)}
+                                    />
                                 </div>
                             </div>
                             <div className="chat-list-items">

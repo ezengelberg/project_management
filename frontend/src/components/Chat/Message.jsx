@@ -26,7 +26,6 @@ const Message = forwardRef(({ message, user, participants, onWatch, socket, chat
             if (!isSeenByUser) {
                 onWatch();
                 socket.emit("seen_message", { messageID: message._id, chatID: chatID._id, user: user._id });
-                console.log(`Message ${message.message} seen by ${user.name}`);
             }
         }
     }, [inView, seen]);

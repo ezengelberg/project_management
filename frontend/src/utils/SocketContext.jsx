@@ -13,7 +13,7 @@ export const SocketProvider = ({ children }) => {
             socket?.emit("join", user._id);
         }
     }, [user, socket]);
-    
+
     useEffect(() => {
         const socketInstance = io(process.env.REACT_APP_BACKEND_URL, {
             withCredentials: true,
@@ -22,17 +22,15 @@ export const SocketProvider = ({ children }) => {
         });
 
         socketInstance.on("connect", () => {
-            console.log("✅ Connected to socket");
             setIsConnected(true);
         });
 
         socketInstance.on("disconnect", () => {
-            console.log("❌ Disconnected from socket");
             setIsConnected(false);
         });
 
         socketInstance.on("reconnect", () => {
-            console.log("🔄 Reconnected!");
+            setIsConnected(true);
         });
 
         setSocket(socketInstance); // Set the socket instance to state

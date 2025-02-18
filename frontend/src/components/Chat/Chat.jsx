@@ -58,10 +58,8 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
     useEffect(() => {
         if (!socket || !chatID) return; // Wait for socket to be available
         if (chatID === "new") return; // Don't listen for messages in new chat
-        console.log("Listening use effect");
         // Listen for new messages
         socket.on("receive_message", (msg) => {
-            console.log("📩 Received new message:", msg);
             setChatHistory((prevHistory) => {
                 const newHistory = [...prevHistory, msg];
                 newHistory.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
@@ -75,7 +73,6 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
 
         // Listen for "seen" updates
         socket.on("receive_seen", (message) => {
-            console.log("👁️ Message seen by:", message.seenBy);
             setChatHistory((prevHistory) => {
                 const newHistory = prevHistory.map((msg) => {
                     if (msg._id.toString() === message._id.toString()) {
