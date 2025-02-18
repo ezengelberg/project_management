@@ -3,6 +3,19 @@ import User from "../models/users.js";
 import Message from "../models/messages.js";
 import { io } from "../server.js";
 
+export const updateChatName = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name } = req.body;
+        const chat = await Chat.findById(id);
+        chat.chatName = name;
+        await chat.save();
+        res.status(200).json(chat);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 export const sendMessage = async (req, res) => {
     try {
         const { chatID, message, recievers } = req.body;

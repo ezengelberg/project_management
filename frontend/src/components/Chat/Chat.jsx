@@ -34,7 +34,8 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
     const [loaded, setLoaded] = useState(false);
     const [scrollToEnd, setScrollToEnd] = useState(false);
     const [messagesToFetch, setMessagesToFetch] = useState(20);
-
+    const [updateChatName, setUpdateChatName] = useState(false);
+    const [currentChatName, setCurrentChatName] = useState(null);
     const messageRefs = useRef({});
     const typingRef = useRef(null);
 
@@ -52,6 +53,7 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
     useEffect(() => {
         if (chatID === "new") return;
         setParticipants(chatID.participants);
+        setCurrentChatName(getChatName());
         fetchChat();
     }, [chatID]);
 
@@ -159,6 +161,14 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
         }, 5000);
     };
 
+    const getChatName = () => {
+        if (participants.length === 2) {
+            return participants.filter((p) => p._id !== user._id)[0].name;
+        }
+        if (chatID.chatName) return chatID.chatName;
+        return participants.map((p) => p.name).join(", ");
+    };
+
     useEffect(() => {
         if (!chatHistory || chatHistory.length === 0) return;
         if (!loaded) {
@@ -219,6 +229,21 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
             console.error("Error fetching users:", error);
         } finally {
             setLoadingUsers(false);
+        }
+    };
+    const handleChatNameUpdate = async () => {
+        chatID.chatName = currentChatName;
+        setUpdateChatName(false);
+        try {
+            await axios.post(
+                `${process.env.REACT_APP_BACKEND_URL}/api/chat/update/name/${chatID._id}`,
+                { name: currentChatName },
+                {
+                    withCredentials: true,
+                },
+            );
+        } catch (error) {
+            console.error("Error updating chat name:", error);
         }
     };
 
@@ -371,19 +396,34 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
             ) : (
                 <div className="chat-wrapper">
                     <div className="chat-header">
-                        <h3
-                            className={`chat-header-title ${participants.length > 2 ? "changeable" : ""}`}
-                            onClick={() => console.log("Change chat name")}>
-                            {participants.length === 2
-                                ? participants.filter((p) => p._id !== user._id)[0].name
-                                : chatID.chatName
-                                ? chatID.chatName
-                                : (() => {
-                                      let title = participants.map((p) => p.name).join(", ");
-                                      if (title.length > 40) title = title.substring(0, 40).concat("...");
-                                      return title;
-                                  })()}
-                        </h3>
+                        {!updateChatName ? (
+                            <h3
+                                className={`chat-header-title ${participants.length > 2 ? "changeable" : ""}`}
+                                onClick={() => {
+                                    if (participants.length > 2) {
+                                        setUpdateChatName(true);
+                                        setCurrentChatName(getChatName());
+                                    }
+                                }}>
+                                {getChatName()}
+                            </h3>
+                        ) : (
+                            <input
+                                type="text"
+                                className="chat-header-title-edit"
+                                value={currentChatName}
+                                onChange={(e) => setCurrentChatName(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        handleChatNameUpdate();
+                                    } else if (e.key === "Escape") {
+                                        setUpdateChatName(false);
+                                        setCurrentChatName(getChatName());
+                                    }
+                                }}
+                                onBlur={() => setUpdateChatName(false)}
+                            />
+                        )}
                     </div>
                     <div className="chat-history">
                         {chatHistory.length >= 20 && (

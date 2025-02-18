@@ -55,6 +55,27 @@ $chat-header: #a1bbd4;
                     }
                 }
             }
+            .chat-header-title-edit {
+                margin: 0;
+                padding: 1rem 0.5rem;
+                background-color: transparent; // Make the background transparent or light-colored
+                box-shadow: none; // Remove box-shadow to make it look flat
+                font-weight: 600;
+                border: 0;
+                outline: none;
+                width: 100%;
+                font-size: 1.7rem;
+                color: inherit; // Use the text color from the parent element
+
+                // Optionally, add a text cursor
+                cursor: text;
+
+                // Optional: Add focus style for visual feedback
+                &:focus {
+                    border: none;
+                    background-color: rgba(0, 0, 0, 0.05); // Light background when focused
+                }
+            }
         }
 
         .participants-list {
