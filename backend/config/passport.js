@@ -6,7 +6,7 @@ import User from "../models/users.js";
 passport.use(
   new LocalStrategy({ usernameField: "email" }, async (email, password, done) => {
     try {
-      console.log("🔍 Attempting authentication for email:", email);
+      // console.log("🔍 Attempting authentication for email:", email);
       const user = await User.findOne({ email: email });
       if (!user) {
         console.log("❌ User not found");
@@ -17,7 +17,7 @@ passport.use(
         console.log("❌ Password is incorrect");
         return done(null, false, { message: "אימייל או סיסמה לא נכונים." });
       }
-      console.log("✅ User authenticated successfully:", user.email);
+      // console.log("✅ User authenticated successfully:", user.email);
       return done(null, user);
     } catch (err) {
       console.error("❌ Authentication error:", err);
@@ -25,47 +25,4 @@ passport.use(
     }
   }),
 );
-
-// passport.serializeUser((user, done) => {
-//   process.nextTick(() => {
-//     try {
-//       console.log("🔵 Serializing user:", {
-//         id: user._id.toString(),
-//         email: user.email,
-//       });
-
-//       // Store the user ID or minimal session data
-//       done(null, user._id.toString()); // Store only the ID here, or you can store a minimal session object if needed
-//     } catch (error) {
-//       console.error("❌ Serialization error:", error);
-//       done(error);
-//     }
-//   });
-// });
-
-// passport.deserializeUser(async (id, done) => {
-//   try {
-//     console.log("🔵 Deserializing user with ID:", id);
-//     const user = await User.findById(id).select("-password"); // Only fetch necessary user info
-//     done(null, user);
-//   } catch (error) {
-//     console.error("❌ Deserialization error:", error);
-//     done(error);
-//   }
-// });
-
-
-// Add a middleware to check passport's state
-const checkPassportState = (req, res, next) => {
-  // console.log("🔍 Passport State Check:", {
-  //   sessionID: req.sessionID,
-  //   hasSession: !!req.session,
-  //   sessionPassport: req.session?.passport,
-  //   isAuthenticated: req.isAuthenticated(),
-  //   user: req.user ? { id: req.user._id, email: req.user.email } : "none",
-  // });
-  next();
-};
-
-export { checkPassportState };
 export default passport;
