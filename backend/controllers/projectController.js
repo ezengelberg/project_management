@@ -624,6 +624,14 @@ export const terminateProject = async (req, res) => {
           await Upload.deleteOne({ _id: submission.file });
         }
       }
+      if (submission.extraUploadFile) {
+        const extraFile = await Upload.findById(submission.extraUploadFile);
+        if (extraFile) {
+          const filePath = path.join(process.cwd(), `uploads/${extraFile.destination}`, extraFile.filename);
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+          await Upload.deleteOne({ _id: submission.extraUploadFile });
+        }
+      }
       // Delete all grades related to the submission
       await Grade.deleteMany({ _id: { $in: submission.grades } });
       await submission.deleteOne();
@@ -803,6 +811,15 @@ export const deleteAllProjects = async (req, res) => {
             const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
             if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
             await Upload.deleteOne({ _id: submission.file });
+          }
+        }
+
+        if (submission.extraUploadFile) {
+          const extraFile = await Upload.findById(submission.extraUploadFile);
+          if (extraFile) {
+            const filePath = path.join(process.cwd(), `uploads/${extraFile.destination}`, extraFile.filename);
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            await Upload.deleteOne({ _id: submission.extraUploadFile });
           }
         }
       }

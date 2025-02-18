@@ -802,6 +802,16 @@ export const deleteSubmission = async (req, res) => {
         await Upload.deleteOne({ _id: submission.file });
       }
     }
+
+    if (submission.extraUploadFile) {
+      const extraFile = await Upload.findById(submission.extraUploadFile);
+      if (extraFile) {
+        const filePath = path.join(process.cwd(), `uploads/${extraFile.destination}`, extraFile.filename);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        await Upload.deleteOne({ _id: submission.extraUploadFile });
+      }
+    }
+
     const grades = await Grade.find({ _id: { $in: submission.grades } });
     await Promise.all(
       grades.map(async (grade) => {
