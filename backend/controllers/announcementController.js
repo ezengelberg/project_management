@@ -70,15 +70,12 @@ export const getAnnouncements = async (req, res) => {
             group = await Group.findOne({ projects: project._id });
         }
 
-        console.log("fetch announcements");
         // Define conditions based on user roles
         const roleConditions = [];
         if (isStudent) roleConditions.push({ forStudent: true });
         if (isAdvisor) roleConditions.push({ forAdvisor: true });
         if (isJudge) roleConditions.push({ forJudge: true });
 
-        console.log("roleConditions", roleConditions);
-        console.log(isCoordinator);
 
         // If the user is a coordinator, they see everything
         let query = isCoordinator
@@ -90,12 +87,10 @@ export const getAnnouncements = async (req, res) => {
                   year: year,
               };
 
-        console.log("query", query);
 
         const announcements = await Announcement.find(query)
             .populate({ path: "writtenBy", select: "name" }) // Ensuring writtenBy is populated
             .populate({ path: "group", select: "name" });
-        console.log(announcements);
         res.status(200).json(announcements);
     } catch (error) {
         console.error("Error occurred:", error);

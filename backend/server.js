@@ -111,9 +111,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
     try {
-        // console.log("🔵 Deserializing user with ID:", id);
         const user = await User.findById(id).select("-password"); // Only fetch necessary user info
-        // console.log("🔑 User deserialized:", user.email);
         done(null, user);
     } catch (error) {
         console.error("❌ Deserialization error:", error);
@@ -183,11 +181,12 @@ schedule.scheduleJob("0 * * * *", async () => {
     }
 });
 
+
+// ----------------- Socket.io -----------------
+
 const activeChats = {};
 const activeUsers = {};
-// Socket.io
 io.on("connection", (socket) => {
-    console.log("🔌 New user connected:", socket.id);
     socket.on("join", (userID) => {
         activeUsers[userID] = socket.id;
         socket.join(userID);
@@ -195,21 +194,17 @@ io.on("connection", (socket) => {
 
     socket.on("join_chats", (chats) => {
         chats.forEach((chat) => {
-            console.log(`User ${socket.id} joining chat: ${chat}`);
             socket.join(chat);
-            // console.log(`User joined chat: ${chat}`);
 
             if (!activeChats[chat]) {
                 activeChats[chat] = new Set();
             }
             activeChats[chat].add(socket.id);
-            console.log(`Active users in chat ${chat}:`, activeChats[chat]);
         });
     });
 
     socket.on("typing start", async ({ chatID, user }) => {
         try {
-            // console.log("User started typing:", user, chatID);
             io.to(chatID).emit("typing_start", user, chatID);
         } catch (error) {
             console.error("Error sending typing start:", error);
@@ -218,7 +213,6 @@ io.on("connection", (socket) => {
 
     socket.on("typing stop", async ({ chatID, user }) => {
         try {
-            // console.log("User stopped typing:", user, chatID);
             io.to(chatID).emit("typing_stop", user, chatID);
         } catch (error) {
             console.error("Error sending typing stop:", error);
@@ -256,12 +250,10 @@ io.on("connection", (socket) => {
         // Remove user from all active chats
         for (const chatID in activeChats) {
             activeChats[chatID].delete(socket.id);
-            console.log(`Active users in chat ${chatID}:`, activeChats[chatID]);
 
             // If no users are left in the chat, you can deactivate or remove the chat from activeChats
             if (activeChats[chatID].size === 0) {
                 delete activeChats[chatID];
-                console.log(`Chat ${chatID} is now inactive`);
             }
         }
         for (const userID in activeUsers) {

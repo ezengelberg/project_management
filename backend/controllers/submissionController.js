@@ -402,7 +402,6 @@ export const copyJudges = async (req, res) => {
 
 export const resetJudges = async (req, res) => {
   const { submissionYear, submissionName } = req.query;
-  console.log(submissionYear, submissionName);
   const activeProjects = await Project.find({
     isTerminated: false,
     isFinished: false,
@@ -431,7 +430,6 @@ export const resetJudges = async (req, res) => {
 };
 
 export const assignJudgesAI = async (req, res) => {
-  console.log("Assigning judges automatically with AI");
   const workload = {};
   const projectDetails = {};
   const activeProjects = await Project.find({
@@ -485,8 +483,6 @@ Provide a strictly valid JSON response in this structure:
 If no judges can be assigned, return: {}
   `;
 
-  console.log(workload);
-  console.log(projectDetails);
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -496,33 +492,13 @@ If no judges can be assigned, return: {}
       ],
     });
 
-    console.log("the response\n", completion.choices[0].message);
     const content = completion.choices[0].message.content;
-    console.log("Raw AI Response:", content);
-
-    // Parse response to extract valid JSON
-    // const jsonMatch = content.match(/\{[\s\S]*\}/);
-    // if (jsonMatch) {
-    //   const parsedResponse = JSON.parse(jsonMatch[0]);
-    //   console.log(parsedResponse);
-    //   if (Object.keys(parsedResponse).length === 0) {
-    //     return res.status(500).json({ message: "No judges were assigned" });
-    //   }
-    //   for (const project in parsedResponse) {
-    //     console.log(parsedResponse);
-    //     console.log(project);
-    //   }
-    //   res.status(200).json(parsedResponse);
-    // } else {
-    //   throw new Error("Invalid JSON response from AI.");
-    // }
 
     try {
       // Attempt to extract the JSON part of the response
       const jsonMatch = content.match(/```json\n([\s\S]*?)```/);
       if (jsonMatch) {
         const parsedResponse = JSON.parse(jsonMatch[1]); // Use the matched JSON content
-        console.log("parsed response:", parsedResponse);
 
         if (Object.keys(parsedResponse).length === 0) {
           return res.status(500).json({ message: "No judges were assigned" });
@@ -531,7 +507,6 @@ If no judges can be assigned, return: {}
         for (const project in parsedResponse) {
           const submission = await Submission.findOne({ project: project, name: req.body.submissionName });
           if (submission) {
-            console.log(parsedResponse[project].judges);
             const judges = parsedResponse[project].judges;
             const validJudges = await Promise.all(
               judges.map(async (judge) => {
@@ -541,7 +516,6 @@ If no judges can be assigned, return: {}
                 }
               })
             );
-            console.log("Valid judges are: ", validJudges);
             if (validJudges.length === 0) {
               return res.status(500).json({ message: "No valid judges found" });
             }
@@ -552,11 +526,9 @@ If no judges can be assigned, return: {}
                 return grade;
               })
             );
-            console.log("grade objects: ", gradeObjects);
             await submission.updateOne({ $push: { grades: { $each: gradeObjects } } });
           }
         }
-        console.log("Judges assigned successfully");
         res.status(200).json("judges assigned successfully");
       } else {
         throw new Error("No valid JSON found in the AI response.");

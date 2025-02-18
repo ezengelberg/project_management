@@ -46,7 +46,6 @@ const Announcements = () => {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/announcement/get-all`, {
                 withCredentials: true,
             });
-            console.log(response.data);
             setAnnouncements(response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
         } catch (error) {
             console.error("Error occurred:", error);
@@ -122,7 +121,6 @@ const Announcements = () => {
                                     judge: checkedValues.includes("judge"),
                                     coordinator: checkedValues.includes("coordinator"),
                                 };
-                                console.log("Changing roles:", newRoles);
                                 setSelectedRoles(newRoles);
                             }}
                         />
