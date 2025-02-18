@@ -776,65 +776,82 @@ const Sidebar = () => {
                                     <input
                                         type="text"
                                         placeholder="חפש שיחות..."
-                                        onChange={(e) => setChatFilter(e.target.value)}
+                                        onChange={(e) => {
+                                            console.log(e.target.value);
+                                            setChatFilter(e.target.value.toLowerCase());
+                                        }}
                                     />
                                 </div>
                             </div>
                             <div className="chat-list-items">
                                 {chats.length === 0 && <p>אין שיחות זמינות</p>}
-                                {chats.map((chat) => {
-                                    return (
-                                        <div key={chat._id} className="chat-item" onClick={() => selectChat(chat)}>
-                                            <div className="chat-header">
-                                                <span className="chat-title">
-                                                    {chat.participants.length === 2
-                                                        ? chat.participants.filter((p) => p._id !== user._id)[0].name
-                                                        : chat.chatName
-                                                        ? chat.chatName
-                                                        : (() => {
-                                                              let title = chat.participants
-                                                                  .map((p) => p.name)
-                                                                  .join(", ");
-                                                              if (title.length > 40)
-                                                                  title = title.substring(0, 40).concat("...");
-                                                              return title;
-                                                          })()}
-                                                </span>
-                                            </div>
-                                            <div className="message-description">
-                                                <div className="last-message">
-                                                    <div
-                                                        className={`seen ${
-                                                            chat.lastMessage?.seenBy?.length ===
-                                                            chat.participants.length
-                                                                ? "all"
-                                                                : ""
-                                                        }`}>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
-                                                            <g transform="translate(0, 960)">
-                                                                <path
-                                                                    d="M268-240 42-466l57-56 170 170 56 56-57 56Zm226 0L268-466l56-57 170 170 368-368 56 57-424 424Zm0-226-57-56 198-198 57 56-198 198Z"
-                                                                    fill="#666"
-                                                                />
-                                                            </g>
-                                                        </svg>
-                                                    </div>
-                                                    <span className="last-message-content">
-                                                        {chat?.lastMessage?.sender?.name}:{" "}
-                                                        {chat?.lastMessage?.message?.length > 10
-                                                            ? `${chat?.lastMessage?.message?.substring(0, 50)}...`
-                                                            : chat?.lastMessage?.message}
+                                {chats
+                                    .filter((chat) => {
+                                        const title =
+                                            chat.participants.length === 2
+                                                ? chat.participants.filter((p) => p._id !== user._id)[0].name
+                                                : chat.chatName
+                                                ? chat.chatName
+                                                : chat.participants.map((p) => p.name).join(", ");
+
+                                        return title.toLowerCase().includes(chatFilter);
+                                    })
+                                    .map((chat) => {
+                                        return (
+                                            <div key={chat._id} className="chat-item" onClick={() => selectChat(chat)}>
+                                                <div className="chat-header">
+                                                    <span className="chat-title">
+                                                        {chat.participants.length === 2
+                                                            ? chat.participants.filter((p) => p._id !== user._id)[0]
+                                                                  .name
+                                                            : chat.chatName
+                                                            ? chat.chatName
+                                                            : (() => {
+                                                                  let title = chat.participants
+                                                                      .map((p) => p.name)
+                                                                      .join(", ");
+                                                                  if (title.length > 40)
+                                                                      title = title.substring(0, 40).concat("...");
+                                                                  return title;
+                                                              })()}
                                                     </span>
                                                 </div>
-                                            </div>
-                                            {chat.unreadTotal > 0 && (
-                                                <div className="unread-total">
-                                                    <Badge count={chat?.unreadTotal} color="#1daa61" />
+                                                <div className="message-description">
+                                                    <div className="last-message">
+                                                        <div
+                                                            className={`seen ${
+                                                                chat.lastMessage?.seenBy?.length ===
+                                                                chat.participants.length
+                                                                    ? "all"
+                                                                    : ""
+                                                            }`}>
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                viewBox="0 0 960 960">
+                                                                <g transform="translate(0, 960)">
+                                                                    <path
+                                                                        d="M268-240 42-466l57-56 170 170 56 56-57 56Zm226 0L268-466l56-57 170 170 368-368 56 57-424 424Zm0-226-57-56 198-198 57 56-198 198Z"
+                                                                        fill="#666"
+                                                                    />
+                                                                </g>
+                                                            </svg>
+                                                        </div>
+                                                        <span className="last-message-content">
+                                                            {chat?.lastMessage?.sender?.name}:{" "}
+                                                            {chat?.lastMessage?.message?.length > 10
+                                                                ? `${chat?.lastMessage?.message?.substring(0, 50)}...`
+                                                                : chat?.lastMessage?.message}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                                                {chat.unreadTotal > 0 && (
+                                                    <div className="unread-total">
+                                                        <Badge count={chat?.unreadTotal} color="#1daa61" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                             </div>
                         </>
                     )}
