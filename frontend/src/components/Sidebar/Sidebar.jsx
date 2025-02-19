@@ -596,6 +596,12 @@ const Sidebar = () => {
                                             ניהול הגשות
                                         </li>
                                         <li
+                                            className={`${isActive("/grade-distribution") ? "active" : ""}`}
+                                            onClick={() => handleNavigate("/grade-distribution")}
+                                            onMouseDown={(e) => handleMouseDown(e, "/grade-distribution")}>
+                                            התפלגויות ציונים
+                                        </li>
+                                        <li
                                             className={`${isActive("/approve-extra-file") ? "active" : ""}`}
                                             onClick={() => handleNavigate("/approve-extra-file")}
                                             onMouseDown={(e) => handleMouseDown(e, "/approve-extra-file")}>

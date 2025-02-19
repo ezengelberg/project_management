@@ -603,3 +603,22 @@ export const deleteAllUsers = async (req, res) => {
         res.status(500).json({ message: "Failed to delete users and related data" });
     }
 };
+
+export const getActiveAdvisors = async (req, res) => {
+    const { year } = req.query;
+    try {
+        const activeProjects = await Project.find({
+            isTaken: true,
+            advisors: { $exists: true, $ne: [] },
+            students: { $exists: true, $ne: [] },
+            year: year,
+        }).populate("advisors", "name _id");
+        const activeAdvisors = [
+            ...new Set(activeProjects.flatMap((project) => project.advisors.map((advisor) => advisor))),
+        ]; // Remove duplicates
+        res.status(200).json(activeAdvisors);
+    } catch (error) {
+        console.error("Error getting active advisors:", error);
+        res.status(500).json({ message: "Failed to get active advisors" });
+    }
+};
