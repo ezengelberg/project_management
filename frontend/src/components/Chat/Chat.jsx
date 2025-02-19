@@ -77,7 +77,7 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
         socket.on("receive_seen", (message) => {
             setChatHistory((prevHistory) => {
                 const newHistory = prevHistory.map((msg) => {
-                    if (msg._id.toString() === message._id.toString()) {
+                    if (msg?._id.toString() === message?._id.toString()) {
                         return message;
                     }
                     return msg;
@@ -88,8 +88,8 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
 
         // Listen for typing status updates
         socket.on("typing_start", (chatUser, chat) => {
-            if (chatID._id.toString() !== chat.toString()) return;
-            if (chatUser.toString() === user._id.toString()) return;
+            if (chatID?._id.toString() !== chat?.toString()) return;
+            if (chatUser.toString() === user?._id.toString()) return;
             setTypingUsers((prevUsers) => {
                 if (prevUsers.includes(chatUser)) return prevUsers;
                 return [...prevUsers, chatUser];
@@ -98,7 +98,7 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
 
         // Listen for typing stop
         socket.on("typing_stop", (user, chat) => {
-            if (chatID._id.toString() !== chat.toString()) return;
+            if (chatID?._id.toString() !== chat.toString()) return;
             setTypingUsers((prevUsers) => prevUsers.filter((u) => u.toString() !== user.toString()));
         });
 
@@ -129,7 +129,7 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
         const unreadMessage = chatHistory.find(
             (message) =>
                 !message.seenBy.some((u) => {
-                    return u.user._id.toString() === user._id.toString();
+                    return u.user?._id.toString() === user?._id.toString();
                 }),
         );
         return unreadMessage;
@@ -465,7 +465,7 @@ const Chat = ({ chatID, onClose, onWatch, onCreateChat }) => {
                                             {() => {
                                                 const names = typingUsers.map((user) => {
                                                     return participants.find(
-                                                        (p) => p._id.toString() === user.toString(),
+                                                        (p) => p._id.toString() === user?.toString(),
                                                     ).name;
                                                 });
                                                 return `${names.join(", ")} מקלידים...`;
