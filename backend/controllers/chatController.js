@@ -182,3 +182,13 @@ export const fetchUsers = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+export const deleteAllChats = async (req, res) => {
+    try {
+        await Chat.deleteMany({});
+        await Message.deleteMany({});
+        res.status(200).json({ message: "All chats and messages deleted" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
