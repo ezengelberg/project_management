@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Tabs, Select, Table, Input } from "antd";
+import { Tabs, Select, Table, Input, Radio } from "antd";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 import "./GradeDistribution.scss";
 
 const GradeDistribution = () => {
   const [currentYear, setCurrentYear] = useState("");
+  const [years, setYears] = useState([]);
+  const [selectedYear, setSelectedYear] = useState("");
   const [advisors, setAdvisors] = useState([]);
   const [submissionOptions, setSubmissionOptions] = useState([]);
   const [letters, setLetters] = useState({
@@ -32,7 +34,9 @@ const GradeDistribution = () => {
         withCredentials: true,
       }
     );
-    setCurrentYear(response.data);
+    setCurrentYear(response.data.current);
+    setSelectedYear(response.data.current);
+    setYears(response.data.years);
   };
 
   const fetchAdvisors = async () => {
@@ -131,7 +135,13 @@ const GradeDistribution = () => {
           <div className="select-options">
             <Select
               defaultValue="pick_year"
-              options={[{ value: "pick_year", label: "בחירת שנה" }]}
+              options={[
+                { value: "pick_year", label: "בחירת שנה" },
+                ...years.map((year) => ({
+                  value: year,
+                  label: year,
+                })),
+              ]}
             />
             <Select
               defaultValue="pick_submission"
@@ -147,7 +157,17 @@ const GradeDistribution = () => {
           </div>
           <div className="tab-content">
             <div className="graph-zone">graph</div>
-            <div className="value-table">{letterTableRender()}</div>
+            <div className="value-table">
+                <div className="grading-sum">
+                    <Radio.Group options={
+                        [{
+                            value: 'average', label: 'ממוצע'
+                        }, {
+                            value: 'median', label: 'חציון'
+                        }]
+                    }/>
+                </div>
+                {letterTableRender()}</div>
           </div>
         </>
       ),
@@ -160,7 +180,13 @@ const GradeDistribution = () => {
           <div className="select-options">
             <Select
               defaultValue="pick_year"
-              options={[{ value: "pick_year", label: "בחירת שנה" }]}
+              options={[
+                { value: "pick_year", label: "בחירת שנה" },
+                ...years.map((year) => ({
+                  value: year,
+                  label: year,
+                })),
+              ]}
             />
             <Select
               defaultValue="pick_judge"
