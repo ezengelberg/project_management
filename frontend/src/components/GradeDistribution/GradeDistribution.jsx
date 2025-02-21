@@ -62,8 +62,6 @@ const GradeDistribution = () => {
   const pickSubmissionDistribution = async (value) => {
     if (!submissionOptions.includes(value)) return; // invalid submission option
     if (currentYear === "") return;
-    console.log(currentYear);
-    console.log(value);
   };
 
   const pickAdvisorDistribution = async (value) => {
@@ -147,17 +145,20 @@ const GradeDistribution = () => {
       label: "התפלגות ציונים לפי שופט",
       children: (
         <>
-          <Select
-            defaultValue="pick_judge"
-            options={[
-              { value: "pick_judge", label: "בחר שופט" },
-              ...advisors.map((advisor) => ({
-                value: advisor._id,
-                label: advisor.name,
-              })),
-            ]}
-            onChange={(value) => pickAdvisorDistribution(value)}
-          />
+          <div className="select-options">
+            <Select options={[{ value: "pick_year", label: "בחירת מחזור" }]} />
+            <Select
+              defaultValue="pick_judge"
+              options={[
+                { value: "pick_judge", label: "בחר שופט" },
+                ...advisors.map((advisor) => ({
+                  value: advisor._id,
+                  label: advisor.name,
+                })),
+              ]}
+              onChange={(value) => pickAdvisorDistribution(value)}
+            />
+          </div>
 
           {letterTableRender()}
         </>
