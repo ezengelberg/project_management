@@ -5,7 +5,6 @@ import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 import "./GradeDistribution.scss";
 
 const GradeDistribution = () => {
-  const [currentYear, setCurrentYear] = useState("");
   const [years, setYears] = useState([]);
   const [selectedYear, setSelectedYear] = useState("");
   const [advisors, setAdvisors] = useState([]);
@@ -34,29 +33,28 @@ const GradeDistribution = () => {
         withCredentials: true,
       }
     );
-    setCurrentYear(response.data.current);
-    setSelectedYear(response.data.current);
     setYears(response.data.years);
   };
 
   const fetchAdvisors = async () => {
-    if (!currentYear || currentYear === "") return;
+    if (!selectedYear || selectedYear === "") return;
     const response = await axios.get(
       `${process.env.REACT_APP_BACKEND_URL}/api/user/get-active-advisors/`,
       {
-        params: { year: currentYear },
+        params: { year: selectedYear },
         withCredentials: true,
       }
     );
     setAdvisors(response.data);
+    console.log(response.data);
   };
 
   const fetchSubmissions = async () => {
-    if (!currentYear || currentYear === "") return;
+    if (!selectedYear || selectedYear === "") return;
     const response = await axios.get(
       `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-yearly-submissions`,
       {
-        params: { year: currentYear },
+        params: { year: selectedYear },
         withCredentials: true,
       }
     );
@@ -65,7 +63,7 @@ const GradeDistribution = () => {
 
   const pickSubmissionDistribution = async (value) => {
     if (!submissionOptions.includes(value)) return; // invalid submission option
-    if (currentYear === "") return;
+    if (selectedYear === "") return;
   };
 
   const pickAdvisorDistribution = async (value) => {
@@ -80,7 +78,7 @@ const GradeDistribution = () => {
   useEffect(() => {
     fetchAdvisors();
     fetchSubmissions();
-  }, [currentYear]);
+  }, [selectedYear]);
 
   const handleInputChange = (grade, newValue) => {
     if (newValue < 0 || newValue > 100) return; // Invalid input
@@ -142,6 +140,7 @@ const GradeDistribution = () => {
                   label: year,
                 })),
               ]}
+              onChange={(value) => setSelectedYear(value)}
             />
             <Select
               defaultValue="pick_submission"
@@ -158,16 +157,23 @@ const GradeDistribution = () => {
           <div className="tab-content">
             <div className="graph-zone">graph</div>
             <div className="value-table">
-                <div className="grading-sum">
-                    <Radio.Group options={
-                        [{
-                            value: 'average', label: 'ממוצע'
-                        }, {
-                            value: 'median', label: 'חציון'
-                        }]
-                    }/>
-                </div>
-                {letterTableRender()}</div>
+              <div className="grading-sum">
+                <Radio.Group
+                  defaultValue={"average"}
+                  options={[
+                    {
+                      value: "average",
+                      label: "ממוצע",
+                    },
+                    {
+                      value: "median",
+                      label: "חציון",
+                    },
+                  ]}
+                />
+              </div>
+              {letterTableRender()}
+            </div>
           </div>
         </>
       ),
@@ -187,6 +193,7 @@ const GradeDistribution = () => {
                   label: year,
                 })),
               ]}
+              onChange={(value) => setSelectedYear(value)}
             />
             <Select
               defaultValue="pick_judge"
