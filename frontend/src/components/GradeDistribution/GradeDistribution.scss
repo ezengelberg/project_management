@@ -2,3 +2,16 @@
     display: flex;
     gap: 1rem;
 }
+
+.tab-content {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    margin-top: 2rem;
+    .graph-zone {
+        width: 100%;
+    }
+    .value-table {
+        width: 20rem;
+    }
+}

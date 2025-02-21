@@ -100,7 +100,9 @@ const GradeDistribution = () => {
         <Input
           type="number"
           value={record.value}
-          onChange={(e) => handleInputChange(record.grade, e.target.value)}
+          onChange={(e) => {
+            handleInputChange(record.grade, e.target.value);
+          }}
         />
       ),
     },
@@ -110,6 +112,7 @@ const GradeDistribution = () => {
     return (
       <Table
         dataSource={Object.entries(letters).map(([grade, value]) => ({
+          key: grade,
           grade,
           value,
         }))}
@@ -125,18 +128,27 @@ const GradeDistribution = () => {
       label: "התפלגות ציונים לפי הגשה",
       children: (
         <>
-          <Select
-            defaultValue="pick_submission"
-            options={[
-              { value: "pick_submission", label: "בחר הגשה" },
-              ...submissionOptions.map((submission) => ({
-                value: submission,
-                label: submission,
-              })),
-            ]}
-            onChange={(value) => pickSubmissionDistribution(value)}
-          />
-          {letterTableRender()}
+          <div className="select-options">
+            <Select
+              defaultValue="pick_year"
+              options={[{ value: "pick_year", label: "בחירת שנה" }]}
+            />
+            <Select
+              defaultValue="pick_submission"
+              options={[
+                { value: "pick_submission", label: "בחר הגשה" },
+                ...submissionOptions.map((submission) => ({
+                  value: submission,
+                  label: submission,
+                })),
+              ]}
+              onChange={(value) => pickSubmissionDistribution(value)}
+            />
+          </div>
+          <div className="tab-content">
+            <div className="graph-zone">graph</div>
+            <div className="value-table">{letterTableRender()}</div>
+          </div>
         </>
       ),
     },
@@ -146,7 +158,10 @@ const GradeDistribution = () => {
       children: (
         <>
           <div className="select-options">
-            <Select options={[{ value: "pick_year", label: "בחירת מחזור" }]} />
+            <Select
+              defaultValue="pick_year"
+              options={[{ value: "pick_year", label: "בחירת שנה" }]}
+            />
             <Select
               defaultValue="pick_judge"
               options={[
@@ -159,8 +174,10 @@ const GradeDistribution = () => {
               onChange={(value) => pickAdvisorDistribution(value)}
             />
           </div>
-
-          {letterTableRender()}
+          <div className="tab-content">
+            <div className="graph-zone">graph</div>
+            <div className="value-table">{letterTableRender()}</div>
+          </div>
         </>
       ),
     },
