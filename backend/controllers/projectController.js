@@ -12,6 +12,7 @@ import OpenAI from "openai";
 import ExamTable from "../models/examTable.js";
 import mongoose from "mongoose";
 import Mission from "../models/mission.js";
+import nodemailer from "nodemailer";
 
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
@@ -377,7 +378,45 @@ export const approveCandidate = async (req, res) => {
       message: `התקבלת כסטודנט לפרויקט ${project.title}, בהצלחה!`,
       link: `/project/${project._id}`,
     });
-    notification.save();
+    await notification.save();
+
+    // Send email to the user
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: user.email,
+      subject: "🎉 התקבלת לפרויקט - מערכת לניהול פרויקטים",
+      html: `
+        <html lang="he" dir="rtl">
+        <head>
+          <meta charset="UTF-8" />
+          <title>התקבלת לפרויקט</title>
+        </head>
+        <body>
+          <div style="direction: rtl; text-align: right; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #333; text-align: center">🎉 התקבלת לפרויקט</h2>
+            <p>שלום ${user.name},</p>
+            <p>התקבלת לפרויקט: ${project.title}, בהצלחה!</p>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending acceptance email:", error);
+      } else {
+        console.log("Acceptance email sent:", info.response);
+      }
+    });
 
     res.status(200).send(`Candidate ${candidate.student} approved successfully`);
   } catch (err) {
@@ -1530,6 +1569,45 @@ export const approveProjectSuggestion = async (req, res) => {
     });
     await notification.save();
 
+    const user = await User.findById(project.studentSuggestions.suggestedBy._id);
+
+    // Send email to the user
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: user.email,
+      subject: "✅ הצעת הפרויקט אושרה - מערכת לניהול פרויקטים",
+      html: `
+        <html lang="he" dir="rtl">
+        <head>
+          <meta charset="UTF-8" />
+          <title>הצעת הפרויקט אושרה</title>
+        </head>
+        <body>
+          <div style="direction: rtl; text-align: right; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #333; text-align: center">✅ הצעת הפרויקט אושרה</h2>
+            <p>שלום ${user.name},</p>
+            <p>הצעת הפרויקט שלך: ${project.title} אושרה בהצלחה!</p>
+            <p>הישאר בקשר עם רכז הפרויקטים בנוגע לשיבוץ מנחה וקבלת הכוונה לפרויקט.</p>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    transporter.sendMail(mailOptions, (error) => {
+      if (error) {
+        console.error("Error sending approval email:", error);
+      }
+    });
+
     res.status(200).json(project);
   } catch (error) {
     console.error("Error approving project suggestion:", error);
@@ -1560,6 +1638,48 @@ export const rejectProjectSuggestion = async (req, res) => {
       message: `הצעת הפרויקט: ${project.title} נדחתה`,
     });
     await notification.save();
+
+    const user = await User.findById(project.studentSuggestions.suggestedBy._id);
+
+    // Send email to the user
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: user.email,
+      subject: "הצעת הפרויקט נדחתה - מערכת לניהול פרויקטים",
+      html: `
+        <html lang="he" dir="rtl">
+        <head>
+          <meta charset="UTF-8" />
+          <title>הצעת הפרויקט נדחתה</title>
+        </head>
+        <body>
+          <div style="direction: rtl; text-align: right; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #333; text-align: center">הצעת הפרויקט נדחתה</h2>
+            <p>שלום ${user.name},</p>
+            <p>הצעת הפרויקט שלך: ${project.title} נדחתה.</p>
+            <p>סיבה: ${req.body.reason ? req.body.reason : "לא ניתנה סיבה."}</p>
+            <p>אם יש לך שאלות נוספות, אנא פנה לרכז הפרויקטים.</p>
+            <hr />
+            <p>ביכולתך להציע פרויקט חדש בכל עת.</p>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    transporter.sendMail(mailOptions, (error) => {
+      if (error) {
+        console.error("Error sending rejection email:", error);
+      }
+    });
 
     res.status(200).json(project);
   } catch (error) {
