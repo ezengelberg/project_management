@@ -11,7 +11,10 @@
     .graph-zone {
         width: 100%;
     }
-    .value-table {
+    .grading-column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
         width: 20rem;
     }
 }
