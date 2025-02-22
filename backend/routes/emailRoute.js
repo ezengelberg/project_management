@@ -48,15 +48,15 @@ router.post("/forgot-password", async (req, res) => {
     <title>איפוס סיסמה</title>
   </head>
   <body>
-    <div
-      style="
-        direction: rtl;
-        text-align: right;
-        font-family: Arial, sans-serif;
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-      ">
+    <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+      <div style="display: flex; align-items: center; align-items: center; justify-content: center">
+        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+        <img
+          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+          alt="Project Management Logo"
+          style="height: 50px" />
+      </div>
+      <hr />
       <h2 style="color: #333; text-align: center">איפוס סיסמה</h2>
       <p>שלום ${user.name}</p>
       <p>שכחת סיסמה? פשוט לחצו על הקישור למטה ותוכלו להגדיר סיסמה חדשה.</p>
@@ -133,15 +133,15 @@ router.post("/create-user", async (req, res) => {
     <title>ברוך הבא!</title>
   </head>
   <body>
-    <div
-      style="
-        direction: rtl;
-        text-align: right;
-        font-family: Arial, sans-serif;
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-      ">
+    <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+      <div style="display: flex; align-items: center; align-items: center; justify-content: center">
+        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+        <img
+          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+          alt="Project Management Logo"
+          style="height: 50px" />
+      </div>
+      <hr />
       <h2 style="color: #333; text-align: center">ברוך הבא!</h2>
       <p>שלום ${user.name},</p>
       <p>חשבון במערכת לניהול פרויקטים נוצר עבורך.</p>

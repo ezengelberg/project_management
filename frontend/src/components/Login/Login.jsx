@@ -3,6 +3,7 @@ import "./Login.scss";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
+import projectManagementLogo from "../../assets/project-management-logo.png";
 import { Alert, Form, Input, Button, message, Checkbox, Result } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -186,6 +187,7 @@ const Login = () => {
 
   return (
     <div className="login">
+      <img src={projectManagementLogo} alt="project management logo" className="project-management-logo" />
       <img src={collegeLogo} alt="collage logo" className="collage-logo" />
       {!showChangePassword && !showForgotPassword && !passwordEmailSent ? (
         <Form form={loginForm} onFinish={handleOnSubmit} layout="vertical" className="login-form">

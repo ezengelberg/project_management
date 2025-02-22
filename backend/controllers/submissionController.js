@@ -1220,7 +1220,15 @@ export const acceptExtraUpload = async (req, res) => {
               <title>אישור להעלאת קובץ נוסף</title>
             </head>
             <body>
-              <div style="direction: rtl; text-align: right; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+      <div style="display: flex; align-items: center; align-items: center; justify-content: center">
+        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+        <img
+          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+          alt="Project Management Logo"
+          style="height: 50px" />
+      </div>
+      <hr />
                 <h2 style="color: #333; text-align: center">אישור להעלאת קובץ נוסף</h2>
                 <p>שלום ${user.name},</p>
                 <p>הבקשה להעלאת קובץ נוסף עבור: "${submission.name}" אושרה.</p>
@@ -1283,7 +1291,15 @@ export const denyExtraUpload = async (req, res) => {
               <title>דחיית בקשה להעלאת קובץ נוסף</title>
             </head>
             <body>
-              <div style="direction: rtl; text-align: right; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+      <div style="display: flex; align-items: center; align-items: center; justify-content: center">
+        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+        <img
+          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+          alt="Project Management Logo"
+          style="height: 50px" />
+      </div>
+      <hr />
                 <h2 style="color: #333; text-align: center">דחיית בקשה להעלאת קובץ נוסף</h2>
                 <p>שלום ${user.name},</p>
                 <p>הבקשה להעלאת קובץ נוסף עבור: "${submission.name}" נדחתה.</p>
@@ -1358,7 +1374,15 @@ export const sendSubmissionEmail = async (submissionName, submissionDate, studen
               <title>הגשה חדשה</title>
             </head>
             <body>
-              <div style="direction: rtl; text-align: right; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+      <div style="display: flex; align-items: center; align-items: center; justify-content: center">
+        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+        <img
+          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+          alt="Project Management Logo"
+          style="height: 50px" />
+      </div>
+      <hr />
                 <h2 style="color: #333; text-align: center">הגשה חדשה</h2>
                 <p>שלום ${user.name},</p>
                 <p>נוצרה הגשה חדשה: ${submissionName}.</p>

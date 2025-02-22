@@ -400,7 +400,15 @@ export const approveCandidate = async (req, res) => {
           <title>התקבלת לפרויקט</title>
         </head>
         <body>
-          <div style="direction: rtl; text-align: right; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+      <div style="display: flex; align-items: center; align-items: center; justify-content: center">
+        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+        <img
+          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+          alt="Project Management Logo"
+          style="height: 50px" />
+      </div>
+      <hr />
             <h2 style="color: #333; text-align: center">🎉 התקבלת לפרויקט</h2>
             <p>שלום ${user.name},</p>
             <p>התקבלת לפרויקט: ${project.title}, בהצלחה!</p>
@@ -1591,7 +1599,15 @@ export const approveProjectSuggestion = async (req, res) => {
           <title>הצעת הפרויקט אושרה</title>
         </head>
         <body>
-          <div style="direction: rtl; text-align: right; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+      <div style="display: flex; align-items: center; align-items: center; justify-content: center">
+        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+        <img
+          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+          alt="Project Management Logo"
+          style="height: 50px" />
+      </div>
+      <hr />
             <h2 style="color: #333; text-align: center">✅ הצעת הפרויקט אושרה</h2>
             <p>שלום ${user.name},</p>
             <p>הצעת הפרויקט שלך: ${project.title} אושרה בהצלחה!</p>
@@ -1661,7 +1677,15 @@ export const rejectProjectSuggestion = async (req, res) => {
           <title>הצעת הפרויקט נדחתה</title>
         </head>
         <body>
-          <div style="direction: rtl; text-align: right; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+      <div style="display: flex; align-items: center; align-items: center; justify-content: center">
+        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+        <img
+          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+          alt="Project Management Logo"
+          style="height: 50px" />
+      </div>
+      <hr />
             <h2 style="color: #333; text-align: center">הצעת הפרויקט נדחתה</h2>
             <p>שלום ${user.name},</p>
             <p>הצעת הפרויקט שלך: ${project.title} נדחתה.</p>
