@@ -303,12 +303,12 @@ const GradeDistribution = () => {
                                             label={{
                                                 value: "ממוצע ציונים",
                                                 position: "insideTopRight",
+                                                dx: 20,
                                                 style: {
                                                     fontSize: 16,
                                                     fontWeight: "bold",
-                                                    padding: "0 5px",
                                                 },
-                                                fill: "darkgreen"
+                                                fill: "darkgreen",
                                             }}
                                             strokeDasharray="3 3"
                                         />
@@ -317,13 +317,13 @@ const GradeDistribution = () => {
                                             stroke="blue"
                                             label={{
                                                 value: "חציון ציונים",
-                                                position: "insideTopLeft",
+                                                position: "insideBottomLeft",
+                                                dx: -20,
                                                 style: {
                                                     fontSize: 16,
                                                     fontWeight: "bold",
-                                                    padding: "0 5px",
                                                 },
-                                                fill: 'blue',
+                                                fill: "blue",
                                             }}
                                             strokeDasharray="3 3"
                                         />
