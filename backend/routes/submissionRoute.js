@@ -25,6 +25,7 @@ import {
   acceptExtraUpload,
   denyExtraUpload,
   getYearlySubmissions,
+  sendSubmissionEmail,
 } from "../controllers/submissionController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -55,5 +56,6 @@ router.post("/ask-for-extra-upload/:id", ensureAuthenticated, askForExtraUpload)
 router.get("/get-extra-upload-submissions", ensureAuthenticated, isCoordinator, getExtraUploadSubmissions);
 router.post("/accept-extra-upload/:id", ensureAuthenticated, isCoordinator, acceptExtraUpload);
 router.post("/deny-extra-upload/:id", ensureAuthenticated, isCoordinator, denyExtraUpload);
+router.post("/send-submission-email", ensureAuthenticated, isCoordinator, sendSubmissionEmail);
 
 export default router;

@@ -158,6 +158,17 @@
   }
 }
 
+.password-email-sent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40rem;
+  padding: 3rem 4rem;
+  background-color: white;
+  border-radius: 1rem;
+}
+
 @media screen and (max-width: 1024px) {
   .change-password-form {
     width: 50rem;

@@ -11,6 +11,7 @@ const { Dragger } = Upload;
 const CreateUser = () => {
   const { fetchNotifications } = useContext(NotificationsContext);
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -34,6 +35,7 @@ const CreateUser = () => {
   }, []);
 
   const onFinish = async (values) => {
+    setLoading(true);
     try {
       const registerValues = {
         name: values.name,
@@ -49,6 +51,11 @@ const CreateUser = () => {
       await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/register`, registerValues, {
         withCredentials: true,
       });
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/email/create-user`,
+        { email: values.email },
+        { withCredentials: true }
+      );
       message.success("משתמש נוצר בהצלחה");
       form.resetFields();
     } catch (error) {
@@ -60,6 +67,8 @@ const CreateUser = () => {
         message.error("שגיאה ביצירת משתמש");
       }
       console.error("Error creating user:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -256,10 +265,10 @@ const CreateUser = () => {
           </Select>
         </Form.Item>
         <Form.Item className="create-user-buttons">
-          <Button color="danger" variant="outlined" onClick={() => form.resetFields()}>
+          <Button color="danger" variant="outlined" onClick={() => form.resetFields()} disabled={loading}>
             אפס טופס
           </Button>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" loading={loading}>
             צור משתמש חדש
           </Button>
         </Form.Item>
