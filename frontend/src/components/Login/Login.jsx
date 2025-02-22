@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./Login.scss";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
 import { Alert, Form, Input, Button, message, Checkbox, Result } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -20,6 +21,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [passwordEmailSent, setPasswordEmailSent] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
+  const recaptchaRef = useRef(null);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -67,6 +70,12 @@ const Login = () => {
   const handleOnSubmit = async (e) => {
     setLoading(true);
 
+    if (!recaptchaToken) {
+      message.error("אנא אשר שאתה לא רובוט");
+      setLoading(false);
+      return;
+    }
+
     try {
       const lowerCaseEmail = email.toLowerCase();
       if (process.env.REACT_APP_ROOT_USER === lowerCaseEmail && process.env.REACT_APP_ROOT_PASSWORD === password) {
@@ -109,6 +118,11 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRecaptchaChange = (token) => {
+    // Set the reCAPTCHA token when the user completes the challenge
+    setRecaptchaToken(token);
   };
 
   const handleChangePassword = async (values) => {
@@ -215,11 +229,17 @@ const Login = () => {
                 זכור אותי
               </Checkbox>
             </Form.Item>
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+              onChange={handleRecaptchaChange}
+              style={{ marginBottom: "24px" }}
+            />
             <a className="forgot-password" onClick={() => setShowForgotPassword(true)}>
               שכחת סיסמה?
             </a>
             <Form.Item>
-              <Button type="primary" htmlType="submit" loading={loading}>
+              <Button type="primary" htmlType="submit" loading={loading} disabled={!recaptchaToken}>
                 התחבר
               </Button>
             </Form.Item>
