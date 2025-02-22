@@ -11,10 +11,22 @@
     .graph-zone {
         width: 100%;
     }
-    // .grading-column {
-    //     display: flex;
-    //     flex-direction: column;
-    //     gap: 1.5rem;
-    //     width: 20rem;
-    // }
+    .grading-table {
+        .calc-type {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            .calc-type-label {
+                font-weight: 600;
+            }
+        }
+    }
+    .grade-warning {
+        width: 40rem;
+        color: red;
+        font-weight: 600;
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
 }

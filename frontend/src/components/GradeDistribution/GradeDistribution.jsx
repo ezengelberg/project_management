@@ -52,7 +52,7 @@ const GradeDistribution = () => {
     };
 
     const fetchAdvisors = async () => {
-        if (!selectedYear || selectedYear === "") return;
+        if (!selectedYear || selectedYear === "pick_year") return;
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-active-advisors/`, {
             params: { year: selectedYear },
             withCredentials: true,
@@ -61,7 +61,7 @@ const GradeDistribution = () => {
     };
 
     const fetchSubmissions = async () => {
-        if (!selectedYear || selectedYear === "") return;
+        if (!selectedYear || selectedYear === "pick_year") return;
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-yearly-submissions`, {
             params: { year: selectedYear },
             withCredentials: true,
@@ -71,7 +71,7 @@ const GradeDistribution = () => {
 
     const pickSubmissionDistribution = async (value) => {
         if (!submissionOptions.includes(value)) return; // invalid submission option
-        if (selectedYear === "") return;
+        if (selectedYear === "pick_year") return;
         try {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-distribution`, {
                 params: { year: selectedYear, submission: value },
@@ -87,7 +87,7 @@ const GradeDistribution = () => {
 
     const pickAdvisorDistribution = async (value) => {
         if (!advisors.map((advisor) => advisor._id).includes(value)) return; // invalid advisor option
-        if (selectedYear === "") return;
+        if (selectedYear === "pick_year") return;
     };
 
     const adjustData = (data) => {
@@ -182,15 +182,6 @@ const GradeDistribution = () => {
             }
             aggregated[grade].count += 1; // Count occurrences
         });
-        // let median;
-        // const sortedGrades = data.map((entry) => entry.value).sort((a, b) => a - b);
-        // const mid = Math.floor(sortedGrades.length / 2);
-        // median = sortedGrades.length % 2 === 0 ? (sortedGrades[mid - 1] + sortedGrades[mid]) / 2 : sortedGrades[mid]; // Calculate median
-        // aggregated.average = Math.floor(average);
-        // aggregated.median = Math.floor(median);
-
-        // setAverage(average);
-        // setMedian(aggregated.median);
 
         const sortedGrades = Object.values(aggregated).sort((a, b) => a.grade - b.grade); // Sort by grade
         console.log(sortedGrades);
@@ -214,14 +205,26 @@ const GradeDistribution = () => {
         const secondHalf = dataEntries.slice(half);
 
         return (
-            <Row gutter={16}>
-                <Col span={12}>
-                    <Table dataSource={firstHalf} columns={columns} pagination={false} bordered />
-                </Col>
-                <Col span={12}>
-                    <Table dataSource={secondHalf} columns={columns} pagination={false} bordered />
-                </Col>
-            </Row>
+            <>
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Table dataSource={firstHalf} columns={columns} pagination={false} bordered />
+                    </Col>
+                    <Col span={12}>
+                        <Table dataSource={secondHalf} columns={columns} pagination={false} bordered />
+                    </Col>
+                </Row>
+                <div className="grade-warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
+                        <path
+                            d="M29.879 27.345c-.068-.107-.117-.227-.18-.336-.094-.164-.193-.326-.287-.49-.201-.354-.389-.713-.582-1.07-.398-.732-.836-1.439-1.219-2.182-.387-.754-.768-1.512-1.15-2.268-.398-.785-.85-1.541-1.281-2.311-.443-.789-.832-1.609-1.252-2.412-.408-.781-.818-1.564-1.219-2.35-.414-.812-.836-1.621-1.258-2.428-.432-.818-.877-1.629-1.291-2.459-.406-.816-.826-1.627-1.24-2.439a42.11 42.11 0 0 0-1.496-2.705.893.893 0 0 0-.696-.427.883.883 0 0 0-.255-.041.889.889 0 0 0-.229.03c-.23.064-.385.207-.518.398-.287.412-.561.83-.826 1.258-.217.35-.416.713-.641 1.057-.459.701-.977 1.361-1.391 2.092-.432.756-.885 1.5-1.328 2.25-.432.732-.816 1.49-1.238 2.229-.422.744-.875 1.471-1.311 2.207-.434.732-.822 1.488-1.25 2.225-.42.727-.836 1.457-1.268 2.176-.439.729-.844 1.475-1.27 2.213-.514.893-1.004 1.799-1.564 2.664-.254.395-.512.783-.758 1.182-.248.4-.498.803-.762 1.193-.162.24-.137.541-.012.791-.02.072-.043.143-.043.219 0 .215.086.424.238.576.162.162.352.217.576.238.848.076 1.701.064 2.553.08.867.014 1.734.004 2.602.016.818.01 1.637.021 2.457.027.842.004 1.684.041 2.525.031.842-.012 1.684-.045 2.525-.035.447.004.895.014 1.34.043.418.027.834.076 1.254.098.814.041 1.627.029 2.443.039.844.01 1.684.027 2.527.074.98.053 1.959.129 2.941.164.461.018.922.023 1.385.031.422.008.842.016 1.262-.018.23-.02.43-.08.598-.248.033-.033.05-.078.076-.115.065-.019.131-.029.193-.066.408-.236.572-.795.32-1.201zm-3.451-.069c-.812-.02-1.627-.09-2.441-.129-.404-.021-.811-.059-1.217-.072-.404-.014-.809-.021-1.215-.033-.844-.023-1.688-.031-2.533-.037-.848-.006-1.691-.098-2.537-.125a34.795 34.795 0 0 0-2.502.027c-.852.033-1.701.027-2.553.021a89.26 89.26 0 0 0-2.535.01c-1 .016-1.998.035-2.996.012a55.535 55.535 0 0 1-1.955-.08c.281-.451.56-.904.848-1.352.465-.723.881-1.469 1.287-2.225.801-1.486 1.672-2.934 2.52-4.393.439-.756.896-1.5 1.326-2.264.402-.711.85-1.396 1.273-2.094.443-.73.848-1.479 1.27-2.221.43-.758.883-1.504 1.33-2.252.256-.428.502-.861.748-1.295.254-.449.566-.865.859-1.291.275-.4.531-.814.791-1.225.096-.151.202-.296.3-.446.31.527.627 1.051.922 1.586.426.773.799 1.574 1.18 2.367.385.803.816 1.582 1.238 2.365.432.801.838 1.617 1.27 2.42.854 1.592 1.646 3.217 2.496 4.812.408.766.854 1.512 1.26 2.279.404.766.803 1.535 1.195 2.307.393.768.84 1.504 1.258 2.256.198.356.383.717.574 1.074-.487.005-.973.008-1.461-.002zm-9.46-8.758c.021.545.064 1.088.066 1.633a.846.846 0 0 1-.838.838c-.471 0-.818-.381-.838-.838-.021-.553-.035-1.105-.049-1.658a27.37 27.37 0 0 1-.006-1.695c.021-.555.055-1.109.07-1.666.016-.623.014-1.246.02-1.869a.777.777 0 0 1 .768-.766c.41 0 .773.348.766.766-.023 1.189-.057 2.377-.014 3.566.02.563.033 1.127.055 1.689zm.001 5.235c0 .451-.377.828-.828.828s-.828-.377-.828-.828.377-.828.828-.828.828.377.828.828z"
+                            fill="red"
+                        />
+                    </svg>
+                    <span>ברגע שהציון מתפרסם, הערך של האותיות נלקח אוטומטית כערך החישוב ולא מחושב מחדש לפי הטבלה.</span>
+                    {/* <span> ברגע שציון פורסם, הערך של האותיות נלקח אוטומטית מערך החישוב ולא מחושב ע"י טבלה זו. השיקלול הערך היחידי שמשתנה (באופן ויזואלי בלבד)</span> */}
+                </div>
+            </>
         );
     };
 
@@ -274,9 +277,14 @@ const GradeDistribution = () => {
                     </div>
                     <div className="tab-content">
                         <div className="graph-zone">
-                            <h2>התפלגות ציונים לפי הגשה</h2>
+                            {/* {adjustedData.length === 0 && <h2>אין נתונים להצגה</h2>} */}
+                            {adjustedData.length === 0 &&
+                                (selectedYear === "pick_year" || selectedSubmission === "pick_submission") && (
+                                    <h2>נא לבחור שנה וסוג הגשה</h2>
+                                )}
                             {adjustedData.length > 0 && (
                                 <ResponsiveContainer width="100%" height={700}>
+                                    <h2>התפלגות ציונים לפי הגשה</h2>
                                     <BarChart
                                         data={aggregateData(adjustedData)}
                                         margin={{ top: 50, right: 50, left: 50, bottom: 50 }} // Increased top margin for labels
@@ -295,8 +303,6 @@ const GradeDistribution = () => {
                                             barSize={100} // Set the width of each bar to make it more square-like
                                             barCategoryGap="10%"
                                         />
-                                        {/* <ReferenceLine x={average} stroke="red" label="ממוצע ציונים" />
-                                        <ReferenceLine x={median} stroke="blue" label="חציון ציונים" /> */}
                                         <ReferenceLine
                                             x={average}
                                             stroke="darkgreen"
@@ -333,6 +339,7 @@ const GradeDistribution = () => {
                         </div>
                         <div className="grading-table">
                             <div className="calc-type">
+                                <span className="calc-type-label">שיטת חישוב ציונים:</span>
                                 <Radio.Group
                                     defaultValue={"average"}
                                     options={[
@@ -393,7 +400,7 @@ const GradeDistribution = () => {
                                 })),
                             ]}
                             onChange={(value) => {
-                                if (selectedYear === "" || !selectedYear) return message.error("נא לבחור שנה");
+                                if (selectedYear === "pick_year" || !selectedYear) return message.error("נא לבחור שנה");
                                 setSelectedJudge(value);
                                 pickAdvisorDistribution(value);
                             }}
