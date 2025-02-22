@@ -6,7 +6,10 @@ import "./GradeDistribution.scss";
 
 const GradeDistribution = () => {
     const [years, setYears] = useState([]);
-    const [selectedYear, setSelectedYear] = useState("");
+    const [selectedYear, setSelectedYear] = useState("pick_year");
+    const [selectedSubmission, setSelectedSubmission] = useState("pick_submission");
+    const [selectedJudge, setSelectedJudge] = useState("pick_judge");
+
     const [advisors, setAdvisors] = useState([]);
     const [submissionOptions, setSubmissionOptions] = useState([]);
     const [letters, setLetters] = useState({
@@ -55,6 +58,16 @@ const GradeDistribution = () => {
     const pickSubmissionDistribution = async (value) => {
         if (!submissionOptions.includes(value)) return; // invalid submission option
         if (selectedYear === "") return;
+        console.log("fetching submission distribution");
+        try {
+            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-distribution`, {
+                params: { year: selectedYear, submission: value },
+                withCredentials: true,
+            });
+            console.log(response.data);
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     const pickAdvisorDistribution = async (value) => {
@@ -123,7 +136,7 @@ const GradeDistribution = () => {
                 <>
                     <div className="select-options">
                         <Select
-                            defaultValue="pick_year"
+                            value={selectedYear}
                             options={[
                                 { value: "pick_year", label: "בחירת שנה" },
                                 ...years.map((year) => ({
@@ -132,9 +145,16 @@ const GradeDistribution = () => {
                                 })),
                             ]}
                             onChange={(value) => setSelectedYear(value)}
+                            styles={{
+                                control: (provided) => ({
+                                    ...provided,
+                                    width: "auto",
+                                    minWidth: "150px",
+                                }),
+                            }}
                         />
                         <Select
-                            defaultValue="pick_submission"
+                            value={selectedSubmission}
                             options={[
                                 { value: "pick_submission", label: "בחר הגשה" },
                                 ...submissionOptions.map((submission) => ({
@@ -142,7 +162,17 @@ const GradeDistribution = () => {
                                     label: submission,
                                 })),
                             ]}
-                            onChange={(value) => pickSubmissionDistribution(value)}
+                            onChange={(value) => {
+                                setSelectedSubmission(value);
+                                pickSubmissionDistribution(value);
+                            }}
+                            styles={{
+                                control: (provided) => ({
+                                    ...provided,
+                                    width: "auto",
+                                    minWidth: "150px",
+                                }),
+                            }}
                         />
                     </div>
                     <div className="tab-content">
@@ -176,7 +206,7 @@ const GradeDistribution = () => {
                 <>
                     <div className="select-options">
                         <Select
-                            defaultValue="pick_year"
+                            value={selectedYear}
                             options={[
                                 { value: "pick_year", label: "בחירת שנה" },
                                 ...years.map((year) => ({
@@ -185,9 +215,16 @@ const GradeDistribution = () => {
                                 })),
                             ]}
                             onChange={(value) => setSelectedYear(value)}
+                            styles={{
+                                control: (provided) => ({
+                                    ...provided,
+                                    width: "auto",
+                                    minWidth: "150px",
+                                }),
+                            }}
                         />
                         <Select
-                            defaultValue="pick_judge"
+                            value={selectedJudge}
                             options={[
                                 { value: "pick_judge", label: "בחר שופט" },
                                 ...advisors.map((advisor) => ({
@@ -197,7 +234,15 @@ const GradeDistribution = () => {
                             ]}
                             onChange={(value) => {
                                 if (selectedYear === "" || !selectedYear) return message.error("נא לבחור שנה");
+                                setSelectedJudge(value);
                                 pickAdvisorDistribution(value);
+                            }}
+                            styles={{
+                                control: (provided) => ({
+                                    ...provided,
+                                    width: "auto",
+                                    minWidth: "250px",
+                                }),
                             }}
                         />
                     </div>
@@ -211,7 +256,15 @@ const GradeDistribution = () => {
     ];
     return (
         <div>
-            <Tabs defaultActiveKey="1" items={items} />
+            <Tabs
+                defaultActiveKey="1"
+                items={items}
+                onChange={() => {
+                    setSelectedJudge("pick_judge");
+                    setSelectedSubmission("pick_submission");
+                    setSelectedYear("pick_year");
+                }}
+            />
         </div>
     );
 };

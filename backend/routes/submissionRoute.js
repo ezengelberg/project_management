@@ -1,31 +1,32 @@
 import express from "express";
 import {
-  createSubmission,
-  createSpecificSubmission,
-  getAllSubmissions,
-  updateJudgesInSubmission,
-  getJudgeSubmissions,
-  getSubmission,
-  getAllProjectSubmissions,
-  getSubmissionDetails,
-  getStudentSubmissions,
-  updateSubmissionFile,
-  updateSubmissionInformation,
-  updateSpecificSubmission,
-  deleteActiveSubmissions,
-  deleteSubmission,
-  getSpecificProjectSubmissions,
-  assignJudgesAutomatically,
-  getGradeDistribution,
-  deleteAllSubmissions,
-  resetJudges,
-  assignJudgesAI,
-  askForExtraUpload,
-  getExtraUploadSubmissions,
-  acceptExtraUpload,
-  denyExtraUpload,
-  getYearlySubmissions,
-  sendSubmissionEmail,
+    createSubmission,
+    createSpecificSubmission,
+    getAllSubmissions,
+    updateJudgesInSubmission,
+    getJudgeSubmissions,
+    getSubmission,
+    getAllProjectSubmissions,
+    getSubmissionDetails,
+    getStudentSubmissions,
+    updateSubmissionFile,
+    updateSubmissionInformation,
+    updateSpecificSubmission,
+    deleteActiveSubmissions,
+    deleteSubmission,
+    getSpecificProjectSubmissions,
+    assignJudgesAutomatically,
+    getGradeDistribution,
+    deleteAllSubmissions,
+    resetJudges,
+    assignJudgesAI,
+    askForExtraUpload,
+    getExtraUploadSubmissions,
+    acceptExtraUpload,
+    denyExtraUpload,
+    getYearlySubmissions,
+    sendSubmissionEmail,
+    getSubmissionDistribution,
 } from "../controllers/submissionController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -40,6 +41,7 @@ router.put("/update-judges", ensureAuthenticated, isCoordinator, updateJudgesInS
 router.delete("/reset-all-judges", ensureAuthenticated, isCoordinator, resetJudges);
 router.get("/get-judge-submissions", ensureAuthenticated, getJudgeSubmissions);
 router.get("/get-yearly-submissions", ensureAuthenticated, getYearlySubmissions);
+router.get("/get-distribution", ensureAuthenticated, isCoordinator, getSubmissionDistribution);
 router.get("/get-submission/:id", ensureAuthenticated, getSubmission);
 router.get("/get-submission-details/:id", ensureAuthenticated, getSubmissionDetails);
 router.get("/get-student-submissions", ensureAuthenticated, getStudentSubmissions);
