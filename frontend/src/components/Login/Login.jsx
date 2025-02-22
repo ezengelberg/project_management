@@ -231,7 +231,7 @@ const Login = () => {
             </Form.Item>
             <ReCAPTCHA
               ref={recaptchaRef}
-              sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+              sitekey={process.env.REACT_APP_LOCAL_RECAPTCHA_SITE_KEY}
               onChange={handleRecaptchaChange}
               style={{ marginBottom: "24px" }}
             />
