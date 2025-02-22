@@ -299,17 +299,16 @@ const GradeDistribution = () => {
                                         <ReferenceLine x={median} stroke="blue" label="חציון ציונים" /> */}
                                         <ReferenceLine
                                             x={average}
-                                            stroke="red"
+                                            stroke="darkgreen"
                                             label={{
                                                 value: "ממוצע ציונים",
                                                 position: "insideTopRight",
                                                 style: {
                                                     fontSize: 16,
                                                     fontWeight: "bold",
-                                                    backgroundColor: "white",
                                                     padding: "0 5px",
                                                 },
-                                                fill: "red"
+                                                fill: "darkgreen"
                                             }}
                                             strokeDasharray="3 3"
                                         />
@@ -322,9 +321,7 @@ const GradeDistribution = () => {
                                                 style: {
                                                     fontSize: 16,
                                                     fontWeight: "bold",
-                                                    backgroundColor: "white",
                                                     padding: "0 5px",
-                                                    color: 'blue',
                                                 },
                                                 fill: 'blue',
                                             }}
