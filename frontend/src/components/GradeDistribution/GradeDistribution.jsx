@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Tabs, Select, Table, Input, Radio, message } from "antd";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { Tabs, Select, Table, Row, Col, Input, Radio, message } from "antd";
+import {
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ReferenceLine,
+} from "recharts";
 import "./GradeDistribution.scss";
 
 const GradeDistribution = () => {
@@ -15,6 +25,8 @@ const GradeDistribution = () => {
     const [submissionOptions, setSubmissionOptions] = useState([]);
     const [data, setData] = useState([]);
     const [adjustedData, setAdjustedData] = useState([]);
+    const [average, setAverage] = useState(0);
+    const [median, setMedian] = useState(0);
     const [letters, setLetters] = useState({
         "A+": 0,
         A: 0,
@@ -66,6 +78,7 @@ const GradeDistribution = () => {
                 withCredentials: true,
             });
             setData(response.data);
+            console.log(response.data);
             adjustData(response.data);
         } catch (error) {
             console.log(error);
@@ -79,26 +92,26 @@ const GradeDistribution = () => {
 
     const adjustData = (data) => {
         if (data.length === 0) return;
-        data.forEach((entry) => {
-            if (calculationMethod === "average") {
-                entry.value = 0;
-                entry.grades.forEach((grade) => {
-                    entry.value += parseInt(letters[grade.grade], 10);
-                });
-                entry.value /= entry.grades.length;
-            } else if (calculationMethod === "median") {
-                const gr = entry.grades.map((grade) => parseInt(letters[grade.grade], 10)).sort((a, b) => a - b); // Correct numeric sorting
 
-                const mid = Math.floor(gr.length / 2);
-                if (gr.length % 2 === 0) {
-                    entry.value = (gr[mid - 1] + gr[mid]) / 2; // Average of two middle values
-                } else {
-                    entry.value = gr[mid]; // Middle value
-                }
+        const newData = data.map((entry) => {
+            let gradesArray = entry.grades.map((grade) =>
+                grade.numericGrade !== null ? grade.numericGrade : parseInt(letters[grade.grade], 10),
+            );
+
+            let newValue;
+            if (calculationMethod === "average") {
+                newValue = gradesArray.reduce((sum, num) => sum + num, 0) / gradesArray.length;
+            } else if (calculationMethod === "median") {
+                gradesArray.sort((a, b) => a - b);
+                const mid = Math.floor(gradesArray.length / 2);
+                newValue =
+                    gradesArray.length % 2 === 0 ? (gradesArray[mid - 1] + gradesArray[mid]) / 2 : gradesArray[mid];
             }
-            entry.value = Math.floor(entry.value);
+
+            return { ...entry, value: Math.floor(newValue) }; // Preserve original object, only updating 'value'
         });
-        setAdjustedData(data);
+
+        setAdjustedData(newData); // Update state with new, non-mutated data
     };
 
     useEffect(() => {
@@ -109,6 +122,22 @@ const GradeDistribution = () => {
         fetchAdvisors();
         fetchSubmissions();
     }, [selectedYear]);
+
+    useEffect(() => {
+        if (adjustData.length === 0) return;
+        let average = 0;
+        adjustedData.forEach((entry) => {
+            average += entry.value;
+        });
+        average /= adjustedData.length;
+        setAverage(Math.floor(average));
+
+        let median;
+        const sortedGrades = adjustedData.map((entry) => entry.value).sort((a, b) => a - b);
+        const mid = Math.floor(sortedGrades.length / 2);
+        median = sortedGrades.length % 2 === 0 ? (sortedGrades[mid - 1] + sortedGrades[mid]) / 2 : sortedGrades[mid]; // Calculate median
+        setMedian(median);
+    }, [adjustData]);
 
     useEffect(() => {
         adjustData(data);
@@ -144,17 +173,55 @@ const GradeDistribution = () => {
         },
     ];
 
+    const aggregateData = (data) => {
+        const aggregated = {};
+        data.forEach((entry) => {
+            const grade = entry.value; // Use computed value as the key
+            if (!aggregated[grade]) {
+                aggregated[grade] = { grade, count: 0 };
+            }
+            aggregated[grade].count += 1; // Count occurrences
+        });
+        // let median;
+        // const sortedGrades = data.map((entry) => entry.value).sort((a, b) => a - b);
+        // const mid = Math.floor(sortedGrades.length / 2);
+        // median = sortedGrades.length % 2 === 0 ? (sortedGrades[mid - 1] + sortedGrades[mid]) / 2 : sortedGrades[mid]; // Calculate median
+        // aggregated.average = Math.floor(average);
+        // aggregated.median = Math.floor(median);
+
+        // setAverage(average);
+        // setMedian(aggregated.median);
+
+        const sortedGrades = Object.values(aggregated).sort((a, b) => a.grade - b.grade); // Sort by grade
+        console.log(sortedGrades);
+        for (let i = sortedGrades[0].grade; i <= sortedGrades[sortedGrades.length - 1].grade; i++) {
+            if (!aggregated[i]) {
+                aggregated[i] = { grade: i, count: 0 };
+            }
+        }
+        return Object.values(aggregated).sort((a, b) => a.grade - b.grade);
+    };
+
     const letterTableRender = () => {
+        // Split the letters data into two parts
+        const dataEntries = Object.entries(letters).map(([grade, value]) => ({
+            key: grade,
+            grade,
+            value,
+        }));
+        const half = Math.ceil(dataEntries.length / 2);
+        const firstHalf = dataEntries.slice(0, half);
+        const secondHalf = dataEntries.slice(half);
+
         return (
-            <Table
-                dataSource={Object.entries(letters).map(([grade, value]) => ({
-                    key: grade,
-                    grade,
-                    value,
-                }))}
-                columns={columns}
-                pagination={false}
-            />
+            <Row gutter={16}>
+                <Col span={12}>
+                    <Table dataSource={firstHalf} columns={columns} pagination={false} bordered />
+                </Col>
+                <Col span={12}>
+                    <Table dataSource={secondHalf} columns={columns} pagination={false} bordered />
+                </Col>
+            </Row>
         );
     };
 
@@ -208,26 +275,66 @@ const GradeDistribution = () => {
                     <div className="tab-content">
                         <div className="graph-zone">
                             <h2>התפלגות ציונים לפי הגשה</h2>
-                            {data.length > 0 && (
-                                <BarChart
-                                    width={800}
-                                    height={400}
-                                    data={Object.entries(letters)
-                                        .reverse()
-                                        .map(([grade, value]) => ({
-                                            grade,
-                                            value,
-                                        }))}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="grade" />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Bar dataKey="value" fill="#8884d8" />
-                                </BarChart>
+                            {adjustedData.length > 0 && (
+                                <ResponsiveContainer width="100%" height={700}>
+                                    <BarChart
+                                        data={aggregateData(adjustedData)}
+                                        margin={{ top: 50, right: 50, left: 50, bottom: 50 }} // Increased top margin for labels
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="grade" />
+                                        <YAxis dx={-30} />
+                                        <Tooltip />
+                                        <Legend
+                                            formatter={(value) => <span style={{ marginRight: 10 }}>{value}</span>}
+                                        />
+                                        <Bar
+                                            dataKey="count"
+                                            fill="#8884d8"
+                                            name="מספר ציונים"
+                                            barSize={100} // Set the width of each bar to make it more square-like
+                                            barCategoryGap="10%"
+                                        />
+                                        {/* <ReferenceLine x={average} stroke="red" label="ממוצע ציונים" />
+                                        <ReferenceLine x={median} stroke="blue" label="חציון ציונים" /> */}
+                                        <ReferenceLine
+                                            x={average}
+                                            stroke="red"
+                                            label={{
+                                                value: "ממוצע ציונים",
+                                                position: "insideTopRight",
+                                                style: {
+                                                    fontSize: 16,
+                                                    fontWeight: "bold",
+                                                    backgroundColor: "white",
+                                                    padding: "0 5px",
+                                                },
+                                                fill: "red"
+                                            }}
+                                            strokeDasharray="3 3"
+                                        />
+                                        <ReferenceLine
+                                            x={median}
+                                            stroke="blue"
+                                            label={{
+                                                value: "חציון ציונים",
+                                                position: "insideTopLeft",
+                                                style: {
+                                                    fontSize: 16,
+                                                    fontWeight: "bold",
+                                                    backgroundColor: "white",
+                                                    padding: "0 5px",
+                                                    color: 'blue',
+                                                },
+                                                fill: 'blue',
+                                            }}
+                                            strokeDasharray="3 3"
+                                        />
+                                    </BarChart>
+                                </ResponsiveContainer>
                             )}
                         </div>
-                        <div className="grading-column">
+                        <div className="grading-table">
                             <div className="calc-type">
                                 <Radio.Group
                                     defaultValue={"average"}
@@ -265,7 +372,12 @@ const GradeDistribution = () => {
                                     label: year,
                                 })),
                             ]}
-                            onChange={(value) => setSelectedYear(value)}
+                            onChange={(value) => {
+                                setSelectedYear(value);
+                                setSelectedJudge("pick_judge");
+                                setSelectedSubmission("pick_submission");
+                                setAdjustedData([]);
+                            }}
                             styles={{
                                 control: (provided) => ({
                                     ...provided,
@@ -299,7 +411,7 @@ const GradeDistribution = () => {
                     </div>
                     <div className="tab-content">
                         <div className="graph-zone">graph</div>
-                        <div className="grading-column">{letterTableRender()}</div>
+                        <div className="grading-table">{letterTableRender()}</div>
                     </div>
                 </>
             ),
