@@ -291,7 +291,7 @@ const GradeDistribution = () => {
                                     >
                                         <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis dataKey="grade" />
-                                        <YAxis dx={-30} />
+                                        <YAxis dx={-30} allowDecimals={false}/>
                                         <Tooltip />
                                         <Legend
                                             formatter={(value) => <span style={{ marginRight: 10 }}>{value}</span>}
@@ -333,6 +333,9 @@ const GradeDistribution = () => {
                                             }}
                                             strokeDasharray="3 3"
                                         />
+                                        {adjustedData.map((_, index) => (
+                                            <ReferenceLine key={index} y={index + 1} stroke="#ccc" />
+                                        ))}
                                     </BarChart>
                                 </ResponsiveContainer>
                             )}
@@ -430,6 +433,9 @@ const GradeDistribution = () => {
                     setSelectedJudge("pick_judge");
                     setSelectedSubmission("pick_submission");
                     setSelectedYear("pick_year");
+                    setAdvisors([]);
+                    setData([]);
+                    setAdjustedData([]);
                 }}
             />
         </div>
