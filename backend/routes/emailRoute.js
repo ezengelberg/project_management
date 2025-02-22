@@ -15,7 +15,7 @@ router.post("/forgot-password", async (req, res) => {
     // Find the user by email
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return res.status(404).json({ message: "No user found with that email" });
+      return res.status(200).json({ message: "No user found with that email" });
     }
 
     // Generate a token and set expiration

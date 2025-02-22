@@ -27,6 +27,8 @@ import {
   deleteAllUsers,
   getActiveAdvisors,
   sendEmailsToNewUsers,
+  checkResetPasswordToken,
+  resetPassword,
 } from "../controllers/userController.js";
 import {
   getUnreadNotifications,
@@ -85,5 +87,9 @@ router.put("/notifications/read", ensureAuthenticated, markAllNotificationsAsRea
 router.put("/notifications/read/:notificationId", ensureAuthenticated, markNotificationAsRead);
 router.delete("/notifications/delete/:notificationId", ensureAuthenticated, deleteNotification);
 router.put("/notifications/clear", ensureAuthenticated, clearAllNotifications);
+
+// Password reset
+router.get("/check-reset-password-token/:token", checkResetPasswordToken);
+router.post("/reset-password", resetPassword);
 
 export default router;

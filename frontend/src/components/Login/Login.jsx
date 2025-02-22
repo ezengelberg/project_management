@@ -3,11 +3,14 @@ import "./Login.scss";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
-import { Alert, Form, Input, Button, message, Checkbox } from "antd";
+import { Alert, Form, Input, Button, message, Checkbox, Result } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [changePasswordForm] = Form.useForm();
+  const [loginForm] = Form.useForm();
+  const [forgotPasswordForm] = Form.useForm();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -16,9 +19,7 @@ const Login = () => {
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [changePasswordForm] = Form.useForm();
-  const [loginForm] = Form.useForm();
-  const [forgotPasswordForm] = Form.useForm();
+  const [passwordEmailSent, setPasswordEmailSent] = useState(false);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -154,12 +155,13 @@ const Login = () => {
     setLoading(true);
     try {
       const { email } = values;
-      const result = await axios.post(
+      await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/email/forgot-password`,
         { email },
         { withCredentials: true }
       );
-      message.success("קישור לאיפוס סיסמה נשלח לכתובת האימייל שלך");
+      setPasswordEmailSent(true);
+      setShowForgotPassword(false);
     } catch (error) {
       message.error("שגיאה בשליחת קישור לאיפוס סיסמה");
       console.error("Forgot password error:", error);
@@ -171,7 +173,7 @@ const Login = () => {
   return (
     <div className="login">
       <img src={collegeLogo} alt="collage logo" className="collage-logo" />
-      {!showChangePassword && !showForgotPassword ? (
+      {!showChangePassword && !showForgotPassword && !passwordEmailSent ? (
         <Form form={loginForm} onFinish={handleOnSubmit} layout="vertical" className="login-form">
           <h1>התחברות</h1>
           <div className="form-area">
@@ -279,31 +281,51 @@ const Login = () => {
           </Form.Item>
         </Form>
       ) : (
-        <Form
-          form={forgotPasswordForm}
-          onFinish={handleForgotPassword}
-          layout="vertical"
-          className="forgot-password-form">
-          <span className="return-to-login" onClick={() => setShowForgotPassword(false)}>
-            <ArrowRightOutlined /> חזור להתחברות
-          </span>
-          <h2>שחזור סיסמה</h2>
-          <Form.Item
-            name="email"
-            label="אימייל"
-            rules={[
-              { required: true, message: "חובה להזין אימייל" },
-              { type: "email", message: "אימייל לא תקין" },
-            ]}
-            hasFeedback>
-            <Input type="email" size="large" placeholder="הכנס אימייל" />
-          </Form.Item>
-          <Form.Item className="forgot-password-button">
-            <Button type="primary" htmlType="submit" loading={loading}>
-              שלח קישור לאיפוס סיסמה
-            </Button>
-          </Form.Item>
-        </Form>
+        showForgotPassword && (
+          <Form
+            form={forgotPasswordForm}
+            onFinish={handleForgotPassword}
+            layout="vertical"
+            className="forgot-password-form">
+            <span className="return-to-login" onClick={() => setShowForgotPassword(false)}>
+              <ArrowRightOutlined /> חזור להתחברות
+            </span>
+            <h2>שחזור סיסמה</h2>
+            <Form.Item
+              name="email"
+              label="אימייל"
+              rules={[
+                { required: true, message: "חובה להזין אימייל" },
+                { type: "email", message: "אימייל לא תקין" },
+              ]}
+              hasFeedback>
+              <Input type="email" size="large" placeholder="הכנס אימייל" />
+            </Form.Item>
+            <Form.Item className="forgot-password-button">
+              <Button type="primary" htmlType="submit" loading={loading}>
+                שלח קישור לאיפוס סיסמה
+              </Button>
+            </Form.Item>
+          </Form>
+        )
+      )}
+      {passwordEmailSent && (
+        <Result
+          className="password-email-sent"
+          status="success"
+          title="מייל לאיפוס סיסמה נשלח!"
+          subTitle="אם כתובת המייל קיימת במערכת, יתקבל מייל עם הוראות לאיפוס סיסמה."
+          extra={[
+            <Button
+              key="back-to-login"
+              type="primary"
+              onClick={() => {
+                setPasswordEmailSent(false);
+              }}>
+              חזור להתחברות
+            </Button>,
+          ]}
+        />
       )}
     </div>
   );

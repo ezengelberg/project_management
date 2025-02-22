@@ -628,80 +628,107 @@ export const getActiveAdvisors = async (req, res) => {
 };
 
 export const sendEmailsToNewUsers = async (users) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_PASS,
+    },
+  });
+
+  for (let i = 0; i < users.length; i += 10) {
+    const batch = users.slice(i, i + 10);
+    await Promise.all(
+      batch.map(async (user) => {
+        const mailOptions = {
+          from: process.env.GMAIL_USER,
+          to: user.email,
+          subject: "כניסה למערכת - מערכת לניהול פרויקטים",
+          html: `
+                <html lang="he" dir="rtl">
+              <head>
+                <meta charset="UTF-8" />
+                <title>ברוך הבא!</title>
+              </head>
+              <body>
+                <div
+                  style="
+                    direction: rtl;
+                    text-align: right;
+                    font-family: Arial, sans-serif;
+                    max-width: 600px;
+                    margin: 0 auto;
+                    padding: 20px;
+                  ">
+                  <h2 style="color: #333; text-align: center">ברוך הבא!</h2>
+                  <p>שלום ${user.name},</p>
+                  <p>חשבון במערכת לניהול פרויקטים נוצר עבורך.</p>
+                  <p>בהתחברות ראשונה לאתר יהיה עלייך לבצע שינוי סיסמה ראשונית.</p>
+                  <p><strong>אימייל:</strong> ${user.email}</p>
+                  <p><strong>סיסמה ראשונית:</strong> ${user.id}</p>
+                  <p>לחץ על הכפתור למטה כדי להיכנס לאתר ולהגדיר סיסמה חדשה:</p>
+                  <p style="text-align: center">
+                    <a
+                      href="${process.env.FRONTEND_URL}"
+                      style="
+                        display: inline-block;
+                        padding: 10px 15px;
+                        background-color: #007bff;
+                        color: #fff;
+                        text-decoration: none;
+                        border-radius: 3px;
+                      ">
+                      כניסה לאתר
+                    </a>
+                  </p>
+                  <hr />
+                  <p>אם לחיצה על הכפתור לא עובדת, העתיקו את הלינק לדפדפן.</p>
+                  ${process.env.FRONTEND_URL}
+                </div>
+              </body>
+            </html>
+            `,
+        };
+
+        transporter.sendMail(mailOptions, (error) => {
+          if (error) {
+            console.error("Error sending registration email:", error);
+          }
+        });
+      })
+    );
+    // Wait for 11 seconds before sending the next batch
+    await new Promise((resolve) => setTimeout(resolve, 11000));
+  }
+};
+
+export const checkResetPasswordToken = async (req, res) => {
+  const { token } = req.params;
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
-      },
-    });
-
-    for (let i = 0; i < users.length; i += 10) {
-      const batch = users.slice(i, i + 10);
-      await Promise.all(
-        batch.map(async (user) => {
-          const mailOptions = {
-            from: process.env.GMAIL_USER,
-            to: user.email,
-            subject: "כניסה למערכת - מערכת לניהול פרויקטים",
-            html: `
-        <html lang="he" dir="rtl">
-      <head>
-        <meta charset="UTF-8" />
-        <title>ברוך הבא!</title>
-      </head>
-      <body>
-        <div
-          style="
-            direction: rtl;
-            text-align: right;
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-          ">
-          <h2 style="color: #333; text-align: center">ברוך הבא!</h2>
-          <p>שלום ${user.name},</p>
-          <p>חשבון במערכת לניהול פרויקטים נוצר עבורך.</p>
-          <p>בהתחברות ראשונה לאתר יהיה עלייך לבצע שינוי סיסמה ראשונית.</p>
-          <p><strong>אימייל:</strong> ${user.email}</p>
-          <p><strong>סיסמה ראשונית:</strong> ${user.id}</p>
-          <p>לחץ על הכפתור למטה כדי להיכנס לאתר ולהגדיר סיסמה חדשה:</p>
-          <p style="text-align: center">
-            <a
-              href="${process.env.FRONTEND_URL}"
-              style="
-                display: inline-block;
-                padding: 10px 15px;
-                background-color: #007bff;
-                color: #fff;
-                text-decoration: none;
-                border-radius: 3px;
-              ">
-              כניסה לאתר
-            </a>
-          </p>
-          <hr />
-          <p>אם לחיצה על הכפתור לא עובדת, העתיקו את הלינק לדפדפן.</p>
-          ${process.env.FRONTEND_URL}
-        </div>
-      </body>
-    </html>
-      `,
-          };
-
-          transporter.sendMail(mailOptions, (error) => {
-            if (error) {
-              console.error("Error sending registration email:", error);
-            }
-          });
-        })
-      );
-      // Wait for 11 seconds before sending the next batch
-      await new Promise((resolve) => setTimeout(resolve, 11000));
+    const user = await User.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token." });
     }
-  } catch (error) {
-    console.error("Error sending registration emails:", error);
+    res.status(200).send("Token found");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+  try {
+    const user = await User.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token." });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+    res.status(200).send("Password reset successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };
