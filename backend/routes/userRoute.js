@@ -39,13 +39,14 @@ import {
   clearAllNotifications,
 } from "../controllers/notificationController.js";
 import { ensureAuthenticated, isCoordinator, isAdvisorOrCoordinator } from "../middleware/auth.js";
+import verifyRecaptcha from "../middleware/recaptcha.js";
 
 const router = express.Router();
 
 router.post("/register", ensureAuthenticated, registerUser);
 router.post("/register-multiple", ensureAuthenticated, registerMultiple);
 router.post("/create-admin", createAdmin);
-router.post("/login", loginUser);
+router.post("/login", verifyRecaptcha, loginUser);
 router.post("/logout", logoutUser);
 router.post("/toggle-favorite", ensureAuthenticated, toggleFavoriteProject);
 router.get("/ensure-favorite/:projectId", ensureAuthenticated, ensureFavoriteProject);

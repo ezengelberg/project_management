@@ -90,6 +90,7 @@ const Login = () => {
             email: lowerCaseEmail,
             password,
             rememberMe,
+            recaptchaToken,
           },
           { withCredentials: true }
         );
@@ -108,7 +109,7 @@ const Login = () => {
         if (error.response.status === 403) {
           setErrorMessage("משתמש מושהה, פנה למנהל הפרויקטים");
         } else {
-          setErrorMessage(error.response.data || "שגיאה בהתחברות");
+          setErrorMessage(error.response.data.message || "שגיאה בהתחברות");
         }
       } else if (error.request) {
         setErrorMessage("לא ניתן להתחבר לשרת. אנא בדוק את החיבור לאינטרנט ונסה שוב");
@@ -233,7 +234,7 @@ const Login = () => {
             </Form.Item>
             <ReCAPTCHA
               ref={recaptchaRef}
-              sitekey={process.env.REACT_APP_LOCAL_RECAPTCHA_SITE_KEY}
+              sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
               onChange={handleRecaptchaChange}
               style={{ marginBottom: "24px" }}
             />
