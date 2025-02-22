@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Tabs, Select, Table, Input, Radio, message } from "antd";
-import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import "./GradeDistribution.scss";
 
 const GradeDistribution = () => {
@@ -9,9 +9,12 @@ const GradeDistribution = () => {
     const [selectedYear, setSelectedYear] = useState("pick_year");
     const [selectedSubmission, setSelectedSubmission] = useState("pick_submission");
     const [selectedJudge, setSelectedJudge] = useState("pick_judge");
+    const [calculationMethod, setCalculationMethod] = useState("average");
 
     const [advisors, setAdvisors] = useState([]);
     const [submissionOptions, setSubmissionOptions] = useState([]);
+    const [data, setData] = useState([]);
+    const [adjustedData, setAdjustedData] = useState([]);
     const [letters, setLetters] = useState({
         "A+": 0,
         A: 0,
@@ -43,7 +46,6 @@ const GradeDistribution = () => {
             withCredentials: true,
         });
         setAdvisors(response.data);
-        console.log(response.data);
     };
 
     const fetchSubmissions = async () => {
@@ -58,13 +60,13 @@ const GradeDistribution = () => {
     const pickSubmissionDistribution = async (value) => {
         if (!submissionOptions.includes(value)) return; // invalid submission option
         if (selectedYear === "") return;
-        console.log("fetching submission distribution");
         try {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-distribution`, {
                 params: { year: selectedYear, submission: value },
                 withCredentials: true,
             });
-            console.log(response.data);
+            setData(response.data);
+            adjustData(response.data);
         } catch (error) {
             console.log(error);
         }
@@ -75,6 +77,30 @@ const GradeDistribution = () => {
         if (selectedYear === "") return;
     };
 
+    const adjustData = (data) => {
+        if (data.length === 0) return;
+        data.forEach((entry) => {
+            if (calculationMethod === "average") {
+                entry.value = 0;
+                entry.grades.forEach((grade) => {
+                    entry.value += parseInt(letters[grade.grade], 10);
+                });
+                entry.value /= entry.grades.length;
+            } else if (calculationMethod === "median") {
+                const gr = entry.grades.map((grade) => parseInt(letters[grade.grade], 10)).sort((a, b) => a - b); // Correct numeric sorting
+
+                const mid = Math.floor(gr.length / 2);
+                if (gr.length % 2 === 0) {
+                    entry.value = (gr[mid - 1] + gr[mid]) / 2; // Average of two middle values
+                } else {
+                    entry.value = gr[mid]; // Middle value
+                }
+            }
+            entry.value = Math.floor(entry.value);
+        });
+        setAdjustedData(data);
+    };
+
     useEffect(() => {
         fetchYear();
     }, []);
@@ -83,6 +109,10 @@ const GradeDistribution = () => {
         fetchAdvisors();
         fetchSubmissions();
     }, [selectedYear]);
+
+    useEffect(() => {
+        adjustData(data);
+    }, [letters, data, calculationMethod]);
 
     const handleInputChange = (grade, newValue) => {
         if (newValue < 0 || newValue > 100) return; // Invalid input
@@ -176,7 +206,27 @@ const GradeDistribution = () => {
                         />
                     </div>
                     <div className="tab-content">
-                        <div className="graph-zone">graph</div>
+                        <div className="graph-zone">
+                            <h2>התפלגות ציונים לפי הגשה</h2>
+                            {data.length > 0 && (
+                                <BarChart
+                                    width={800}
+                                    height={400}
+                                    data={Object.entries(letters)
+                                        .reverse()
+                                        .map(([grade, value]) => ({
+                                            grade,
+                                            value,
+                                        }))}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="grade" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Bar dataKey="value" fill="#8884d8" />
+                                </BarChart>
+                            )}
+                        </div>
                         <div className="grading-column">
                             <div className="calc-type">
                                 <Radio.Group
@@ -191,6 +241,7 @@ const GradeDistribution = () => {
                                             label: "חציון",
                                         },
                                     ]}
+                                    onChange={(e) => setCalculationMethod(e.target.value)}
                                 />
                             </div>
                             {letterTableRender()}

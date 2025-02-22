@@ -1343,7 +1343,6 @@ export const getYearlySubmissions = async (req, res) => {
         const projectIds = activeProjects.map((project) => project._id);
         const submissions = await Submission.find({ project: { $in: projectIds }, isGraded: true });
         const submissionList = [...new Set(submissions.map((sub) => sub.name))];
-        console.log(submissionList);
         res.status(200).json(submissionList);
     } catch (error) {
         console.log(error);
@@ -1416,7 +1415,6 @@ export const sendSubmissionEmail = async (submissionName, submissionDate, studen
 };
 
 export const getSubmissionDistribution = async (req, res) => {
-    console.log("getSubmissionDistribution");
     const { year, submission } = req.query;
     const activeProjects = await Project.find({
         year,
