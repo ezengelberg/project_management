@@ -1,11 +1,12 @@
 import React, { useContext, useState, useEffect } from "react";
 import "./HeaderMenu.scss";
 import axios from "axios";
-import collegeLogo from "../../assets/CollegeLogo.png";
+import projectManagementLogo from "../../assets/project-management-logo.png";
 import { useNavigate } from "react-router-dom";
 import { Tooltip, Avatar, Badge, Popover, Divider } from "antd";
-import { LogoutOutlined, BellOutlined, CloseOutlined, MessageOutlined } from "@ant-design/icons";
+import { LogoutOutlined, BellOutlined, CloseOutlined } from "@ant-design/icons";
 import { handleMouseDown } from "../../utils/mouseDown";
+import { useSocket } from "../../utils/SocketContext";
 import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const HeaderMenu = () => {
@@ -21,6 +22,8 @@ const HeaderMenu = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+
+  const { socket, isConnected } = useSocket();
 
   useEffect(() => {
     const handleResize = () => {
@@ -120,6 +123,9 @@ const HeaderMenu = () => {
       const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/logout`, null, {
         withCredentials: true,
       });
+      if (socket && socket.connected) {
+        socket.disconnect();
+      }
       navigate("/login", { replace: true });
       localStorage.removeItem("user");
       sessionStorage.removeItem("user");
@@ -130,7 +136,10 @@ const HeaderMenu = () => {
 
   return (
     <div className="header-container">
-      <img src={collegeLogo} alt="collage logo" className="collage-logo" onClick={() => navigate("/home")} />
+      <div className="site-upper-header-logo" onClick={() => navigate("/home")}>
+        <img src={projectManagementLogo} alt="project management logo" className="collage-logo" />
+        <h3>מערכת לניהול פרויקטים</h3>
+      </div>
       <div className="site-upper-header-left">
         <Popover
           content={content}

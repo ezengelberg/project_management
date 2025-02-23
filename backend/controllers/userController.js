@@ -12,6 +12,7 @@ import GradeStructure from "../models/gradeStructure.js";
 import Random from "../models/random.js";
 import fs from "fs";
 import path from "path";
+import nodemailer from "nodemailer";
 
 dotenv.config();
 
@@ -43,7 +44,6 @@ export const registerUser = async (req, res) => {
       isCoordinator: isCoordinator || false,
     });
     await newUser.save();
-    console.log(`User ${name} registered successfully`);
     res.status(201).send("User registered successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -54,6 +54,7 @@ export const registerMultiple = async (req, res) => {
   try {
     const users = req.body;
     const existingUsers = [];
+    const newUsers = [];
     for (const user of users) {
       const { name, email, id, role } = user;
       const lowerCaseEmail = email.toLowerCase();
@@ -81,9 +82,13 @@ export const registerMultiple = async (req, res) => {
         isJudge: role.includes("isJudge"),
         isCoordinator: role.includes("isCoordinator"),
       });
+      newUsers.push(newUser);
       await newUser.save();
     }
     res.status(201).send({ message: "Users registered successfully", existingUsers });
+
+    // Send email to new users
+    sendEmailsToNewUsers(newUsers);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -107,8 +112,7 @@ export const createAdmin = async (req, res) => {
         isCoordinator: true,
       });
       await newUser.save();
-      console.log("Admin user created successfully");
-    } else console.log("Admin user already exists");
+    }
     res.status(201).send("Admin user created successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -142,12 +146,6 @@ export const loginUser = (req, res, next) => {
           return next(err);
         }
 
-        console.log("Session after login:", {
-          id: req.sessionID,
-          passport: req.session.passport,
-          cookie: req.session.cookie,
-        });
-
         user.rememberMe = req.body.rememberMe;
         user.expireDate = new Date().getTime() + 1000 * 60 * 60 * 24 * 30; // 1 month
         await user.save();
@@ -164,9 +162,6 @@ export const logoutUser = (req, res, next) => {
   if (!req.session) {
     return res.status(400).json({ message: "No active session found" });
   }
-
-  const sessionId = req.session.id;
-  console.log("Current session ID:", sessionId);
 
   // Logout the user (removes the user from the session)
   req.logout((err) => {
@@ -277,7 +272,6 @@ export const getUserName = async (req, res) => {
 };
 
 export const getUser = async (req, res) => {
-  console.log("fetching user");
   const user = req.user;
   const userObj = user.toObject();
   delete userObj.password;
@@ -285,7 +279,6 @@ export const getUser = async (req, res) => {
 };
 
 export const changePassword = async (req, res) => {
-  console.log("changing password...");
   const user = req.user;
   const { oldPassword, newPassword, interests } = req.body;
   try {
@@ -612,5 +605,130 @@ export const deleteAllUsers = async (req, res) => {
   } catch (error) {
     console.error("Error deleting users and related data:", error);
     res.status(500).json({ message: "Failed to delete users and related data" });
+  }
+};
+
+export const getActiveAdvisors = async (req, res) => {
+  const { year } = req.query;
+  try {
+    const activeProjects = await Project.find({
+      isTaken: true,
+      advisors: { $exists: true, $ne: [] },
+      students: { $exists: true, $ne: [] },
+      year: year,
+    }).populate("advisors", "name _id");
+    const activeAdvisors = [
+      ...new Set(activeProjects.flatMap((project) => project.advisors.map((advisor) => advisor))),
+    ]; // Remove duplicates
+    res.status(200).json(activeAdvisors);
+  } catch (error) {
+    console.error("Error getting active advisors:", error);
+    res.status(500).json({ message: "Failed to get active advisors" });
+  }
+};
+
+export const sendEmailsToNewUsers = async (users) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_PASS,
+    },
+  });
+
+  for (let i = 0; i < users.length; i += 10) {
+    const batch = users.slice(i, i + 10);
+    await Promise.all(
+      batch.map(async (user) => {
+        const mailOptions = {
+          from: process.env.GMAIL_USER,
+          to: user.email,
+          subject: "כניסה למערכת - מערכת לניהול פרויקטים",
+          html: `
+                <html lang="he" dir="rtl">
+              <head>
+                <meta charset="UTF-8" />
+                <title>ברוך הבא!</title>
+              </head>
+              <body>
+                <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+      <div style="display: flex; align-items: center; align-items: center; margin-right: 220px">
+        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+        <img
+          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+          alt="Project Management Logo"
+          style="height: 50px" />
+      </div>
+      <hr />
+                  <h2 style="color: #333; text-align: center">ברוך הבא!</h2>
+                  <p>שלום ${user.name},</p>
+                  <p>חשבון במערכת לניהול פרויקטים נוצר עבורך.</p>
+                  <p>בהתחברות ראשונה לאתר יהיה עלייך לבצע שינוי סיסמה ראשונית.</p>
+                  <p><strong>אימייל:</strong> ${user.email}</p>
+                  <p><strong>סיסמה ראשונית:</strong> ${user.id}</p>
+                  <p>לחץ על הכפתור למטה כדי להיכנס לאתר ולהגדיר סיסמה חדשה:</p>
+                  <p style="text-align: center">
+                    <a
+                      href="${process.env.FRONTEND_URL}"
+                      style="
+                        display: inline-block;
+                        padding: 10px 15px;
+                        background-color: #007bff;
+                        color: #fff;
+                        text-decoration: none;
+                        border-radius: 3px;
+                      ">
+                      כניסה לאתר
+                    </a>
+                  </p>
+                  <hr />
+                  <p>אם לחיצה על הכפתור לא עובדת, העתיקו את הלינק לדפדפן.</p>
+                  ${process.env.FRONTEND_URL}
+                </div>
+              </body>
+            </html>
+            `,
+        };
+
+        transporter.sendMail(mailOptions, (error) => {
+          if (error) {
+            console.error("Error sending registration email:", error);
+          }
+        });
+      })
+    );
+    // Wait for 11 seconds before sending the next batch
+    await new Promise((resolve) => setTimeout(resolve, 11000));
+  }
+};
+
+export const checkResetPasswordToken = async (req, res) => {
+  const { token } = req.params;
+  try {
+    const user = await User.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token." });
+    }
+    res.status(200).send("Token found");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+  try {
+    const user = await User.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token." });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+    res.status(200).send("Password reset successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };

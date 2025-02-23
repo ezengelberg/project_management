@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  name: { type: String, required: true, index: true },
   email: { type: String, required: true, unique: true, lowercase: true },
   id: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -21,6 +21,8 @@ const userSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
   rememberMe: { type: Boolean, default: false },
   expireDate: { type: Number, default: null },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
 });
 
 const userModel = mongoose.model("User", userSchema);

@@ -34,6 +34,8 @@ import ListZoomMeetings from "./components/ListZoomMeetings/ListZoomMeetings";
 import ApproveExtraFile from "./components/ApproveExtraFile/ApproveExtraFile";
 import SuggestProject from "./components/SuggestProject/SuggestProject";
 import ApproveProjects from "./components/ApproveProjects/ApproveProjects";
+import GradeDistribution from "./components/GradeDistribution/GradeDistribution";
+import ResetPassword from "./components/ResetPassword/ResetPassword";
 
 function App() {
   return (
@@ -45,8 +47,13 @@ function App() {
 
 const MainLayout = () => {
   const location = useLocation();
-  const noSidebarRoutes = ["/login", "/", "*"];
-  const shouldDisplaySidebar = !noSidebarRoutes.includes(location.pathname);
+  const noSidebarRoutes = ["/login", "/", "*", "/reset-password/:token"];
+  const shouldDisplaySidebar = !noSidebarRoutes.some((route) => {
+    if (route === "*") {
+      return location.pathname === "*";
+    }
+    return new RegExp(`^${route.replace(/:\w+/g, "\\w+")}$`).test(location.pathname);
+  });
 
   useEffect(() => {
     const routeTitles = {
@@ -64,6 +71,7 @@ const MainLayout = () => {
       "/overview-projects": "סקירת פרויקטים",
       "/groups": "קבוצות",
       "/submissions": "ניהול הגשות",
+      "/grade-distribution": "התפלגויות ציונים",
       "/check-submissions": "בדיקת הגשות",
       "/submission-status": "סטטוס הגשות",
       "/grade-submission/:submissionId": "הערכת הגשה",
@@ -79,6 +87,7 @@ const MainLayout = () => {
       "/approve-extra-file": "אישור קובץ נוסף",
       "/suggest-project": "הצעת פרויקט",
       "/approve-projects": "אישור פרויקטים",
+      "/reset-password/:token": "איפוס סיסמה",
     };
 
     const currentPath = Object.keys(routeTitles).find((path) =>
@@ -233,6 +242,14 @@ const MainLayout = () => {
                 }
               />
               <Route
+                path="/grade-distribution"
+                element={
+                  <ProtectedRoute privileges={["coordinator"]}>
+                    <GradeDistribution />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/approve-extra-file"
                 element={
                   <ProtectedRoute privileges={["coordinator"]}>
@@ -346,6 +363,7 @@ const MainLayout = () => {
         <Routes>
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/dev" element={<Announcements />} />
           <Route path="*" element={<WrongPath />} />
         </Routes>

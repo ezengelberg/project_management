@@ -1,0 +1,20 @@
+.select-options {
+    display: flex;
+    gap: 1rem;
+}
+
+.tab-content {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    margin-top: 2rem;
+    .graph-zone {
+        width: 100%;
+    }
+    .grading-column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        width: 20rem;
+    }
+}

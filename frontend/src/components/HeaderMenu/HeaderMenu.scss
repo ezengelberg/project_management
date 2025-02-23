@@ -6,10 +6,20 @@
     cursor: pointer;
   }
 
-  .collage-logo {
-    width: 20rem;
-    margin-right: 2rem;
-    cursor: pointer;
+  .site-upper-header-logo {
+    display: flex;
+    align-items: center;
+
+    .collage-logo {
+      width: 7rem;
+      margin-right: 2rem;
+      cursor: pointer;
+    }
+
+    h3 {
+      color: #464bd8;
+      cursor: pointer;
+    }
   }
 
   .site-upper-header-left {
@@ -111,7 +121,7 @@
 
 @media screen and (max-width: 1024px) {
   .header-container {
-    .collage-logo {
+    .site-upper-header-logo {
       margin-right: 6rem;
     }
   }

@@ -1,29 +1,32 @@
 import express from "express";
 import {
-  createSubmission,
-  createSpecificSubmission,
-  getAllSubmissions,
-  updateJudgesInSubmission,
-  getJudgeSubmissions,
-  getSubmission,
-  getAllProjectSubmissions,
-  getSubmissionDetails,
-  getStudentSubmissions,
-  updateSubmissionFile,
-  updateSubmissionInformation,
-  updateSpecificSubmission,
-  deleteActiveSubmissions,
-  deleteSubmission,
-  getSpecificProjectSubmissions,
-  assignJudgesAutomatically,
-  getGradeDistribution,
-  deleteAllSubmissions,
-  resetJudges,
-  assignJudgesAI,
-  askForExtraUpload,
-  getExtraUploadSubmissions,
-  acceptExtraUpload,
-  denyExtraUpload,
+    createSubmission,
+    createSpecificSubmission,
+    getAllSubmissions,
+    updateJudgesInSubmission,
+    getJudgeSubmissions,
+    getSubmission,
+    getAllProjectSubmissions,
+    getSubmissionDetails,
+    getStudentSubmissions,
+    updateSubmissionFile,
+    updateSubmissionInformation,
+    updateSpecificSubmission,
+    deleteActiveSubmissions,
+    deleteSubmission,
+    getSpecificProjectSubmissions,
+    assignJudgesAutomatically,
+    getGradeDistribution,
+    deleteAllSubmissions,
+    resetJudges,
+    assignJudgesAI,
+    askForExtraUpload,
+    getExtraUploadSubmissions,
+    acceptExtraUpload,
+    denyExtraUpload,
+    getYearlySubmissions,
+    sendSubmissionEmail,
+    getSubmissionDistribution,
 } from "../controllers/submissionController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -37,6 +40,8 @@ router.get("/get-specific-project-submissions/:projectId", ensureAuthenticated, 
 router.put("/update-judges", ensureAuthenticated, isCoordinator, updateJudgesInSubmission);
 router.delete("/reset-all-judges", ensureAuthenticated, isCoordinator, resetJudges);
 router.get("/get-judge-submissions", ensureAuthenticated, getJudgeSubmissions);
+router.get("/get-yearly-submissions", ensureAuthenticated, getYearlySubmissions);
+router.get("/get-distribution", ensureAuthenticated, isCoordinator, getSubmissionDistribution);
 router.get("/get-submission/:id", ensureAuthenticated, getSubmission);
 router.get("/get-submission-details/:id", ensureAuthenticated, getSubmissionDetails);
 router.get("/get-student-submissions", ensureAuthenticated, getStudentSubmissions);
@@ -53,5 +58,6 @@ router.post("/ask-for-extra-upload/:id", ensureAuthenticated, askForExtraUpload)
 router.get("/get-extra-upload-submissions", ensureAuthenticated, isCoordinator, getExtraUploadSubmissions);
 router.post("/accept-extra-upload/:id", ensureAuthenticated, isCoordinator, acceptExtraUpload);
 router.post("/deny-extra-upload/:id", ensureAuthenticated, isCoordinator, denyExtraUpload);
+router.post("/send-submission-email", ensureAuthenticated, isCoordinator, sendSubmissionEmail);
 
 export default router;

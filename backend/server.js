@@ -2,11 +2,14 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 
+// socket.io
+import http from "http";
+import { Server } from "socket.io";
+
 import session from "express-session";
 import passport from "./config/passport.js";
-import { checkPassportState } from "./config/passport.js";
 
-import { connectDB } from "./config/db.js";
+import dbInstance from "./config/db.js";
 import MongoStore from "connect-mongo";
 
 import User from "./models/users.js";
@@ -24,6 +27,10 @@ import groupRoute from "./routes/groupRoute.js";
 import missionRoute from "./routes/missionRoute.js";
 import zoomRoute from "./routes/zoomRoute.js";
 import announcementRoute from "./routes/announcementRoute.js";
+import chatRoute from "./routes/chatRoute.js";
+import emailRoute from "./routes/emailRoute.js";
+
+import Message from "./models/messages.js";
 
 import dotenv from "dotenv";
 
@@ -36,6 +43,18 @@ if (!mongoUri) {
 }
 
 const app = express();
+
+const server = http.createServer(app); // Create an HTTP server for socket.io
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CORS_ORIGIN,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+export { io };
+
 const server_port = process.env.SERVER_PORT || 3000;
 
 // app.use((req, res, next) => {
@@ -84,15 +103,8 @@ app.use(
 passport.serializeUser((user, done) => {
   process.nextTick(() => {
     try {
-      // console.log("🔵 Serializing user:", {
-      //   id: user._id.toString(),
-      //   email: user.email,
-      // });
-
-      // Store the user ID or minimal session data
       done(null, user._id.toString()); // Store only the ID here, or you can store a minimal session object if needed
     } catch (error) {
-      // console.error("❌ Serialization error:", error);
       done(error);
     }
   });
@@ -100,9 +112,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    // console.log("🔵 Deserializing user with ID:", id);
     const user = await User.findById(id).select("-password"); // Only fetch necessary user info
-    // console.log("🔑 User deserialized:", user.email);
     done(null, user);
   } catch (error) {
     console.error("❌ Deserialization error:", error);
@@ -112,7 +122,6 @@ passport.deserializeUser(async (id, done) => {
 
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(checkPassportState);
 
 // Parse incoming request bodies in a middleware before your handlers, available under the req.body property.
 app.use(bodyParser.json());
@@ -131,6 +140,8 @@ app.use("/api/group", groupRoute);
 app.use("/api/mission", missionRoute);
 app.use("/api/zoom", zoomRoute);
 app.use("/api/announcement", announcementRoute);
+app.use("/api/chat", chatRoute);
+app.use("/api/email", emailRoute);
 
 app.get("/", (req, res) => {
   res.send(`Version DEV: 13`);
@@ -150,9 +161,9 @@ async function initializeConfig() {
   }
 }
 
-app.listen(server_port, () => {
+server.listen(server_port, () => {
   // awaiting for mongoDB connection before initializing config
-  connectDB().then(() => {
+  dbInstance.connect().then(() => {
     initializeConfig();
   });
   console.log(`Server is running at port: ${server_port}`);
@@ -170,4 +181,86 @@ schedule.scheduleJob("0 * * * *", async () => {
   } catch (error) {
     console.error("Error updating recurring meetings:", error);
   }
+});
+
+// ----------------- Socket.io -----------------
+
+const activeChats = {};
+const activeUsers = {};
+io.on("connection", (socket) => {
+  socket.on("join", (userID) => {
+    activeUsers[userID] = socket.id;
+    socket.join(userID);
+  });
+
+  socket.on("join_chats", (chats) => {
+    chats.forEach((chat) => {
+      socket.join(chat);
+
+      if (!activeChats[chat]) {
+        activeChats[chat] = new Set();
+      }
+      activeChats[chat].add(socket.id);
+    });
+  });
+
+  socket.on("typing start", async ({ chatID, user }) => {
+    try {
+      io.to(chatID).emit("typing_start", user, chatID);
+    } catch (error) {
+      console.error("Error sending typing start:", error);
+    }
+  });
+
+  socket.on("typing stop", async ({ chatID, user }) => {
+    try {
+      io.to(chatID).emit("typing_stop", user, chatID);
+    } catch (error) {
+      console.error("Error sending typing stop:", error);
+    }
+  });
+
+  socket.on("seen_message", async ({ messageID, chatID, user }) => {
+    try {
+      const message = await Message.findById(messageID);
+      if (!message) return;
+
+      // Check if user is already in seenBy
+      const alreadySeen = message.seenBy.some((seen) => seen.user.toString() === user);
+
+      if (!alreadySeen) {
+        message.seenBy.push({ user, time: new Date() }); // Push user with timestamp
+        await message.save();
+
+        // Populate the updated message
+        const seenMessage = await Message.findById(messageID)
+          .populate("sender", "name")
+          .populate({
+            path: "seenBy.user",
+            select: "name",
+          })
+          .lean();
+        io.to(chatID).emit("receive_seen", seenMessage);
+      }
+    } catch (error) {
+      console.error("Error updating seen status:", error);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    // Remove user from all active chats
+    for (const chatID in activeChats) {
+      activeChats[chatID].delete(socket.id);
+
+      // If no users are left in the chat, you can deactivate or remove the chat from activeChats
+      if (activeChats[chatID].size === 0) {
+        delete activeChats[chatID];
+      }
+    }
+    for (const userID in activeUsers) {
+      if (activeUsers[userID] === socket.id) {
+        delete activeUsers[userID];
+      }
+    }
+  });
 });

@@ -25,6 +25,10 @@ import {
   userEditProfile,
   getUserProjectStatistics,
   deleteAllUsers,
+  getActiveAdvisors,
+  sendEmailsToNewUsers,
+  checkResetPasswordToken,
+  resetPassword,
 } from "../controllers/userController.js";
 import {
   getUnreadNotifications,
@@ -35,13 +39,14 @@ import {
   clearAllNotifications,
 } from "../controllers/notificationController.js";
 import { ensureAuthenticated, isCoordinator, isAdvisorOrCoordinator } from "../middleware/auth.js";
+import verifyRecaptcha from "../middleware/recaptcha.js";
 
 const router = express.Router();
 
 router.post("/register", ensureAuthenticated, registerUser);
 router.post("/register-multiple", ensureAuthenticated, registerMultiple);
 router.post("/create-admin", createAdmin);
-router.post("/login", loginUser);
+router.post("/login", verifyRecaptcha, loginUser);
 router.post("/logout", logoutUser);
 router.post("/toggle-favorite", ensureAuthenticated, toggleFavoriteProject);
 router.get("/ensure-favorite/:projectId", ensureAuthenticated, ensureFavoriteProject);
@@ -73,6 +78,8 @@ router.get("/user-project", ensureAuthenticated, getUserProject);
 router.put("/user-edit-profile/:id", ensureAuthenticated, userEditProfile);
 router.get("/get-user-project-statistics/:id", ensureAuthenticated, getUserProjectStatistics);
 router.delete("/delete-all", ensureAuthenticated, isCoordinator, deleteAllUsers);
+router.post("/send-emails-to-new-users", ensureAuthenticated, isCoordinator, sendEmailsToNewUsers);
+router.get("/get-active-advisors", ensureAuthenticated, getActiveAdvisors);
 
 // Notifications
 router.get("/notifications", ensureAuthenticated, getUnreadNotifications);
@@ -81,5 +88,9 @@ router.put("/notifications/read", ensureAuthenticated, markAllNotificationsAsRea
 router.put("/notifications/read/:notificationId", ensureAuthenticated, markNotificationAsRead);
 router.delete("/notifications/delete/:notificationId", ensureAuthenticated, deleteNotification);
 router.put("/notifications/clear", ensureAuthenticated, clearAllNotifications);
+
+// Password reset
+router.get("/check-reset-password-token/:token", checkResetPasswordToken);
+router.post("/reset-password", resetPassword);
 
 export default router;
