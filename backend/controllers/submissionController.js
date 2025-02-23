@@ -1227,7 +1227,7 @@ export const acceptExtraUpload = async (req, res) => {
             </head>
             <body>
               <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
-      <div style="display: flex; align-items: center; align-items: center; justify-content: center">
+      <div style="display: flex; align-items: center; align-items: center; margin-right: 220px">
         <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
         <img
           src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
@@ -1298,7 +1298,7 @@ export const denyExtraUpload = async (req, res) => {
             </head>
             <body>
               <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
-      <div style="display: flex; align-items: center; align-items: center; justify-content: center">
+      <div style="display: flex; align-items: center; align-items: center; margin-right: 220px">
         <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
         <img
           src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
@@ -1382,7 +1382,7 @@ export const sendSubmissionEmail = async (submissionName, submissionDate, studen
             </head>
             <body>
               <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
-      <div style="display: flex; align-items: center; align-items: center; justify-content: center">
+      <div style="display: flex; align-items: center; align-items: center; margin-right: 220px">
         <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
         <img
           src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
