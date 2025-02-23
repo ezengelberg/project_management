@@ -592,12 +592,12 @@ const Sidebar = () => {
                       onMouseDown={(e) => handleMouseDown(e, "/submissions")}>
                       ניהול הגשות
                     </li>
-                    <li
+                    {/* <li
                       className={`${isActive("/grade-distribution") ? "active" : ""}`}
                       onClick={() => handleNavigate("/grade-distribution")}
                       onMouseDown={(e) => handleMouseDown(e, "/grade-distribution")}>
                       התפלגויות ציונים
-                    </li>
+                    </li> */}
                     <li
                       className={`${isActive("/approve-extra-file") ? "active" : ""}`}
                       onClick={() => handleNavigate("/approve-extra-file")}
