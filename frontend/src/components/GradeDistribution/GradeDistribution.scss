@@ -1,6 +1,7 @@
 .select-options {
     display: flex;
     gap: 1rem;
+    width: fit-content;
 }
 
 .tab-content {
@@ -28,5 +29,11 @@
         display: flex;
         gap: 0.5rem;
         align-items: flex-start;
+    }
+
+    .graph-zone {
+        .graph-title {
+            text-align: center;
+        }
     }
 }

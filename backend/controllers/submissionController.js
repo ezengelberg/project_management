@@ -289,6 +289,23 @@ export const getStudentSubmissions = async (req, res) => {
     }
 };
 
+export const getJudgeSubmissionNames = async (req, res) => {
+    const { year, judge } = req.query;
+    try {
+        const projects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true, year: year });
+        const projectIds = projects.map((project) => project._id);
+        const submissions = await Submission.find({ project: { $in: projectIds } }).populate("grades", "judge");
+        const filteredSubmissions = submissions.filter((submission) =>
+            submission.grades.some((grade) => grade.judge.toString() === judge),
+        );
+        const submissionNames = [...new Set(filteredSubmissions.map((submission) => submission.name))];
+        res.status(200).json(submissionNames);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 export const getJudgeSubmissions = async (req, res) => {
     try {
         // First find all grades where the user is the judge
@@ -1411,6 +1428,52 @@ export const sendSubmissionEmail = async (submissionName, submissionDate, studen
 
         // Wait for 11 seconds before sending the next batch
         await new Promise((resolve) => setTimeout(resolve, 11000));
+    }
+};
+
+export const getJudgeSubmissionDistribution = async (req, res) => {
+    try {
+        const { year, judge, submission } = req.query;
+        const activeProjects = await Project.find({
+            year,
+            isTerminated: false,
+            isTaken: true,
+            isFinished: false,
+        }).select("_id title");
+
+        const activeSubmissions = await Submission.find({
+            project: { $in: activeProjects.map((p) => p._id) },
+            name: submission,
+            grades: { $size: 3 },
+        })
+            .select("project grades")
+            .populate("grades", "grade numericGrade judge")
+            .populate("project", "title advisors");
+
+        const filteredActiveSubmissions = activeSubmissions.filter((submission) =>
+            submission.grades.some((grade) => grade.judge.toString() === judge),
+        );
+
+        const gradesMap = {};
+        console.log("filtered active subs");
+        filteredActiveSubmissions.forEach((submission) => {
+            const grade = submission.grades.find((grade) => grade.judge.toString() === judge);
+            console.log("grade: ", grade);
+            console.log("submission: ", submission.project.advisors);
+            const isOwnProject = submission.project.advisors.some((advisor) => advisor.toString() === judge);
+            console.log(isOwnProject);
+            gradesMap[submission.project._id] = {
+                id: submission.project._id,
+                title: submission.project.title,
+                grade: grade.grade,
+                numericGrade: grade.numericGrade,
+                isOwnProject,
+            };
+        });
+        res.status(200).json(Object.values(gradesMap));
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 };
 

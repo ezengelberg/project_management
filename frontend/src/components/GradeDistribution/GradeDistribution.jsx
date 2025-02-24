@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Tabs, Select, Table, Row, Col, Input, Radio, message } from "antd";
+import { Tabs, Select, Table, Row, Col, Input, Radio, message, Popover } from "antd";
 import {
     ResponsiveContainer,
     BarChart,
@@ -21,10 +21,16 @@ const GradeDistribution = () => {
     const [selectedJudge, setSelectedJudge] = useState("pick_judge");
     const [calculationMethod, setCalculationMethod] = useState("average");
 
-    const [advisors, setAdvisors] = useState([]);
+    const [judges, setJudges] = useState([]);
     const [submissionOptions, setSubmissionOptions] = useState([]);
+
     const [data, setData] = useState([]);
     const [adjustedData, setAdjustedData] = useState([]);
+
+    const [judgeData, setJudgeData] = useState([]);
+    const [adjustedJudgeData, setAdjustedJudgeData] = useState([]);
+
+    // global
     const [average, setAverage] = useState(0);
     const [median, setMedian] = useState(0);
     const [letters, setLetters] = useState({
@@ -51,19 +57,20 @@ const GradeDistribution = () => {
         setYears(response.data.years);
     };
 
-    const fetchAdvisors = async () => {
-        if (!selectedYear || selectedYear === "pick_year") return;
+    const fetchJudges = async (year) => {
+        setJudges([]);
+        if (!year || year === "pick_year") return;
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-active-advisors/`, {
-            params: { year: selectedYear },
+            params: { year: year },
             withCredentials: true,
         });
-        setAdvisors(response.data);
+        setJudges(response.data);
     };
 
-    const fetchSubmissions = async () => {
-        if (!selectedYear || selectedYear === "pick_year") return;
+    const fetchSubmissions = async (year) => {
+        if (!year || year === "pick_year") return;
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-yearly-submissions`, {
-            params: { year: selectedYear },
+            params: { year: year },
             withCredentials: true,
         });
         setSubmissionOptions(response.data);
@@ -73,21 +80,52 @@ const GradeDistribution = () => {
         if (!submissionOptions.includes(value)) return; // invalid submission option
         if (selectedYear === "pick_year") return;
         try {
-            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-distribution`, {
-                params: { year: selectedYear, submission: value },
-                withCredentials: true,
-            });
+            const response = await axios.get(
+                `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-distribution-submission`,
+                {
+                    params: { year: selectedYear, submission: value },
+                    withCredentials: true,
+                },
+            );
             setData(response.data);
-            console.log(response.data);
             adjustData(response.data);
         } catch (error) {
             console.log(error);
         }
     };
 
-    const pickAdvisorDistribution = async (value) => {
-        if (!advisors.map((advisor) => advisor._id).includes(value)) return; // invalid advisor option
+    const getAdvisorSubmissions = async (value) => {
+        if (!judges.map((advisor) => advisor._id).includes(value)) return;
         if (selectedYear === "pick_year") return;
+        try {
+            const response = await axios.get(
+                `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-judge-submission-names`,
+                {
+                    params: { year: selectedYear, judge: value },
+                    withCredentials: true,
+                },
+            );
+            setSubmissionOptions(response.data);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const pickJudgeDistribution = async (submission) => {
+        if (!judges.map((judge) => judge._id).includes(selectedJudge)) return;
+        if (selectedYear === "pick_year") return;
+        try {
+            const response = await axios.get(
+                `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-distribution-judge`,
+                {
+                    params: { year: selectedYear, submission: submission, judge: selectedJudge },
+                    withCredentials: true,
+                },
+            );
+            setJudgeData(response.data);
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     const adjustData = (data) => {
@@ -119,12 +157,7 @@ const GradeDistribution = () => {
     }, []);
 
     useEffect(() => {
-        fetchAdvisors();
-        fetchSubmissions();
-    }, [selectedYear]);
-
-    useEffect(() => {
-        if (adjustData.length === 0) return;
+        if (adjustedData.length === 0) return;
         let average = 0;
         adjustedData.forEach((entry) => {
             average += entry.value;
@@ -137,7 +170,7 @@ const GradeDistribution = () => {
         const mid = Math.floor(sortedGrades.length / 2);
         median = sortedGrades.length % 2 === 0 ? (sortedGrades[mid - 1] + sortedGrades[mid]) / 2 : sortedGrades[mid]; // Calculate median
         setMedian(median);
-    }, [adjustData]);
+    }, [adjustedData]);
 
     useEffect(() => {
         adjustData(data);
@@ -222,7 +255,6 @@ const GradeDistribution = () => {
                         />
                     </svg>
                     <span>ברגע שהציון מתפרסם, הערך של האותיות נלקח אוטומטית כערך החישוב ולא מחושב מחדש לפי הטבלה.</span>
-                    {/* <span> ברגע שציון פורסם, הערך של האותיות נלקח אוטומטית מערך החישוב ולא מחושב ע"י טבלה זו. השיקלול הערך היחידי שמשתנה (באופן ויזואלי בלבד)</span> */}
                 </div>
             </>
         );
@@ -234,64 +266,68 @@ const GradeDistribution = () => {
             label: "התפלגות ציונים לפי הגשה",
             children: (
                 <>
-                    <div className="select-options">
-                        <Select
-                            value={selectedYear}
-                            options={[
-                                { value: "pick_year", label: "בחירת שנה" },
-                                ...years.map((year) => ({
-                                    value: year,
-                                    label: year,
-                                })),
-                            ]}
-                            onChange={(value) => setSelectedYear(value)}
-                            styles={{
-                                control: (provided) => ({
-                                    ...provided,
-                                    width: "auto",
-                                    minWidth: "150px",
-                                }),
-                            }}
-                        />
-                        <Select
-                            value={selectedSubmission}
-                            options={[
-                                { value: "pick_submission", label: "בחר הגשה" },
-                                ...submissionOptions.map((submission) => ({
-                                    value: submission,
-                                    label: submission,
-                                })),
-                            ]}
-                            onChange={(value) => {
-                                setSelectedSubmission(value);
-                                pickSubmissionDistribution(value);
-                            }}
-                            styles={{
-                                control: (provided) => ({
-                                    ...provided,
-                                    width: "auto",
-                                    minWidth: "150px",
-                                }),
-                            }}
-                        />
-                    </div>
+                    <Popover
+                        placement="bottom"
+                        title={"יש לבחור שנה והגשה"}
+                        content={"על מנת להציג גרף התפלגות יש לבחור שנה והגשה מהרשימות הנפתחות"}
+                        open={selectedYear === "pick_year" && selectedSubmission === "pick_submission"}>
+                        <div className="select-options">
+                            <Select
+                                value={selectedYear}
+                                style={{ width: 200 }}
+                                options={[
+                                    { value: "pick_year", label: "בחירת שנה" },
+                                    ...years.map((year) => ({
+                                        value: year,
+                                        label: year,
+                                    })),
+                                ]}
+                                onChange={(value) => {
+                                    setSelectedYear(value);
+                                    fetchSubmissions(value);
+                                }}
+                            />
+                            <Select
+                                value={selectedSubmission}
+                                style={{ width: 200 }}
+                                options={[
+                                    { value: "pick_submission", label: "בחר הגשה" },
+                                    ...submissionOptions.map((submission) => ({
+                                        value: submission,
+                                        label: submission,
+                                    })),
+                                ]}
+                                onChange={(value) => {
+                                    setSelectedSubmission(value);
+                                    pickSubmissionDistribution(value);
+                                }}
+                                styles={{
+                                    control: (provided) => ({
+                                        ...provided,
+                                        width: "auto",
+                                        minWidth: "150px",
+                                    }),
+                                }}
+                            />
+                        </div>
+                    </Popover>
                     <div className="tab-content">
                         <div className="graph-zone">
                             {/* {adjustedData.length === 0 && <h2>אין נתונים להצגה</h2>} */}
                             {adjustedData.length === 0 &&
                                 (selectedYear === "pick_year" || selectedSubmission === "pick_submission") && (
-                                    <h2>נא לבחור שנה וסוג הגשה</h2>
+                                    <h2 className="graph-title">נא לבחור שנה וסוג הגשה</h2>
                                 )}
                             {adjustedData.length > 0 && (
                                 <ResponsiveContainer width="100%" height={700}>
-                                    <h2>התפלגות ציונים לפי הגשה</h2>
+                                    <h2 className="graph-title">התפלגות ציונים לפי הגשה</h2>
                                     <BarChart
                                         data={aggregateData(adjustedData)}
                                         margin={{ top: 50, right: 50, left: 50, bottom: 50 }} // Increased top margin for labels
                                     >
                                         <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis dataKey="grade" />
-                                        <YAxis dx={-30} allowDecimals={false}/>
+                                        <YAxis dx={-30} allowDecimals={false} />
                                         <Tooltip />
                                         <Legend
                                             formatter={(value) => <span style={{ marginRight: 10 }}>{value}</span>}
@@ -303,36 +339,56 @@ const GradeDistribution = () => {
                                             barSize={100} // Set the width of each bar to make it more square-like
                                             barCategoryGap="10%"
                                         />
-                                        <ReferenceLine
-                                            x={average}
-                                            stroke="darkgreen"
-                                            label={{
-                                                value: "ממוצע ציונים",
-                                                position: "insideTopRight",
-                                                dx: 20,
-                                                style: {
-                                                    fontSize: 16,
-                                                    fontWeight: "bold",
-                                                },
-                                                fill: "darkgreen",
-                                            }}
-                                            strokeDasharray="3 3"
-                                        />
-                                        <ReferenceLine
-                                            x={median}
-                                            stroke="blue"
-                                            label={{
-                                                value: "חציון ציונים",
-                                                position: "insideBottomLeft",
-                                                dx: -20,
-                                                style: {
-                                                    fontSize: 16,
-                                                    fontWeight: "bold",
-                                                },
-                                                fill: "blue",
-                                            }}
-                                            strokeDasharray="3 3"
-                                        />
+                                        {median !== average ? (
+                                            <>
+                                                <ReferenceLine
+                                                    x={average}
+                                                    stroke="darkgreen"
+                                                    label={{
+                                                        value: "ממוצע ציונים",
+                                                        position: "insideTopRight",
+                                                        dx: 20,
+                                                        style: {
+                                                            fontSize: 16,
+                                                            fontWeight: "bold",
+                                                        },
+                                                        fill: "darkgreen",
+                                                    }}
+                                                    strokeDasharray="3 3"
+                                                />
+                                                <ReferenceLine
+                                                    x={median}
+                                                    stroke="blue"
+                                                    label={{
+                                                        value: "חציון ציונים",
+                                                        position: "insideBottomLeft",
+                                                        dx: -20,
+                                                        style: {
+                                                            fontSize: 16,
+                                                            fontWeight: "bold",
+                                                        },
+                                                        fill: "blue",
+                                                    }}
+                                                    strokeDasharray="3 3"
+                                                />
+                                            </>
+                                        ) : (
+                                            <ReferenceLine
+                                                x={average}
+                                                stroke="red"
+                                                label={{
+                                                    value: "חציון וממוצע ציונים",
+                                                    position: "insideTopRight",
+                                                    dx: -20,
+                                                    style: {
+                                                        fontSize: 16,
+                                                        fontWeight: "bold",
+                                                    },
+                                                    fill: "red",
+                                                }}
+                                                strokeDasharray="3 3"
+                                            />
+                                        )}
                                         {adjustedData.map((_, index) => (
                                             <ReferenceLine key={index} y={index + 1} stroke="#ccc" />
                                         ))}
@@ -372,6 +428,7 @@ const GradeDistribution = () => {
                     <div className="select-options">
                         <Select
                             value={selectedYear}
+                            style={{ width: 200 }}
                             options={[
                                 { value: "pick_year", label: "בחירת שנה" },
                                 ...years.map((year) => ({
@@ -381,23 +438,19 @@ const GradeDistribution = () => {
                             ]}
                             onChange={(value) => {
                                 setSelectedYear(value);
-                                setSelectedJudge("pick_judge");
-                                setSelectedSubmission("pick_submission");
-                                setAdjustedData([]);
-                            }}
-                            styles={{
-                                control: (provided) => ({
-                                    ...provided,
-                                    width: "auto",
-                                    minWidth: "150px",
-                                }),
+                                fetchJudges(value);
                             }}
                         />
                         <Select
+                            showSearch
+                            filterOption={(input, option) =>
+                                option?.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                            }
                             value={selectedJudge}
+                            style={{ width: 200 }}
                             options={[
                                 { value: "pick_judge", label: "בחר שופט" },
-                                ...advisors.map((advisor) => ({
+                                ...judges.map((advisor) => ({
                                     value: advisor._id,
                                     label: advisor.name,
                                 })),
@@ -405,14 +458,22 @@ const GradeDistribution = () => {
                             onChange={(value) => {
                                 if (selectedYear === "pick_year" || !selectedYear) return message.error("נא לבחור שנה");
                                 setSelectedJudge(value);
-                                pickAdvisorDistribution(value);
+                                getAdvisorSubmissions(value);
                             }}
-                            styles={{
-                                control: (provided) => ({
-                                    ...provided,
-                                    width: "auto",
-                                    minWidth: "250px",
-                                }),
+                        />
+                        <Select
+                            value={selectedSubmission}
+                            style={{ width: 200 }}
+                            options={[
+                                { value: "pick_submission", label: "בחר הגשה" },
+                                ...submissionOptions.map((submission) => ({
+                                    value: submission,
+                                    label: submission,
+                                })),
+                            ]}
+                            onChange={(value) => {
+                                setSelectedSubmission(value);
+                                pickJudgeDistribution(value);
                             }}
                         />
                     </div>
@@ -433,9 +494,10 @@ const GradeDistribution = () => {
                     setSelectedJudge("pick_judge");
                     setSelectedSubmission("pick_submission");
                     setSelectedYear("pick_year");
-                    setAdvisors([]);
+                    setJudges([]);
                     setData([]);
                     setAdjustedData([]);
+                    setSubmissionOptions([]);
                 }}
             />
         </div>
