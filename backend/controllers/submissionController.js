@@ -96,7 +96,6 @@ export const createSpecificSubmission = async (req, res) => {
         await Promise.all(
             req.body.projects.map(async (projectId) => {
                 const project = await Project.findById(projectId);
-
                 let newGrade;
                 let gradeByAdvisor;
                 if (project.advisors.length > 0) {
@@ -1458,7 +1457,6 @@ export const getJudgeSubmissionDistribution = async (req, res) => {
         filteredActiveSubmissions.forEach((submission) => {
             const grade = submission.grades.find((grade) => grade.judge.toString() === judge);
             const isOwnProject = submission.project.advisors.some((advisor) => advisor.toString() === judge);
-            console.log(isOwnProject);
             gradesMap[submission.project._id] = {
                 id: submission.project._id,
                 title: submission.project.title,
