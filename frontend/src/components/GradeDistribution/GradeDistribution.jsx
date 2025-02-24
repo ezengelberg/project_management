@@ -468,6 +468,11 @@ const GradeDistribution = () => {
                             onChange={(value) => {
                                 setSelectedYear(value);
                                 fetchJudges(value);
+                                setSelectedJudge("pick_judge");
+                                setSelectedSubmission("pick_submission");
+                                setJudges([]);
+                                setSubmissionOptions([]);
+                                setJudgeData([]);
                             }}
                         />
                         <Select
