@@ -1455,11 +1455,8 @@ export const getJudgeSubmissionDistribution = async (req, res) => {
         );
 
         const gradesMap = {};
-        console.log("filtered active subs");
         filteredActiveSubmissions.forEach((submission) => {
             const grade = submission.grades.find((grade) => grade.judge.toString() === judge);
-            console.log("grade: ", grade);
-            console.log("submission: ", submission.project.advisors);
             const isOwnProject = submission.project.advisors.some((advisor) => advisor.toString() === judge);
             console.log(isOwnProject);
             gradesMap[submission.project._id] = {
