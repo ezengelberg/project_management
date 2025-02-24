@@ -28,7 +28,6 @@ const GradeDistribution = () => {
     const [adjustedData, setAdjustedData] = useState([]);
 
     const [judgeData, setJudgeData] = useState([]);
-    const [adjustedJudgeData, setAdjustedJudgeData] = useState([]);
 
     // global
     const [average, setAverage] = useState(0);
@@ -206,6 +205,35 @@ const GradeDistribution = () => {
         },
     ];
 
+    const aggregateJudgeData = (data) => {
+        const aggregated = {
+            "A+": { grade: "A+", count: 0, self: 0 },
+            A: { grade: "A", count: 0, self: 0 },
+            "A-": { grade: "A-", count: 0, self: 0 },
+            "B+": { grade: "B+", count: 0, self: 0 },
+            B: { grade: "B", count: 0, self: 0 },
+            "B-": { grade: "B-", count: 0, self: 0 },
+            "C+": { grade: "C+", count: 0, self: 0 },
+            C: { grade: "C", count: 0, self: 0 },
+            "C-": { grade: "C-", count: 0, self: 0 },
+            "D+": { grade: "D+", count: 0, self: 0 },
+            D: { grade: "D", count: 0, self: 0 },
+            "D-": { grade: "D-", count: 0, self: 0 },
+            E: { grade: "E", count: 0, self: 0 },
+            F: { grade: "F", count: 0, self: 0 },
+        };
+
+        data.forEach((entry) => {
+            const grade = entry.grade; // Use computed value as the key
+            if (!aggregated[grade]) {
+                aggregated[grade] = { grade, count: 0, self: 0 };
+            }
+            if (entry.isOwnProject) aggregated[grade].self += 1; // Count selfoccurrences
+            else aggregated[grade].count += 1; // Count occurrences
+        });
+        return Object.values(aggregated).sort((a, b) => b.grade - a.grade); // Reverse the sorted array
+    };
+
     const aggregateData = (data) => {
         const aggregated = {};
         data.forEach((entry) => {
@@ -217,13 +245,12 @@ const GradeDistribution = () => {
         });
 
         const sortedGrades = Object.values(aggregated).sort((a, b) => a.grade - b.grade); // Sort by grade
-        console.log(sortedGrades);
         for (let i = sortedGrades[0].grade; i <= sortedGrades[sortedGrades.length - 1].grade; i++) {
             if (!aggregated[i]) {
                 aggregated[i] = { grade: i, count: 0 };
             }
         }
-        return Object.values(aggregated).sort((a, b) => a.grade - b.grade);
+        return Object.values(aggregated).sort((a, b) => b.grade - a.grade);
     };
 
     const letterTableRender = () => {
@@ -478,8 +505,40 @@ const GradeDistribution = () => {
                         />
                     </div>
                     <div className="tab-content">
-                        <div className="graph-zone">graph</div>
-                        <div className="grading-table">{letterTableRender()}</div>
+                        <div className="graph-zone">
+                            {judgeData.length > 0 && (
+                                <ResponsiveContainer width="100%" height={700}>
+                                    <h2 className="graph-title">התפלגות ציונים לפי שופט</h2>
+                                    <BarChart
+                                        data={aggregateJudgeData(judgeData)}
+                                        margin={{ top: 50, right: 50, left: 50, bottom: 50 }}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="grade" reversed />
+                                        <YAxis dx={-30} allowDecimals={false} />
+                                        <Tooltip />
+                                        <Legend
+                                            formatter={(value) => <span style={{ marginRight: 10 }}>{value}</span>}
+                                        />
+                                        <Bar
+                                            dataKey="self"
+                                            fill="#3A7D44"
+                                            name="ציונים עצמיים"
+                                            barSize={100} // Set the width of each bar to make it more square-like
+                                        />
+                                        <Bar
+                                            dataKey="count"
+                                            fill="#690B22"
+                                            name="ציונים אחרים"
+                                            barSize={100} // Set the width of each bar to make it more square-like
+                                        />
+                                        {judgeData.map((_, index) => (
+                                            <ReferenceLine key={index} y={index + 1} stroke="#ccc" />
+                                        ))}
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            )}
+                        </div>
+                        {/* <div className="grading-table">{letterTableRender()}</div> */}
                     </div>
                 </>
             ),
