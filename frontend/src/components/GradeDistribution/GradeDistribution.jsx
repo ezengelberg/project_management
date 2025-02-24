@@ -250,7 +250,7 @@ const GradeDistribution = () => {
                 aggregated[i] = { grade: i, count: 0 };
             }
         }
-        return Object.values(aggregated).sort((a, b) => b.grade - a.grade);
+        return Object.values(aggregated).sort((a, b) => a.grade - b.grade);
     };
 
     const letterTableRender = () => {
@@ -557,6 +557,7 @@ const GradeDistribution = () => {
                     setData([]);
                     setAdjustedData([]);
                     setSubmissionOptions([]);
+                    setJudgeData([]);
                 }}
             />
         </div>
