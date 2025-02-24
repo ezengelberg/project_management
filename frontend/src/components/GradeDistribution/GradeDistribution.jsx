@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Tabs, Select, Table, Row, Col, Input, Radio, message, Popover } from "antd";
+import { Tabs, Select, Table, Row, Col, Input, Radio, message } from "antd";
 import {
     ResponsiveContainer,
     BarChart,
@@ -49,6 +49,12 @@ const GradeDistribution = () => {
         F: 0,
     });
 
+    const personSVG = (
+        <svg width="64" height="64" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 15.503A5.041 5.041 0 1 0 16 5.42a5.041 5.041 0 0 0 0 10.083zm0 2.215c-6.703 0-11 3.699-11 5.5v3.363h22v-3.363c0-2.178-4.068-5.5-11-5.5z" />
+        </svg>
+    );
+
     const fetchYear = async () => {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config/get/year`, {
             withCredentials: true,
@@ -76,6 +82,8 @@ const GradeDistribution = () => {
     };
 
     const pickSubmissionDistribution = async (value) => {
+        setData([]);
+        setAdjustedData([]);
         if (!submissionOptions.includes(value)) return; // invalid submission option
         if (selectedYear === "pick_year") return;
         try {
@@ -110,14 +118,14 @@ const GradeDistribution = () => {
         }
     };
 
-    const pickJudgeDistribution = async (submission) => {
-        if (!judges.map((judge) => judge._id).includes(selectedJudge)) return;
+    const pickJudgeDistribution = async (submission, judge = selectedJudge) => {
+        if (!judges.map((judge) => judge._id).includes(judge)) return;
         if (selectedYear === "pick_year") return;
         try {
             const response = await axios.get(
                 `${process.env.REACT_APP_BACKEND_URL}/api/submission/get-distribution-judge`,
                 {
-                    params: { year: selectedYear, submission: submission, judge: selectedJudge },
+                    params: { year: selectedYear, submission: submission, judge: judge },
                     withCredentials: true,
                 },
             );
@@ -281,7 +289,7 @@ const GradeDistribution = () => {
                             fill="red"
                         />
                     </svg>
-                    <span>ברגע שהציון מתפרסם, הערך של האותיות נלקח אוטומטית כערך החישוב ולא מחושב מחדש לפי הטבלה.</span>
+                    <span>לאחר פרסום הציון, הערך של האותיות נלקח אוטומטית כערך החישוב ולא מחושב מחדש לפי טבלה זו.</span>
                 </div>
             </>
         );
@@ -293,58 +301,52 @@ const GradeDistribution = () => {
             label: "התפלגות ציונים לפי הגשה",
             children: (
                 <>
-                    <Popover
-                        placement="bottom"
-                        title={"יש לבחור שנה והגשה"}
-                        content={"על מנת להציג גרף התפלגות יש לבחור שנה והגשה מהרשימות הנפתחות"}
-                        open={selectedYear === "pick_year" && selectedSubmission === "pick_submission"}>
-                        <div className="select-options">
-                            <Select
-                                value={selectedYear}
-                                style={{ width: 200 }}
-                                options={[
-                                    { value: "pick_year", label: "בחירת שנה" },
-                                    ...years.map((year) => ({
-                                        value: year,
-                                        label: year,
-                                    })),
-                                ]}
-                                onChange={(value) => {
-                                    setSelectedYear(value);
-                                    fetchSubmissions(value);
-                                }}
-                            />
-                            <Select
-                                value={selectedSubmission}
-                                style={{ width: 200 }}
-                                options={[
-                                    { value: "pick_submission", label: "בחר הגשה" },
-                                    ...submissionOptions.map((submission) => ({
-                                        value: submission,
-                                        label: submission,
-                                    })),
-                                ]}
-                                onChange={(value) => {
-                                    setSelectedSubmission(value);
-                                    pickSubmissionDistribution(value);
-                                }}
-                                styles={{
-                                    control: (provided) => ({
-                                        ...provided,
-                                        width: "auto",
-                                        minWidth: "150px",
-                                    }),
-                                }}
-                            />
-                        </div>
-                    </Popover>
+                    <div className="select-options">
+                        <Select
+                            value={selectedYear}
+                            style={{ width: 200 }}
+                            options={[
+                                { value: "pick_year", label: "בחירת שנה" },
+                                ...years.map((year) => ({
+                                    value: year,
+                                    label: year,
+                                })),
+                            ]}
+                            onChange={(value) => {
+                                setSelectedYear(value);
+                                setSubmissionOptions([]);
+                                fetchSubmissions(value);
+                                setSelectedSubmission("pick_submission");
+                                setData([]);
+                                setAdjustedData([]);
+                            }}
+                        />
+                        <Select
+                            value={selectedSubmission}
+                            style={{ width: 200 }}
+                            options={[
+                                { value: "pick_submission", label: "בחר הגשה" },
+                                ...submissionOptions.map((submission) => ({
+                                    value: submission,
+                                    label: submission,
+                                })),
+                            ]}
+                            onChange={(value) => {
+                                setSelectedSubmission(value);
+                                pickSubmissionDistribution(value);
+                            }}
+                            styles={{
+                                control: (provided) => ({
+                                    ...provided,
+                                    width: "auto",
+                                    minWidth: "150px",
+                                }),
+                            }}
+                        />
+                    </div>
                     <div className="tab-content">
                         <div className="graph-zone">
                             {/* {adjustedData.length === 0 && <h2>אין נתונים להצגה</h2>} */}
-                            {adjustedData.length === 0 &&
-                                (selectedYear === "pick_year" || selectedSubmission === "pick_submission") && (
-                                    <h2 className="graph-title">נא לבחור שנה וסוג הגשה</h2>
-                                )}
                             {adjustedData.length > 0 && (
                                 <ResponsiveContainer width="100%" height={700}>
                                     <h2 className="graph-title">התפלגות ציונים לפי הגשה</h2>
@@ -485,7 +487,14 @@ const GradeDistribution = () => {
                             onChange={(value) => {
                                 if (selectedYear === "pick_year" || !selectedYear) return message.error("נא לבחור שנה");
                                 setSelectedJudge(value);
+                                if (value === "pick_judge") {
+                                    setSelectedSubmission("pick_submission");
+                                    setJudgeData([]);
+                                    return;
+                                }
                                 getAdvisorSubmissions(value);
+                                if (selectedSubmission !== "pick_submission")
+                                    pickJudgeDistribution(selectedSubmission, value);
                             }}
                         />
                         <Select
@@ -506,9 +515,18 @@ const GradeDistribution = () => {
                     </div>
                     <div className="tab-content">
                         <div className="graph-zone">
-                            {judgeData.length > 0 && (
+                            {judgeData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height={700}>
                                     <h2 className="graph-title">התפלגות ציונים לפי שופט</h2>
+                                    {selectedJudge && (
+                                        <h3 className="judge-info">
+                                            {personSVG}
+
+                                            <span>
+                                                {judges.filter((j) => j._id === selectedJudge).map((j) => j.name)}
+                                            </span>
+                                        </h3>
+                                    )}
                                     <BarChart
                                         data={aggregateJudgeData(judgeData)}
                                         margin={{ top: 50, right: 50, left: 50, bottom: 50 }}>
@@ -522,13 +540,13 @@ const GradeDistribution = () => {
                                         <Bar
                                             dataKey="self"
                                             fill="#3A7D44"
-                                            name="ציונים עצמיים"
+                                            name="פרויקטים בהנחיה"
                                             barSize={100} // Set the width of each bar to make it more square-like
                                         />
                                         <Bar
                                             dataKey="count"
                                             fill="#690B22"
-                                            name="ציונים אחרים"
+                                            name="פרויקטים בהנחיה אחרת"
                                             barSize={100} // Set the width of each bar to make it more square-like
                                         />
                                         {judgeData.map((_, index) => (
@@ -536,6 +554,8 @@ const GradeDistribution = () => {
                                         ))}
                                     </BarChart>
                                 </ResponsiveContainer>
+                            ) : (
+                                <h3>אין התפלגות זמינה עבור משוב זה</h3>
                             )}
                         </div>
                         {/* <div className="grading-table">{letterTableRender()}</div> */}

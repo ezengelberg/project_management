@@ -35,5 +35,20 @@
         .graph-title {
             text-align: center;
         }
+        .judge-info {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin: 0;
+            svg {
+                width: 3.5rem;
+                height: fit-content;
+            }
+            span {
+                font-size: 2.5rem;
+            }
+        }
     }
 }
