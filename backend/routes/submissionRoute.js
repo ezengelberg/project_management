@@ -27,6 +27,8 @@ import {
     getYearlySubmissions,
     sendSubmissionEmail,
     getSubmissionDistribution,
+    getJudgeSubmissionNames,
+    getJudgeSubmissionDistribution,
 } from "../controllers/submissionController.js";
 import { ensureAuthenticated, isCoordinator } from "../middleware/auth.js";
 
@@ -41,7 +43,9 @@ router.put("/update-judges", ensureAuthenticated, isCoordinator, updateJudgesInS
 router.delete("/reset-all-judges", ensureAuthenticated, isCoordinator, resetJudges);
 router.get("/get-judge-submissions", ensureAuthenticated, getJudgeSubmissions);
 router.get("/get-yearly-submissions", ensureAuthenticated, getYearlySubmissions);
-router.get("/get-distribution", ensureAuthenticated, isCoordinator, getSubmissionDistribution);
+router.get("/get-distribution-submission", ensureAuthenticated, isCoordinator, getSubmissionDistribution);
+router.get("/get-distribution-judge", ensureAuthenticated, isCoordinator, getJudgeSubmissionDistribution);
+router.get("/get-judge-submission-names", ensureAuthenticated, getJudgeSubmissionNames);
 router.get("/get-submission/:id", ensureAuthenticated, getSubmission);
 router.get("/get-submission-details/:id", ensureAuthenticated, getSubmissionDetails);
 router.get("/get-student-submissions", ensureAuthenticated, getStudentSubmissions);
