@@ -123,13 +123,7 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
                 }}
                 okButtonProps={{ danger: true }}>
                 האם הינך בטוח שברצונך למחוק את ההודעה <span style={{ fontWeight: 600 }}>{announcement.title}</span>,
-                ההודעה תימחק לצמיתות
-                <br />
-                תוכן ההודעה:{" "}
-                <div
-                    className="announcement-content"
-                    dangerouslySetInnerHTML={{ __html: processContent(announcement.content, 750) }}
-                />
+                ההודעה תימחק לצמיתות!
             </Modal>
             {isEditing ? (
                 <div className="announcement-edit-container">

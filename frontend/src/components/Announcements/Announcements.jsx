@@ -100,7 +100,7 @@ const Announcements = () => {
                 <div className="create-announcement">
                     <h2>כתיבת הודעה חדשה</h2>
                     <div className="form-input-group">
-                        <label htmlFor="announcement-title">כותרת</label>
+                        <label className="announcement-form-label" htmlFor="announcement-title">כותרת</label>
                         <Input
                             type="text"
                             id="announcement-title"
@@ -109,7 +109,7 @@ const Announcements = () => {
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                         />
-                        <label htmlFor="announcement-roles">למי נשלחת ההודעה</label>
+                        <label className="announcement-form-label" htmlFor="announcement-roles">למי נשלחת ההודעה</label>
                         <Checkbox.Group
                             id="announcement-roles"
                             options={roleOptions}
@@ -124,7 +124,7 @@ const Announcements = () => {
                                 setSelectedRoles(newRoles);
                             }}
                         />
-                        <label htmlFor="announcement-group">קבוצה (במידה ולא תבחר קבוצה ההודעה תשלח לכולם)</label>
+                        <label className="announcement-form-label" htmlFor="announcement-group">קבוצה (במידה ולא תבחר קבוצה ההודעה תשלח לכולם)</label>
                         <Select
                             id="announcement-group"
                             value={selectedGroup}
