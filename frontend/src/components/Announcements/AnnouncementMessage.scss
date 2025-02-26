@@ -110,3 +110,45 @@
         }
     }
 }
+
+@media screen and (max-width: 1600px) {
+    .announcement-edit-container {
+        width: 75%;
+    }
+    .announcement-container {
+        width: 75%;
+        font-size: 1.8rem;
+
+        .announcement-top {
+            .announcement-top-wrapper {
+                .announcement-title {
+                    font-size: 2.2rem;
+                }
+                .announcement-top-end {
+                    font-size: 1.5rem;
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width: 626px) {
+    .announcement-edit-container {
+        width: 90%;
+    }
+    .announcement-container {
+        width: 90%;
+        font-size: 2rem;
+
+        .announcement-top {
+            .announcement-top-wrapper {
+                .announcement-title {
+                    font-size: 2.3rem;
+                }
+                .announcement-top-end {
+                    font-size: 1.8rem;
+                }
+            }
+        }
+    }
+}
