@@ -57,6 +57,8 @@ export const getAnnouncements = async (req, res) => {
     try {
         const { isStudent, isAdvisor, isJudge, isCoordinator, _id } = req.user;
 
+        console.log("User roles:", { isStudent, isAdvisor, isJudge, isCoordinator });
+
         const configFile = await Config.find();
         const year = configFile[0].currentYear;
 
@@ -70,27 +72,45 @@ export const getAnnouncements = async (req, res) => {
             group = await Group.findOne({ projects: project._id });
         }
 
+        console.log("Group:", group);
+
         // Define conditions based on user roles
         const roleConditions = [];
         if (isStudent) roleConditions.push({ forStudent: true });
         if (isAdvisor) roleConditions.push({ forAdvisor: true });
         if (isJudge) roleConditions.push({ forJudge: true });
 
-
         // If the user is a coordinator, they see everything
-        let query = isCoordinator
-            ? {
-                  year: year,
-              } // No filtering for coordinators
-            : {
-                  $or: [...roleConditions, ...(group?._id ? [{ group: group._id }] : [])],
-                  year: year,
-              };
+        let query;
 
+        if (isCoordinator) {
+            // Coordinators see everything from the current year
+            query = { year: year };
+        } else {
+            // For non-coordinators, we need both role AND group conditions to match
+            query = {
+                year: year,
+                $and: [
+                    // Must match at least one role condition
+                    { $or: roleConditions },
+
+                    // AND must match the appropriate group condition
+                    group?._id
+                        ? { $or: [{ group: { $exists: false } }, { group: null }, { group: group._id }] }
+                        : {
+                              $or: [{ group: { $exists: false } }, { group: null }],
+                          },
+                ],
+            };
+        }
+
+        console.log("Query:", JSON.stringify(query, null, 2));
 
         const announcements = await Announcement.find(query)
             .populate({ path: "writtenBy", select: "name" }) // Ensuring writtenBy is populated
             .populate({ path: "group", select: "name" });
+
+        console.log(announcements);
         res.status(200).json(announcements);
     } catch (error) {
         console.error("Error occurred:", error);

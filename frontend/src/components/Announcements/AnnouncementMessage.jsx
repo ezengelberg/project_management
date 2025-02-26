@@ -123,13 +123,7 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
                 }}
                 okButtonProps={{ danger: true }}>
                 האם הינך בטוח שברצונך למחוק את ההודעה <span style={{ fontWeight: 600 }}>{announcement.title}</span>,
-                ההודעה תימחק לצמיתות
-                <br />
-                תוכן ההודעה:{" "}
-                <div
-                    className="announcement-content"
-                    dangerouslySetInnerHTML={{ __html: processContent(announcement.content, 750) }}
-                />
+                ההודעה תימחק לצמיתות!
             </Modal>
             {isEditing ? (
                 <div className="announcement-edit-container">
@@ -160,7 +154,11 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
                                 setIsEditing(false);
                                 editAnnouncement();
                             }}
-                            disabled={description === announcement.content && title === announcement.title || description === "" || title === ""}>
+                            disabled={
+                                (description === announcement.content && title === announcement.title) ||
+                                description === "" ||
+                                title === ""
+                            }>
                             עדכן הודעה
                         </Button>
                     </div>
@@ -186,7 +184,7 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
                     </div>
                     <div
                         className="announcement-content"
-                        dangerouslySetInnerHTML={{ __html: processContent(announcement.content, 750) }}
+                        dangerouslySetInnerHTML={{ __html: processContent(announcement.content) }}
                     />
                     <div className="announcement-footer">
                         {announcement.updatedAt !== announcement.createdAt && (

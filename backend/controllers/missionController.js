@@ -6,9 +6,8 @@ import Notification from "../models/notifications.js";
 export const createMission = async (req, res) => {
   try {
     const { projectId, assignees, ...missionData } = req.body;
-
     // Create the new mission
-    const mission = new Mission(missionData);
+    const mission = new Mission({ ...missionData, assignees });
     await mission.save();
 
     // Find the project and update its journal
