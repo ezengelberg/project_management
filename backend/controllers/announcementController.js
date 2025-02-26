@@ -2,6 +2,8 @@ import Announcement from "../models/announcements.js";
 import Config from "../models/config.js";
 import Group from "../models/groups.js";
 import Project from "../models/projects.js";
+import User from "../models/users.js";
+import Notification from "../models/notifications.js";
 
 export const createAnnouncement = async (req, res) => {
     const { title, description, roles, group } = req.body;
@@ -41,6 +43,41 @@ export const createAnnouncement = async (req, res) => {
             newAnnouncement.forCoordinator = true;
         }
         await newAnnouncement.save();
+
+        // create notification
+        const roleConditions = [];
+        if (newAnnouncement.forStudent) roleConditions.push({ isStudent: true });
+        if (newAnnouncement.forAdvisor) roleConditions.push({ isAdvisor: true });
+        if (newAnnouncement.forJudge) roleConditions.push({ isJudge: true });
+        if (newAnnouncement.forCoordinator) roleConditions.push({ isCoordinator: true });
+
+        if (!group) {
+            const users = await User.find({ $or: roleConditions });
+            for (let i = 0; i < users.length; i++) {
+                const newNotification = new Notification({
+                    user: users[i]._id,
+                    message: `פורסמה הודעה חדשה: ${newAnnouncement.title}`,
+                    link: `/announcements`,
+                });
+                await newNotification.save();
+            }
+        } else {
+            const project = await Project.findOne({ group: group._id });
+            const users = await User.find({
+                $or: [
+                    { _id: project.advisors.map((advisor) => advisor) },
+                    { _id: project.students.map((student) => student.student) },
+                ],
+            });
+            for (let i = 0; i < users.length; i++) {
+                const newNotification = new Notification({
+                    user: users[i]._id,
+                    message: `פורסמה הודעה חדשה: ${newAnnouncement.title}`,
+                    link: `/announcements`,
+                });
+                await newNotification.save();
+            }
+        }
 
         // Refetch and populate
         const populatedAnnouncement = await Announcement.findById(newAnnouncement._id)
