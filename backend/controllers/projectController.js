@@ -1527,10 +1527,16 @@ export const suggestProject = async (req, res) => {
 
 export const getProjectSuggestions = async (req, res) => {
   try {
-    const projects = await Project.find({ $or: [{ "studentSuggestions.stage": 1 }, { "studentSuggestions.stage": 2 }] })
+    const projects = await Project.find({
+      $or: [{ "studentSuggestions.stage": 1 }, { "studentSuggestions.stage": 2 }],
+      isTerminated: false,
+    })
       .populate("studentSuggestions.suggestedBy")
       .populate("candidates.student");
-    res.status(200).json(projects);
+
+    const filteredProjects = projects.filter((project) => project.studentSuggestions.suggestedBy !== null);
+
+    res.status(200).json(filteredProjects);
   } catch (error) {
     console.error("Error fetching project suggestions:", error);
     res.status(500).json({ message: "Failed to fetch project suggestions" });
