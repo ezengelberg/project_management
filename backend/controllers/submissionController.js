@@ -9,6 +9,7 @@ import fs from "fs";
 import path from "path";
 import OpenAI from "openai";
 import nodemailer from "nodemailer";
+import mongoose from "mongoose";
 
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
@@ -359,7 +360,12 @@ export const getJudgeSubmissions = async (req, res) => {
 
 export const getSubmission = async (req, res) => {
   try {
-    const submission = await Submission.findById(req.params.id)
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid submission ID" });
+    }
+
+    const submission = await Submission.findById(id)
       .populate("project", "title advisors")
       .populate({
         path: "grades",
