@@ -421,8 +421,6 @@ export const approveCandidate = async (req, res) => {
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error("Error sending acceptance email:", error);
-      } else {
-        console.log("Acceptance email sent:", info.response);
       }
     });
 

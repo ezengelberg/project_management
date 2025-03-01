@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Tooltip, message, Spin } from "antd";
 import { UserOutlined, LoadingOutlined } from "@ant-design/icons";
@@ -9,18 +9,43 @@ import { NotificationsContext } from "../../utils/NotificationsContext";
 
 const ProjectPage = () => {
   const { projectID } = useParams();
+  const navigate = useNavigate();
   const { fetchNotifications } = useContext(NotificationsContext);
   const [projectData, setProjectData] = useState({});
   const [advisors, setAdvisors] = useState([]);
   const [isCandidate, setIsCandidate] = useState(false);
   const [hasProject, setHasProject] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingProject, setIsLoadingProject] = useState(true);
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : {};
   });
 
   useEffect(() => {
+    const checkIfProjectExists = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-project/${projectID}`, {
+          withCredentials: true,
+        });
+        if (!response.data) {
+          navigate("/wrong-path");
+        } else {
+          setProjectData(response.data);
+        }
+      } catch (error) {
+        console.error("Error occurred:", error);
+        navigate("/wrong-path");
+      } finally {
+        setIsLoadingProject(false);
+      }
+    };
+    checkIfProjectExists();
+  }, [projectID, navigate]);
+
+  useEffect(() => {
+    if (!projectData._id) return;
+
     const checkIfUserCandidate = async () => {
       try {
         const response = await axios.get(
@@ -34,6 +59,7 @@ const ProjectPage = () => {
         console.error("Error occurred:", error);
       }
     };
+
     const getAdvisorInfo = async () => {
       if (projectData.advisors) {
         try {
@@ -51,14 +77,8 @@ const ProjectPage = () => {
         }
       }
     };
-    checkIfUserCandidate();
-    getAdvisorInfo();
-    fetchNotifications();
-  }, [projectData, projectID]);
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const hasProject = async () => {
+    const checkUserHasProject = async () => {
       try {
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/user/check-user-has-projects/${user._id}`,
@@ -71,22 +91,12 @@ const ProjectPage = () => {
         console.error("Error occurred:", error);
       }
     };
-    hasProject();
-  }, []);
 
-  useEffect(() => {
-    const fetchProjectData = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-project/${projectID}`, {
-          withCredentials: true,
-        });
-        setProjectData(response.data);
-      } catch (error) {
-        console.error("Error occurred:", error);
-      }
-    };
-    fetchProjectData();
-  }, [projectID]);
+    checkIfUserCandidate();
+    getAdvisorInfo();
+    checkUserHasProject();
+    fetchNotifications();
+  }, [projectData, projectID, user._id, fetchNotifications]);
 
   const copyToClipboard = () => {
     const emails = advisors.map((advisor) => advisor.email).join(", ");
@@ -101,11 +111,9 @@ const ProjectPage = () => {
         type: "loading",
         content: "מבצע הסרת הרשמה מהפרויקט...",
       });
-      console.log("sending req");
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user`, {
         withCredentials: true,
       });
-      console.log("response", response);
       const userID = response.data._id;
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/project/remove-candidate`,
@@ -166,6 +174,14 @@ const ProjectPage = () => {
       }, 1000);
     }
   };
+
+  if (isLoadingProject) {
+    return (
+      <div className="loading-container">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div className="project-container">
