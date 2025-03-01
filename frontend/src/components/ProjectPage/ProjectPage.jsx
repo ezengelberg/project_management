@@ -199,13 +199,17 @@ const ProjectPage = () => {
       <hr className="project-profile-line"></hr>
       <div className="project-profile-info project-profile-content">
         <div className="project-profile-info-item">
-          <div className="project-profile-info-title">תיאור הפרויקט</div>
+          <div className="project-profile-info-title" style={{ fontWeight: "600" }}>
+            תיאור הפרויקט
+          </div>
           <div
             className="project-profile-info-text rich-text-content"
             dangerouslySetInnerHTML={{ __html: processContent(projectData.description) }}></div>
         </div>
         <div className="project-profile-info-item project-badges">
-          <div className="project-profile-info-title">התאמות:</div>
+          <div className="project-profile-info-title" style={{ fontWeight: "600" }}>
+            התאמות:
+          </div>
           <Tooltip title="מתאים ל">
             <div className="project-badge project-suitable">{projectData.suitableFor}</div>
           </Tooltip>
@@ -214,7 +218,9 @@ const ProjectPage = () => {
           </Tooltip>
         </div>
         <div className="project-profile-info-item project-profile-info-emails">
-          <div className="project-profile-info-title">אימייל המנחה ליצירת קשר:</div>
+          <div className="project-profile-info-title" style={{ fontWeight: "600" }}>
+            אימייל המנחה ליצירת קשר:
+          </div>
           <div className="project-profile-info-text project-profile-info-email">
             {advisors.map((advisor, index) => (
               <Tooltip key={index} title="לחץ להעתקה">
