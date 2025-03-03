@@ -119,4 +119,24 @@ export const downloadProjectExcel = (data, year) => {
   XLSX.writeFile(workbook, `טבלת פרויקטים - ${year}.xlsx`);
 };
 
+export const downloadGradesExcel = (data, year) => {
+  const worksheetData = data.flatMap((project, index) => {
+    const rows = [];
+    project.students.forEach((student, studentIndex) => {
+      rows.push({
+        id: student.student.id,
+        grade: project.totalGrade,
+      });
+    });
+    return rows;
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Grades");
+
+  // Trigger the download of the Excel file as "grades.xlsx"
+  XLSX.writeFile(workbook, `טבלת ציונים - ${year}.xlsx`);
+};
+
 export default ProjectTableExcel;

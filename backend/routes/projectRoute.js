@@ -42,6 +42,7 @@ import {
   approveProjectSuggestion,
   rejectProjectSuggestion,
   deleteProjectSuggestion,
+  calculateFinalGrades,
 } from "../controllers/projectController.js";
 import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../middleware/auth.js";
 
@@ -89,5 +90,6 @@ router.get("/get-project-suggestions", ensureAuthenticated, getProjectSuggestion
 router.post("/approve-project-suggestion/:id", ensureAuthenticated, isCoordinator, approveProjectSuggestion);
 router.post("/reject-project-suggestion/:id", ensureAuthenticated, isCoordinator, rejectProjectSuggestion);
 router.delete("/delete-project-suggestion/:id", ensureAuthenticated, deleteProjectSuggestion);
+router.get("/calculate-final-grades", ensureAuthenticated, isCoordinator, calculateFinalGrades);
 
 export default router;

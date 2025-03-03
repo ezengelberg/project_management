@@ -1742,3 +1742,39 @@ export const deleteProjectSuggestion = async (req, res) => {
     res.status(500).json({ message: "Failed to delete project suggestion" });
   }
 };
+
+export const calculateFinalGrades = async (req, res) => {
+  const year = req.query.year;
+  try {
+    const projects = await Project.find({ year, isTerminated: false, isTaken: true }).populate({
+      path: "students.student",
+      model: "User",
+      select: "-password",
+    });
+    if (projects.length === 0) {
+      return res.status(404).json({ message: "No projects found" });
+    }
+
+    const projectsWithGrades = await Promise.all(
+      projects.map(async (project) => {
+        const finalSubmission = await Submission.findOne({ project: project._id, name: "מבחן סוף" });
+        const alphaSubmission = await Submission.findOne({ project: project._id, name: "דוח אלפה" });
+
+        let totalGrade = null;
+        if (finalSubmission && alphaSubmission) {
+          const finalGrade = finalSubmission.finalGrade;
+          const alphaGrade = alphaSubmission.finalGrade;
+          totalGrade =
+            finalGrade === null || alphaGrade === null ? null : Math.ceil(finalGrade * 0.8 + alphaGrade * 0.2);
+        }
+
+        return { ...project.toObject(), totalGrade };
+      })
+    );
+
+    res.status(200).json(projectsWithGrades);
+  } catch (error) {
+    console.error("Error calculating final grades:", error);
+    res.status(500).json({ message: "Failed to calculate final grades" });
+  }
+};

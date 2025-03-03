@@ -18,7 +18,7 @@ import {
 import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 import { NotificationsContext } from "../../utils/NotificationsContext";
-import { downloadProjectExcel } from "../../utils/ProjectTableExcel";
+import { downloadProjectExcel, downloadGradesExcel } from "../../utils/ProjectTableExcel";
 
 const SystemControl = () => {
   const [manageStudents, setManageStudents] = useState(true);
@@ -442,6 +442,25 @@ const SystemControl = () => {
     }
   };
 
+  const handleDownloadGradesExcel = async (year) => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/calculate-final-grades`, {
+        params: { year },
+        withCredentials: true,
+      });
+      const projectsWithGrades = response.data.filter((project) => project.totalGrade !== null);
+
+      if (projectsWithGrades.length !== 0) {
+        downloadGradesExcel(projectsWithGrades, year);
+      } else {
+        message.info("אין ציונים זמינים להורדה");
+      }
+    } catch (error) {
+      console.error("Error downloading grades excel:", error);
+      message.error("שגיאה בהורדת קובץ הציונים");
+    }
+  };
+
   return (
     <div className="system">
       <h1 className="system-title">לוח בקרת מערכת</h1>
@@ -571,7 +590,9 @@ const SystemControl = () => {
           </div>
           <div className="output-item">
             <label className="output-label">ציונים</label>
-            <Button type="primary">הורדת קובץ</Button>
+            <Button type="primary" onClick={() => handleDownloadGradesExcel(outputYear)}>
+              הורדת קובץ
+            </Button>
           </div>
         </div>
       </div>
