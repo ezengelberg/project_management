@@ -49,7 +49,19 @@ export const getAvailableProjects = async (req, res) => {
 
 export const getProjectsByYear = async (req, res) => {
   try {
-    const projects = await Project.find({ year: req.params.year });
+    const projects = await Project.find({
+      year: req.params.year,
+      isTerminated: false,
+      isFinished: false,
+      isTaken: true,
+    })
+      .populate({
+        path: "students.student",
+        model: "User",
+        select: "-password",
+      })
+      .populate({ path: "advisors", model: "User", select: "-password" });
+
     res.status(200).send(projects);
   } catch (err) {
     res.status(500).send({ message: err.message });
