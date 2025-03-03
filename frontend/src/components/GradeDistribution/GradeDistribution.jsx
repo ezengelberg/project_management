@@ -358,12 +358,26 @@ const GradeDistribution = () => {
                                         <XAxis dataKey="grade" />
                                         <YAxis dx={-30} allowDecimals={false} />
                                         <Tooltip />
-                                        <Legend
+                                        {/* <Legend
                                             formatter={(value) => <span style={{ marginRight: 10 }}>{value}</span>}
+                                        /> */}
+                                        <Legend
+                                            formatter={(value, entry) => (
+                                                <span
+                                                    style={{
+                                                        color: entry.color.replace(
+                                                            /rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/,
+                                                            "rgb($1,$2,$3)",
+                                                        ),
+                                                        marginRight: 10,
+                                                    }}>
+                                                    {value}
+                                                </span>
+                                            )}
                                         />
                                         <Bar
                                             dataKey="count"
-                                            fill="#8884d8"
+                                            fill="rgba(54, 162, 235, 0.3)"
                                             name="מספר ציונים"
                                             barSize={100} // Set the width of each bar to make it more square-like
                                             barCategoryGap="10%"
@@ -539,20 +553,38 @@ const GradeDistribution = () => {
                                         <XAxis dataKey="grade" reversed />
                                         <YAxis dx={-30} allowDecimals={false} />
                                         <Tooltip />
-                                        <Legend
+                                        {/* <Legend
                                             formatter={(value) => <span style={{ marginRight: 10 }}>{value}</span>}
+                                        /> */}
+                                        <Legend
+                                            formatter={(value, entry) => (
+                                                <span
+                                                    style={{
+                                                        color: entry.color.replace(
+                                                            /rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/,
+                                                            "rgb($1,$2,$3)",
+                                                        ),
+                                                        marginRight: 10,
+                                                    }}>
+                                                    {value}
+                                                </span>
+                                            )}
                                         />
                                         <Bar
                                             dataKey="self"
-                                            fill="#3A7D44"
+                                            fill="rgba(54, 162, 235, 0.3)"
+                                            // fill="#3A7D44"
                                             name="פרויקטים בהנחיה"
-                                            barSize={100} // Set the width of each bar to make it more square-like
+                                            barSize={100}
+                                            stackId="a" // Add this stackId property
                                         />
                                         <Bar
                                             dataKey="count"
-                                            fill="#690B22"
+                                            fill="rgba(153, 102, 255, 0.3)"
+                                            // fill="#690B22"
                                             name="פרויקטים בהנחיה אחרת"
-                                            barSize={100} // Set the width of each bar to make it more square-like
+                                            barSize={100}
+                                            stackId="a" // Add this stackId with the same value
                                         />
                                         {judgeData.map((_, index) => (
                                             <ReferenceLine key={index} y={index + 1} stroke="#ccc" />
