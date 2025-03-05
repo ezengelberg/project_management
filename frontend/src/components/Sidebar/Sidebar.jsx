@@ -639,6 +639,12 @@ const Sidebar = () => {
                       onMouseDown={(e) => handleMouseDown(e, "/display-users")}>
                       הצגת משתמשים
                     </li>
+                    <li
+                      className={`${isActive("/create-users-file") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/create-users-file")}
+                      onMouseDown={(e) => handleMouseDown(e, "/create-users-file")}>
+                      יצירת קובץ רישום
+                    </li>
                   </ul>
                 </div>
               </li>
