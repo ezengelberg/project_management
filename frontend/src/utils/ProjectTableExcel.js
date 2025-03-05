@@ -75,6 +75,26 @@ export const downloadProjectExcel = (data, year) => {
   const workbook = XLSX.utils.table_to_book(tableElement, { sheet: "Projects" });
   const ws = workbook.Sheets["Projects"];
 
+  // Calculate the maximum width for each column
+  const width = XLSX.utils.decode_range(ws["!ref"]);
+  const colWidths = [];
+
+  for (let col = width.s.c; col <= width.e.c; col++) {
+    let maxWidth = 10; // a minimum width (in characters)
+    for (let row = width.s.r; row <= width.e.r; row++) {
+      const cellAddress = XLSX.utils.encode_cell({ c: col, r: row });
+      const cell = ws[cellAddress];
+      if (cell && cell.v != null) {
+        const cellLength = cell.v.toString().length;
+        maxWidth = Math.max(maxWidth, cellLength);
+      }
+    }
+    colWidths.push({ wch: maxWidth });
+  }
+
+  // Set the calculated widths on the worksheet
+  ws["!cols"] = colWidths;
+
   // Define the header style: centered alignment (both horizontal and vertical) and thin black borders.
   const headerStyle = {
     alignment: { horizontal: "center", vertical: "center" },
@@ -131,7 +151,7 @@ export const downloadGradesExcel = (data, year) => {
     return rows;
   });
 
-  const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+  const worksheet = XLSX.utils.json_to_sheet(worksheetData, { skipHeader: true });
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Grades");
 
