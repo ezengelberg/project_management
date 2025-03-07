@@ -33,16 +33,17 @@ This **Project Management Website** is designed to streamline the management of 
 ### Showcase
 
 ## Login
-
 ![image](https://github.com/user-attachments/assets/9e7285d7-65a4-47d7-9c6d-86bdc1a10fbc)
 
 A standard educational institution login portal for students or faculty to access their accounts. It has SMTP support for forget password functionality and reCaptcha for security.
 
 ## Home Page
+![image](https://github.com/user-attachments/assets/ababd4fe-a66f-4ff6-ba13-8fa1d0673315)
 
 The system features a clean dashboard with quick access to submissions, notifications, and administrative tools to streamline the academic workflow. Built with a responsive design that prioritizes accessibility for both educators and students, making educational resource management efficient and user-friendly.
 
 ## Project Registration Page
+![image](https://github.com/user-attachments/assets/47d6ffda-2a0b-44ed-9513-f95a34eacb59)
 
 A centralized platform where students can browse and select from advisor-suggested academic projects across various computer science and engineering domains. Students can explore potential research opportunities, algorithm implementations, and practical applications, helping them make informed decisions about which academic projects align with their interests and educational goals.
 
