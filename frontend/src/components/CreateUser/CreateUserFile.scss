@@ -3,6 +3,18 @@
     height: auto;
 }
 
-.users-list {
+.users-list,
+.download-file {
     margin-top: 5rem;
+}
+
+.download-file {
+    display: flex;
+    justify-content: center;
+}
+
+.steps-line {
+    display: flex;
+    justify-self: center;
+    width: 80%;
 }
