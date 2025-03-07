@@ -13,7 +13,7 @@
 
 ## Overview
 
-This **Project Management Website** is designed to streamline the management of projects within a software engineering department or college. It provides an end-to-end solution for the project lifecycle, from creation to final evaluation. The system caters to both students, who can apply for projects, and project providers, who can post and manage their projects. Additionally, it includes functionality for assigning judges to projects randomly to ensure unbiased evaluations.
+This **Project Management Website** is designed to streamline the management of projects within a software engineering department or college. It provides an end-to-end solution for the project lifecycle, from creation to final evaluation. The system caters to both students, who can apply for projects, and project providers, who can post and manage their projects. It also includes functionality for randomly assigning judges to projects to ensure unbiased evaluations.
 
 ## Features
 
@@ -34,7 +34,7 @@ This **Project Management Website** is designed to streamline the management of 
 
 ## Login
 
-![Login](https://imgur.com/21QtqyR)
+[![Login](https://imgur.com/21QtqyR)](https://i.imgur.com/21QtqyR.png)
 A standard educational institution login portal for students or faculty to access their accounts. It has SMTP support for forget password functionality and reCaptcha for security.
 
 ## Project Registration Page
