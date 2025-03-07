@@ -42,10 +42,21 @@ A standard educational institution login portal for students or faculty to acces
 
 The system features a clean dashboard with quick access to submissions, notifications, and administrative tools to streamline the academic workflow. Built with a responsive design that prioritizes accessibility for both educators and students, making educational resource management efficient and user-friendly.
 
-## Project Registration Page
+## Project Selection Portal
 ![image](https://github.com/user-attachments/assets/47d6ffda-2a0b-44ed-9513-f95a34eacb59)
 
 A centralized platform where students can browse and select from advisor-suggested academic projects across various computer science and engineering domains. Students can explore potential research opportunities, algorithm implementations, and practical applications, helping them make informed decisions about which academic projects align with their interests and educational goals.
+
+## Project Approval Dashboard
+![image](https://github.com/user-attachments/assets/87f1ea93-235f-4550-8fa1-1f46c1e5eb65)
+
+A streamlined interface for academic advisors to review, manage, and approve student applications for their proposed projects. The system displays applicant information with timestamps, allowing advisors to efficiently evaluate student requests and make informed selection decisions.
+
+## Project Issue Tracker
+![image](https://github.com/user-attachments/assets/799ce310-1ad3-4834-9473-d05d71eff7fd)
+
+A collaborative communication platform modeled after Git issues, enabling students to document project progress, create new missions, and track development milestones. The interface features easy categorization with tags, allowing teams to organize tasks effectively while maintaining a chronological history of project evolution. Both students and advisors share this workspace, creating a transparent environment for academic feedback, task assignments, and project management throughout the development lifecycle.
+
 
 ## System Announcements
 
