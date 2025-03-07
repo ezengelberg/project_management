@@ -34,7 +34,8 @@ This **Project Management Website** is designed to streamline the management of 
 
 ## Login
 
-[![Login](https://imgur.com/21QtqyR)](https://i.imgur.com/21QtqyR.png)
+![image](https://github.com/user-attachments/assets/9e7285d7-65a4-47d7-9c6d-86bdc1a10fbc)
+
 A standard educational institution login portal for students or faculty to access their accounts. It has SMTP support for forget password functionality and reCaptcha for security.
 
 ## Project Registration Page
