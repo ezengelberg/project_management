@@ -38,9 +38,13 @@ This **Project Management Website** is designed to streamline the management of 
 
 A standard educational institution login portal for students or faculty to access their accounts. It has SMTP support for forget password functionality and reCaptcha for security.
 
+## Home Page
+
+The system features a clean dashboard with quick access to submissions, notifications, and administrative tools to streamline the academic workflow. Built with a responsive design that prioritizes accessibility for both educators and students, making educational resource management efficient and user-friendly.
+
 ## Project Registration Page
 
-![image](https://github.com/user-attachments/assets/fc0a6f99-1d7e-4a84-be1d-75c0ba27e00e)
+A centralized platform where students can browse and select from advisor-suggested academic projects across various computer science and engineering domains. Students can explore potential research opportunities, algorithm implementations, and practical applications, helping them make informed decisions about which academic projects align with their interests and educational goals.
 
 ## System Announcements
 
