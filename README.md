@@ -13,14 +13,16 @@
 
 ## Overview
 
-This **Project Management Website** is designed to streamline the management of projects within a software engineering department or college. It provides an end-to-end solution for the project lifecycle, from creation to final evaluation. The system caters to both students, who can apply for projects, and project providers, who can post and manage their projects. It also includes functionality for randomly assigning judges to projects to ensure unbiased evaluations.
+Welcome to the **Projects Management Website** – a cutting-edge website designed to transform academic project workflows. This platform centralizes every phase of the project lifecycle, from initial posting and student applications to impartial evaluations and final submissions. It streamlines communication among project providers, students, advisors, and judges, ensuring a seamless and transparent process. Built to empower both academic institutions and individual users, this system offers a comprehensive, user-friendly experience that drives efficiency and fosters collaboration throughout every step of the project journey.
 
 ## Features
 
-- **Project Posting and Management**: Project providers can create, update, and manage project listings.
-- **Student Applications**: Students can browse available projects and apply to those that match their interests.
-- **Judge Assignment**: The system randomly assigns judges to projects to maintain impartiality during evaluations.
-- **Project Lifecycle Tracking**: Monitor the progress of projects from inception to completion.
+- **Intuitive Project Posting and Management**: Project providers can effortlessly create, update, and manage project listings, ensuring that opportunities are clearly communicated and easily accessible.
+- **Streamlined Student Applications**: Students benefit from a simplified application process, enabling them to browse available projects, submit applications, and track progress—all in one place.
+- **Automated and Impartial Judge Assignment**: An advanced randomization system assigns judges to projects, guaranteeing unbiased evaluations and upholding the integrity of the review process.
+- **Comprehensive Project Lifecycle Tracking**: From inception to final evaluation, the system monitors project progress with real-time updates, ensuring transparency and accountability at every stage.
+- **Enhanced Collaboration Tools**: Integrated communication features facilitate seamless interaction among students, advisors, and evaluators, fostering a collaborative environment and enabling timely feedback.
+- **Responsive and Accessible Design**: Optimized for both desktop and mobile devices, the website offers a consistent, user-friendly experience, ensuring accessibility for all users.
 
 ## Technologies Used
 
@@ -87,6 +89,14 @@ The Project Coordinator Management Dashboard provides a comprehensive overview o
 
 The User Management Interface provides coordinators with a comprehensive view of all system users and their assigned roles. Coordinators can monitor user details including contact information, status, and identification numbers, while having the ability to edit user information as needed. The interface displays user status indicators (active, suspended) and allows coordinators to suspend accounts when necessary.
 
+## Student Information Page
+This resource center provides students with a complete directory of project advisors, showing their availability to take on new projects, research interests, and areas of expertise. Students can also view the grading structure for project submissions, helping them make informed decisions when selecting potential advisors.
+
+### Exam Scheduling System
+![image](https://github.com/user-attachments/assets/d860f7a1-e2cc-49dc-b146-ee90331a2d63)
+
+The exam scheduling page displays assigned final examination dates and times for students and advisors in an organized table format. Our sophisticated collision-detection algorithm prevents scheduling conflicts between judges and optimizes their time commitments by grouping exams efficiently. Coordinators can easily modify the schedule through an intuitive interface to accommodate special requirements. Each exam slot displays the project title, student IDs, judge assignments, room location, and time allocation.
 
 
 
+and many more features...
