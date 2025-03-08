@@ -45,25 +45,24 @@ The system features a clean dashboard with quick access to submissions, notifica
 ## Project Selection Portal
 ![image](https://github.com/user-attachments/assets/47d6ffda-2a0b-44ed-9513-f95a34eacb59)
 
-A centralized platform where students can browse and select from advisor-suggested academic projects across various computer science and engineering domains. Students can explore potential research opportunities, algorithm implementations, and practical applications, helping them make informed decisions about which academic projects align with their interests and educational goals.
+A centralized platform where students can browse and select from advisor-suggested academic projects across various computer science and engineering domains. Students can explore potential research opportunities, algorithm implementations, and practical applications, helping them decide which academic projects align with their interests and educational goals.
 
 ## Project Approval Dashboard
 ![image](https://github.com/user-attachments/assets/87f1ea93-235f-4550-8fa1-1f46c1e5eb65)
 
-A streamlined interface for academic advisors to review, manage, and approve student applications for their proposed projects. The system displays applicant information with timestamps, allowing advisors to efficiently evaluate student requests and make informed selection decisions.
+A streamlined interface for academic advisors to review, manage, and approve student applications for their proposed projects. The system displays applicant information with timestamps, allowing advisors to evaluate student requests and make informed selection decisions efficiently.
 
 ## Project Issue Tracker
 ![image](https://github.com/user-attachments/assets/799ce310-1ad3-4834-9473-d05d71eff7fd)
 
 A collaborative communication platform modeled after Git issues, enabling students to document project progress, create new missions, and track development milestones. The interface features easy categorization with tags, allowing teams to organize tasks effectively while maintaining a chronological history of project evolution. Both students and advisors share this workspace, creating a transparent environment for academic feedback, task assignments, and project management throughout the development lifecycle.
 
+## Submission Management Console
+![image](https://github.com/user-attachments/assets/b3d7ec3f-bd9f-4f45-a883-d5ed716891ff)
 
-## System Announcements
+A comprehensive administrative dashboard that enables project coordinators to configure and control the entire submission workflow across the academic platform. The interface provides powerful controls for opening submissions selectively (by project, group, or globally), managing deadlines with precision timing, and leveraging an advanced algorithm for optimal judge assignment. This centralized command center gives administrators complete oversight of the academic project ecosystem while maintaining organized records of all submissions and their evaluation status.
 
-![image](https://github.com/user-attachments/assets/d69b39fb-422f-4f18-91a0-88745d7cca15)
 
-## User Management
 
-![image](https://github.com/user-attachments/assets/acdfc967-ae3b-477a-a5ca-c959f79e8de5)
 
 and more...
