@@ -639,6 +639,12 @@ const Sidebar = () => {
                       onMouseDown={(e) => handleMouseDown(e, "/display-users")}>
                       הצגת משתמשים
                     </li>
+                    <li
+                      className={`${isActive("/create-users-file") ? "active" : ""}`}
+                      onClick={() => handleNavigate("/create-users-file")}
+                      onMouseDown={(e) => handleMouseDown(e, "/create-users-file")}>
+                      יצירת קובץ רישום
+                    </li>
                   </ul>
                 </div>
               </li>
@@ -728,7 +734,7 @@ const Sidebar = () => {
                 </div>
               </li>
             )}
-            {user.isCoordinator && (
+            {/* {user.isCoordinator && (
               <li>
                 <div
                   className={`sidebar-option ${isActive("/delete-all") ? "active" : ""}`}
@@ -738,7 +744,7 @@ const Sidebar = () => {
                   <span>מחיקת מערכת</span>
                 </div>
               </li>
-            )}
+            )} */}
           </ul>
         </div>
       </div>

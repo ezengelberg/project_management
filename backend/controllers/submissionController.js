@@ -1529,6 +1529,6 @@ export const getSubmissionDistribution = async (req, res) => {
     project.grades = submission.grades;
   });
 
-  const filteredProjectMap = Object.values(projectMap).filter((project) => project.grades.length === 3);
+  const filteredProjectMap = Object.values(projectMap).filter((project) => project.grades.length === 3 && project.grades.every((grade) => grade.grade !== null && grade.grade != ""));
   res.status(200).json(filteredProjectMap);
 };

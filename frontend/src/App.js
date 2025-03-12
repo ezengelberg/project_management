@@ -37,6 +37,7 @@ import ApproveProjects from "./components/ApproveProjects/ApproveProjects";
 import GradeDistribution from "./components/GradeDistribution/GradeDistribution";
 import ResetPassword from "./components/ResetPassword/ResetPassword";
 import ForbiddenPage from "./components/ForbiddenPage/ForbiddenPage";
+import CreateUserFile from "./components/CreateUser/CreateUserFile";
 
 function App() {
   return (
@@ -225,6 +226,14 @@ const MainLayout = () => {
                 element={
                   <ProtectedRoute privileges={["coordinator"]}>
                     <ShowAllUsers />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/create-users-file"
+                element={
+                  <ProtectedRoute privileges={["coordinator"]}>
+                    <CreateUserFile />
                   </ProtectedRoute>
                 }
               />
