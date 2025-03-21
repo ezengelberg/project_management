@@ -63,11 +63,18 @@ const GradeSubmission = () => {
 
   const onFinish = async (values) => {
     try {
+      const formattedValues = {
+        ...values,
+        videoQuality: values.videoQuality?.replace(/\r?\n/g, "\n"),
+        workQuality: values.workQuality?.replace(/\r?\n/g, "\n"),
+        writingQuality: values.writingQuality?.replace(/\r?\n/g, "\n"),
+      };
+
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/add-grade`,
         {
           submissionId: submissionId,
-          ...values,
+          ...formattedValues,
         },
         {
           withCredentials: true,
@@ -115,7 +122,7 @@ const GradeSubmission = () => {
                       message: "נא להזין תשובה",
                     },
                   ]}>
-                  <Input />
+                  <Input.TextArea rows={4} />
                 </Form.Item>
                 <Form.Item
                   label="כתבו פסקה על איכות העבודה שנעשתה"

@@ -304,7 +304,7 @@ const Submissions = () => {
         }
       );
       message.open({
-        type: "info",
+        type: "success",
         content: "הגשות נמחקו בהצלחה",
       });
       setDeleteAllSubmissionsConfirm(null);
@@ -851,6 +851,15 @@ const Submissions = () => {
 
   const filterOption = (input, option) => {
     return option.children.toLowerCase().includes(input.toLowerCase());
+  };
+
+  const renderTextWithNewlines = (text) => {
+    return text?.split("\n").map((line, index) => (
+      <React.Fragment key={index}>
+        {line}
+        <br />
+      </React.Fragment>
+    ));
   };
 
   return (
@@ -1539,19 +1548,17 @@ const Submissions = () => {
         {submissionInfo?.submission?.isReviewed && (
           <>
             <p>
-              <strong>איכות הוידאו:</strong> {showReview?.videoQuality}
+              <strong>איכות הוידאו:</strong> {renderTextWithNewlines(showReview?.videoQuality)}
             </p>
             <p>
-              <strong>איכות העבודה:</strong> {showReview?.workQuality}
+              <strong>איכות העבודה:</strong> {renderTextWithNewlines(showReview?.workQuality)}
             </p>
             <p>
-              <strong>איכות הכתיבה:</strong> {showReview?.writingQuality}
+              <strong>איכות הכתיבה:</strong> {renderTextWithNewlines(showReview?.writingQuality)}
             </p>
-            {submissionDetails?.commits && (
-              <p>
-                <strong>מספר הקומיטים:</strong> {showReview?.commits}
-              </p>
-            )}
+            <p>
+              <strong>מספר הקומיטים:</strong> {showReview?.commits}
+            </p>
             {showReview?.journalActive && (
               <p>
                 <strong>האם היומן פעיל:</strong>{" "}
@@ -2009,7 +2016,12 @@ const Submissions = () => {
             ]}>
             <Select mode="multiple" placeholder="בחר פרויקטים" filterOption={filterOption}>
               {projects
-                .filter((project) => (yearFilter === "all" || project.year === yearFilter) && project.students.length !== 0 && project.advisors.length !== 0)
+                .filter(
+                  (project) =>
+                    (yearFilter === "all" || project.year === yearFilter) &&
+                    project.students.length !== 0 &&
+                    project.advisors.length !== 0
+                )
                 .map((project) => (
                   <Select.Option key={project._id} value={project._id}>
                     {project.title}
