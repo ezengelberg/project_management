@@ -671,7 +671,7 @@ export const assignJudgesAutomatically = async (req, res) => {
         const project = await Project.findById(submission.project);
         const notification = new Notification({
           user: selectedJudge,
-          message: `מונתה לשפיטת: "${submission.name}", עבור פרויקט: "${project.title}"`,
+          message: `מונית לשפיטת: "${submission.name}", עבור פרויקט: "${project.title}"`,
         });
         await notification.save();
         submission.grades.push(newGrade._id);
@@ -738,7 +738,7 @@ export const updateJudgesInSubmission = async (req, res) => {
           await newGrade.save();
           const notification = new Notification({
             user: judgeID,
-            message: `מונתה לשפיטת: "${submission.name}" עבור פרויקט: "${submission.project.title}"`,
+            message: `מונית לשפיטת: "${submission.name}" עבור פרויקט: "${submission.project.title}"`,
           });
           await notification.save();
           return newGrade._id;
@@ -1480,7 +1480,7 @@ export const getJudgeSubmissionDistribution = async (req, res) => {
 
     const gradesMap = {};
     filteredActiveSubmissions.forEach((submission) => {
-      const grade = submission.grades.find((grade) => grade.judge.toString() === judge);
+      const grade = submission.grades.find((grade) => grade.judge.toString() === judge && grade.grade !== null);
       const isOwnProject = submission.project.advisors.some((advisor) => advisor.toString() === judge);
       gradesMap[submission.project._id] = {
         id: submission.project._id,
