@@ -27,7 +27,7 @@ export const getProjects = async (req, res) => {
 
 export const getActiveProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ isTerminated: false, isFinished: false });
+    const projects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });
     res.status(200).send(projects);
   } catch (err) {
     res.status(500).send({ message: err.message });
