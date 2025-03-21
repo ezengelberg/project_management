@@ -34,7 +34,7 @@ router.post("/forgot-password", async (req, res) => {
     });
 
     // Create the reset URL – adjust FRONTEND_URL to your client URL
-    const resetLink = `https://project-management.jce.ac/reset-password/${token}`;
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
 
     // Set up email options
     let mailOptions = {
@@ -89,7 +89,7 @@ router.post("/forgot-password", async (req, res) => {
     transporter.sendMail(mailOptions, (error) => {
       if (error) {
         console.error("Error sending password reset mail:", error);
-        return res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: "Error sending email" });
       } else {
         return res.json({ message: "Password reset email sent" });
       }
