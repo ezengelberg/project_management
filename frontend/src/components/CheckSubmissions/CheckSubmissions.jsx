@@ -332,6 +332,15 @@ const CheckSubmissions = () => {
     },
   ];
 
+  const renderTextWithNewlines = (text) => {
+    return text?.split("\n").map((line, index) => (
+      <React.Fragment key={index}>
+        {line}
+        <br />
+      </React.Fragment>
+    ));
+  };
+
   return (
     <div className="check-submissions-container">
       <Tabs defaultActiveKey="1" items={items} />
@@ -385,13 +394,13 @@ const CheckSubmissions = () => {
         {submissionDetails.isReviewed && (
           <>
             <p>
-              <strong>איכות הוידאו:</strong> {submissionDetails.videoQuality}
+              <strong>איכות הוידאו:</strong> {renderTextWithNewlines(submissionDetails.videoQuality)}
             </p>
             <p>
-              <strong>איכות העבודה:</strong> {submissionDetails.workQuality}
+              <strong>איכות העבודה:</strong> {renderTextWithNewlines(submissionDetails.workQuality)}
             </p>
             <p>
-              <strong>איכות הכתיבה:</strong> {submissionDetails.writingQuality}
+              <strong>איכות הכתיבה:</strong> {renderTextWithNewlines(submissionDetails.writingQuality)}
             </p>
             {submissionDetails.commits && (
               <p>

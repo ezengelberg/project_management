@@ -574,6 +574,15 @@ const UploadSubmissions = () => {
     },
   ];
 
+  const renderTextWithNewlines = (text) => {
+    return text?.split("\n").map((line, index) => (
+      <React.Fragment key={index}>
+        {line}
+        <br />
+      </React.Fragment>
+    ));
+  };
+
   return (
     <div>
       <Modal
@@ -641,15 +650,15 @@ const UploadSubmissions = () => {
                     <div className="review-title">משוב ע"י שופט {index + 1}</div>
                     <div className="review-item">
                       <div className="review-header">משוב איכות הכתיבה:</div>
-                      <div className="review-content">{grade?.videoQuality}</div>
+                      <div className="review-content">{renderTextWithNewlines(grade?.videoQuality)}</div>
                     </div>
                     <div className="review-item">
                       <div className="review-header">משוב איכות העבודה:</div>
-                      <div className="review-content">{grade?.workQuality}</div>
+                      <div className="review-content">{renderTextWithNewlines(grade?.workQuality)}</div>
                     </div>
                     <div className="review-item">
                       <div className="review-header">משוב איכות הכתיבה:</div>
-                      <div className="review-content">{grade?.writingQuality}</div>
+                      <div className="review-content">{renderTextWithNewlines(grade?.writingQuality)}</div>
                     </div>
                   </div>
                   {index !== gradeInfo.grades.length - 1 && gradeInfo.grades.length > 1 && (
