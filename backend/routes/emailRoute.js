@@ -34,7 +34,7 @@ router.post("/forgot-password", async (req, res) => {
     });
 
     // Create the reset URL – adjust FRONTEND_URL to your client URL
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+    const resetLink = `https://project-management.jce.ac/reset-password/${token}`;
 
     // Set up email options
     let mailOptions = {
