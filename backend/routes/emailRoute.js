@@ -86,14 +86,13 @@ router.post("/forgot-password", async (req, res) => {
   `,
     };
 
-    transporter.sendMail(mailOptions, (error) => {
-      if (error) {
-        console.error("Error sending password reset mail:", error);
-        return res.status(500).json({ message: "Error sending email" });
-      } else {
-        return res.json({ message: "Password reset email sent" });
-      }
-    });
+    try {
+      await transporter.sendMail(mailOptions);
+      return res.json({ message: "Password reset email sent" });
+    } catch (error) {
+      console.error("Error sending password reset mail:", error);
+      return res.status(500).json({ message: "Error sending email" });
+    }
   } catch (error) {
     console.error("Forgot password error:", error);
     res.status(500).json({ message: "Internal server error" });
