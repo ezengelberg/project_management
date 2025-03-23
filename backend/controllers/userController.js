@@ -62,19 +62,15 @@ export const registerMultiple = async (req, res) => {
       delete user.role;
       const userByEmail = await User.findOne({ email: lowerCaseEmail });
       if (userByEmail) {
-        console.log("Email already in use:", email);
         existingUsers.push(user);
         continue;
       }
       const userById = await User.findOne({ id: id });
       if (userById) {
         existingUsers.push(user);
-        console.log("ID already in use:", id);
         continue;
       }
-      console.log("No existing user found for email and ID:", email, id);
       const hashedPassword = await bcrypt.hash(String(id), 10);
-      console.log("Hashed password", hashedPassword);
       const newUser = new User({
         name: name,
         id: id,
@@ -88,7 +84,6 @@ export const registerMultiple = async (req, res) => {
         isJudge: role.includes("isJudge"),
         isCoordinator: role.includes("isCoordinator"),
       });
-      console.log("New user:", newUser);
       newUsers.push(newUser);
       await newUser.save();
     }
