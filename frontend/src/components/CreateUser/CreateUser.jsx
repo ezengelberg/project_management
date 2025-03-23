@@ -154,14 +154,17 @@ const CreateUser = () => {
         const parsedData = data
             .map((row, index) => ({
                 key: index,
-                email: row["דוא\"ל"] || row["דואר אלקטרוני"] || row["דוא\"ל"] || row["אימייל"],
-                firstName: row["שם פרטי"],
-                lastName: row["שם משפחה"],
-                name: `${row["שם פרטי"]} ${row["שם משפחה"]}`,
-                id: row["ת.ז."] || row["תעודת זהות"] || row["ת\"ז"],
+                email: row['דוא"ל'] || row["דואר אלקטרוני"] || row["אימייל"] || row["email"],
+                firstName: row["שם פרטי"] || row["first_name"],
+                lastName: row["שם משפחה"] || row["last_name"],
+                name:
+                    row["שם פרטי"] && row["שם משפחה"]
+                        ? `${row["שם פרטי"]} ${row["שם משפחה"]}`
+                        : `${row["first_name"]} ${row["last_name"]}`,
+                id: row["ת.ז."] || row["תעודת זהות"] || row['ת"ז'] || row["id"],
                 role: ["isStudent"],
             }))
-            .filter((row) => row.email && row.firstName && row.lastName); 
+            .filter((row) => row.email && row.firstName && row.lastName);
         setUsers(parsedData);
     };
 

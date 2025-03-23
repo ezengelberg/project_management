@@ -1485,7 +1485,7 @@ export const getJudgeSubmissionDistribution = async (req, res) => {
       gradesMap[submission.project._id] = {
         id: submission.project._id,
         title: submission.project.title,
-        grade: grade.grade,
+        grade: grade?.grade,
         numericGrade: grade.numericGrade,
         isOwnProject,
       };
