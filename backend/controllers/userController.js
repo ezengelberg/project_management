@@ -70,11 +70,13 @@ export const registerMultiple = async (req, res) => {
         existingUsers.push(user);
         continue;
       }
+      const hashedPassword = await bcrypt.hash(String(id), 10);
       const newUser = new User({
-        ...user,
+        name: name,
+        id: id,
         email: lowerCaseEmail,
         firstLogin: true,
-        password: await bcrypt.hash(id, 10),
+        password: hashedPassword,
         registerDate: new Date(),
         suspensionRecords: [],
         isStudent: role.includes("isStudent"),
