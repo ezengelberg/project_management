@@ -790,7 +790,7 @@ const Submissions = () => {
                                                         />
                                                     )
                                                 )}
-                                                {sub?.grades.length < 3 && (
+                                                {sub?.grades.length < 3 && (sub.isGraded || sub.isReviewed) && (
                                                     <Badge
                                                         color="red"
                                                         text={
