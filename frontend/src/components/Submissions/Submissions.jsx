@@ -794,21 +794,17 @@ const Submissions = () => {
                                                     <Badge color="pink" text="משוב פורסם" />
                                                 )}
                                             </div>
-                                            <div>
-                                                {sub?.grades.length < 3 && (sub.isGraded || sub.isReviewed) && (
-                                                    <Badge
-                                                        color="red"
-                                                        text={
-                                                            <span style={{ color: "red" }}>
-                                                                {sub?.grades.length === 1
-                                                                    ? "שופט אחד בלבד"
-                                                                    : "שני שופטים בלבד"}
-                                                            </span>
-                                                        }
-                                                    />
-                                                )}
-                                            </div>
                                         </div>
+                                        {sub?.grades.length < 3 && (sub.isGraded || sub.isReviewed) && (
+                                            <Badge
+                                                color="red"
+                                                text={
+                                                    <span style={{ color: "red" }}>
+                                                        {sub?.grades.length === 1 ? "שופט אחד בלבד" : "שני שופטים בלבד"}
+                                                    </span>
+                                                }
+                                            />
+                                        )}
                                     </div>
                                     {index !== submissions.length - 1 && submissions.length > 1 && (
                                         <Divider type="vertical" style={{ height: "100%" }} />
