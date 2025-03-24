@@ -790,6 +790,11 @@ const Submissions = () => {
                                                         />
                                                     )
                                                 )}
+                                                {sub?.isReviewed && !sub?.isGraded && !sub.editable && (
+                                                    <Badge color="pink" text="משוב פורסם" />
+                                                )}
+                                            </div>
+                                            <div>
                                                 {sub?.grades.length < 3 && (sub.isGraded || sub.isReviewed) && (
                                                     <Badge
                                                         color="red"
@@ -801,9 +806,6 @@ const Submissions = () => {
                                                             </span>
                                                         }
                                                     />
-                                                )}
-                                                {sub?.isReviewed && !sub?.isGraded && !sub.editable && (
-                                                    <Badge color="pink" text="משוב פורסם" />
                                                 )}
                                             </div>
                                         </div>
