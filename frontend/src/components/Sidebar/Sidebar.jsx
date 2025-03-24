@@ -487,9 +487,7 @@ const Sidebar = () => {
                             {/* TODO: REMOVE LATER */}
                             <a href="https://forms.gle/gUA2LfGPYLb7tYoz5" className="feedback-link" target="_blank">
                                 <div
-                                    className={`sidebar-option option-feedback`}
-                                    onClick={() => handleNavigate("/home")}
-                                    onMouseDown={(e) => handleMouseDown(e, "/home")}>
+                                    className={`sidebar-option option-feedback`}>
                                     <FormOutlined />
                                     <span>טופס פידבק מערכת</span>
                                 </div>
