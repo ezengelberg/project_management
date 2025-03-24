@@ -9,16 +9,17 @@ const { Dragger } = Upload;
 const steps = [
     {
         title: "העלאת קובץ ראשון",
-        description: "תוכן נדרש: שם פרטי, משפחה ות.ז.",
+        description: "העלאת קובץ אקסל עם שמות ות׳ז",
         content: "user-id-content",
     },
     {
         title: "העלאת קובץ שני",
-        description: "תוכן נדרש: שם פרטי, משפחה ואימייל",
+        description: "העלאת קובץ אקסל עם שמות ואימייל",
         content: "user-email-content",
     },
     {
-        title: "הורדת קובץ מותאם",
+        title: "הורדת קובץ מוכן",
+        description: "הורדת קובץ אקסל עם שמות, ת׳ז ואימייל",
         content: "user-download-content",
     },
 ];
@@ -72,9 +73,11 @@ const CreateUserFile = () => {
                 let jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
                 if (jsonData.length === 0) {
-                    message.error("הקובץ לא יכול להיות ריק");
+                    console.error("הקובץ לא יכול להיות ריק");
                     return;
                 }
+
+                console.log("Raw JSON Data:", jsonData); // Debugging step
 
                 let firstRow = jsonData[0].map((col) => (typeof col === "string" ? col.toLowerCase().trim() : ""));
 
@@ -168,13 +171,9 @@ const CreateUserFile = () => {
                     return user; // Keep the user without email if no match
                 });
 
-                console.log(duplicatedUsers);
-                const filteredUsers = updatedUsers.filter(
-                    (user) => !duplicatedUsers.includes(`${user.first_name} ${user.last_name}`),
-                );
-
                 setStep(2);
-                setUsers(filteredUsers);
+                console.log("Updated users:", updatedUsers);
+                setUsers(updatedUsers);
                 setDuplicatedUsers([...duplicatedUsers, ...ejectedEmails]);
             } catch (error) {
                 console.error("Error processing email file:", error);
@@ -312,7 +311,7 @@ const CreateUserFile = () => {
 
     return (
         <>
-            <Steps className="steps-line" size="small" current={step} items={steps} />
+            <Steps size="small" current={step} items={steps} />
             {/* Step 1:  */}
             {step === 0 && (
                 <div className="file-uploader">
@@ -346,57 +345,22 @@ const CreateUserFile = () => {
             {/* Step 3:  */}
             {step === 2 && (
                 <>
-                    <div className="download-file">
-                        <Button
-                            icon={<DownloadOutlined />}
-                            type="primary"
-                            onClick={() => {
-                                const worksheet = XLSX.utils.json_to_sheet(users);
-                                const workbook = XLSX.utils.book_new();
-                                XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
-
-                                // Rename columns from English to Hebrew
-                                const hebrewHeaders = {
-                                    first_name: "שם פרטי",
-                                    last_name: "שם משפחה",
-                                    id: "תעודת זהות",
-                                    email: "אימייל",
-                                };
-
-                                const range = XLSX.utils.decode_range(worksheet["!ref"]);
-                                for (let C = range.s.c; C <= range.e.c; ++C) {
-                                    const address = XLSX.utils.encode_col(C) + "1"; // First row
-                                    if (worksheet[address]) {
-                                        worksheet[address].v = hebrewHeaders[worksheet[address].v];
-                                    }
-                                }
-
-                                XLSX.writeFile(workbook, "users.xlsx");
-                            }}>
-                            הורד קובץ אקסל
-                        </Button>
-                    </div>
+                    <Button
+                        type="primary"
+                        icon={<DownloadOutlined />}
+                        onClick={() => {
+                            const wb = XLSX.utils.book_new();
+                            const ws = XLSX.utils.json_to_sheet(users);
+                            XLSX.utils.book_append_sheet(wb, ws, "Users");
+                            XLSX.writeFile(wb, "users.xlsx");
+                        }}>
+                        הורדת קובץ מוכן
+                    </Button>
                 </>
             )}
             {users.length > 0 && (
                 <div className="users-list">
                     <Table columns={columns} dataSource={users} />
-                </div>
-            )}
-
-            {duplicatedUsers.length > 0 && (
-                <div className="users-list">
-                    <p>משתמשים שלא הוכנסו</p>
-                    <Table
-                        columns={[
-                            {
-                                title: "שם",
-                                dataIndex: "name",
-                                key: "name",
-                            },
-                        ]}
-                        dataSource={duplicatedUsers.map((name) => ({ name }))}
-                    />
                 </div>
             )}
         </>
