@@ -251,10 +251,6 @@ export const addStudentToProject = async (req, res) => {
       notification.save();
     }
 
-    if (project.students.length > 0 && project.advisors.length > 0) {
-      project.isTaken = true;
-    }
-
     await project.save();
     res.status(200).send("Student added successfully");
   } catch (err) {
@@ -281,10 +277,6 @@ export const updateStudentsInProject = async (req, res) => {
     }
 
     project.students = validStudents;
-
-    if (project.students.length === 0) {
-      project.isTaken = false;
-    }
 
     await project.save();
     res.status(200).send({ message: "Students updated successfully", project });
@@ -574,9 +566,6 @@ export const addAdvisorToProject = async (req, res) => {
     if (!project.advisors.find((advisor) => advisor.toString() === req.body.advisorID)) {
       project.advisors.push(req.body.advisorID);
     }
-    if (project.students.length !== 0) {
-      project.isTaken = true;
-    }
     await project.save();
 
     const notification = new Notification({
@@ -616,10 +605,6 @@ export const updateAdvisorInProject = async (req, res) => {
     }
 
     project.advisors = [advisorID];
-
-    if (project.advisors.length === 0) {
-      project.isTaken = false;
-    }
 
     const notification = new Notification({
       user: advisorID,
