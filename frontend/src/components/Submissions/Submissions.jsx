@@ -907,6 +907,10 @@ const Submissions = () => {
     };
 
     const handleUpdateJudge = async () => {
+        if (submissionJudges.length > 3) {
+            message.error("ניתן לבחור עד 3 שופטים בלבד");
+            return;
+        }
         const judgesIds = judgeUpdateSubmission?.submission?.grades.map((grade) => grade.judge);
         if (
             judgesIds.length === submissionJudges.length &&
@@ -923,7 +927,6 @@ const Submissions = () => {
             },
             { withCredentials: true },
         );
-        console.log(submissionData);
         setSubmissionData((prevData) =>
             prevData.map((project) => {
                 return {
@@ -953,6 +956,34 @@ const Submissions = () => {
                 };
             }),
         );
+        console.log(submissionInfo);
+        setSubmissionInfo((prevInfo) => {
+            if (prevInfo?.submission?.submissionid === judgeUpdateSubmission.submission.submissionid) {
+                const updatedGrades = (prevInfo.submission.grades || []).filter((grade) =>
+                    submissionJudges.includes(grade.judge),
+                );
+
+                submissionJudges.forEach((judge) => {
+                    if (!updatedGrades.find((grade) => grade.judge === judge)) {
+                        updatedGrades.push({
+                            judge,
+                            judgeName: judges.find((u) => u._id === judge)?.name || "Unknown",
+                            grade: null,
+                            comments: "",
+                        });
+                    }
+                });
+
+                return {
+                    ...prevInfo,
+                    submission: {
+                        ...prevInfo.submission,
+                        grades: updatedGrades,
+                    },
+                };
+            }
+            return prevInfo;
+        });
         setUpdateJudgesModal(false);
         setSubmissionJudges([]);
         message.success("השופטים עודכנו בהצלחה");
@@ -1070,7 +1101,8 @@ const Submissions = () => {
                 title={`עדכון שופטים להגשה ${judgeUpdateSubmission?.submission?.name} של ${judgeUpdateSubmission?.project?.title}`}
                 onCancel={() => setUpdateJudgesModal(false)}
                 cancelText="ביטול"
-                okText="עדכן שופטים">
+                okText="עדכן שופטים"
+                okButtonProps={{ disabled: submissionJudges.length > 3 }}>
                 <div>
                     <p>{`בחר עד 3 שופטים להגשה ${judgeUpdateSubmission?.submission?.name}`}</p>
                     <Select
@@ -1079,7 +1111,7 @@ const Submissions = () => {
                         placeholder="בחר שופטים"
                         value={submissionJudges}
                         onChange={(value) => {
-                            if (value.length <= 3) setSubmissionJudges(value);
+                            setSubmissionJudges(value);
                         }}
                         options={judges.map((judge) => ({ label: judge.name, value: judge._id }))}
                     />
@@ -1390,7 +1422,7 @@ const Submissions = () => {
                 </p>
             </Modal>
             <Modal
-                title={`עריכת פרטי הגשה`}
+                title={`עריכת פרטי הגשה עבור ${specificSubmissionInfo?.project.title} - ${specificSubmissionInfo?.submission.name}`}
                 open={specificSubmissionInfo !== null}
                 cancelText="סגור"
                 okText="עדכן"
@@ -1402,6 +1434,50 @@ const Submissions = () => {
                     editSpecificSubmission
                         .validateFields()
                         .then((values) => {
+                            setSubmissionData((prevData) =>
+                                prevData.map((project) => {
+                                    if (project.key === specificSubmissionInfo.project.key) {
+                                        return {
+                                            ...project,
+                                            submissions: project.submissions.map((submission) => {
+                                                if (
+                                                    submission.submissionid ===
+                                                    specificSubmissionInfo.submission.submissionid
+                                                ) {
+                                                    return {
+                                                        ...submission,
+                                                        submissionName: values.submissionName,
+                                                        submissionDate: values.submissionDate,
+                                                        submissionChecklist: values.submissionChecklist,
+                                                    };
+                                                }
+                                                return submission;
+                                            }),
+                                        };
+                                    }
+                                    return project;
+                                }),
+                            );
+
+                            setSubmissionInfo((prevInfo) => {
+                                if (
+                                    prevInfo?.submission?.submissionid ===
+                                    specificSubmissionInfo.submission.submissionid
+                                ) {
+                                    return {
+                                        ...prevInfo,
+                                        submission: {
+                                            ...prevInfo.submission,
+                                            name: values.submissionName,
+                                            submissionDate: values.submissionDate,
+                                            isGraded: values.submissionChecklist.includes("isGraded"),
+                                            isReviewed: values.submissionChecklist.includes("isReviewed"),
+                                            fileNeeded: values.submissionChecklist.includes("fileNeeded"),
+                                        },
+                                    };
+                                }
+                                return prevInfo;
+                            });
                             handleOkEditSpecific(values);
                         })
                         .catch((info) => {
@@ -1537,7 +1613,7 @@ const Submissions = () => {
                                                     ].filter((value) => value !== null),
                                                 });
                                                 setSpecificSubmissionInfo(submissionInfo);
-                                                setSubmissionInfo(null);
+                                                // setSubmissionInfo(null);
                                             }}
                                         />
                                     </a>
@@ -1560,14 +1636,16 @@ const Submissions = () => {
                                 <div className="detail-item-content">
                                     <Badge
                                         color={
-                                            submissionInfo.submission.submitted
+                                            submissionInfo.submission.submitted || !submissionInfo.submission.fileNeeded
                                                 ? submissionInfo.submission.isLate
                                                     ? "darkgreen"
                                                     : "green"
                                                 : "orange"
                                         }
                                         text={
-                                            submissionInfo.submission.submitted
+                                            !submissionInfo.submission.fileNeeded
+                                                ? "לא נדרש קובץ"
+                                                : submissionInfo.submission.submitted
                                                 ? `הוגש${
                                                       submissionInfo.submission.isLate
                                                           ? ` באיחור - ${Math.ceil(
@@ -1671,7 +1749,6 @@ const Submissions = () => {
                                                     submissionInfo?.submission?.grades.map((grade) => grade.judge),
                                                 );
                                                 setJudgeUpdateSubmission(submissionInfo);
-                                                setSubmissionInfo(null);
                                             }}
                                         />
                                     </Tooltip>
