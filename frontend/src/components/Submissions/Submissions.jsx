@@ -907,6 +907,10 @@ const Submissions = () => {
     };
 
     const handleUpdateJudge = async () => {
+        if (submissionJudges.length > 3) {
+            message.error("ניתן לבחור עד 3 שופטים בלבד");
+            return;
+        }
         const judgesIds = judgeUpdateSubmission?.submission?.grades.map((grade) => grade.judge);
         if (
             judgesIds.length === submissionJudges.length &&
@@ -923,7 +927,6 @@ const Submissions = () => {
             },
             { withCredentials: true },
         );
-        console.log(submissionData);
         setSubmissionData((prevData) =>
             prevData.map((project) => {
                 return {
@@ -953,6 +956,34 @@ const Submissions = () => {
                 };
             }),
         );
+        console.log(submissionInfo);
+        setSubmissionInfo((prevInfo) => {
+            if (prevInfo?.submission?.submissionid === judgeUpdateSubmission.submission.submissionid) {
+                const updatedGrades = (prevInfo.submission.grades || []).filter((grade) =>
+                    submissionJudges.includes(grade.judge),
+                );
+
+                submissionJudges.forEach((judge) => {
+                    if (!updatedGrades.find((grade) => grade.judge === judge)) {
+                        updatedGrades.push({
+                            judge,
+                            judgeName: judges.find((u) => u._id === judge)?.name || "Unknown",
+                            grade: null,
+                            comments: "",
+                        });
+                    }
+                });
+
+                return {
+                    ...prevInfo,
+                    submission: {
+                        ...prevInfo.submission,
+                        grades: updatedGrades,
+                    },
+                };
+            }
+            return prevInfo;
+        });
         setUpdateJudgesModal(false);
         setSubmissionJudges([]);
         message.success("השופטים עודכנו בהצלחה");
@@ -1070,7 +1101,8 @@ const Submissions = () => {
                 title={`עדכון שופטים להגשה ${judgeUpdateSubmission?.submission?.name} של ${judgeUpdateSubmission?.project?.title}`}
                 onCancel={() => setUpdateJudgesModal(false)}
                 cancelText="ביטול"
-                okText="עדכן שופטים">
+                okText="עדכן שופטים"
+                okButtonProps={{ disabled: submissionJudges.length > 3 }}>
                 <div>
                     <p>{`בחר עד 3 שופטים להגשה ${judgeUpdateSubmission?.submission?.name}`}</p>
                     <Select
@@ -1079,7 +1111,7 @@ const Submissions = () => {
                         placeholder="בחר שופטים"
                         value={submissionJudges}
                         onChange={(value) => {
-                            if (value.length <= 3) setSubmissionJudges(value);
+                            setSubmissionJudges(value);
                         }}
                         options={judges.map((judge) => ({ label: judge.name, value: judge._id }))}
                     />
@@ -1671,7 +1703,6 @@ const Submissions = () => {
                                                     submissionInfo?.submission?.grades.map((grade) => grade.judge),
                                                 );
                                                 setJudgeUpdateSubmission(submissionInfo);
-                                                setSubmissionInfo(null);
                                             }}
                                         />
                                     </Tooltip>
