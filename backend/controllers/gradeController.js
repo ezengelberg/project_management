@@ -1,22 +1,11 @@
 import Grade from "../models/grades.js";
 import Submission from "../models/submission.js";
 import Notification from "../models/notifications.js";
-
-const defaultLetters = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E", "F"];
+import GradingTable from "../models/gradingTable.js";
 
 // Add new grade
 export const addGrade = async (req, res) => {
-  const {
-    submissionId,
-    grade,
-    videoQuality,
-    workQuality,
-    writingQuality,
-    commits,
-    journalActive,
-    isGraded,
-    isReviewed,
-  } = req.body;
+  const { submissionId, grade, videoQuality, workQuality, writingQuality, commits, journalActive, isGraded } = req.body;
 
   if (!grade && isGraded) {
     return res.status(400).json({ message: "חייב להזין ציון" });
@@ -74,29 +63,29 @@ export const addGrade = async (req, res) => {
 
 // Update numeric values for grades
 export const updateNumericValues = async (req, res) => {
-  const { updatedValues, name } = req.body;
+  const { updatedValues, name, year } = req.body;
 
   try {
-    const submissions = await Submission.find({ name });
-    for (const submission of submissions) {
-      if (submission.editable === false) {
-        continue;
-      }
-      for (const [letter, value] of Object.entries(updatedValues)) {
-        const numericValue = submission.numericValues.find((nv) => nv.letter === letter);
-        if (numericValue) {
-          numericValue.value = value;
-        } else {
-          submission.numericValues.push({ letter, value });
-        }
-      }
-      await submission.save();
+    // Find the grading table for the given submission name and year
+    const gradingTable = await GradingTable.findOne({ forSubmission: name, year });
+
+    if (!gradingTable) {
+      return res.status(404).json({ message: "Grading table not found" });
     }
 
-    // Fetch updated numeric values
-    const updatedNumericValues = submissions.flatMap((submission) => submission.numericValues);
-    const letterToNumber = defaultLetters.reduce((acc, letter) => {
-      acc[letter] = updatedNumericValues.find((nv) => nv.letter === letter)?.value || null;
+    // Update the numeric values in the grading table
+    for (const [letter, value] of Object.entries(updatedValues)) {
+      const numericValue = gradingTable.numericValues.find((nv) => nv.letter === letter);
+      if (numericValue) {
+        numericValue.value = value;
+      }
+    }
+
+    await gradingTable.save();
+
+    // Prepare the updated numeric values for response
+    const letterToNumber = gradingTable.numericValues.reduce((acc, { letter, value }) => {
+      acc[letter] = value;
       return acc;
     }, {});
 
@@ -109,51 +98,43 @@ export const updateNumericValues = async (req, res) => {
 
 export const getAllNumericValues = async (req, res) => {
   try {
-    // Get all unique submission names with graded submissions
-    const submissionNames = await Submission.distinct("name", { isGraded: true, editable: true });
+    const gradingTables = await GradingTable.find();
 
-    // Prepare the grouped values
-    const groupedValues = {};
+    const groupedValues = gradingTables.map((table) => ({
+      name: table.forSubmission,
+      year: table.year,
+      averageCalculation: table.averageCalculation, // Ensure this is included
+      ...table.numericValues.reduce((obj, { letter, value }) => {
+        obj[letter] = value;
+        return obj;
+      }, {}),
+    }));
 
-    // Iterate through each submission name
-    for (const name of submissionNames) {
-      // Find all submissions with this specific name
-      const submissions = await Submission.find({ name });
-
-      // Initialize the group with default null values for all letters
-      const groupValues = {
-        name,
-        averageCalculation: submissions[0].averageCalculation,
-        ...defaultLetters.reduce((obj, letter) => ({ ...obj, [letter]: null }), {}),
-      };
-
-      // Populate the group's values
-      for (const submission of submissions) {
-        for (const letter of defaultLetters) {
-          const existingValue = submission.numericValues.find((nv) => nv.letter === letter);
-
-          if (!existingValue) {
-            // If no existing value, create a new one
-            const newValue = { letter, value: 0 };
-            submission.numericValues.push(newValue);
-            groupValues[letter] = 0;
-          } else {
-            // Use existing value
-            groupValues[letter] = existingValue.value;
-          }
-        }
-        await submission.save();
-      }
-
-      // Store the group values
-      groupedValues[name] = groupValues;
-    }
-
-    // Convert to array and send response
-    res.status(200).json(Object.values(groupedValues));
+    res.status(200).json(groupedValues);
   } catch (error) {
     console.log("Error getting all numeric values:", error);
     res.status(500).json({ message: "Error getting all numeric values" });
+  }
+};
+
+export const deleteGradingTable = async (req, res) => {
+  const { name, year } = req.body;
+
+  try {
+    const gradingTable = await GradingTable.findOne({ forSubmission: name, year });
+    const submissionWithGradingTable = await Submission.findOne({ gradingTable: gradingTable._id, editable: true });
+    if (submissionWithGradingTable) {
+      return res.status(400).json({ message: "Cannot delete grading table because it is in use" });
+    } else if (!gradingTable) {
+      return res.status(404).json({ message: "Grading table not found" });
+    }
+
+    await gradingTable.delete();
+
+    res.status(200).json({ message: "Grading table deleted successfully" });
+  } catch (error) {
+    console.log("Error deleting grading table:", error);
+    res.status(500).json({ message: "Error deleting grading table" });
   }
 };
 
@@ -228,10 +209,19 @@ export const getGradeBySubmission = async (req, res) => {
 };
 
 export const updateCalculationMethod = async (req, res) => {
-  const { submissionName, averageCalculation } = req.body;
+  const { submissionName, year, averageCalculation } = req.body;
 
   try {
-    await Submission.updateMany({ name: submissionName }, { $set: { averageCalculation } });
+    // Find the grading table for the given submission name and year
+    const gradingTable = await GradingTable.findOne({ forSubmission: submissionName, year });
+
+    if (!gradingTable) {
+      return res.status(404).json({ message: "Grading table not found" });
+    }
+
+    // Update the averageCalculation field
+    gradingTable.averageCalculation = averageCalculation;
+    await gradingTable.save();
 
     res.status(200).json({ message: "Calculation method updated successfully" });
   } catch (error) {

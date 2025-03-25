@@ -51,12 +51,14 @@ const SystemControl = () => {
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [currentSubmissionName, setCurrentSubmissionName] = useState("");
   const [currentGroup, setCurrentGroup] = useState("");
-  const [radioValue, setRadioValue] = useState(false);
+  const [refreshSubmissions, setRefreshSubmissions] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [gradingTableToDelete, setGradingTableToDelete] = useState(null);
+  const [gradingTableYear, setGradingTableYear] = useState("");
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
   });
-  const [refreshSubmissions, setRefreshSubmissions] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -75,7 +77,9 @@ const SystemControl = () => {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/grade/get-all-numeric-values`, {
         withCredentials: true,
       });
-      setGroupsData(response.data);
+      // Filter the grading tables by the selected year
+      const filteredData = response.data.filter((table) => table.year === gradingTableYear);
+      setGroupsData(filteredData);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching grades:", error);
@@ -93,6 +97,7 @@ const SystemControl = () => {
       const currentYear = response.data.currentYear;
       setCurrentYear(currentYear);
       setOutputYear(currentYear);
+      setGradingTableYear(currentYear);
 
       const today = new Date();
       const currentHebrewDate = toJewishDate(today);
@@ -169,6 +174,11 @@ const SystemControl = () => {
     fetchSubmissions();
   }, [refreshSubmissions]);
 
+  useEffect(() => {
+    setLoading(true);
+    fetchGrades();
+  }, [gradingTableYear]);
+
   const isEditing = (record) => record.key === editingKey;
 
   const EditableCell = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
@@ -214,7 +224,7 @@ const SystemControl = () => {
 
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/update-numeric-values`,
-        { updatedValues, name },
+        { updatedValues, name, year: currentYear },
         { withCredentials: true }
       );
       message.success("הציון עודכן בהצלחה");
@@ -301,7 +311,7 @@ const SystemControl = () => {
     try {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/update-calculation-method`,
-        { submissionName, averageCalculation: value },
+        { submissionName, year: currentYear, averageCalculation: value },
         { withCredentials: true }
       );
 
@@ -313,6 +323,35 @@ const SystemControl = () => {
       console.error("Error updating calculation method:", error);
       message.error("שגיאה בעדכון שיטת החישוב");
     }
+  };
+
+  const handleDelete = async () => {
+    if (!gradingTableToDelete) return;
+
+    try {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/grade/delete-grading-table`, {
+        data: { name: gradingTableToDelete.name, year: currentYear },
+        withCredentials: true,
+      });
+      message.success("טבלת הציונים נמחקה בהצלחה");
+      fetchGrades();
+      setDeleteModalVisible(false);
+      setGradingTableToDelete(null);
+    } catch (error) {
+      if (error.response?.status === 400) {
+        message.error("לא ניתן למחוק את טבלת הציונים מכיוון שהיא בשימוש");
+      } else if (error.response?.status === 404) {
+        message.error("טבלת הציונים לא נמצאה");
+      } else {
+        message.error("שגיאה במחיקת טבלת הציונים");
+        console.error("Error deleting grading table:", error);
+      }
+    }
+  };
+
+  const showDeleteModal = (record) => {
+    setGradingTableToDelete(record);
+    setDeleteModalVisible(true);
   };
 
   const columns = [
@@ -385,11 +424,16 @@ const SystemControl = () => {
             </Tooltip>
           </span>
         ) : (
-          <Typography.Link onClick={() => edit(record)}>
-            <Tooltip title="עריכה">
-              <EditOutlined className="edit-icon" />
+          <>
+            <Typography.Link onClick={() => edit(record)}>
+              <Tooltip title="עריכה">
+                <EditOutlined className="edit-icon" />
+              </Tooltip>
+            </Typography.Link>
+            <Tooltip title="מחיקה">
+              <StopOutlined className="edit-icon cancel" onClick={() => showDeleteModal(record)} />
             </Tooltip>
-          </Typography.Link>
+          </>
         );
       },
       width: windowSize.width > 1920 ? "5%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 100 : 100,
@@ -596,24 +640,36 @@ const SystemControl = () => {
           </div>
         </div>
       </div>
-      <Form form={form} component={false} loading={loading}>
-        <Table
-          style={{ width: "100%" }}
-          components={{
-            body: {
-              cell: EditableCell,
-            },
-          }}
-          bordered
-          dataSource={groupsData.map((group) => ({ ...group, key: group.name }))}
-          columns={mergedColumns}
-          rowClassName="editable-row"
-          pagination={false}
-          scroll={{
-            x: "max-content",
-          }}
-        />
-      </Form>
+      <div className="grades-table">
+        <Select
+          value={gradingTableYear}
+          onChange={(value) => setGradingTableYear(value)}
+          style={{ width: "200px", marginBottom: "10px", marginTop: "10px" }}>
+          {years.map((year) => (
+            <Select.Option key={year} value={year}>
+              {year}
+            </Select.Option>
+          ))}
+        </Select>
+        <Form form={form} component={false} loading={loading}>
+          <Table
+            style={{ width: "100%" }}
+            components={{
+              body: {
+                cell: EditableCell,
+              },
+            }}
+            bordered
+            dataSource={groupsData.map((group) => ({ ...group, key: group.name }))}
+            columns={mergedColumns}
+            rowClassName="editable-row"
+            pagination={false}
+            scroll={{
+              x: "max-content",
+            }}
+          />
+        </Form>
+      </div>
       <Modal
         title={`פרסום ציונים ל${currentGroup}`}
         open={confirmModalVisible}
@@ -622,6 +678,17 @@ const SystemControl = () => {
         okText="אשר"
         cancelText="בטל">
         <p>ישנם ציונים עם ערך נומרי של 0. האם אתה בטוח שברצונך לפרסם את הציונים?</p>
+      </Modal>
+      <Modal
+        title="אישור מחיקה"
+        open={deleteModalVisible}
+        onOk={handleDelete}
+        onCancel={() => setDeleteModalVisible(false)}
+        okButtonProps={{ danger: true }}
+        okText="מחק"
+        cancelText="בטל">
+        <p>האם אתה בטוח שברצונך למחוק את טבלת הציונים עבור "{gradingTableToDelete?.name}"?</p>
+        <p>לא ניתן למחוק טבלת ציונים אם ישנם הגשות פעילות.</p>
       </Modal>
     </div>
   );

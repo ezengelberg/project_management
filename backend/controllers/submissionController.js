@@ -5,6 +5,7 @@ import Grade from "../models/grades.js";
 import Upload from "../models/uploads.js";
 import Notification from "../models/notifications.js";
 import Group from "../models/groups.js";
+import GradingTable from "../models/gradingTable.js";
 import fs from "fs";
 import path from "path";
 import OpenAI from "openai";
@@ -16,6 +17,7 @@ const openai = new OpenAI(process.env.OPENAI_API_KEY);
 export const createSubmission = async (req, res) => {
   try {
     let studentsToSendEmail = [];
+    let gradingTable;
     const submissionDate = new Date(req.body.submissionDate);
     if (req.body.submissionTime) {
       const [hours, minutes] = req.body.submissionTime.split(":");
@@ -34,10 +36,23 @@ export const createSubmission = async (req, res) => {
         year: req.body.submissionYear,
       });
     }
+
+    if (req.body.isGraded) {
+      gradingTable = await GradingTable.findOne({
+        year: req.body.submissionYear,
+        forSubmission: req.body.name,
+      });
+      if (!gradingTable) {
+        gradingTable = new GradingTable({ year: req.body.submissionYear, forSubmission: req.body.name });
+        await gradingTable.save();
+      }
+    }
+
     await Promise.all(
       projects.map(async (project) => {
         let newGrade;
         let gradeByAdvisor;
+
         const checkExist = await Submission.find({ project: project._id, name: req.body.name });
         if (checkExist.length > 0) {
           return; // Skip this project if submission already exists
@@ -60,6 +75,7 @@ export const createSubmission = async (req, res) => {
           isReviewed: req.body.isReviewed,
           fileNeeded: req.body.fileNeeded,
           submissionInfo: req.body.submissionInfo,
+          gradingTable: gradingTable?._id,
         });
         await submission.save();
 
@@ -89,11 +105,23 @@ export const createSubmission = async (req, res) => {
 
 export const createSpecificSubmission = async (req, res) => {
   try {
+    let studentsToSendEmail = [];
+    let gradingTable;
+
     const submissionDate = new Date(req.body.submissionDate);
     if (req.body.submissionTime) {
       const [hours, minutes] = req.body.submissionTime.split(":");
       submissionDate.setHours(hours, minutes);
     }
+
+    if (req.body.isGraded) {
+      gradingTable = await GradingTable.findOne({ year: req.body.submissionYear, forSubmission: req.body.name });
+      if (!gradingTable) {
+        gradingTable = new GradingTable({ year: req.body.submissionYear, forSubmission: req.body.name });
+        await gradingTable.save();
+      }
+    }
+
     await Promise.all(
       req.body.projects.map(async (projectId) => {
         const project = await Project.findById(projectId);
@@ -123,6 +151,7 @@ export const createSpecificSubmission = async (req, res) => {
           isReviewed: req.body.isReviewed,
           fileNeeded: req.body.fileNeeded,
           submissionInfo: req.body.submissionInfo,
+          gradingTable: gradingTable?._id,
         });
         await submission.save();
 
@@ -134,12 +163,16 @@ export const createSpecificSubmission = async (req, res) => {
               message: `נוצרה הגשה חדשה: ${req.body.name}`,
               link: "/my-submissions",
             });
+            studentsToSendEmail.push(student.student);
             await notification.save();
           })
         );
       })
     );
     res.status(201).json({ message: "Submissions created successfully" });
+
+    // Send emails in the background
+    sendSubmissionEmail(req.body.name, submissionDate, studentsToSendEmail);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -895,6 +928,7 @@ export const deleteActiveSubmissions = async (req, res) => {
 
 export const updateSubmissionInformation = async (req, res) => {
   try {
+    let gradingTable;
     const submissions = await Submission.find({ name: req.body.submissionOldName }).populate("project");
     const groups = await Group.find({ _id: { $in: req.body.groups } });
     let activeProjects = [];
@@ -911,6 +945,17 @@ export const updateSubmissionInformation = async (req, res) => {
     }
     const activeProjectIds = activeProjects.map((project) => project._id.toString()); // Convert ObjectIds to strings
 
+    if (submissions[0].isGraded) {
+      gradingTable = await GradingTable.findOne({
+        year: req.body.submissionYear,
+        forSubmission: req.body.SubmissionName,
+      });
+      if (!gradingTable) {
+        gradingTable = new GradingTable({ year: req.body.submissionYear, forSubmission: req.body.SubmissionName });
+        await gradingTable.save();
+      }
+    }
+
     await Promise.all(
       submissions.map(async (submission) => {
         if (activeProjectIds.includes(submission.project._id.toString())) {
@@ -918,6 +963,9 @@ export const updateSubmissionInformation = async (req, res) => {
             submission[key] = req.body[key];
           });
           submission.name = req.body.SubmissionName;
+          if (submission.isGraded && gradingTable) {
+            submission.gradingTable = gradingTable._id;
+          }
           await submission.save();
         }
       })
@@ -932,10 +980,22 @@ export const updateSubmissionInformation = async (req, res) => {
 
 export const updateSpecificSubmission = async (req, res) => {
   try {
+    let gradingTable;
     const submission = await Submission.findById(req.params.id).populate("project");
     if (!submission) {
       return res.status(404).json({ message: "הגשה לא נמצאה" });
     } else {
+      if (submission.isGraded) {
+        gradingTable = await GradingTable.findOne({
+          year: submission.project.year,
+          forSubmission: req.body.name,
+        });
+        if (!gradingTable) {
+          gradingTable = new GradingTable({ year: submission.project.year, forSubmission: req.body.name });
+          await gradingTable.save();
+        }
+      }
+
       const submissionDate = new Date(req.body.submissionDate);
       if (req.body.submissionTime) {
         const [hours, minutes] = req.body.submissionTime.split(":");
@@ -945,6 +1005,7 @@ export const updateSpecificSubmission = async (req, res) => {
         submission[key] = req.body[key];
       });
       submission.submissionDate = submissionDate;
+      submission.gradingTable = gradingTable?._id;
       await submission.save();
       res.status(200).json({ message: "Submission updated successfully", submission });
     }
@@ -1529,6 +1590,9 @@ export const getSubmissionDistribution = async (req, res) => {
     project.grades = submission.grades;
   });
 
-  const filteredProjectMap = Object.values(projectMap).filter((project) => project.grades.length === 3 && project.grades.every((grade) => grade.grade !== null && grade.grade != ""));
+  const filteredProjectMap = Object.values(projectMap).filter(
+    (project) =>
+      project.grades.length === 3 && project.grades.every((grade) => grade.grade !== null && grade.grade != "")
+  );
   res.status(200).json(filteredProjectMap);
 };
