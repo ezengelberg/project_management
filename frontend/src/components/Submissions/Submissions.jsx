@@ -24,7 +24,7 @@ import {
     Tooltip,
     TimePicker,
 } from "antd";
-import { DeleteOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, EyeOutlined, UserSwitchOutlined } from "@ant-design/icons";
 import locale from "antd/es/date-picker/locale/he_IL"; // Import Hebrew locale
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { NotificationsContext } from "../../utils/NotificationsContext";
@@ -70,11 +70,14 @@ const Submissions = () => {
     const [yearFilter, setYearFilter] = useState("all");
     const [years, setYears] = useState([]);
     const [groups, setGroups] = useState([]);
+    const [judges, setJudges] = useState([]);
     const [selectedGroup, setSelectedGroup] = useState("all");
     const [selectedGroupSubmissions, setSelectedGroupSubmissions] = useState([]);
     const [fileListModal, setFileListModal] = useState(false);
-    const [submissionInfoModal, setSubmissionInfoModal] = useState(false);
     const [submissionInfoModalData, setSubmissionInfoModalData] = useState([]);
+    const [updateJudgesModal, setUpdateJudgesModal] = useState(false);
+    const [judgeUpdateSubmission, setJudgeUpdateSubmission] = useState(null);
+    const [submissionJudges, setSubmissionJudges] = useState([]);
     const [windowSize, setWindowSize] = useState({
         width: window.innerWidth,
         height: window.innerHeight,
@@ -156,12 +159,26 @@ const Submissions = () => {
         }
     };
 
+    const fetchJudges = async () => {
+        try {
+            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/all-users`, {
+                withCredentials: true,
+            });
+
+            const activeUsers = response.data.filter((user) => !user.suspended);
+            setJudges(activeUsers.filter((user) => user.isJudge));
+        } catch (error) {
+            console.error("Error fetching judges:", error);
+        }
+    };
+
     useEffect(() => {
         fetchSubmissions();
         fetchActiveProjects();
         fetchYears();
         fetchGroups();
         fetchNotifications();
+        fetchJudges();
     }, []);
 
     const handleResetJudges = async (values) => {
@@ -889,6 +906,58 @@ const Submissions = () => {
         ));
     };
 
+    const handleUpdateJudge = async () => {
+        const judgesIds = judgeUpdateSubmission?.submission?.grades.map((grade) => grade.judge);
+        if (
+            judgesIds.length === submissionJudges.length &&
+            judgesIds.every((judgeId) => submissionJudges.includes(judgeId))
+        ) {
+            message.warning("לא בוצעו שינויים");
+            return;
+        }
+        await axios.put(
+            `${process.env.REACT_APP_BACKEND_URL}/api/submission/update-judges`,
+            {
+                submissionID: judgeUpdateSubmission?.submission?.submissionid,
+                judges: submissionJudges,
+            },
+            { withCredentials: true },
+        );
+        console.log(submissionData);
+        setSubmissionData((prevData) =>
+            prevData.map((project) => {
+                return {
+                    ...project,
+                    submissions: project.submissions.map((submission) => {
+                        if (submission.submissionid === judgeUpdateSubmission.submission.submissionid) {
+                            // Ensure `grades` exists before filtering
+                            const updatedGrades = (submission.grades || []).filter((grade) =>
+                                submissionJudges.includes(grade.judge),
+                            );
+
+                            submissionJudges.forEach((judge) => {
+                                if (!updatedGrades.find((grade) => grade.judge === judge)) {
+                                    updatedGrades.push({
+                                        judge,
+                                        judgeName: judges.find((u) => u._id === judge)?.name || "Unknown",
+                                        grade: null,
+                                        comments: "",
+                                    });
+                                }
+                            });
+
+                            return { ...submission, grades: updatedGrades };
+                        }
+                        return submission;
+                    }),
+                };
+            }),
+        );
+        setUpdateJudgesModal(false);
+        setSubmissionJudges([]);
+        message.success("השופטים עודכנו בהצלחה");
+    };
+
     return (
         <div>
             <div className="action-buttons">
@@ -995,6 +1064,27 @@ const Submissions = () => {
                 loading={loading}
                 scroll={{ x: "max-content" }}
             />
+            <Modal
+                open={updateJudgesModal}
+                onOk={handleUpdateJudge}
+                title={`עדכון שופטים להגשה ${judgeUpdateSubmission?.submission?.name} של ${judgeUpdateSubmission?.project?.title}`}
+                onCancel={() => setUpdateJudgesModal(false)}
+                cancelText="ביטול"
+                okText="עדכן שופטים">
+                <div>
+                    <p>{`בחר עד 3 שופטים להגשה ${judgeUpdateSubmission?.submission?.name}`}</p>
+                    <Select
+                        mode="multiple"
+                        style={{ width: "100%" }}
+                        placeholder="בחר שופטים"
+                        value={submissionJudges}
+                        onChange={(value) => {
+                            if (value.length <= 3) setSubmissionJudges(value);
+                        }}
+                        options={judges.map((judge) => ({ label: judge.name, value: judge._id }))}
+                    />
+                </div>
+            </Modal>
             <Modal
                 title={`אישור מחיקה`}
                 open={deleteAllJudgesConfirm !== null}
@@ -1569,7 +1659,24 @@ const Submissions = () => {
                         </div>
 
                         <div className="submission-grades">
-                            <h3>ציונים ומשובים</h3>
+                            <div className="grades-title">
+                                <h3>ציונים ומשובים</h3>
+                                {(submissionInfo.submission.isGraded || submissionInfo.submission.isReviewed) && (
+                                    <Tooltip title="שינוי שופטים">
+                                        {" "}
+                                        <UserSwitchOutlined
+                                            onClick={() => {
+                                                setUpdateJudgesModal(true);
+                                                setSubmissionJudges(
+                                                    submissionInfo?.submission?.grades.map((grade) => grade.judge),
+                                                );
+                                                setJudgeUpdateSubmission(submissionInfo);
+                                                setSubmissionInfo(null);
+                                            }}
+                                        />
+                                    </Tooltip>
+                                )}
+                            </div>
                             <Table
                                 columns={gradeColumns}
                                 dataSource={submissionInfo?.submission?.grades.map((grade, index) => ({

@@ -1,213 +1,233 @@
 .submission-actions {
-  left: 5rem;
-  bottom: 5rem;
-  button {
-    width: 5rem;
-    height: 5rem;
-  }
+    left: 5rem;
+    bottom: 5rem;
+    button {
+        width: 5rem;
+        height: 5rem;
+    }
 }
 
 .floatbutton-wrapper {
-  position: fixed;
-  display: flex;
+    position: fixed;
+    display: flex;
 }
 
 .date-picker {
-  width: 100%;
+    width: 100%;
 }
 
 .submission-table-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  .submission-icon {
-    svg {
-      width: 2.5rem;
-      height: 2.5rem;
-      color: #1677ff;
-      transition: color 0.2s linear;
-      &:hover {
-        color: #0056b3;
-      }
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    .submission-icon {
+        svg {
+            width: 2.5rem;
+            height: 2.5rem;
+            color: #1677ff;
+            transition: color 0.2s linear;
+            &:hover {
+                color: #0056b3;
+            }
+        }
     }
-  }
 }
 
 .action-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  .action-buttons-end {
     display: flex;
-    margin-right: auto;
     gap: 1rem;
-  }
+    margin-bottom: 1rem;
+    .action-buttons-end {
+        display: flex;
+        margin-right: auto;
+        gap: 1rem;
+    }
 }
 
 .input-field-override-grade {
-  width: 100%;
+    width: 100%;
 }
 
 .table-row {
-  display: flex;
-
-  .table-col-div {
     display: flex;
 
-    .table-col {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      padding: 1rem;
-      width: max-content;
-      cursor: pointer;
-      border-radius: 0.5rem;
-      transition: background-color 0.2s linear;
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.05);
-      }
-
-      .submission-title {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-      }
-      .table-col-info {
+    .table-col-div {
         display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
+
+        .table-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 1rem;
+            width: max-content;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s linear;
+            &:hover {
+                background-color: rgba(0, 0, 0, 0.05);
+            }
+
+            .submission-title {
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+            }
+            .table-col-info {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+        }
     }
-  }
 }
 
 .submission-info-modal {
-  .submission-header {
-    .header-title {
-      display: flex;
-      align-items: center;
-      gap: 2rem;
-      h2 {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-        word-break: break-word;
-      }
-      .edit-icon {
-        font-size: 2rem;
-      }
-    }
-  }
-  .submission-details {
-    display: table;
-    width: 100%;
-
-    .detail-item {
-      display: table-row;
-
-      .detail-item-header,
-      .detail-item-content {
-        display: table-cell;
-        padding: 8px 16px;
-        vertical-align: middle;
-        .changeable-content {
-          display: flex;
-          gap: 1rem;
+    .submission-header {
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            h2 {
+                font-size: 2.5rem;
+                margin-bottom: 1rem;
+                word-break: break-word;
+            }
+            .edit-icon {
+                font-size: 2rem;
+            }
         }
-      }
-
-      .detail-item-header {
-        font-weight: bold;
-        width: 30%;
-        text-align: right;
-        opacity: 0.7;
-      }
-
-      .detail-item-content {
-        width: 70%;
-        text-align: right;
-      }
     }
-  }
+    .submission-details {
+        display: table;
+        width: 100%;
+
+        .detail-item {
+            display: table-row;
+
+            .detail-item-header,
+            .detail-item-content {
+                display: table-cell;
+                padding: 8px 16px;
+                vertical-align: middle;
+                .changeable-content {
+                    display: flex;
+                    gap: 1rem;
+                }
+            }
+
+            .detail-item-header {
+                font-weight: bold;
+                width: 30%;
+                text-align: right;
+                opacity: 0.7;
+            }
+
+            .detail-item-content {
+                width: 70%;
+                text-align: right;
+            }
+        }
+    }
+    .submission-grades {
+        .grades-title {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            span {
+                font-size: 1.5rem;
+                font-weight: 500;
+            }
+            svg {
+                font-size: 1.8rem;
+                color: #1677ff;
+                cursor: pointer;
+                transition: color 0.2s linear;
+                &:hover {
+                    color: #0056b3;
+                }
+            }
+        }
+    }
 }
 
 .footer-submission-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
-  .delete-icon {
-    font-size: 2.5rem;
-    color: #ff4d4f;
-    cursor: pointer;
-    transition: color 0.2s linear;
-    &:hover {
-      color: #ff7875;
+    .delete-icon {
+        font-size: 2.5rem;
+        color: #ff4d4f;
+        cursor: pointer;
+        transition: color 0.2s linear;
+        &:hover {
+            color: #ff7875;
+        }
     }
-  }
 }
 
 .grade-table {
-  direction: ltr;
+    direction: ltr;
 }
 
 .submission-date-time-mobile {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  .ant-form-item {
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 
-    .submission-date-time-mobile-item {
-      width: 100%;
+    .ant-form-item {
+        width: 100%;
+
+        .submission-date-time-mobile-item {
+            width: 100%;
+        }
     }
-  }
 }
 
 .modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  .modal-footer-action {
     display: flex;
+    justify-content: flex-end;
     gap: 1rem;
-  }
+    .modal-footer-action {
+        display: flex;
+        gap: 1rem;
+    }
 }
 
 @media screen and (max-width: 1600px) {
-  .action-buttons {
-    flex-wrap: wrap;
+    .action-buttons {
+        flex-wrap: wrap;
 
-    .action-buttons-end {
-      margin-right: 0;
-      flex-wrap: wrap;
-    }
-  }
-  .table-row {
-    .table-col-div {
-      .table-col {
-        .submission-title {
-          font-size: 1.8rem;
+        .action-buttons-end {
+            margin-right: 0;
+            flex-wrap: wrap;
         }
-      }
     }
-  }
+    .table-row {
+        .table-col-div {
+            .table-col {
+                .submission-title {
+                    font-size: 1.8rem;
+                }
+            }
+        }
+    }
 }
 
 @media screen and (max-width: 626px) {
-  .table-row {
-    .table-col-div {
-      .table-col {
-        .submission-title {
-          font-size: 2rem;
+    .table-row {
+        .table-col-div {
+            .table-col {
+                .submission-title {
+                    font-size: 2rem;
+                }
+            }
         }
-      }
     }
-  }
-  .details-title {
-    h3 {
-      font-size: 2rem;
+    .details-title {
+        h3 {
+            font-size: 2rem;
+        }
     }
-  }
 }
