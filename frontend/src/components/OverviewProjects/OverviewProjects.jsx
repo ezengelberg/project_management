@@ -149,9 +149,6 @@ const OverviewProjects = () => {
             ...project,
             students: [...project.students, ...selectedStudents.map((id) => ({ student: id }))],
           };
-          if (updatedProject.students.length > 0 && updatedProject.advisors.length > 0) {
-            updatedProject.isTaken = true;
-          }
           return updatedProject;
         }
         return project;
@@ -189,9 +186,6 @@ const OverviewProjects = () => {
             ...project,
             students: selectedStudents.map((id) => ({ student: id })),
           };
-          if (updatedProject.students.length === 0) {
-            updatedProject.isTaken = false;
-          }
           return updatedProject;
         }
         return project;
@@ -229,9 +223,6 @@ const OverviewProjects = () => {
             ...project,
             advisors: [...project.advisors, selectedAdvisor],
           };
-          if (updatedProject.students.length > 0 && updatedProject.advisors.length > 0) {
-            updatedProject.isTaken = true;
-          }
           return updatedProject;
         }
         return project;

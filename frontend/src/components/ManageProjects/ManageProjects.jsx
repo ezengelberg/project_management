@@ -225,7 +225,7 @@ const ManageProjects = () => {
     getColumnSearchPropsUtil(dataIndex, searchInput, handleSearch, handleReset, searchText);
 
   const closeRegistration = (record) => async () => {
-    if (record.students && record.students.length === 0) {
+    if (record.students && record.students.length === 0 && record.isTaken === false) {
       message.open({
         type: "warning",
         content: "לא ניתן לסגור פרויקט להרשמה ללא סטודנטים",
