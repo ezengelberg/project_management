@@ -1383,7 +1383,7 @@ const Submissions = () => {
         </p>
       </Modal>
       <Modal
-        title={`עריכת פרטי הגשה`}
+        title={`עריכת פרטי הגשה עבור ${specificSubmissionInfo?.project.title} - ${specificSubmissionInfo?.submission.name}`}
         open={specificSubmissionInfo !== null}
         cancelText="סגור"
         okText="עדכן"
@@ -1395,6 +1395,44 @@ const Submissions = () => {
           editSpecificSubmission
             .validateFields()
             .then((values) => {
+              setSubmissionData((prevData) =>
+                prevData.map((project) => {
+                  if (project.key === specificSubmissionInfo.project.key) {
+                    return {
+                      ...project,
+                      submissions: project.submissions.map((submission) => {
+                        if (submission.submissionid === specificSubmissionInfo.submission.submissionid) {
+                          return {
+                            ...submission,
+                            submissionName: values.submissionName,
+                            submissionDate: values.submissionDate,
+                            submissionChecklist: values.submissionChecklist,
+                          };
+                        }
+                        return submission;
+                      }),
+                    };
+                  }
+                  return project;
+                })
+              );
+
+              setSubmissionInfo((prevInfo) => {
+                if (prevInfo?.submission?.submissionid === specificSubmissionInfo.submission.submissionid) {
+                  return {
+                    ...prevInfo,
+                    submission: {
+                      ...prevInfo.submission,
+                      name: values.submissionName,
+                      submissionDate: values.submissionDate,
+                      isGraded: values.submissionChecklist.includes("isGraded"),
+                      isReviewed: values.submissionChecklist.includes("isReviewed"),
+                      fileNeeded: values.submissionChecklist.includes("fileNeeded"),
+                    },
+                  };
+                }
+                return prevInfo;
+              });
               handleOkEditSpecific(values);
             })
             .catch((info) => {
@@ -1527,7 +1565,7 @@ const Submissions = () => {
                           ].filter((value) => value !== null),
                         });
                         setSpecificSubmissionInfo(submissionInfo);
-                        setSubmissionInfo(null);
+                        // setSubmissionInfo(null);
                       }}
                     />
                   </a>
@@ -1550,14 +1588,16 @@ const Submissions = () => {
                 <div className="detail-item-content">
                   <Badge
                     color={
-                      submissionInfo.submission.submitted
+                      submissionInfo.submission.submitted || !submissionInfo.submission.fileNeeded
                         ? submissionInfo.submission.isLate
                           ? "darkgreen"
                           : "green"
                         : "orange"
                     }
                     text={
-                      submissionInfo.submission.submitted
+                      !submissionInfo.submission.fileNeeded
+                        ? "לא נדרש קובץ"
+                        : submissionInfo.submission.submitted
                         ? `הוגש${
                             submissionInfo.submission.isLate
                               ? ` באיחור - ${Math.ceil(
