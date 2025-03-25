@@ -15,7 +15,7 @@ import {
   Select,
   Radio,
 } from "antd";
-import { EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
+import { EditOutlined, SaveOutlined, StopOutlined, DeleteOutlined } from "@ant-design/icons";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 import { NotificationsContext } from "../../utils/NotificationsContext";
 import { downloadProjectExcel, downloadGradesExcel } from "../../utils/ProjectTableExcel";
@@ -431,7 +431,7 @@ const SystemControl = () => {
               </Tooltip>
             </Typography.Link>
             <Tooltip title="מחיקה">
-              <StopOutlined className="edit-icon cancel" onClick={() => showDeleteModal(record)} />
+              <DeleteOutlined className="edit-icon cancel" onClick={() => showDeleteModal(record)} />
             </Tooltip>
           </>
         );

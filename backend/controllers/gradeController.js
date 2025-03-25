@@ -122,14 +122,17 @@ export const deleteGradingTable = async (req, res) => {
 
   try {
     const gradingTable = await GradingTable.findOne({ forSubmission: name, year });
-    const submissionWithGradingTable = await Submission.findOne({ gradingTable: gradingTable._id, editable: true });
-    if (submissionWithGradingTable) {
-      return res.status(400).json({ message: "Cannot delete grading table because it is in use" });
-    } else if (!gradingTable) {
+
+    if (!gradingTable) {
       return res.status(404).json({ message: "Grading table not found" });
     }
 
-    await gradingTable.delete();
+    const submissionWithGradingTable = await Submission.findOne({ gradingTable: gradingTable._id, editable: true });
+    if (submissionWithGradingTable) {
+      return res.status(400).json({ message: "Cannot delete grading table because it is in use" });
+    }
+
+    await GradingTable.findByIdAndDelete(gradingTable._id);
 
     res.status(200).json({ message: "Grading table deleted successfully" });
   } catch (error) {
