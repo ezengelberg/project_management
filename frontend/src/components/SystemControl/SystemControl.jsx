@@ -667,6 +667,7 @@ const SystemControl = () => {
           <Table
             style={{ width: "100%" }}
             loading={loading}
+            showSorterTooltip={false}
             components={{
               body: {
                 cell: EditableCell,
