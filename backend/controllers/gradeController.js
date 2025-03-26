@@ -2,6 +2,8 @@ import Grade from "../models/grades.js";
 import Submission from "../models/submission.js";
 import Notification from "../models/notifications.js";
 import GradingTable from "../models/gradingTable.js";
+import User from "../models/users.js";
+import nodemailer from "nodemailer";
 
 // Add new grade
 export const addGrade = async (req, res) => {
@@ -234,12 +236,19 @@ export const updateCalculationMethod = async (req, res) => {
 };
 
 export const publishGrades = async (req, res) => {
-  const { submissionName, group } = req.body;
+  const { submissionName, year, group } = req.body;
+  let usersToSendEmail = [];
   try {
     const submissions = await Submission.find({ name: submissionName }).populate("grades").populate("project");
+    const gradingTable = await GradingTable.findOne({ forSubmission: submissionName, year: year });
+    const filteredSubmissions = submissions.filter((submission) => submission.project.year === year);
     const advisorNotified = new Set();
 
-    for (const submission of submissions) {
+    if (!gradingTable) {
+      return res.status(404).json({ message: "Grading table not found" });
+    }
+
+    for (const submission of filteredSubmissions) {
       if (submission.editable === false) {
         continue;
       }
@@ -251,7 +260,7 @@ export const publishGrades = async (req, res) => {
       // Process all grades first
       for (const grade of submission.grades) {
         if (grade.numericGrade === null && grade.grade !== null) {
-          const numericValueDoc = submission.numericValues.find((nv) => nv.letter === grade.grade);
+          const numericValueDoc = gradingTable.numericValues.find((nv) => nv.letter === grade.grade);
           if (!numericValueDoc) {
             return res.status(400).json({ message: `Missing numeric value for grade ${grade.grade}` });
           }
@@ -278,7 +287,7 @@ export const publishGrades = async (req, res) => {
       if (allGradesHaveNumericValue && grades.length > 0) {
         let finalGrade;
 
-        if (submission.averageCalculation) {
+        if (gradingTable.averageCalculation) {
           // Calculate average
           const sum = grades.reduce((a, b) => a + b, 0);
           finalGrade = Math.round(sum / grades.length);
@@ -311,10 +320,13 @@ export const publishGrades = async (req, res) => {
       await submission.save();
 
       // Create notifications for students
-      const notifications = submission.project.students.map((student) => ({
-        user: student.student,
-        message: `הציון עבור "${submission.name}" פורסם`,
-      }));
+      const notifications = submission.project.students.map((student) => {
+        usersToSendEmail.push(student.student);
+        return {
+          user: student.student,
+          message: `הציון עבור "${submission.name}" פורסם`,
+        };
+      });
 
       // Create notification for advisor if not already notified
       if (!advisorNotified.has(submission.project.advisors[0].toString())) {
@@ -323,14 +335,110 @@ export const publishGrades = async (req, res) => {
           message: `הציון עבור "${submission.name}" פורסם`,
         });
         advisorNotified.add(submission.project.advisors[0].toString());
+        usersToSendEmail.push(submission.project.advisors[0]);
       }
 
       await Notification.insertMany(notifications);
     }
 
     res.status(200).json({ message: "Grades were published" });
+
+    // Send email to students and advisor
+    sendGradesEmail(usersToSendEmail, submissionName);
   } catch (error) {
     console.error("Error while publishing grades:", error);
     res.status(500).json({ message: "Error while publishing grades" });
+  }
+};
+
+export const sendGradesEmail = async (users, submissionName) => {
+  try {
+    if (!Array.isArray(users) || users.length === 0) {
+      console.error("Invalid or empty users array");
+      return;
+    }
+
+    // Find users by their IDs
+    const usersToSendEmail = await User.find({ _id: { $in: users } }).select("email name");
+    if (usersToSendEmail.length === 0) {
+      console.error("No users found for the provided IDs");
+      return;
+    }
+
+    const emails = usersToSendEmail.map((user) => ({
+      email: user.email,
+      name: user.name,
+    }));
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+    });
+
+    for (let i = 0; i < emails.length; i += 10) {
+      const batch = emails.slice(i, i + 10);
+
+      await Promise.all(
+        batch.map(async ({ email, name }) => {
+          const mailOptions = {
+            from: process.env.GMAIL_USER,
+            to: email,
+            subject: `פורסם ציון חדש - ${submissionName}`,
+            html: `
+              <html lang="he" dir="rtl">
+              <head>
+                <meta charset="UTF-8" />
+                <title>פורסם ציון חדש</title>
+              </head>
+              <body>
+                <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+                  <div style="display: flex; align-items: center; align-items: center">
+                    <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+                    <img
+                      src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+                      alt="Project Management Logo"
+                      style="height: 50px" />
+                  </div>
+                  <hr />
+                  <h2 style="color: #333; text-align: center">פורסם ציון חדש!</h2>
+                  <p>שלום ${name},</p>
+                  <p>פורסם ציון עבור "${submissionName}", ניתן לראות את הציון בעמוד ההגשות.</p>
+                  <p>לחץ על הכפתור למעבר לעמוד ההגשות:</p>
+                  <p style="text-align: center">
+                    <a
+                      href="${process.env.FRONTEND_URL}/my-submissions"
+                      style="
+                        display: inline-block;
+                        padding: 10px 15px;
+                        background-color: #007bff;
+                        color: #fff;
+                        text-decoration: none;
+                        border-radius: 3px;
+                      ">
+                      מעבר לעמוד ההגשות
+                    </a>
+                  </p>
+                </div>
+              </body>
+              </html>
+            `,
+          };
+
+          transporter.sendMail(mailOptions, (error) => {
+            if (error) {
+              console.error("Error sending email to:", email, error);
+            }
+          });
+        })
+      );
+
+      // Wait for 11 seconds before sending the next batch
+      await new Promise((resolve) => setTimeout(resolve, 11000));
+    }
+  } catch (error) {
+    console.error("Error in sendGradesEmail:", error);
   }
 };

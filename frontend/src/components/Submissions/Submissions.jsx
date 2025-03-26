@@ -940,7 +940,6 @@ const Submissions = () => {
         };
       })
     );
-    console.log(submissionInfo);
     setSubmissionInfo((prevInfo) => {
       if (prevInfo?.submission?.submissionid === judgeUpdateSubmission.submission.submissionid) {
         const updatedGrades = (prevInfo.submission.grades || []).filter((grade) =>

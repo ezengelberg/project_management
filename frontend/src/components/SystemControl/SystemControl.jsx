@@ -141,13 +141,17 @@ const SystemControl = () => {
           withCredentials: true,
         });
         setSubmissions(response.data);
-        const groups = response.data.reduce((acc, submission) => {
+
+        const thisYearSubmissions = response.data.filter((submission) => submission.projectYear === gradingTableYear);
+
+        const groups = thisYearSubmissions.reduce((acc, submission) => {
           if (!acc[submission.name]) {
             acc[submission.name] = [];
           }
           acc[submission.name].push(submission);
           return acc;
         }, {});
+
         const filteredGroups = Object.keys(groups).reduce((acc, submissionName) => {
           const group = groups[submissionName];
           const checkForGraded = group.filter((submission) => submission.isGraded || submission.isReviewed);
@@ -163,6 +167,7 @@ const SystemControl = () => {
           return acc;
         }, {});
         setSubmissionGroups(filteredGroups);
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching submissions:", error);
@@ -172,7 +177,7 @@ const SystemControl = () => {
     };
 
     fetchSubmissions();
-  }, [refreshSubmissions]);
+  }, [refreshSubmissions, gradingTableYear]);
 
   useEffect(() => {
     setLoading(true);
@@ -224,7 +229,7 @@ const SystemControl = () => {
 
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/update-numeric-values`,
-        { updatedValues, name, year: currentYear },
+        { updatedValues, name, year: gradingTableYear },
         { withCredentials: true }
       );
       message.success("הציון עודכן בהצלחה");
@@ -273,7 +278,7 @@ const SystemControl = () => {
     try {
       await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/publish-grades`,
-        { submissionName, group },
+        { submissionName, year: gradingTableYear, group },
         { withCredentials: true }
       );
       message.success("הציונים/ביקורות הזמינים פורסמו בהצלחה");
@@ -292,10 +297,16 @@ const SystemControl = () => {
   };
 
   const checkZeroGrades = (submissionName, group) => {
-    const groupSubmissions = submissionGroups[submissionName].submissions.filter((submission) => submission.editable);
-    const hasZeroGrade = groupSubmissions.some((submission) =>
-      submission.numericValues.some((grade) => grade.value === 0)
-    );
+    const gradingTable = groupsData.find((table) => table.name === submissionName && table.year === gradingTableYear);
+
+    if (!gradingTable) {
+      message.error("טבלת הציונים לא נמצאה");
+      return;
+    }
+
+    const hasZeroGrade = Object.values(gradingTable)
+      .filter((value) => typeof value === "number")
+      .some((value) => value === 0);
 
     if (hasZeroGrade) {
       setCurrentSubmissionName(submissionName);
@@ -304,6 +315,7 @@ const SystemControl = () => {
       setLoading(false);
       return;
     }
+
     publishGradesForSubmissions(submissionName, group);
   };
 
@@ -311,7 +323,7 @@ const SystemControl = () => {
     try {
       await axios.put(
         `${process.env.REACT_APP_BACKEND_URL}/api/grade/update-calculation-method`,
-        { submissionName, year: currentYear, averageCalculation: value },
+        { submissionName, year: gradingTableYear, averageCalculation: value },
         { withCredentials: true }
       );
 
@@ -330,7 +342,7 @@ const SystemControl = () => {
 
     try {
       await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/grade/delete-grading-table`, {
-        data: { name: gradingTableToDelete.name, year: currentYear },
+        data: { name: gradingTableToDelete.name, year: gradingTableYear },
         withCredentials: true,
       });
       message.success("טבלת הציונים נמחקה בהצלחה");

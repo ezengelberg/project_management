@@ -260,6 +260,7 @@ export const getAllSubmissions = async (req, res) => {
         return {
           ...submission._doc,
           projectName: project ? project.title : null,
+          projectYear: project ? project.year : null,
           gradesDetailed: await Promise.all(
             submission.grades.map(async (grade) => {
               const gradeInfo = await Grade.findById(grade);
