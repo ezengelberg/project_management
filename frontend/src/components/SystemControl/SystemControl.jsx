@@ -156,7 +156,7 @@ const SystemControl = () => {
           const group = groups[submissionName];
           const checkForGraded = group.filter((submission) => submission.isGraded || submission.isReviewed);
           const allGroups = checkForGraded.every((submission) =>
-            submission.gradesDetailed.every((grade) => grade.numericGrade !== undefined && grade.numericGrade !== null)
+            submission.gradesDetailed.every((grade) => grade.editable === false)
           );
           if (!allGroups) {
             acc[submissionName] = {
@@ -282,7 +282,6 @@ const SystemControl = () => {
         { withCredentials: true }
       );
       message.success("הציונים/ביקורות הזמינים פורסמו בהצלחה");
-      fetchGrades();
       setRefreshSubmissions((prev) => !prev);
     } catch (error) {
       console.error("Error ending judging period:", error);

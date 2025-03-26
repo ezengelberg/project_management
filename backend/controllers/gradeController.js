@@ -244,10 +244,6 @@ export const publishGrades = async (req, res) => {
     const filteredSubmissions = submissions.filter((submission) => submission.project.year === year);
     const advisorNotified = new Set();
 
-    if (!gradingTable) {
-      return res.status(404).json({ message: "Grading table not found" });
-    }
-
     for (const submission of filteredSubmissions) {
       if (submission.editable === false) {
         continue;
