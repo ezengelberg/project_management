@@ -35,6 +35,14 @@ router.post("/forgot-password", async (req, res) => {
       },
     });
 
+    // Verify the transporter configuration
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error("SMTP configuration error:", error);
+        return res.status(500).json({ message: "SMTP configuration error" });
+      }
+    });
+
     // Create the reset URL – adjust FRONTEND_URL to your client URL
     const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
 
@@ -93,6 +101,9 @@ router.post("/forgot-password", async (req, res) => {
       return res.json({ message: "Password reset email sent" });
     } catch (error) {
       console.error("Error sending password reset mail:", error);
+      if (error.code === "ESOCKET") {
+        return res.status(500).json({ message: "Connection to email server failed. Please try again later." });
+      }
       return res.status(500).json({ message: "Error sending email" });
     }
   } catch (error) {
@@ -124,6 +135,15 @@ router.post("/create-user", async (req, res) => {
         pass: process.env.GMAIL_PASS,
       },
     });
+
+    // Verify the transporter configuration
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error("SMTP configuration error:", error);
+        return res.status(500).json({ message: "SMTP configuration error" });
+      }
+    });
+
     // Set up email options
     let mailOptions = {
       from: process.env.GMAIL_USER,
@@ -179,6 +199,9 @@ router.post("/create-user", async (req, res) => {
     transporter.sendMail(mailOptions, (error) => {
       if (error) {
         console.error("Error sending welcome email:", error);
+        if (error.code === "ESOCKET") {
+          return res.status(500).json({ message: "Connection to email server failed. Please try again later." });
+        }
         return res.status(500).json({ message: "Error sending email" });
       } else {
         return res.json({ message: "Welcome email sent" });
