@@ -27,8 +27,8 @@ router.post("/forgot-password", async (req, res) => {
     // Create a Nodemailer transporter
     let transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 465, // Use 465 for SSL or 587 for TLS
-      secure: true, // true for SSL, false for TLS
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_PASS,
@@ -117,8 +117,8 @@ router.post("/create-user", async (req, res) => {
     // Create a Nodemailer transporter
     let transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 465, // Use 465 for SSL or 587 for TLS
-      secure: true, // true for SSL, false for TLS
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_PASS,
