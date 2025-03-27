@@ -57,14 +57,16 @@ export const createSubmission = async (req, res) => {
         if (checkExist.length > 0) {
           return; // Skip this project if submission already exists
         }
-        if (project.advisors.length > 0) {
+        if (project.advisors.length > 0 && !req.body.noJudges) {
           newGrade = new Grade({ judge: project.advisors[0]._id });
           gradeByAdvisor = await newGrade.save();
+          const user = await User.findById(project.advisors[0]._id);
+          user.isJudge = true;
+          await user.save();
+        } else if (req.body.noJudges) {
+          newGrade = new Grade({ judge: req.body.currentUser });
+          gradeByAdvisor = await newGrade.save();
         }
-
-        const user = await User.findById(project.advisors[0]._id);
-        user.isJudge = true;
-        await user.save();
 
         const submission = new Submission({
           name: req.body.name,
@@ -73,6 +75,7 @@ export const createSubmission = async (req, res) => {
           grades: [gradeByAdvisor],
           isGraded: req.body.isGraded,
           isReviewed: req.body.isReviewed,
+          noJudges: req.body.noJudges,
           fileNeeded: req.body.fileNeeded,
           submissionInfo: req.body.submissionInfo,
           gradingTable: gradingTable?._id,
@@ -133,14 +136,16 @@ export const createSpecificSubmission = async (req, res) => {
 
         let newGrade;
         let gradeByAdvisor;
-        if (project.advisors.length > 0) {
+        if (project.advisors.length > 0 && !req.body.noJudges) {
           newGrade = new Grade({ judge: project.advisors[0]._id });
           gradeByAdvisor = await newGrade.save();
+          const user = await User.findById(project.advisors[0]._id);
+          user.isJudge = true;
+          await user.save();
+        } else if (req.body.noJudges) {
+          newGrade = new Grade({ judge: req.body.currentUser });
+          gradeByAdvisor = await newGrade.save();
         }
-
-        const user = await User.findById(project.advisors[0]._id);
-        user.isJudge = true;
-        await user.save();
 
         const submission = new Submission({
           name: req.body.name,
@@ -150,6 +155,7 @@ export const createSpecificSubmission = async (req, res) => {
           isGraded: req.body.isGraded,
           isReviewed: req.body.isReviewed,
           fileNeeded: req.body.fileNeeded,
+          noJudges: req.body.noJudges,
           submissionInfo: req.body.submissionInfo,
           gradingTable: gradingTable?._id,
         });
