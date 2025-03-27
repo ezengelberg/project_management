@@ -35,19 +35,6 @@ router.post("/forgot-password", async (req, res) => {
       },
     });
 
-    // Verify the transporter configuration
-    transporter.verify((error, success) => {
-      if (error) {
-        console.error("SMTP configuration error:", error);
-        if (error.code === "EAUTH") {
-          console.error("Authentication failed. Check your GMAIL_USER and GMAIL_PASS environment variables.");
-        } else if (error.code === "ENOTFOUND") {
-          console.error("SMTP host not found. Verify the SMTP host configuration.");
-        }
-        return res.status(500).json({ message: "SMTP configuration error. Please contact support." });
-      }
-    });
-
     // Create the reset URL – adjust FRONTEND_URL to your client URL
     const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
 
@@ -106,11 +93,7 @@ router.post("/forgot-password", async (req, res) => {
       return res.json({ message: "Password reset email sent" });
     } catch (error) {
       console.error("Error sending password reset mail:", error);
-      if (error.code === "ESOCKET") {
-        console.error("Connection to the SMTP server was reset. Check network connectivity or SMTP server status.");
-        return res.status(500).json({ message: "Connection to email server failed. Please try again later." });
-      }
-      return res.status(500).json({ message: "Error sending email. Please contact support." });
+      return res.status(500).json({ message: "Error sending email" });
     }
   } catch (error) {
     console.error("Forgot password error:", error);
@@ -141,20 +124,6 @@ router.post("/create-user", async (req, res) => {
         pass: process.env.GMAIL_PASS,
       },
     });
-
-    // Verify the transporter configuration
-    transporter.verify((error, success) => {
-      if (error) {
-        console.error("SMTP configuration error:", error);
-        if (error.code === "EAUTH") {
-          console.error("Authentication failed. Check your GMAIL_USER and GMAIL_PASS environment variables.");
-        } else if (error.code === "ENOTFOUND") {
-          console.error("SMTP host not found. Verify the SMTP host configuration.");
-        }
-        return res.status(500).json({ message: "SMTP configuration error. Please contact support." });
-      }
-    });
-
     // Set up email options
     let mailOptions = {
       from: process.env.GMAIL_USER,
@@ -210,11 +179,7 @@ router.post("/create-user", async (req, res) => {
     transporter.sendMail(mailOptions, (error) => {
       if (error) {
         console.error("Error sending welcome email:", error);
-        if (error.code === "ESOCKET") {
-          console.error("Connection to the SMTP server was reset. Check network connectivity or SMTP server status.");
-          return res.status(500).json({ message: "Connection to email server failed. Please try again later." });
-        }
-        return res.status(500).json({ message: "Error sending email. Please contact support." });
+        return res.status(500).json({ message: "Error sending email" });
       } else {
         return res.json({ message: "Welcome email sent" });
       }
