@@ -221,6 +221,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               submitted: submission.file ? true : submission.fileNeeded ? false : true,
               isGraded: submission.isGraded,
               isReviewed: submission.isReviewed,
+              noJudges: submission.noJudges,
               fileNeeded: submission.fileNeeded,
               overridden: submission.overridden,
               finalGrade: submission.finalGrade,
