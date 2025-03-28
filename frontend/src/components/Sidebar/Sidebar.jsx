@@ -22,7 +22,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { handleMouseDown } from "../../utils/mouseDown";
 import Chat from "../Chat/Chat";
-import { useSocket } from "../../utils/SocketContext";
+// import { useSocket } from "../../utils/SocketContext";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ const Sidebar = () => {
   const [chatListOpen, setChatListOpen] = useState(false);
   const [selectedChats, setSelectedChats] = useState([]);
   const [chatFilter, setChatFilter] = useState("");
-  const { socket } = useSocket();
+  // const { socket } = useSocket();
   const [openSubmenus, setOpenSubmenus] = useState({
     myProject: false,
     myProjects: false,
@@ -108,100 +108,100 @@ const Sidebar = () => {
     }
   };
 
-  useEffect(() => {
-    if (!socket) return;
-    socket.on("connect", () => {
-      if (chats?.length) {
-        socket.emit(
-          "join_chats",
-          chats.map((chat) => chat._id)
-        );
-      }
-    });
+  // useEffect(() => {
+  //     if (!socket) return;
+  //     socket.on("connect", () => {
+  //         if (chats?.length) {
+  //             socket.emit(
+  //                 "join_chats",
+  //                 chats.map((chat) => chat._id),
+  //             );
+  //         }
+  //     });
 
-    socket.on("reconnect", () => {
-      console.log("Reconnected! Rejoining chats...");
-      if (chats?.length) {
-        socket.emit(
-          "join_chats",
-          chats.map((chat) => chat._id)
-        );
-      }
-    });
+  //     socket.on("reconnect", () => {
+  //         console.log("Reconnected! Rejoining chats...");
+  //         if (chats?.length) {
+  //             socket.emit(
+  //                 "join_chats",
+  //                 chats.map((chat) => chat._id),
+  //             );
+  //         }
+  //     });
 
-    socket.on("receive_chat", (newChat, newMessage) => {
-      setChats((prev) => {
-        const updatedChats = prev.map((chat) => {
-          if (chat._id === newChat._id && chat.lastMessage !== newChat.lastMessage) {
-            if (newMessage.sender._id !== user._id) {
-              chat.unreadTotal++;
-            }
-            return {
-              ...chat,
-              lastMessage: newMessage,
-            };
-          }
-          return chat;
-        });
-        return updatedChats;
-      });
-    });
+  //     socket.on("receive_chat", (newChat, newMessage) => {
+  //         setChats((prev) => {
+  //             const updatedChats = prev.map((chat) => {
+  //                 if (chat._id === newChat._id && chat.lastMessage !== newChat.lastMessage) {
+  //                     if (newMessage.sender._id !== user._id) {
+  //                         chat.unreadTotal++;
+  //                     }
+  //                     return {
+  //                         ...chat,
+  //                         lastMessage: newMessage,
+  //                     };
+  //                 }
+  //                 return chat;
+  //             });
+  //             return updatedChats;
+  //         });
+  //     });
 
-    socket.on("receive_new_chat", (chat) => {
-      setChats((prev) => {
-        const newChats = [chat, ...prev];
-        return newChats;
-      });
-      selectChat(chat);
-      socket.emit("join_chats", [chat._id.toString()]);
-    });
+  //     socket.on("receive_new_chat", (chat) => {
+  //         setChats((prev) => {
+  //             const newChats = [chat, ...prev];
+  //             return newChats;
+  //         });
+  //         selectChat(chat);
+  //         socket.emit("join_chats", [chat._id.toString()]);
+  //     });
 
-    return () => {
-      socket.off("connect");
-      socket.off("reconnect");
-      socket.off("receive_chat");
-    };
-  }, [socket, chats, user]);
+  //     return () => {
+  //         socket.off("connect");
+  //         socket.off("reconnect");
+  //         socket.off("receive_chat");
+  //     };
+  // }, [socket, chats, user]);
 
-  const fetchChats = async () => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/`, {
-        withCredentials: true,
-      });
-      setChats(response.data.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)));
-      // returning for socket purposes
-      // return response.data;
+  // const fetchChats = async () => {
+  //     try {
+  //         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/`, {
+  //             withCredentials: true,
+  //         });
+  //         setChats(response.data.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)));
+  //         // returning for socket purposes
+  //         // return response.data;
 
-      if (socket && response.data.length) {
-        socket.emit(
-          "join_chats",
-          response.data.map((chat) => chat._id)
-        );
-      }
-    } catch (error) {
-      console.error("Error occurred:", error);
-    }
-  };
+  //         if (socket && response.data.length) {
+  //             socket.emit(
+  //                 "join_chats",
+  //                 response.data.map((chat) => chat._id),
+  //             );
+  //         }
+  //     } catch (error) {
+  //         console.error("Error occurred:", error);
+  //     }
+  // };
 
-  const handleCreateChat = async (chatID) => {
-    setSelectedChats((prev) => {
-      return prev.filter((chat) => chat !== "new");
-    });
+  // const handleCreateChat = async (chatID) => {
+  //     setSelectedChats((prev) => {
+  //         return prev.filter((chat) => chat !== "new");
+  //     });
 
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/${chatID}`, {
-        withCredentials: true,
-      });
-      setChats((prev) => {
-        const newChats = [response.data, ...prev];
-        return newChats;
-      });
-      selectChat(response.data);
-      socket.emit("join_chats", [chatID]);
-    } catch (error) {
-      console.error("Error occurred:", error);
-    }
-  };
+  //     try {
+  //         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/chat/${chatID}`, {
+  //             withCredentials: true,
+  //         });
+  //         setChats((prev) => {
+  //             const newChats = [response.data, ...prev];
+  //             return newChats;
+  //         });
+  //         selectChat(response.data);
+  //         socket.emit("join_chats", [chatID]);
+  //     } catch (error) {
+  //         console.error("Error occurred:", error);
+  //     }
+  // };
 
   const ChevronSVG = () => (
     <svg className="chevron" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -340,7 +340,7 @@ const Sidebar = () => {
   );
 
   useEffect(() => {
-    fetchChats();
+    // fetchChats();
     loadUser();
   }, []);
 
@@ -371,7 +371,7 @@ const Sidebar = () => {
       const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/logout`, null, {
         withCredentials: true,
       });
-      if (socket && socket.connected) socket.disconnect();
+      // if (socket && socket.connected) socket.disconnect();
       navigate("/login", { replace: true });
       localStorage.removeItem("user");
       sessionStorage.removeItem("user");
@@ -769,136 +769,145 @@ const Sidebar = () => {
         </div>
       </div>
 
-      <div className="chat-list-container">
-        <div className={`chat-list ${chatListOpen ? "open" : ""}`}>
-          <div className="header">
-            <div className="right-side">
-              <MessageSVG />
-              <span>צ'אטים</span>
-              <div className="svg-msg-icon">
-                {chats.some((c) => c.unreadTotal > 0) && (
-                  <Badge
-                    count={chats.reduce((total, c) => total + c.unreadTotal, 0)}
-                    style={{ border: "none", boxShadow: "none" }}
-                  />
-                )}
-              </div>
-            </div>
-            <div className="left-side">
-              <div className="new-message-chat" onClick={() => selectChat("new")}>
-                <WriteMessageSVG />
-              </div>
-              <div
-                className="open-close-chat"
-                onClick={() => {
-                  setChatListOpen(!chatListOpen);
-                }}>
-                <ChevronSVG />
-              </div>
-            </div>
-          </div>
-          {chatListOpen && (
-            <>
-              <div className="filter-chat">
-                <div className="search-wrapper">
-                  <SearchOutlined />
-                  <input
-                    type="text"
-                    placeholder="חפש שיחות..."
-                    onChange={(e) => {
-                      setChatFilter(e.target.value.toLowerCase());
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="chat-list-items">
-                {chats.length === 0 && <p>אין שיחות זמינות</p>}
-                {chats
-                  .filter((chat) => {
-                    const title =
-                      chat.participants.length === 2
-                        ? chat.participants.filter((p) => p._id !== user._id)[0].name
-                        : chat.chatName
-                        ? chat.chatName
-                        : chat.participants.map((p) => p.name).join(", ");
-
-                    return title.toLowerCase().includes(chatFilter);
-                  })
-                  .map((chat) => {
-                    return (
-                      <div key={chat._id} className="chat-item" onClick={() => selectChat(chat)}>
-                        <div className="chat-header">
-                          <span className="chat-title">
-                            {chat.participants.length === 2
-                              ? chat.participants.filter((p) => p._id !== user._id)[0].name
-                              : chat.chatName
-                              ? chat.chatName
-                              : (() => {
-                                  let title = chat.participants.map((p) => p.name).join(", ");
-                                  if (title.length > 40) title = title.substring(0, 40).concat("...");
-                                  return title;
-                                })()}
-                          </span>
-                        </div>
-                        <div className="message-description">
-                          <div className="last-message">
-                            <div
-                              className={`seen ${
-                                chat.lastMessage?.seenBy?.length === chat.participants.length ? "all" : ""
-                              }`}>
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 960">
-                                <g transform="translate(0, 960)">
-                                  <path
-                                    d="M268-240 42-466l57-56 170 170 56 56-57 56Zm226 0L268-466l56-57 170 170 368-368 56 57-424 424Zm0-226-57-56 198-198 57 56-198 198Z"
-                                    fill="#666"
-                                  />
-                                </g>
-                              </svg>
+      {/* <div className="chat-list-container">
+                <div className={`chat-list ${chatListOpen ? "open" : ""}`}>
+                    <div className="header">
+                        <div className="right-side">
+                            <MessageSVG />
+                            <span>צ'אטים</span>
+                            <div className="svg-msg-icon">
+                                {chats.some((c) => c.unreadTotal > 0) && (
+                                    <Badge
+                                        count={chats.reduce((total, c) => total + c.unreadTotal, 0)}
+                                        style={{ border: "none", boxShadow: "none" }}
+                                    />
+                                )}
                             </div>
-                            <span className="last-message-content">
-                              {chat?.lastMessage?.sender?.name}:{" "}
-                              {chat?.lastMessage?.message?.length > 10
-                                ? `${chat?.lastMessage?.message?.substring(0, 50)}...`
-                                : chat?.lastMessage?.message}
-                            </span>
-                          </div>
                         </div>
-                        {chat.unreadTotal > 0 && (
-                          <div className="unread-total">
-                            <Badge count={chat?.unreadTotal} color="#1daa61" />
-                          </div>
-                        )}
-                      </div>
+                        <div className="left-side">
+                            <div className="new-message-chat" onClick={() => selectChat("new")}>
+                                <WriteMessageSVG />
+                            </div>
+                            <div
+                                className="open-close-chat"
+                                onClick={() => {
+                                    setChatListOpen(!chatListOpen);
+                                }}>
+                                <ChevronSVG />
+                            </div>
+                        </div>
+                    </div>
+                    {chatListOpen && (
+                        <>
+                            <div className="filter-chat">
+                                <div className="search-wrapper">
+                                    <SearchOutlined />
+                                    <input
+                                        type="text"
+                                        placeholder="חפש שיחות..."
+                                        onChange={(e) => {
+                                            setChatFilter(e.target.value.toLowerCase());
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            <div className="chat-list-items">
+                                {chats.length === 0 && <p>אין שיחות זמינות</p>}
+                                {chats
+                                    .filter((chat) => {
+                                        const title =
+                                            chat.participants.length === 2
+                                                ? chat.participants.filter((p) => p._id !== user._id)[0].name
+                                                : chat.chatName
+                                                ? chat.chatName
+                                                : chat.participants.map((p) => p.name).join(", ");
+
+                                        return title.toLowerCase().includes(chatFilter);
+                                    })
+                                    .map((chat) => {
+                                        return (
+                                            <div key={chat._id} className="chat-item" onClick={() => selectChat(chat)}>
+                                                <div className="chat-header">
+                                                    <span className="chat-title">
+                                                        {chat.participants.length === 2
+                                                            ? chat.participants.filter((p) => p._id !== user._id)[0]
+                                                                  .name
+                                                            : chat.chatName
+                                                            ? chat.chatName
+                                                            : (() => {
+                                                                  let title = chat.participants
+                                                                      .map((p) => p.name)
+                                                                      .join(", ");
+                                                                  if (title.length > 40)
+                                                                      title = title.substring(0, 40).concat("...");
+                                                                  return title;
+                                                              })()}
+                                                    </span>
+                                                </div>
+                                                <div className="message-description">
+                                                    <div className="last-message">
+                                                        <div
+                                                            className={`seen ${
+                                                                chat.lastMessage?.seenBy?.length ===
+                                                                chat.participants.length
+                                                                    ? "all"
+                                                                    : ""
+                                                            }`}>
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                viewBox="0 0 960 960">
+                                                                <g transform="translate(0, 960)">
+                                                                    <path
+                                                                        d="M268-240 42-466l57-56 170 170 56 56-57 56Zm226 0L268-466l56-57 170 170 368-368 56 57-424 424Zm0-226-57-56 198-198 57 56-198 198Z"
+                                                                        fill="#666"
+                                                                    />
+                                                                </g>
+                                                            </svg>
+                                                        </div>
+                                                        <span className="last-message-content">
+                                                            {chat?.lastMessage?.sender?.name}:{" "}
+                                                            {chat?.lastMessage?.message?.length > 10
+                                                                ? `${chat?.lastMessage?.message?.substring(0, 50)}...`
+                                                                : chat?.lastMessage?.message}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                {chat.unreadTotal > 0 && (
+                                                    <div className="unread-total">
+                                                        <Badge count={chat?.unreadTotal} color="#1daa61" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                        </>
+                    )}
+                </div>
+                {selectedChats.map((chat) => {
+                    return (
+                        <Chat
+                            key={chat._id || "new"}
+                            chatID={chat}
+                            onClose={() => {
+                                setSelectedChats((prev) => prev.filter((c) => c._id !== chat._id));
+                            }}
+                            onWatch={() => {
+                                setChats((prevChats) => {
+                                    const updatedChats = prevChats.map((c) => {
+                                        if (c._id.toString() === chat._id.toString()) {
+                                            c.unreadTotal = c.unreadTotal ? c.unreadTotal - 1 : 0;
+                                        }
+                                        return c;
+                                    });
+                                    return updatedChats;
+                                });
+                            }}
+                            onCreateChat={handleCreateChat}
+                        />
                     );
-                  })}
-              </div>
-            </>
-          )}
-        </div>
-        {selectedChats.map((chat) => {
-          return (
-            <Chat
-              key={chat._id || "new"}
-              chatID={chat}
-              onClose={() => {
-                setSelectedChats((prev) => prev.filter((c) => c._id !== chat._id));
-              }}
-              onWatch={() => {
-                setChats((prevChats) => {
-                  const updatedChats = prevChats.map((c) => {
-                    if (c._id.toString() === chat._id.toString()) {
-                      c.unreadTotal = c.unreadTotal ? c.unreadTotal - 1 : 0;
-                    }
-                    return c;
-                  });
-                  return updatedChats;
-                });
-              }}
-              onCreateChat={handleCreateChat}
-            />
-          );
-        })}
-      </div>
+                })}
+            </div> */}
     </>
   );
 };
