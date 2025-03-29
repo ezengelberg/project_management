@@ -125,7 +125,6 @@ const Projects = () => {
         </div>
       ) : (
         <div className="projects">
-          <h2>רשימת פרויקטים</h2>
           <div className="list-projects">
             {projects.length > 0 ? (
               projects.map((project) => (
