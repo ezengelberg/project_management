@@ -1763,9 +1763,11 @@ const Submissions = () => {
             <p>
               <strong>איכות הכתיבה:</strong> {renderTextWithNewlines(showReview?.writingQuality)}
             </p>
-            <p>
-              <strong>מספר הקומיטים:</strong> {showReview?.commits}
-            </p>
+            {showReview?.commits && (
+              <p>
+                <strong>מספר הקומיטים:</strong> {showReview?.commits}
+              </p>
+            )}
             {showReview?.journalActive && (
               <p>
                 <strong>האם היומן פעיל:</strong>{" "}
