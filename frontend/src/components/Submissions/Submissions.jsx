@@ -1542,7 +1542,35 @@ const Submissions = () => {
         </Form>
       </Modal>
       <Modal
-        title={`פרטי ההגשה עבור: ${submissionInfo?.project.title} - ${submissionInfo?.submission.name}`}
+        title={
+          <div className="submission-header">
+            <div className="header-title">
+              <h2>{submissionInfo?.project.title}</h2>
+              <Tooltip
+                title={`עריכת פרטי הגשה עבור ${submissionInfo?.submission.name} של ${submissionInfo?.project.title}`}>
+                <a href="#">
+                  <EditOutlined
+                    className="edit-icon"
+                    onClick={() => {
+                      editSpecificSubmission.setFieldsValue({
+                        projectName: submissionInfo?.project.title,
+                        submissionName: submissionInfo?.submission.name,
+                        submissionDate: dayjs(submissionInfo?.submission.submissionDate),
+                        submissionChecklist: [
+                          submissionInfo?.submission.isGraded ? "isGraded" : null,
+                          submissionInfo?.submission.isReviewed ? "isReviewed" : null,
+                          submissionInfo?.submission.fileNeeded ? "fileNeeded" : null,
+                          submissionInfo?.submission.noJudges ? "noJudges" : null,
+                        ].filter((value) => value !== null),
+                      });
+                      setSpecificSubmissionInfo(submissionInfo);
+                    }}
+                  />
+                </a>
+              </Tooltip>
+            </div>
+          </div>
+        }
         open={submissionInfo !== null}
         onCancel={() => setSubmissionInfo(null)}
         footer={
@@ -1563,33 +1591,6 @@ const Submissions = () => {
         width={800}>
         {submissionInfo && (
           <div className="submission-info-modal">
-            <div className="submission-header">
-              <div className="header-title">
-                <h2>{submissionInfo.project.title}</h2>
-                <Tooltip
-                  title={`עריכת פרטי הגשה עבור ${submissionInfo.submission.name} של ${submissionInfo.project.title}`}>
-                  <a href="#">
-                    <EditOutlined
-                      className="edit-icon"
-                      onClick={() => {
-                        editSpecificSubmission.setFieldsValue({
-                          projectName: submissionInfo.project.title,
-                          submissionName: submissionInfo.submission.name,
-                          submissionDate: dayjs(submissionInfo.submission.submissionDate),
-                          submissionChecklist: [
-                            submissionInfo.submission.isGraded ? "isGraded" : null,
-                            submissionInfo.submission.isReviewed ? "isReviewed" : null,
-                            submissionInfo.submission.fileNeeded ? "fileNeeded" : null,
-                            submissionInfo.submission.noJudges ? "noJudges" : null,
-                          ].filter((value) => value !== null),
-                        });
-                        setSpecificSubmissionInfo(submissionInfo);
-                      }}
-                    />
-                  </a>
-                </Tooltip>
-              </div>
-            </div>
             <div className="submission-details">
               <div className="detail-item">
                 <div className="detail-item-header">שם ההגשה:</div>
@@ -1735,15 +1736,17 @@ const Submissions = () => {
         )}
       </Modal>
       <Modal
-        title={`משוב עבור הגשה ${submissionInfo?.submission?.name} של ${submissionInfo?.project?.title}`}
+        title={submissionInfo?.project?.title}
         open={showReview !== null}
         cancelText="סגור"
         onCancel={() => setShowReview(null)}
         okButtonProps={{ style: { display: "none" } }}>
-        <div className="details-title">
-          <h3>{submissionInfo?.project?.title}</h3>
-          <p>הגשה - {submissionInfo?.submission?.name}</p>
-          <p>נבדק ע"י: {showReview?.judgeName}</p>
+        <div className="details-title-header">
+          <p>
+            הגשה - {submissionInfo?.submission?.name}
+            <br />
+            נבדק ע"י: {showReview?.judgeName}
+          </p>
         </div>
         <div className="details-grade">
           {submissionInfo?.submission?.isGraded && (

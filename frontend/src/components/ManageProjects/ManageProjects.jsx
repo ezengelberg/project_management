@@ -590,7 +590,7 @@ const ManageProjects = () => {
       );
       message.open({
         type: "success",
-        content: `הפרויקט ${response.data.project.title} עודכן בהצלחה`,
+        content: `הפרויקט עודכן בהצלחה`,
         duration: 2,
       });
       const projectUpdate = projects.map(
