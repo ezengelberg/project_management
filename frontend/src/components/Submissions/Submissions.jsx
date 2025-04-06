@@ -1091,7 +1091,7 @@ const Submissions = () => {
       <Modal
         open={updateJudgesModal}
         onOk={handleUpdateJudge}
-        title={`עדכון שופטים להגשה ${judgeUpdateSubmission?.submission?.name} של ${judgeUpdateSubmission?.project?.title}`}
+        title={`עדכון שופטים`}
         onCancel={() => setUpdateJudgesModal(false)}
         cancelText="ביטול"
         okText="עדכן שופטים"
@@ -1399,7 +1399,7 @@ const Submissions = () => {
         </p>
       </Modal>
       <Modal
-        title={`עריכת פרטי הגשה עבור ${specificSubmissionInfo?.project.title} - ${specificSubmissionInfo?.submission.name}`}
+        title={`עריכת פרטי הגשה`}
         open={specificSubmissionInfo !== null}
         cancelText="סגור"
         okText="עדכן"
@@ -1546,8 +1546,7 @@ const Submissions = () => {
           <div className="submission-header">
             <div className="header-title">
               <h2>{submissionInfo?.project.title}</h2>
-              <Tooltip
-                title={`עריכת פרטי הגשה עבור ${submissionInfo?.submission.name} של ${submissionInfo?.project.title}`}>
+              <Tooltip title={`עריכת פרטי הגשה`}>
                 <a href="#">
                   <EditOutlined
                     className="edit-icon"
@@ -1709,7 +1708,7 @@ const Submissions = () => {
               <div className="grades-title">
                 <h3>ציונים ומשובים</h3>
                 {(submissionInfo.submission.isGraded || submissionInfo.submission.isReviewed) && (
-                  <Tooltip title="שינוי שופטים">
+                  <Tooltip title="עדכון שופטים">
                     {" "}
                     <UserSwitchOutlined
                       onClick={() => {
