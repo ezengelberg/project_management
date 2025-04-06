@@ -53,7 +53,6 @@ const MoreInformation = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
-  const [gradesData, setGradesData] = useState([]);
   const [gradeWeightDescription, setGradeWeightDescription] = useState("");
   const [randomText, setRandomText] = useState("");
   const [randomTextId, setRandomTextId] = useState(null);
@@ -76,7 +75,7 @@ const MoreInformation = () => {
   const [tableData, setTableData] = useState([]);
   const [allTables, setAllTables] = useState([]);
   const [years, setYears] = useState([]);
-  const [selectedTable, setSelectedTable] = useState("");
+  const [selectedTable, setSelectedTable] = useState(null);
   const [selectedYear, setSelectedYear] = useState("");
   const [classNames, setClassNames] = useState({
     class1: "כיתה 1",
@@ -1006,7 +1005,7 @@ const MoreInformation = () => {
         class4: "כיתה 4",
       });
       getExamTables();
-      setSelectedTable("");
+      setSelectedTable(null);
       setEditExamTableClicked(false);
       setExamDates([]);
       setCurrentPage(1);

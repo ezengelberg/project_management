@@ -7,20 +7,32 @@ const verifyRecaptcha = async (req, res, next) => {
     return res.status(400).json({ message: "reCAPTCHA token is missing" });
   }
 
+  if (!process.env.RECAPTCHA_SECRET_KEY) {
+    console.error("RECAPTCHA_SECRET_KEY is not set in the environment variables");
+    return res.status(500).json({ message: "Server configuration error" });
+  }
+
   try {
     const response = await axios.post(
       `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`
     );
 
-    const { success } = response.data;
+    const { success, "error-codes": errorCodes } = response.data;
 
     if (!success) {
-      return res.status(400).json({ message: "reCAPTCHA verification failed" });
+      console.error("reCAPTCHA verification failed:", errorCodes);
+      return res.status(400).json({ message: "reCAPTCHA verification failed", errorCodes });
     }
 
     next();
   } catch (error) {
-    console.error("reCAPTCHA verification error:", error);
+    if (error.response) {
+      console.error("reCAPTCHA verification failed with response:", error.response.data);
+    } else if (error.request) {
+      console.error("No response received from reCAPTCHA server:", error.request);
+    } else {
+      console.error("Error setting up reCAPTCHA request:", error.message);
+    }
     return res.status(500).json({ message: "reCAPTCHA verification error" });
   }
 };

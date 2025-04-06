@@ -859,7 +859,7 @@ const ShowAllUsers = () => {
       </Modal>
 
       <Modal
-        title={<h3 className="suspend-title">השעית משתמש: {suspensionDetails.name}</h3>}
+        title={`השעית משתמש: ${suspensionDetails.name}`}
         open={isSuspending}
         onOk={() => handleSuspend()}
         onCancel={() => handleCancelSuspend()}
