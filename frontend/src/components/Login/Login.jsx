@@ -108,6 +108,8 @@ const Login = () => {
       if (error.response) {
         if (error.response.status === 403) {
           setErrorMessage("משתמש מושהה, פנה למנהל הפרויקטים");
+        } else if (error.response.status === 401) {
+          setErrorMessage("אימייל או סיסמה שגויים");
         } else {
           setErrorMessage(error.response.data.message || "שגיאה בהתחברות");
         }
