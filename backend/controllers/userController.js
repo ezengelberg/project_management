@@ -89,8 +89,8 @@ export const registerMultiple = async (req, res) => {
     }
     res.status(201).send({ message: "Users registered successfully", existingUsers });
 
-    // Send email to new users
-    sendEmailsToNewUsers(newUsers);
+    // // Send email to new users
+    // sendEmailsToNewUsers(newUsers);
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
