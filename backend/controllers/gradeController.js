@@ -339,8 +339,8 @@ export const publishGrades = async (req, res) => {
 
     res.status(200).json({ message: "Grades were published" });
 
-    // Send email to students and advisor
-    sendGradesEmail(usersToSendEmail, submissionName);
+    // // Send email to students and advisor
+    // sendGradesEmail(usersToSendEmail, submissionName);
   } catch (error) {
     console.error("Error while publishing grades:", error);
     res.status(500).json({ message: "Error while publishing grades" });

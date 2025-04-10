@@ -384,49 +384,49 @@ export const approveCandidate = async (req, res) => {
     });
     await notification.save();
 
-    // Send email to the user
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
-      },
-    });
+    // // Send email to the user
+    // const transporter = nodemailer.createTransport({
+    //   service: "gmail",
+    //   auth: {
+    //     user: process.env.GMAIL_USER,
+    //     pass: process.env.GMAIL_PASS,
+    //   },
+    // });
 
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to: user.email,
-      subject: "🎉 התקבלת לפרויקט - מערכת לניהול פרויקטים",
-      html: `
-        <html lang="he" dir="rtl">
-        <head>
-          <meta charset="UTF-8" />
-          <title>התקבלת לפרויקט</title>
-        </head>
-        <body>
-          <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
-      <div style="display: flex; align-items: center; align-items: center;">
-        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
-        <img
-          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
-          alt="Project Management Logo"
-          style="height: 50px" />
-      </div>
-      <hr />
-            <h2 style="color: #333; text-align: center">🎉 התקבלת לפרויקט</h2>
-            <p>שלום ${user.name},</p>
-            <p>התקבלת לפרויקט: ${project.title}, בהצלחה!</p>
-          </div>
-        </body>
-        </html>
-      `,
-    };
+    // const mailOptions = {
+    //   from: process.env.GMAIL_USER,
+    //   to: user.email,
+    //   subject: "🎉 התקבלת לפרויקט - מערכת לניהול פרויקטים",
+    //   html: `
+    //     <html lang="he" dir="rtl">
+    //     <head>
+    //       <meta charset="UTF-8" />
+    //       <title>התקבלת לפרויקט</title>
+    //     </head>
+    //     <body>
+    //       <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+    //   <div style="display: flex; align-items: center; align-items: center;">
+    //     <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+    //     <img
+    //       src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+    //       alt="Project Management Logo"
+    //       style="height: 50px" />
+    //   </div>
+    //   <hr />
+    //         <h2 style="color: #333; text-align: center">🎉 התקבלת לפרויקט</h2>
+    //         <p>שלום ${user.name},</p>
+    //         <p>התקבלת לפרויקט: ${project.title}, בהצלחה!</p>
+    //       </div>
+    //     </body>
+    //     </html>
+    //   `,
+    // };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error sending acceptance email:", error);
-      }
-    });
+    // transporter.sendMail(mailOptions, (error, info) => {
+    //   if (error) {
+    //     console.error("Error sending acceptance email:", error);
+    //   }
+    // });
 
     res.status(200).send(`Candidate ${candidate.student} approved successfully`);
   } catch (err) {
@@ -571,7 +571,7 @@ export const addAdvisorToProject = async (req, res) => {
     const notification = new Notification({
       user: req.body.advisorID,
       message: `התווספת כמנחה לפרויקט: ${project.title}`,
-      link: `/project/${project._id}`,
+      link: `/list-projects`,
     });
     notification.save();
 
@@ -598,7 +598,7 @@ export const updateAdvisorInProject = async (req, res) => {
     if (currentAdvisor !== advisorID) {
       const notification = new Notification({
         user: currentAdvisor,
-        message: `הוסרת כמנחה של פרויקט: ${project.title}`,
+        message: `הוסרת מהנחיית הפרויקט: ${project.title}`,
         link: `/project/${project._id}`,
       });
       notification.save();
@@ -609,7 +609,7 @@ export const updateAdvisorInProject = async (req, res) => {
     const notification = new Notification({
       user: advisorID,
       message: `התווספת כמנחה לפרויקט: ${project.title}`,
-      link: `/project/${project._id}`,
+      link: `/list-projects`,
     });
     notification.save();
 
@@ -633,7 +633,6 @@ export const terminateProject = async (req, res) => {
         const notification = new Notification({
           user: student.student,
           message: `הפרויקט: ${project.title} בו אתה רשום בוטל`,
-          link: `/project/${project._id}`,
         });
         await notification.save();
       }),
@@ -641,7 +640,6 @@ export const terminateProject = async (req, res) => {
         const notification = new Notification({
           user: advisor,
           message: `הפרויקט: ${project.title} שאתה מנחה בוטל`,
-          link: `/project/${project._id}`,
         });
         await notification.save();
       }),
@@ -1494,7 +1492,7 @@ export const suggestProject = async (req, res) => {
       filteredStudentIds.map(async (studentId) => {
         const notification = new Notification({
           user: studentId,
-          message: `הצעת פרויקט: ${title}`,
+          message: `צורפת להצעת פרויקט ע"י: ${req.user.name}`,
           link: `/project/${savedProject._id}`,
         });
         await notification.save();
@@ -1507,7 +1505,7 @@ export const suggestProject = async (req, res) => {
         const notification = new Notification({
           user: coordinator._id,
           message: `פרויקט מחכה לאישור: ${title}`,
-          link: `/project/${savedProject._id}`,
+          link: `/approve-projects`,
         });
         await notification.save();
       })
@@ -1577,52 +1575,52 @@ export const approveProjectSuggestion = async (req, res) => {
     });
     await notification.save();
 
-    const user = await User.findById(project.studentSuggestions.suggestedBy._id);
+    // const user = await User.findById(project.studentSuggestions.suggestedBy._id);
 
-    // Send email to the user
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
-      },
-    });
+    // // Send email to the user
+    // const transporter = nodemailer.createTransport({
+    //   service: "gmail",
+    //   auth: {
+    //     user: process.env.GMAIL_USER,
+    //     pass: process.env.GMAIL_PASS,
+    //   },
+    // });
 
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to: user.email,
-      subject: "✅ הצעת הפרויקט אושרה - מערכת לניהול פרויקטים",
-      html: `
-        <html lang="he" dir="rtl">
-        <head>
-          <meta charset="UTF-8" />
-          <title>הצעת הפרויקט אושרה</title>
-        </head>
-        <body>
-          <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
-      <div style="display: flex; align-items: center; align-items: center;">
-        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
-        <img
-          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
-          alt="Project Management Logo"
-          style="height: 50px" />
-      </div>
-      <hr />
-            <h2 style="color: #333; text-align: center">✅ הצעת הפרויקט אושרה</h2>
-            <p>שלום ${user.name},</p>
-            <p>הצעת הפרויקט שלך: ${project.title} אושרה בהצלחה!</p>
-            <p>הישאר בקשר עם רכז הפרויקטים בנוגע לשיבוץ מנחה וקבלת הכוונה לפרויקט.</p>
-          </div>
-        </body>
-        </html>
-      `,
-    };
+    // const mailOptions = {
+    //   from: process.env.GMAIL_USER,
+    //   to: user.email,
+    //   subject: "✅ הצעת הפרויקט אושרה - מערכת לניהול פרויקטים",
+    //   html: `
+    //     <html lang="he" dir="rtl">
+    //     <head>
+    //       <meta charset="UTF-8" />
+    //       <title>הצעת הפרויקט אושרה</title>
+    //     </head>
+    //     <body>
+    //       <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+    //   <div style="display: flex; align-items: center; align-items: center;">
+    //     <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+    //     <img
+    //       src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+    //       alt="Project Management Logo"
+    //       style="height: 50px" />
+    //   </div>
+    //   <hr />
+    //         <h2 style="color: #333; text-align: center">✅ הצעת הפרויקט אושרה</h2>
+    //         <p>שלום ${user.name},</p>
+    //         <p>הצעת הפרויקט שלך: ${project.title} אושרה בהצלחה!</p>
+    //         <p>הישאר בקשר עם רכז הפרויקטים בנוגע לשיבוץ מנחה וקבלת הכוונה לפרויקט.</p>
+    //       </div>
+    //     </body>
+    //     </html>
+    //   `,
+    // };
 
-    transporter.sendMail(mailOptions, (error) => {
-      if (error) {
-        console.error("Error sending approval email:", error);
-      }
-    });
+    // transporter.sendMail(mailOptions, (error) => {
+    //   if (error) {
+    //     console.error("Error sending approval email:", error);
+    //   }
+    // });
 
     res.status(200).json(project);
   } catch (error) {
@@ -1655,55 +1653,55 @@ export const rejectProjectSuggestion = async (req, res) => {
     });
     await notification.save();
 
-    const user = await User.findById(project.studentSuggestions.suggestedBy._id);
+    // const user = await User.findById(project.studentSuggestions.suggestedBy._id);
 
-    // Send email to the user
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
-      },
-    });
+    // // Send email to the user
+    // const transporter = nodemailer.createTransport({
+    //   service: "gmail",
+    //   auth: {
+    //     user: process.env.GMAIL_USER,
+    //     pass: process.env.GMAIL_PASS,
+    //   },
+    // });
 
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to: user.email,
-      subject: "הצעת הפרויקט נדחתה - מערכת לניהול פרויקטים",
-      html: `
-        <html lang="he" dir="rtl">
-        <head>
-          <meta charset="UTF-8" />
-          <title>הצעת הפרויקט נדחתה</title>
-        </head>
-        <body>
-          <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
-      <div style="display: flex; align-items: center; align-items: center;">
-        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
-        <img
-          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
-          alt="Project Management Logo"
-          style="height: 50px" />
-      </div>
-      <hr />
-            <h2 style="color: #333; text-align: center">הצעת הפרויקט נדחתה</h2>
-            <p>שלום ${user.name},</p>
-            <p>הצעת הפרויקט שלך: ${project.title} נדחתה.</p>
-            <p>סיבה: ${req.body.reason ? req.body.reason : "לא ניתנה סיבה."}</p>
-            <p>אם יש לך שאלות נוספות, אנא פנה לרכז הפרויקטים.</p>
-            <hr />
-            <p>ביכולתך להציע פרויקט חדש בכל עת.</p>
-          </div>
-        </body>
-        </html>
-      `,
-    };
+    // const mailOptions = {
+    //   from: process.env.GMAIL_USER,
+    //   to: user.email,
+    //   subject: "הצעת הפרויקט נדחתה - מערכת לניהול פרויקטים",
+    //   html: `
+    //     <html lang="he" dir="rtl">
+    //     <head>
+    //       <meta charset="UTF-8" />
+    //       <title>הצעת הפרויקט נדחתה</title>
+    //     </head>
+    //     <body>
+    //       <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+    //   <div style="display: flex; align-items: center; align-items: center;">
+    //     <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+    //     <img
+    //       src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+    //       alt="Project Management Logo"
+    //       style="height: 50px" />
+    //   </div>
+    //   <hr />
+    //         <h2 style="color: #333; text-align: center">הצעת הפרויקט נדחתה</h2>
+    //         <p>שלום ${user.name},</p>
+    //         <p>הצעת הפרויקט שלך: ${project.title} נדחתה.</p>
+    //         <p>סיבה: ${req.body.reason ? req.body.reason : "לא ניתנה סיבה."}</p>
+    //         <p>אם יש לך שאלות נוספות, אנא פנה לרכז הפרויקטים.</p>
+    //         <hr />
+    //         <p>ביכולתך להציע פרויקט חדש בכל עת.</p>
+    //       </div>
+    //     </body>
+    //     </html>
+    //   `,
+    // };
 
-    transporter.sendMail(mailOptions, (error) => {
-      if (error) {
-        console.error("Error sending rejection email:", error);
-      }
-    });
+    // transporter.sendMail(mailOptions, (error) => {
+    //   if (error) {
+    //     console.error("Error sending rejection email:", error);
+    //   }
+    // });
 
     res.status(200).json(project);
   } catch (error) {

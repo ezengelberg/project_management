@@ -87,7 +87,7 @@ export const createSubmission = async (req, res) => {
           project.students.map(async (student) => {
             const notification = new Notification({
               user: student.student,
-              message: `נוצרה הגשה חדשה: ${req.body.name}`,
+              message: `הגשה חדשה: ${req.body.name}`,
               link: "/my-submissions",
             });
             studentsToSendEmail.push(student.student);
@@ -98,8 +98,8 @@ export const createSubmission = async (req, res) => {
     );
     res.status(201).json({ message: "Submissions created successfully" });
 
-    // Send emails in the background
-    sendSubmissionEmail(req.body.name, submissionDate, studentsToSendEmail);
+    // // Send emails in the background
+    // sendSubmissionEmail(req.body.name, submissionDate, studentsToSendEmail);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -166,7 +166,7 @@ export const createSpecificSubmission = async (req, res) => {
           project.students.map(async (student) => {
             const notification = new Notification({
               user: student.student,
-              message: `נוצרה הגשה חדשה: ${req.body.name}`,
+              message: `הגשה חדשה: ${req.body.name}`,
               link: "/my-submissions",
             });
             studentsToSendEmail.push(student.student);
@@ -177,8 +177,8 @@ export const createSpecificSubmission = async (req, res) => {
     );
     res.status(201).json({ message: "Submissions created successfully" });
 
-    // Send emails in the background
-    sendSubmissionEmail(req.body.name, submissionDate, studentsToSendEmail);
+    // // Send emails in the background
+    // sendSubmissionEmail(req.body.name, submissionDate, studentsToSendEmail);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -1251,6 +1251,7 @@ export const askForExtraUpload = async (req, res) => {
         const notification = new Notification({
           user: coordinator._id,
           message: `התקבלה בקשה להעלאת קובץ נוסף עבור: "${submission.name}"`,
+          link: `/approve-extra-file`,
         });
         await notification.save();
       })
@@ -1316,48 +1317,48 @@ export const acceptExtraUpload = async (req, res) => {
         });
         await notification.save();
 
-        // Send email to the student
-        const user = await User.findById(student.student);
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: process.env.GMAIL_USER,
-            pass: process.env.GMAIL_PASS,
-          },
-        });
-        const mailOptions = {
-          from: process.env.GMAIL_USER,
-          to: user.email,
-          subject: "✅ אישור להעלאת קובץ נוסף - מערכת לניהול פרויקטים",
-          html: `
-            <html lang="he" dir="rtl">
-            <head>
-              <meta charset="UTF-8" />
-              <title>אישור להעלאת קובץ נוסף</title>
-            </head>
-            <body>
-              <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
-      <div style="display: flex; align-items: center; align-items: center;">
-        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
-        <img
-          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
-          alt="Project Management Logo"
-          style="height: 50px" />
-      </div>
-      <hr />
-                <h2 style="color: #333; text-align: center">אישור להעלאת קובץ נוסף</h2>
-                <p>שלום ${user.name},</p>
-                <p>הבקשה להעלאת קובץ נוסף עבור: "${submission.name}" אושרה.</p>
-              </div>
-            </body>
-            </html>
-          `,
-        };
-        transporter.sendMail(mailOptions, (error) => {
-          if (error) {
-            console.error("Error sending approval email:", error);
-          }
-        });
+        //   // Send email to the student
+        //   const user = await User.findById(student.student);
+        //   const transporter = nodemailer.createTransport({
+        //     service: "gmail",
+        //     auth: {
+        //       user: process.env.GMAIL_USER,
+        //       pass: process.env.GMAIL_PASS,
+        //     },
+        //   });
+        //   const mailOptions = {
+        //     from: process.env.GMAIL_USER,
+        //     to: user.email,
+        //     subject: "✅ אישור להעלאת קובץ נוסף - מערכת לניהול פרויקטים",
+        //     html: `
+        //       <html lang="he" dir="rtl">
+        //       <head>
+        //         <meta charset="UTF-8" />
+        //         <title>אישור להעלאת קובץ נוסף</title>
+        //       </head>
+        //       <body>
+        //         <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+        // <div style="display: flex; align-items: center; align-items: center;">
+        //   <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+        //   <img
+        //     src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+        //     alt="Project Management Logo"
+        //     style="height: 50px" />
+        // </div>
+        // <hr />
+        //           <h2 style="color: #333; text-align: center">אישור להעלאת קובץ נוסף</h2>
+        //           <p>שלום ${user.name},</p>
+        //           <p>הבקשה להעלאת קובץ נוסף עבור: "${submission.name}" אושרה.</p>
+        //         </div>
+        //       </body>
+        //       </html>
+        //     `,
+        //   };
+        //   transporter.sendMail(mailOptions, (error) => {
+        //     if (error) {
+        //       console.error("Error sending approval email:", error);
+        //     }
+        //   });
       })
     );
 
@@ -1387,48 +1388,48 @@ export const denyExtraUpload = async (req, res) => {
         });
         await notification.save();
 
-        // Send email to the student
-        const user = await User.findById(student.student);
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: process.env.GMAIL_USER,
-            pass: process.env.GMAIL_PASS,
-          },
-        });
-        const mailOptions = {
-          from: process.env.GMAIL_USER,
-          to: user.email,
-          subject: "דחיית בקשה להעלאת קובץ נוסף - מערכת לניהול פרויקטים",
-          html: `
-            <html lang="he" dir="rtl">
-            <head>
-              <meta charset="UTF-8" />
-              <title>דחיית בקשה להעלאת קובץ נוסף</title>
-            </head>
-            <body>
-              <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
-      <div style="display: flex; align-items: center; align-items: center;">
-        <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
-        <img
-          src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
-          alt="Project Management Logo"
-          style="height: 50px" />
-      </div>
-      <hr />
-                <h2 style="color: #333; text-align: center">דחיית בקשה להעלאת קובץ נוסף</h2>
-                <p>שלום ${user.name},</p>
-                <p>הבקשה להעלאת קובץ נוסף עבור: "${submission.name}" נדחתה.</p>
-              </div>
-            </body>
-            </html>
-          `,
-        };
-        transporter.sendMail(mailOptions, (error) => {
-          if (error) {
-            console.error("Error sending rejection email:", error);
-          }
-        });
+        //   // Send email to the student
+        //   const user = await User.findById(student.student);
+        //   const transporter = nodemailer.createTransport({
+        //     service: "gmail",
+        //     auth: {
+        //       user: process.env.GMAIL_USER,
+        //       pass: process.env.GMAIL_PASS,
+        //     },
+        //   });
+        //   const mailOptions = {
+        //     from: process.env.GMAIL_USER,
+        //     to: user.email,
+        //     subject: "דחיית בקשה להעלאת קובץ נוסף - מערכת לניהול פרויקטים",
+        //     html: `
+        //       <html lang="he" dir="rtl">
+        //       <head>
+        //         <meta charset="UTF-8" />
+        //         <title>דחיית בקשה להעלאת קובץ נוסף</title>
+        //       </head>
+        //       <body>
+        //         <div style="direction: rtl; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px">
+        // <div style="display: flex; align-items: center; align-items: center;">
+        //   <h4 style="color: #464bd8">מערכת לניהול פרויקטים</h4>
+        //   <img
+        //     src="https://i.postimg.cc/bNtFxdXh/project-management-logo.png"
+        //     alt="Project Management Logo"
+        //     style="height: 50px" />
+        // </div>
+        // <hr />
+        //           <h2 style="color: #333; text-align: center">דחיית בקשה להעלאת קובץ נוסף</h2>
+        //           <p>שלום ${user.name},</p>
+        //           <p>הבקשה להעלאת קובץ נוסף עבור: "${submission.name}" נדחתה.</p>
+        //         </div>
+        //       </body>
+        //       </html>
+        //     `,
+        //   };
+        //   transporter.sendMail(mailOptions, (error) => {
+        //     if (error) {
+        //       console.error("Error sending rejection email:", error);
+        //     }
+        //   });
       })
     );
 
