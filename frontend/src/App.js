@@ -39,6 +39,7 @@ import ResetPassword from "./components/ResetPassword/ResetPassword";
 import ForbiddenPage from "./components/ForbiddenPage/ForbiddenPage";
 import CreateUserFile from "./components/CreateUser/CreateUserFile";
 import ApproveResetPassword from "./components/ApproveResetPassword/ApproveResetPassword";
+import MobileChat from "./components/Chat/MobileChat";
 
 function App() {
   return (
@@ -72,6 +73,7 @@ const MainLayout = () => {
       "/profile/:userId": "פרופיל",
       "/home": "דף הבית",
       "/announcements": "הודעות",
+      "/chat": "צ׳אטים",
       "/projects": "פרויקטים",
       "/project/:projectID": "דף פרויקט",
       "/templates": "תבניות",
@@ -144,6 +146,14 @@ const MainLayout = () => {
                 element={
                   <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
                     <Announcements />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chat"
+                element={
+                  <ProtectedRoute privileges={["student", "advisor", "judge", "coordinator"]}>
+                    <MobileChat />
                   </ProtectedRoute>
                 }
               />
