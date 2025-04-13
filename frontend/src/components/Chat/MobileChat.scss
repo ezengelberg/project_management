@@ -18,6 +18,9 @@
     }
 
     .chat-list {
+        .new-chat {
+            display: flex;
+        }
         .chat-item {
             align-items: flex-start;
             display: flex;

@@ -217,7 +217,10 @@ const MobileChat = () => {
             <div className="header-title">צ׳אטים</div>
           </div>
           <div className="chat-list">
-            <div className="chat-item">
+            <div
+              className="chat-item new-chat"
+              onClick={() => selectChat("new")}
+            >
               <svg
                 width="64px"
                 height="64px"
