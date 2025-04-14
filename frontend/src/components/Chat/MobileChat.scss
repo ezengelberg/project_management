@@ -16,11 +16,7 @@
             font-weight: bold;
         }
     }
-
     .chat-list {
-        .new-chat {
-            display: flex;
-        }
         .chat-item {
             align-items: flex-start;
             display: flex;
@@ -43,9 +39,10 @@
                 color: #333;
             }
             .chat-header {
-                &-title {
-                    font-size: 1.5rem;
-                    font-weight: 600;
+                .head-title {
+                    font-size: 1.6rem;
+                    font-weight: bold;
+                    color: #333;
                 }
             }
 
@@ -59,8 +56,16 @@
                         width: 1.8rem;
                         height: 1.8rem;
                     }
+                    &-content {
+                        font-size: 1.6rem;
+                        color: #666;
+                    }
                 }
             }
+        }
+        .new-chat {
+            display: flex;
+            flex-direction: row;
         }
     }
 
