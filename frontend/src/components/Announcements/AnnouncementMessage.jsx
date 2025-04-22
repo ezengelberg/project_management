@@ -226,7 +226,7 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
                 <div
                   key={file._id}
                   className="announcement-file"
-                  nClick={() => {
+                  onClick={() => {
                     downloadFile(file._id, "announcements");
                   }}
                 >
