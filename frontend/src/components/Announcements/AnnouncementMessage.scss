@@ -64,6 +64,19 @@
             margin: 0.5rem;
         }
     }
+    .announcement-file {
+        display: flex;
+        width: 95%;
+        gap: 0.5rem;
+        margin: auto auto 0;
+        font-size: 1.3rem;
+
+        &:hover {
+            cursor: pointer;
+            color: #1677ff;
+        }
+
+    }
     .announcement-footer {
         width: 95%;
         margin: 0 auto;

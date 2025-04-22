@@ -4,7 +4,15 @@ import "./AnnouncementMessage.scss";
 import { processContent } from "../../utils/htmlProcessor";
 import { Editor } from "primereact/editor";
 import { Input, Button, Modal, message, Tooltip } from "antd";
-import { EditOutlined, DeleteOutlined, EyeOutlined, CalendarOutlined, UserOutlined } from "@ant-design/icons";
+import {
+    EditOutlined,
+    DeleteOutlined,
+    EyeOutlined,
+    CalendarOutlined,
+    UserOutlined,
+    DownloadOutlined,
+} from "@ant-design/icons";
+import { downloadFile } from "../../utils/downloadFile";
 
 const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -186,6 +194,18 @@ const AnnouncementMessage = ({ announcement, canEdit, updateAnnouncement }) => {
                         className="announcement-content"
                         dangerouslySetInnerHTML={{ __html: processContent(announcement.content) }}
                     />
+                    {announcement.file && (
+                        <Tooltip title="הורד קובץ מצורף">
+                            <div
+                                className="announcement-file"
+                                onClick={() => {
+                                    downloadFile(announcement.file._id, "announcements");
+                                }}>
+                                <DownloadOutlined />
+                                {announcement.file.filename}
+                            </div>
+                        </Tooltip>
+                    )}
                     <div className="announcement-footer">
                         {announcement.updatedAt !== announcement.createdAt && (
                             <div className="announcement-update-date">

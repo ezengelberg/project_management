@@ -552,7 +552,13 @@ const Journal = ({ readOnly }) => {
                 message: "שדה חובה",
               },
             ]}>
-            <Input />
+            <Input
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                }
+              }}
+            />
           </Form.Item>
           <Form.Item label="תיאור המשימה" name="description">
             <Input.TextArea rows={10} />

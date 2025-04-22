@@ -1601,7 +1601,7 @@ const Submissions = () => {
                   <div className="detail-item-content">{submissionInfo.submission.info}</div>
                 </div>
               )}
-              <div className="detail-item">
+              {submissionInfo.submission.fileNeeded && <div className="detail-item">
                 <div className="detail-item-header">סטטוס ההגשה:</div>
                 <div className="detail-item-content">
                   <Badge
@@ -1629,7 +1629,7 @@ const Submissions = () => {
                     }
                   />
                 </div>
-              </div>
+              </div>}
               <div className="detail-item">
                 <div className="detail-item-header">סטטוס בדיקה:</div>
                 <div className="detail-item-content">
@@ -1653,7 +1653,7 @@ const Submissions = () => {
                   })}
                 </div>
               </div>
-              <div className="detail-item">
+              {submissionInfo.submission.fileNeeded && <div className="detail-item">
                 <div className="detail-item-header">הוגש ב:</div>
                 <div className="detail-item-content">
                   {submissionInfo.submission.uploadDate
@@ -1666,7 +1666,7 @@ const Submissions = () => {
                       })
                     : "ממתין להגשה"}
                 </div>
-              </div>
+              </div>}
               {submissionInfo.submission.finalGrade != null && (
                 <div className="detail-item">
                   <div className="detail-item-header">ציון סופי</div>

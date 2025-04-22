@@ -6,7 +6,7 @@ import User from "../models/users.js";
 import Notification from "../models/notifications.js";
 
 export const createAnnouncement = async (req, res) => {
-    const { title, description, roles, group } = req.body;
+    const { title, description, roles, group, file } = req.body;
     try {
         const configFile = await Config.find();
         const year = configFile[0].currentYear;
@@ -42,6 +42,8 @@ export const createAnnouncement = async (req, res) => {
         ) {
             newAnnouncement.forCoordinator = true;
         }
+        if (file)
+            newAnnouncement.file = file;
         await newAnnouncement.save();
 
         // create notification
@@ -82,7 +84,8 @@ export const createAnnouncement = async (req, res) => {
         // Refetch and populate
         const populatedAnnouncement = await Announcement.findById(newAnnouncement._id)
             .populate("writtenBy", "name")
-            .populate("group", "name");
+            .populate("group", "name")
+            .populate("file", "filename");
         res.status(201).json({ message: "Announcement created", announcement: populatedAnnouncement });
     } catch (error) {
         console.error("Error occurred:", error);
@@ -93,8 +96,6 @@ export const createAnnouncement = async (req, res) => {
 export const getAnnouncements = async (req, res) => {
     try {
         const { isStudent, isAdvisor, isJudge, isCoordinator, _id } = req.user;
-
-        console.log("User roles:", { isStudent, isAdvisor, isJudge, isCoordinator });
 
         const configFile = await Config.find();
         const year = configFile[0].currentYear;
@@ -108,8 +109,6 @@ export const getAnnouncements = async (req, res) => {
         if (project) {
             group = await Group.findOne({ projects: project._id });
         }
-
-        console.log("Group:", group);
 
         // Define conditions based on user roles
         const roleConditions = [];
@@ -141,13 +140,10 @@ export const getAnnouncements = async (req, res) => {
             };
         }
 
-        console.log("Query:", JSON.stringify(query, null, 2));
-
         const announcements = await Announcement.find(query)
             .populate({ path: "writtenBy", select: "name" }) // Ensuring writtenBy is populated
-            .populate({ path: "group", select: "name" });
-
-        console.log(announcements);
+            .populate({ path: "group", select: "name" })
+            .populate({ path: "file", select: "filename" });
         res.status(200).json(announcements);
     } catch (error) {
         console.error("Error occurred:", error);
