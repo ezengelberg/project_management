@@ -91,7 +91,7 @@ const Announcements = () => {
                     description,
                     ...(selectedGroup !== "" && { group: selectedGroup }),
                     ...(Object.values(selectedRoles).some((role) => role === true) && { roles: selectedRoles }),
-                    ...(fileResponse && { file: fileResponse.data.files[0]._id }),
+                    ...(fileResponse && { files: fileResponse.data.files }),
                 },
                 {
                     withCredentials: true,
@@ -182,7 +182,7 @@ const Announcements = () => {
                     </div>
                     <div className="submit-area">
                         <Upload
-                            maxCount={1}
+                            maxCount={5}
                             fileList={fileList}
                             beforeUpload={() => false}
                             onChange={({ fileList }) => setFileList(fileList)}>
