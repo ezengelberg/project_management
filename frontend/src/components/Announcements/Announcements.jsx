@@ -181,7 +181,6 @@ const Announcements = () => {
                     </div>
                     <div className="submit-area">
                         <Upload
-                            maxCount={5}
                             fileList={fileList}
                             multiple
                             beforeUpload={() => false}
