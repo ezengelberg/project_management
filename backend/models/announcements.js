@@ -6,6 +6,7 @@ const announcementSchema = new mongoose.Schema(
         content: { type: String, required: true },
         year: { type: String, required: true },
         group: { type: mongoose.Schema.Types.ObjectId, ref: "Group", default: null },
+        file: { type: mongoose.Schema.Types.ObjectId, ref: "Upload", default: null },
         forStudent: { type: Boolean, default: false },
         forAdvisor: { type: Boolean, default: false },
         forJudge: { type: Boolean, default: false },

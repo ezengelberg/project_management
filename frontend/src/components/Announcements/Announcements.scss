@@ -19,6 +19,16 @@
       font-size: 2rem;
     }
   }
+
+  .submit-area {
+    display: flex;
+    flex-direction: column;
+    // justify-content: center;
+    align-items: right;
+    gap: 2rem;
+    margin-top: 2rem;
+    width: 12rem;
+  }
 }
 
 @media screen and (max-width: 1600px) {
