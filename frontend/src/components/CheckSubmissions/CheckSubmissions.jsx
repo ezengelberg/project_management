@@ -92,16 +92,15 @@ const CheckSubmissions = () => {
             </span>
           )}
           {item.fileNeeded && (
-            <Tooltip title="הורד קובץ">
-              <DownloadOutlined
-                className="icon"
-                onClick={() =>
-                  item.gotExtraUpload
-                    ? (setFileListModal(true), setSubmissionDetails(item))
-                    : downloadFile(item.file._id, "submissions")
-                }
-              />
-            </Tooltip>
+            <p
+              className="download-interaction"
+              onClick={() =>
+                item.gotExtraUpload
+                  ? (setFileListModal(true), setSubmissionDetails(item))
+                  : downloadFile(item.file._id, "submissions")
+              }>
+              הורדת דוח
+            </p>
           )}
         </>
       );
@@ -121,16 +120,15 @@ const CheckSubmissions = () => {
             <p>{item.grade}</p>
           </div>
           {item.fileNeeded && (
-            <Tooltip title="הורד קובץ">
-              <DownloadOutlined
-                className="icon"
-                onClick={() =>
-                  item.gotExtraUpload
-                    ? (setFileListModal(true), setSubmissionDetails(item))
-                    : downloadFile(item.file._id, "submissions")
-                }
-              />
-            </Tooltip>
+            <p
+              className="download-interaction"
+              onClick={() =>
+                item.gotExtraUpload
+                  ? (setFileListModal(true), setSubmissionDetails(item))
+                  : downloadFile(item.file._id, "submissions")
+              }>
+              הורדת דוח
+            </p>
           )}
         </>
       );
@@ -173,23 +171,25 @@ const CheckSubmissions = () => {
                   title={
                     <div className="project-name">
                       <span>
-                        {item.submissionName} - (
-                        <a
-                          onClick={() => navigate(`/project/${item.projectId}`)}
-                          onMouseDown={(e) => handleMouseDown(e, `/project/${item.projectId}`)}>
-                          {windowSize.width > 1200
-                            ? item.projectName.length > 55
-                              ? item.projectName.slice(0, 55) + "..."
-                              : item.projectName
-                            : windowSize.width > 626
-                            ? item.projectName.length > 40
-                              ? item.projectName.slice(0, 40) + "..."
-                              : item.projectName
-                            : item.projectName.length > 45
-                            ? item.projectName.slice(0, 45) + "..."
-                            : item.projectName}
-                        </a>
-                        )
+                        {item.submissionName} <br />
+                        לחץ למעבר לעמוד הפרויקט -{" "}
+                        <Tooltip title="מעבר לעמוד הפרויקט">
+                          <a
+                            onClick={() => navigate(`/project/${item.projectId}`)}
+                            onMouseDown={(e) => handleMouseDown(e, `/project/${item.projectId}`)}>
+                            {windowSize.width > 1200
+                              ? item.projectName.length > 41
+                                ? item.projectName.slice(0, 41) + "..."
+                                : item.projectName
+                              : windowSize.width > 626
+                              ? item.projectName.length > 26
+                                ? item.projectName.slice(0, 26) + "..."
+                                : item.projectName
+                              : item.projectName.length > 31
+                              ? item.projectName.slice(0, 31) + "..."
+                              : item.projectName}
+                          </a>
+                        </Tooltip>
                       </span>
                     </div>
                   }
@@ -239,23 +239,23 @@ const CheckSubmissions = () => {
                   title={
                     <div className="project-name">
                       <span>
-                        {item.submissionName} - (
+                        {item.submissionName} <br />
+                        לחץ למעבר לעמוד הפרויקט -{" "}
                         <a
                           onClick={() => navigate(`/project/${item.projectId}`)}
                           onMouseDown={(e) => handleMouseDown(e, `/project/${item.projectId}`)}>
                           {windowSize.width > 1200
-                            ? item.projectName.length > 55
-                              ? item.projectName.slice(0, 55) + "..."
+                            ? item.projectName.length > 41
+                              ? item.projectName.slice(0, 41) + "..."
                               : item.projectName
                             : windowSize.width > 626
-                            ? item.projectName.length > 40
-                              ? item.projectName.slice(0, 40) + "..."
+                            ? item.projectName.length > 26
+                              ? item.projectName.slice(0, 26) + "..."
                               : item.projectName
-                            : item.projectName.length > 45
-                            ? item.projectName.slice(0, 45) + "..."
+                            : item.projectName.length > 31
+                            ? item.projectName.slice(0, 31) + "..."
                             : item.projectName}
                         </a>
-                        )
                       </span>
                     </div>
                   }
@@ -299,23 +299,23 @@ const CheckSubmissions = () => {
                   title={
                     <div className="project-name">
                       <span>
-                        {item.submissionName} - (
+                        {item.submissionName} <br />
+                        לחץ למעבר לעמוד הפרויקט -{" "}
                         <a
                           onClick={() => navigate(`/project/${item.projectId}`)}
                           onMouseDown={(e) => handleMouseDown(e, `/project/${item.projectId}`)}>
                           {windowSize.width > 1200
-                            ? item.projectName.length > 55
-                              ? item.projectName.slice(0, 55) + "..."
+                            ? item.projectName.length > 41
+                              ? item.projectName.slice(0, 41) + "..."
                               : item.projectName
                             : windowSize.width > 626
-                            ? item.projectName.length > 40
-                              ? item.projectName.slice(0, 40) + "..."
+                            ? item.projectName.length > 26
+                              ? item.projectName.slice(0, 26) + "..."
                               : item.projectName
-                            : item.projectName.length > 45
-                            ? item.projectName.slice(0, 45) + "..."
+                            : item.projectName.length > 31
+                            ? item.projectName.slice(0, 31) + "..."
                             : item.projectName}
                         </a>
-                        )
                       </span>
                     </div>
                   }

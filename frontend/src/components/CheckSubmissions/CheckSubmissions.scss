@@ -29,13 +29,13 @@
         }
       }
 
-      .icon {
-        font-size: 2rem;
+      .download-interaction {
         cursor: pointer;
+        color: #1890ff;
         transition: 0.2s all ease-in-out;
 
         &:hover {
-          color: #1890ff;
+          color: #69b1ff;
         }
       }
     }

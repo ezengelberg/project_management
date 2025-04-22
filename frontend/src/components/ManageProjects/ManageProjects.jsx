@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { Badge, Table, Tooltip, Switch, message, Divider, Modal, Form, Input, Select, Tabs, Descriptions } from "antd";
 import {
   CheckCircleOutlined,
@@ -14,11 +15,13 @@ import DOMPurify from "dompurify";
 import axios from "axios";
 import "./ManageProjects.scss";
 import Highlighter from "react-highlight-words";
+import { handleMouseDown } from "../../utils/mouseDown";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { NotificationsContext } from "../../utils/NotificationsContext";
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const ManageProjects = () => {
+  const navigate = useNavigate();
   const { Option } = Select;
   const { fetchNotifications } = useContext(NotificationsContext);
   const [form] = Form.useForm();
@@ -469,37 +472,41 @@ const ManageProjects = () => {
       key: "title",
       fixed: windowSize.width > 626 && "left",
       ...getColumnSearchProps("title"),
-      render: (title) => (
-        <Highlighter
-          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-          searchWords={[searchText]}
-          autoEscape
-          textToHighlight={
-            windowSize.width > 1920
-              ? title.length > 130
-                ? `${title.substring(0, 130)}...`
+      render: (title, record) => (
+        <a
+          onClick={() => navigate(`/project/${record.key}`)}
+          onMouseDown={(e) => handleMouseDown(e, `/project/${record.key}`)}>
+          <Highlighter
+            highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+            searchWords={[searchText]}
+            autoEscape
+            textToHighlight={
+              windowSize.width > 1920
+                ? title.length > 130
+                  ? `${title.substring(0, 130)}...`
+                  : title
+                : windowSize.width > 1600
+                ? title.length > 80
+                  ? `${title.substring(0, 80)}...`
+                  : title
+                : windowSize.width > 1200
+                ? title.length > 70
+                  ? `${title.substring(0, 70)}...`
+                  : title
+                : windowSize.width > 1024
+                ? title.length > 50
+                  ? `${title.substring(0, 50)}...`
+                  : title
+                : windowSize.width > 768
+                ? title.length > 40
+                  ? `${title.substring(0, 40)}...`
+                  : title
+                : title.length > 35
+                ? `${title.substring(0, 35)}...`
                 : title
-              : windowSize.width > 1600
-              ? title.length > 80
-                ? `${title.substring(0, 80)}...`
-                : title
-              : windowSize.width > 1200
-              ? title.length > 70
-                ? `${title.substring(0, 70)}...`
-                : title
-              : windowSize.width > 1024
-              ? title.length > 50
-                ? `${title.substring(0, 50)}...`
-                : title
-              : windowSize.width > 768
-              ? title.length > 40
-                ? `${title.substring(0, 40)}...`
-                : title
-              : title.length > 35
-              ? `${title.substring(0, 35)}...`
-              : title
-          }
-        />
+            }
+          />
+        </a>
       ),
       width:
         windowSize.width > 1920
