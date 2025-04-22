@@ -6,7 +6,7 @@ import User from "../models/users.js";
 import Notification from "../models/notifications.js";
 
 export const createAnnouncement = async (req, res) => {
-    const { title, description, roles, group, file } = req.body;
+    const { title, description, roles, group, files } = req.body;
     try {
         const configFile = await Config.find();
         const year = configFile[0].currentYear;
@@ -42,8 +42,11 @@ export const createAnnouncement = async (req, res) => {
         ) {
             newAnnouncement.forCoordinator = true;
         }
-        if (file)
-            newAnnouncement.file = file;
+        if (files) {
+            const fileIds = files.map((file) => file._id);
+            newAnnouncement.files = fileIds;
+        }
+
         await newAnnouncement.save();
 
         // create notification
@@ -85,7 +88,7 @@ export const createAnnouncement = async (req, res) => {
         const populatedAnnouncement = await Announcement.findById(newAnnouncement._id)
             .populate("writtenBy", "name")
             .populate("group", "name")
-            .populate("file", "filename");
+            .populate("files", "filename");
         res.status(201).json({ message: "Announcement created", announcement: populatedAnnouncement });
     } catch (error) {
         console.error("Error occurred:", error);
@@ -143,7 +146,7 @@ export const getAnnouncements = async (req, res) => {
         const announcements = await Announcement.find(query)
             .populate({ path: "writtenBy", select: "name" }) // Ensuring writtenBy is populated
             .populate({ path: "group", select: "name" })
-            .populate({ path: "file", select: "filename" });
+            .populate({ path: "files", select: "filename" });
         res.status(200).json(announcements);
     } catch (error) {
         console.error("Error occurred:", error);
