@@ -2,214 +2,198 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Announcements.scss";
 import { Editor } from "primereact/editor";
-import { Button, message, Checkbox, Input, Select, Upload } from "antd";
+import { Button, message, Checkbox, Input, Select, Upload, Form } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import AnnouncementMessage from "./AnnouncementMessage";
 
 const Announcements = () => {
-    const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [fileList, setFileList] = useState([]);
-    const [selectedRoles, setSelectedRoles] = useState({
-        student: false,
-        advisor: false,
-        judge: false,
-        coordinator: false,
-    });
-    const [selectedGroup, setSelectedGroup] = useState("");
-    const [groups, setGroups] = useState([]);
-    const [announcements, setAnnouncements] = useState([]);
+  const [form] = Form.useForm();
 
-    const fetchPrivileges = async () => {
-        try {
-            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, {
-                withCredentials: true,
-            });
-            setPrivileges(response.data);
-        } catch (error) {
-            console.error("Error occurred:", error);
+  const [privileges, setPrivileges] = useState({
+    isStudent: false,
+    isAdvisor: false,
+    isCoordinator: false,
+  });
+  const [fileList, setFileList] = useState([]);
+  const [selectedRoles, setSelectedRoles] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+
+  const fetchPrivileges = async () => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, { withCredentials: true });
+      setPrivileges(res.data);
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
+  };
+
+  const fetchGroups = async () => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get-current-year`, { withCredentials: true });
+      setGroups(res.data);
+    } catch (error) {
+      console.error("Error fetching groups:", error);
+    }
+  };
+
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/announcement/get-all`, { withCredentials: true });
+      setAnnouncements(res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+    } catch (error) {
+      console.error("Error occurred:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnnouncements();
+    fetchPrivileges();
+    fetchGroups();
+  }, []);
+
+  const handleEditorChange = (e) => {
+    form.setFieldsValue({ description: e.htmlValue || "" });
+  };
+
+  const submitAnnouncement = async (values) => {
+    let fileResponse;
+
+    if (fileList.length > 0) {
+      const formData = new FormData();
+      fileList.forEach((file) => {
+        const encodedFileName = encodeURIComponent(file.originFileObj.name);
+        formData.append("files", file.originFileObj, encodedFileName);
+      });
+      formData.append("destination", "announcements");
+
+      fileResponse = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=announcements`,
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+            "X-Filename-Encoding": "url",
+          },
         }
-    };
+      );
+    }
 
-    const fetchGroups = async () => {
-        try {
-            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get-current-year`, {
-                withCredentials: true,
-            });
-            setGroups(response.data);
-        } catch (error) {
-            console.error("Error fetching groups:", error);
-        }
-    };
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/announcement/create`,
+        {
+          title: values.title,
+          description: values.description,
+          ...(values.group && { group: values.group }),
+          ...(selectedRoles.length > 0 && { roles: Object.fromEntries(selectedRoles.map((r) => [r, true])) }),
+          ...(fileResponse && { files: fileResponse.data.files }),
+        },
+        { withCredentials: true }
+      );
 
-    const fetchAnnouncements = async () => {
-        try {
-            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/announcement/get-all`, {
-                withCredentials: true,
-            });
-            setAnnouncements(response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
-        } catch (error) {
-            console.error("Error occurred:", error);
-        }
-    };
+      setAnnouncements([response.data.announcement, ...announcements]);
+      message.success("ההודעה נוצרה בהצלחה");
+      form.resetFields();
+      setFileList([]);
+      setSelectedRoles([]);
+    } catch (error) {
+      console.error("Error occurred:", error);
+      message.error("יצירת ההודעה נכשלה");
+    }
+  };
 
-    useEffect(() => {
-        fetchAnnouncements();
-        fetchPrivileges();
-        fetchGroups();
-    }, []);
+  const roleOptions = [
+    { label: "סטודנט", value: "student" },
+    { label: "מנחה", value: "advisor" },
+    { label: "שופט", value: "judge" },
+    { label: "רכז", value: "coordinator" },
+  ];
 
-    const submitAnnouncement = async () => {
-        let fileResponse;
-        if (fileList.length > 0) {
-            const formData = new FormData();
-            fileList.forEach((file) => {
-                const encodedFileName = encodeURIComponent(file.originFileObj.name);
-                formData.append("files", file.originFileObj, encodedFileName);
-            });
-            formData.append("destination", "announcements");
+  return (
+    <div className="announcements-container">
+      {privileges.isCoordinator && (
+        <div className="create-announcement">
+          <h2>כתיבת הודעה חדשה</h2>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={submitAnnouncement}
+            className="announcement-form"
+          >
+            <Form.Item
+              label="כותרת"
+              name="title"
+              rules={[{ required: true, message: "חובה להזין כותרת" }]}
+            >
+              <Input placeholder="כותרת" />
+            </Form.Item>
 
-            fileResponse = await axios.post(
-                `${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=announcements`,
-                formData,
-                {
-                    withCredentials: true,
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                        "X-Filename-Encoding": "url",
-                    },
-                },
-            );
-        }
-        try {
-            const response = await axios.post(
-                `${process.env.REACT_APP_BACKEND_URL}/api/announcement/create`,
-                {
-                    title,
-                    description,
-                    ...(selectedGroup !== "" && { group: selectedGroup }),
-                    ...(Object.values(selectedRoles).some((role) => role === true) && { roles: selectedRoles }),
-                    ...(fileResponse && { files: fileResponse.data.files }),
-                },
-                {
-                    withCredentials: true,
-                },
-            );
-            setAnnouncements([response.data.announcement, ...announcements]);
+            <Form.Item label="למי נשלחת ההודעה">
+              <Checkbox.Group
+                options={roleOptions}
+                value={selectedRoles}
+                onChange={setSelectedRoles}
+              />
+            </Form.Item>
 
-            message.success("ההודעה נוצרה בהצלחה");
-            setTitle("");
-            setDescription("");
-            setFileList([]);
-        } catch (error) {
-            console.error("Error occurred:", error);
-            message.error("יצירת ההודעה נכשלה");
-        }
-    };
-
-    const handleEditorChange = (e) => {
-        setDescription(e.htmlValue || "");
-    };
-
-    const roleOptions = [
-        { label: "סטודנט", value: "student" },
-        { label: "מנחה", value: "advisor" },
-        { label: "שופט", value: "judge" },
-        { label: "רכז", value: "coordinator" },
-    ];
-
-    return (
-        <div className="announcements-container">
-            {privileges.isCoordinator && (
-                <div className="create-announcement">
-                    <h2>כתיבת הודעה חדשה</h2>
-                    <div className="form-input-group">
-                        <label className="announcement-form-label" htmlFor="announcement-title">
-                            כותרת
-                        </label>
-                        <Input
-                            type="text"
-                            id="announcement-title"
-                            placeholder="כותרת"
-                            rules={[{ required: true, message: "שדה חובה" }]}
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                        />
-                        <label className="announcement-form-label" htmlFor="announcement-roles">
-                            למי נשלחת ההודעה
-                        </label>
-                        <Checkbox.Group
-                            id="announcement-roles"
-                            options={roleOptions}
-                            value={Object.keys(selectedRoles).filter((role) => selectedRoles[role])}
-                            onChange={(checkedValues) => {
-                                const newRoles = {
-                                    student: checkedValues.includes("student"),
-                                    advisor: checkedValues.includes("advisor"),
-                                    judge: checkedValues.includes("judge"),
-                                    coordinator: checkedValues.includes("coordinator"),
-                                };
-                                setSelectedRoles(newRoles);
-                            }}
-                        />
-                        <label className="announcement-form-label" htmlFor="announcement-group">
-                            קבוצה (במידה ולא תבחר קבוצה ההודעה תשלח לכולם)
-                        </label>
-                        <Select
-                            id="announcement-group"
-                            value={selectedGroup}
-                            options={[
-                                { label: "ללא בחירה", value: "" }, // Add an empty option
-                                ...groups.map((group) => ({
-                                    label: group.name,
-                                    value: group._id,
-                                })),
-                            ]}
-                            onChange={(value) => setSelectedGroup(value)}
-                            placeholder="בחר קבוצה"
-                        />
-                    </div>
-
-                    <div className="form-input-group template-input-group">
-                        <Editor
-                            placeholder="תוכן ההודעה"
-                            value={description}
-                            onTextChange={handleEditorChange}
-                            style={{ height: "320px", wordBreak: "break-word" }}
-                        />
-                    </div>
-                    <div className="submit-area">
-                        <Upload
-                            maxCount={5}
-                            fileList={fileList}
-                            multiple
-                            beforeUpload={() => false}
-                            onChange={({ fileList }) => setFileList(fileList)}>
-                            <Button icon={<UploadOutlined />}>העלה קבצים </Button>
-                        </Upload>
-                        <Button
-                            type="primary"
-                            onClick={submitAnnouncement}
-                            disabled={description === "" || title === ""}>
-                            פרסם הודעה
-                        </Button>
-                    </div>
-                </div>
-            )}
-            {announcements.length === 0 && <h2>לא הועלו עדיין הודעות</h2>}
-            <div className="announcements-board">
-                {announcements.map((announcement) => (
-                    <AnnouncementMessage
-                        key={announcement._id}
-                        announcement={announcement}
-                        canEdit={privileges.isCoordinator}
-                        updateAnnouncement={fetchAnnouncements}
-                    />
+            <Form.Item label="קבוצה" name="group">
+              <Select placeholder="בחר קבוצה (לא חובה)">
+                <Select.Option value="">ללא בחירה</Select.Option>
+                {groups.map((group) => (
+                  <Select.Option key={group._id} value={group._id}>
+                    {group.name}
+                  </Select.Option>
                 ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              label="תוכן ההודעה"
+              name="description"
+              rules={[{ required: true, message: "חובה להזין תוכן" }]}
+            >
+              <Editor
+                style={{ height: "320px" }}
+                onTextChange={handleEditorChange}
+              />
+            </Form.Item>
+
+            <div className="submit-area">
+              <Upload
+                fileList={fileList}
+                multiple
+                beforeUpload={() => false}
+                onChange={({ fileList }) => setFileList(fileList)}
+              >
+                <Button icon={<UploadOutlined />}>העלה קבצים</Button>
+              </Upload>
+
+              <Button
+                type="primary"
+                htmlType="submit"
+              >
+                פרסם הודעה
+              </Button>
             </div>
+          </Form>
         </div>
-    );
+      )}
+
+      {announcements.length === 0 && <h2>לא הועלו עדיין הודעות</h2>}
+      <div className="announcements-board">
+        {announcements.map((announcement) => (
+          <AnnouncementMessage
+            key={announcement._id}
+            announcement={announcement}
+            canEdit={privileges.isCoordinator}
+            updateAnnouncement={fetchAnnouncements}
+          />
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default Announcements;

@@ -23,12 +23,36 @@
   .submit-area {
     display: flex;
     flex-direction: column;
-    // justify-content: center;
-    align-items: right;
+    align-items: flex-start; // use flex-start instead of "right"
     gap: 2rem;
     margin-top: 2rem;
-    width: 12rem;
+    width: 15rem;
+  
+    .ant-btn {
+      width: 100%; // make all buttons same width
+    }
+  
+    .ant-upload-wrapper {
+      width: 100%;
+  
+      .ant-btn {
+        width: 100%; // also ensure the upload button stretches
+      }
+    }
   }
+}
+
+.ant-upload-list-item-name {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  max-width: none !important;
+  display: inline !important;
+}
+
+.ant-upload-list-item {
+  flex-wrap: nowrap !important;
+  min-width: max-content;
 }
 
 @media screen and (max-width: 1600px) {
