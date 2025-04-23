@@ -29,6 +29,7 @@ import zoomRoute from "./routes/zoomRoute.js";
 import announcementRoute from "./routes/announcementRoute.js";
 import chatRoute from "./routes/chatRoute.js";
 import emailRoute from "./routes/emailRoute.js";
+import gradeMeaningRoute from "./routes/gradeMeaningRoute.js";
 
 import Message from "./models/messages.js";
 
@@ -142,6 +143,7 @@ app.use("/api/zoom", zoomRoute);
 app.use("/api/announcement", announcementRoute);
 app.use("/api/chat", chatRoute);
 app.use("/api/email", emailRoute);
+app.use("/api/grade-meaning", gradeMeaningRoute);
 
 app.get("/", (req, res) => {
   res.send(`Version DEV: 13`);
