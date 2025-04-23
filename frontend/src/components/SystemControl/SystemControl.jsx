@@ -19,6 +19,7 @@ import { EditOutlined, SaveOutlined, StopOutlined, DeleteOutlined } from "@ant-d
 import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 import { NotificationsContext } from "../../utils/NotificationsContext";
 import { downloadProjectExcel, downloadGradesExcel } from "../../utils/ProjectTableExcel";
+import { Editor } from "primereact/editor";
 
 const SystemControl = () => {
   const [manageStudents, setManageStudents] = useState(true);
@@ -55,6 +56,8 @@ const SystemControl = () => {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [gradingTableToDelete, setGradingTableToDelete] = useState(null);
   const [gradingTableYear, setGradingTableYear] = useState("");
+  const [gradeMeanings, setGradeMeanings] = useState([]);
+  const [isGreadingMeaningModalVisible, setIsGreadingMeaningModalVisible] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -127,11 +130,30 @@ const SystemControl = () => {
     }
   };
 
+  const fetchGradeMeanings = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/grade-meaning`, {
+        withCredentials: true,
+      });
+      setGradeMeanings(response.data);
+    } catch (error) {
+      console.error("Error fetching grade meanings:", error);
+      message.error("שגיאה בטעינת משמעות הציונים");
+    }
+  };
+
+  const handleGradeMeaningChange = (index, value) => {
+    const updatedMeanings = [...gradeMeanings];
+    updatedMeanings[index].meaning = value;
+    setGradeMeanings(updatedMeanings);
+  };
+
   useEffect(() => {
     setLoading(true);
     fetchGrades();
     fetchConfigurations();
     fetchNotifications();
+    fetchGradeMeanings();
   }, []);
 
   useEffect(() => {
@@ -184,6 +206,21 @@ const SystemControl = () => {
     setLoading(true);
     fetchGrades();
   }, [gradingTableYear]);
+
+  const saveGradeMeanings = async () => {
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/grade-meaning`,
+        { gradesMeaning: gradeMeanings },
+        { withCredentials: true }
+      );
+      message.success("משמעות הציונים נשמרה בהצלחה");
+      setIsGreadingMeaningModalVisible(false);
+    } catch (error) {
+      console.error("Error saving grade meanings:", error);
+      message.error("שגיאה בשמירת משמעות הציונים");
+    }
+  };
 
   const isEditing = (record) => record.key === editingKey;
 
@@ -650,6 +687,15 @@ const SystemControl = () => {
             </Button>
           </div>
         </div>
+        <div className="box grade-meaning">
+          <h3 className="box-title">משמעות ציונים</h3>
+          <div className="grade-meaning-item">
+            <label className="grade-meaning-label">עריכת משמעות הציונים</label>
+            <Button type="primary" onClick={() => setIsGreadingMeaningModalVisible(true)}>
+              ערוך
+            </Button>
+          </div>
+        </div>
       </div>
       <div className="grades-table">
         <Select
@@ -702,6 +748,28 @@ const SystemControl = () => {
         cancelText="בטל">
         <p>האם אתה בטוח שברצונך למחוק את טבלת הציונים עבור "{gradingTableToDelete?.name}"?</p>
         <p>לא ניתן למחוק טבלת ציונים אם ישנם הגשות פעילות.</p>
+      </Modal>
+
+      <Modal
+        title="עריכת משמעות ציונים"
+        open={isGreadingMeaningModalVisible}
+        onOk={saveGradeMeanings}
+        onCancel={() => setIsGreadingMeaningModalVisible(false)}
+        okText="שמור"
+        cancelText="בטל"
+        width={800}>
+        <div className="grade-meaning-editor">
+          {gradeMeanings.map((grade, index) => (
+            <div key={grade.letter} style={{ marginBottom: "20px" }}>
+              <h3>{grade.letter}</h3>
+              <Editor
+                value={grade.meaning}
+                onTextChange={(e) => handleGradeMeaningChange(index, e.htmlValue)}
+                style={{ height: "150px" }}
+              />
+            </div>
+          ))}
+        </div>
       </Modal>
     </div>
   );

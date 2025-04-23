@@ -21,6 +21,7 @@ const GradeSubmission = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [isGradeInfoOpen, setIsGradeInfoOpen] = useState(false);
+  const [gradeMeanings, setGradeMeanings] = useState([]);
   const letterGrades = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E", "F"];
 
   useEffect(() => {
@@ -62,6 +63,22 @@ const GradeSubmission = () => {
     fetchProjectData();
     fetchNotifications();
   }, [submissionId]);
+
+  useEffect(() => {
+    const fetchGradeMeanings = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/grade-meaning`, {
+          withCredentials: true,
+        });
+        setGradeMeanings(response.data);
+      } catch (error) {
+        console.error("Error fetching grade meanings:", error);
+        message.error("שגיאה בטעינת משמעות הציונים");
+      }
+    };
+
+    fetchGradeMeanings();
+  }, []);
 
   const onFinish = async (values) => {
     try {
@@ -230,7 +247,7 @@ const GradeSubmission = () => {
         </div>
       )}
 
-      {isGradeInfoOpen && (
+      {/* {isGradeInfoOpen && (
         <Modal
           title="משמעות הציונים"
           open={isGradeInfoOpen}
@@ -271,6 +288,23 @@ const GradeSubmission = () => {
               <strong>פרויקט שנכשל.</strong> תלמידים שיקבלו ציון כזה יחזרו, כנראה, על פרויקט הגמר שלהם בשנה הבאה. אם הם
               יקבלו ציון כזה כמה שנים זו אחר זו ברצף, הם לא יקבלו תואר.
             </Descriptions.Item>
+          </Descriptions>
+        </Modal>
+      )} */}
+      {isGradeInfoOpen && (
+        <Modal
+          title="משמעות הציונים"
+          open={isGradeInfoOpen}
+          onCancel={() => setIsGradeInfoOpen(false)}
+          okButtonProps={{ style: { display: "none" } }}
+          cancelText="סגור"
+          width={800}>
+          <Descriptions bordered>
+            {gradeMeanings.map((grade) => (
+              <Descriptions.Item key={grade.letter} label={grade.letter} span={3}>
+                <div dangerouslySetInnerHTML={{ __html: grade.meaning || "" }} />
+              </Descriptions.Item>
+            ))}
           </Descriptions>
         </Modal>
       )}

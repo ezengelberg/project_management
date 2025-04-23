@@ -16,8 +16,7 @@ const router = express.Router();
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const destination = req.query.destination; // Use
-    console.log("Destination:", destination);
+    const destination = req.query.destination;
     const uploadPath = `./uploads/${destination}`;
 
     // Create directory if it doesn't exist

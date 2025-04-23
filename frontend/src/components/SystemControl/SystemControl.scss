@@ -66,4 +66,15 @@
       width: 100%;
     }
   }
+
+  .grade-meaning {
+    .grade-meaning-item {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      width: 100%;
+    }
+  }
 }

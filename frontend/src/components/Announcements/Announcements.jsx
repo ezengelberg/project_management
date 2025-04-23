@@ -48,7 +48,6 @@ const Announcements = () => {
             const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/announcement/get-all`, {
                 withCredentials: true,
             });
-            console.log(response.data);
             setAnnouncements(response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
         } catch (error) {
             console.error("Error occurred:", error);
@@ -91,7 +90,7 @@ const Announcements = () => {
                     description,
                     ...(selectedGroup !== "" && { group: selectedGroup }),
                     ...(Object.values(selectedRoles).some((role) => role === true) && { roles: selectedRoles }),
-                    ...(fileResponse && { file: fileResponse.data.files[0]._id }),
+                    ...(fileResponse && { files: fileResponse.data.files }),
                 },
                 {
                     withCredentials: true,
@@ -182,11 +181,12 @@ const Announcements = () => {
                     </div>
                     <div className="submit-area">
                         <Upload
-                            maxCount={1}
+                            maxCount={5}
                             fileList={fileList}
+                            multiple
                             beforeUpload={() => false}
                             onChange={({ fileList }) => setFileList(fileList)}>
-                            <Button icon={<UploadOutlined />}>העלה קובץ </Button>
+                            <Button icon={<UploadOutlined />}>העלה קבצים </Button>
                         </Upload>
                         <Button
                             type="primary"
