@@ -315,26 +315,28 @@ export const publishGrades = async (req, res) => {
 
       await submission.save();
 
-      // Create notifications for students
-      const notifications = submission.project.students.map((student) => {
-        usersToSendEmail.push(student.student);
-        return {
-          user: student.student,
-          message: `הציון עבור "${submission.name}" פורסם`,
-        };
-      });
-
-      // Create notification for advisor if not already notified
-      if (!advisorNotified.has(submission.project.advisors[0].toString())) {
-        notifications.push({
-          user: submission.project.advisors[0],
-          message: `הציון עבור "${submission.name}" פורסם`,
+      if (submission.finalGrade !== null) {
+        // Create notifications for students
+        const notifications = submission.project.students.map((student) => {
+          usersToSendEmail.push(student.student);
+          return {
+            user: student.student,
+            message: `הציון עבור "${submission.name}" פורסם`,
+          };
         });
-        advisorNotified.add(submission.project.advisors[0].toString());
-        usersToSendEmail.push(submission.project.advisors[0]);
-      }
 
-      await Notification.insertMany(notifications);
+        // Create notification for advisor if not already notified
+        if (!advisorNotified.has(submission.project.advisors[0].toString())) {
+          notifications.push({
+            user: submission.project.advisors[0],
+            message: `הציון עבור "${submission.name}" פורסם`,
+          });
+          advisorNotified.add(submission.project.advisors[0].toString());
+          usersToSendEmail.push(submission.project.advisors[0]);
+        }
+
+        await Notification.insertMany(notifications);
+      }
     }
 
     res.status(200).json({ message: "Grades were published" });

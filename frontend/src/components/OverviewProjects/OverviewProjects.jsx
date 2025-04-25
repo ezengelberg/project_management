@@ -1309,6 +1309,12 @@ const OverviewProjects = () => {
                       )}
                     </p>
                   )}
+                  {!submission.isGraded && !submission.isReviewed && (
+                    <p>
+                      {`${submission.name.length > 18 ? submission.name.substring(0, 18) + "..." : submission.name} - `}
+                      <Badge color="purple" text="ללא ציון/משוב" />
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

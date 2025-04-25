@@ -285,40 +285,36 @@ const SystemControl = () => {
     setConfirmModalVisible(false);
     const groupSubmissions = submissionGroups[submissionName].submissions.filter((submission) => submission.editable);
 
-    if (groupSubmissions[0].isGraded) {
-      const gradedSubmissions = groupSubmissions.filter(
-        (submission) =>
-          submission.isGraded === true &&
-          submission.gradesDetailed.some(
-            (grade) => grade.editable === true && grade.grade !== null && grade.grade !== undefined
-          )
-      );
-      if (gradedSubmissions.length === 0) {
-        setLoading(false);
-        return message.info("עדיין לא ניתן לפרסם כי אין ציונים");
-      }
-    }
+    const gradedSubmissions = groupSubmissions.filter(
+      (submission) =>
+        submission.isGraded === true &&
+        submission.gradesDetailed.some(
+          (grade) => grade.editable === true && grade.grade !== null && grade.grade !== undefined
+        )
+    );
 
-    if (groupSubmissions[0].isReviewed) {
-      const reviewedSubmissions = groupSubmissions.filter(
-        (submission) =>
-          submission.isReviewed === true &&
-          submission.gradesDetailed.some(
-            (grade) => grade.editable === true && grade.videoQuality !== undefined && grade.videoQuality !== null
-          )
-      );
-      if (reviewedSubmissions.length === 0) {
-        setLoading(false);
-        return message.info("עדיין לא ניתן לפרסם כי אין ביקורות");
-      }
+    const reviewedSubmissions = groupSubmissions.filter(
+      (submission) =>
+        submission.isReviewed === true &&
+        submission.gradesDetailed.some(
+          (grade) => grade.editable === true && grade.videoQuality !== undefined && grade.videoQuality !== null
+        )
+    );
+
+    if (gradedSubmissions.length === 0 && reviewedSubmissions.length === 0) {
+      message.info("לא ניתן לפרסם ציונים/ביקורות מכיוון שאין ציונים/ביקורות זמינים");
+      setLoading(false);
+      return;
     }
 
     try {
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/grade/publish-grades`,
-        { submissionName, year: gradingTableYear, group },
-        { withCredentials: true }
-      );
+      if (gradedSubmissions.length > 0 || reviewedSubmissions.length > 0) {
+        await axios.post(
+          `${process.env.REACT_APP_BACKEND_URL}/api/grade/publish-grades`,
+          { submissionName, year: gradingTableYear, group },
+          { withCredentials: true }
+        );
+      }
       message.success("הציונים/ביקורות הזמינים פורסמו בהצלחה");
       setRefreshSubmissions((prev) => !prev);
     } catch (error) {
