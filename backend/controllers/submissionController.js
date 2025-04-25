@@ -11,6 +11,7 @@ import path from "path";
 import OpenAI from "openai";
 import nodemailer from "nodemailer";
 import mongoose from "mongoose";
+import { getEmbedding } from "../utils/embedding.js";
 
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
@@ -508,117 +509,91 @@ export const resetJudges = async (req, res) => {
 };
 
 export const assignJudgesAI = async (req, res) => {
+  console.log("Assigning judges using AI...");
   const workload = {};
   const projectDetails = {};
   const activeProjects = await Project.find({
-    isTerminated: false,
-    isFinished: false,
-    isTaken: true,
-    year: req.body.submissionYear,
+      isTerminated: false,
+      isFinished: false,
+      isTaken: true,
+      year: req.body.submissionYear,
   });
 
   for (const project of activeProjects) {
-    const advisor = await User.findById(project.advisors[0]);
+      const advisor = await User.findById(project.advisors[0]);
 
-    // creating workload object for advisors/judges
-    if (!workload[advisor._id]) {
-      // Ensure you're using the advisor's ID for the key
-      workload[advisor._id] = { projects: 0, quota: 0, assigned: 0 };
-    }
-    workload[advisor._id].projects++;
-    workload[advisor._id].assigned++;
-    workload[advisor._id].quota += 3;
-    workload[advisor._id].interests = advisor.interests;
-
-    // creating project details object
-    projectDetails[project._id] = {
-      title: project.title,
-      description: project.description,
-      advisor: project.advisors[0],
-    };
-  }
-
-  let prompt = `
-    I have a list of projects and advisors. Each project has a title, description, and an advisor. Each advisor has a quota, current assignments, and interests.
-
-### Rules:
-1. Assign exactly 2 additional judges (advisor IDs) for each project. The project's advisor cannot be assigned as a judge to their own project.
-2. The quota indicates the maximum number of *projects an advisor can judge in total* including their role as an advisor on their own project.
-3. Each advisor may only be assigned as a judge for a project once. Avoid duplicate assignments.
-4. If there are not enough judges available to assign two to each project, return an empty object \`{}\`.
-5. Keep the response minimal, give me the required JSON file only without any additional information.
-
-### Data:
-Projects: ${JSON.stringify(projectDetails, null, 2)}
-Workload: ${JSON.stringify(workload, null, 2)}
-
-### Output:
-Provide a strictly valid JSON response in this structure:
-{
-  "project_id": { "judges": ["judge_id", "judge_id"] },
-  ...
-}
-If no judges can be assigned, return: {}
-  `;
-
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { role: "system", content: "You are a helpful assignment assistant." },
-        { role: "user", content: prompt },
-      ],
-    });
-
-    const content = completion.choices[0].message.content;
-
-    try {
-      // Attempt to extract the JSON part of the response
-      const jsonMatch = content.match(/```json\n([\s\S]*?)```/);
-      if (jsonMatch) {
-        const parsedResponse = JSON.parse(jsonMatch[1]); // Use the matched JSON content
-
-        if (Object.keys(parsedResponse).length === 0) {
-          return res.status(500).json({ message: "No judges were assigned" });
-        }
-
-        for (const project in parsedResponse) {
-          const submission = await Submission.findOne({ project: project, name: req.body.submissionName });
-          if (submission) {
-            const judges = parsedResponse[project].judges;
-            const validJudges = await Promise.all(
-              judges.map(async (judge) => {
-                const user = await User.findById(judge);
-                if (user && user.isJudge) {
-                  return judge;
-                }
-              })
-            );
-            if (validJudges.length === 0) {
-              return res.status(500).json({ message: "No valid judges found" });
-            }
-            const gradeObjects = await Promise.all(
-              validJudges.map(async (judge) => {
-                const grade = new Grade({ judge });
-                await grade.save(); // Save each grade object to the database
-                return grade;
-              })
-            );
-            await submission.updateOne({ $push: { grades: { $each: gradeObjects } } });
-          }
-        }
-        res.status(200).json("judges assigned successfully");
-      } else {
-        throw new Error("No valid JSON found in the AI response.");
+      // creating workload object for advisors/judges
+      if (!workload[advisor._id]) {
+          // Ensure you're using the advisor's ID for the key
+          workload[advisor._id] = { projects: 0, quota: 0, assigned: 0 };
       }
-    } catch (error) {
-      console.error("Error assigning judges:", error);
-      res.status(500).json({ error: "Failed to assign judges." });
-    }
-  } catch (error) {
-    console.error("Error assigning judges:", error);
-    res.status(500).json({ error: "Failed to assign judges." });
+      workload[advisor._id].projects++;
+      workload[advisor._id].assigned++;
+      workload[advisor._id].quota += 3;
+      workload[advisor._id].interests = advisor.interests;
+
+      // creating project details object
+      projectDetails[project._id] = {
+          title: project.title,
+          description: project.description,
+          advisor: project.advisors[0],
+      };
   }
+
+  console.log("Workload:", workload);
+  console.log("Project Details:", projectDetails);
+  // Extract project texts for generating embeddings
+  const projectTexts = Object.entries(projectDetails).map(
+      ([id, project]) => `${project?.title} - ${stripHTML(project?.description)}`,
+  );
+
+  // When generating embeddings
+  const embeddings = await getEmbedding(projectTexts);
+
+  // Create a mapping between original project IDs and their embedding indices
+  const projectEmbeddingMap = Object.keys(projectDetails).reduce((acc, id, index) => {
+      acc[id] = embeddings[index];
+      return acc;
+  }, {});
+
+  const interestsText = Object.entries(workload).map(([id, advisor]) => advisor.interests.trim() !== "" ? advisor.interests : "None");
+  const interestsEmbeddings = await getEmbedding(interestsText);
+  const interestsEmbeddingMap = Object.keys(workload).reduce((acc, id, index) => {
+      acc[id] = interestsEmbeddings[index];
+      return acc;
+  }, {});
+
+  // adding embedding into projectDetails and workload objects
+  for (const [key, value] of Object.entries(projectEmbeddingMap)) {
+      projectDetails[key].embedding = value.embedding;
+  }
+
+  for (const [key, value] of Object.entries(interestsEmbeddingMap)) {
+      workload[key].embedding = value.embedding;
+  }
+
+  const judgeProjectSimilarities = {}; // Store similarity scores
+
+  // Loop over each project
+  for (const [projectId, project] of Object.entries(projectDetails)) {
+      judgeProjectSimilarities[projectId] = [];
+
+      // Compare with each judge
+      for (const [judgeId, judge] of Object.entries(workload)) {
+          const similarity = cosineSimilarity(judge.embedding, project.embedding);
+          judgeProjectSimilarities[projectId].push({
+              judgeId,
+              similarity,
+          });
+      }
+
+      // Sort judges by highest similarity score
+      judgeProjectSimilarities[projectId].sort((a, b) => b.similarity - a.similarity);
+  }
+
+  console.log("Judge Similarity Rankings:", judgeProjectSimilarities);
+
+  res.status(200).json({ message: "Judges assigned successfully" });
 };
 
 export const assignJudgesAutomatically = async (req, res) => {
