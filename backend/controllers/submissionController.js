@@ -735,8 +735,6 @@ export const assignJudgesAI = async (req, res) => {
     await submission.save();
   }
 
-  console.log(workload)
-
   res.status(200).json({ message: "Judges assigned successfully using AI." });
 };
 
