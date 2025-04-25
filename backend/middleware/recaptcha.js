@@ -26,14 +26,8 @@ const verifyRecaptcha = async (req, res, next) => {
 
     next();
   } catch (error) {
-    if (error.response) {
-      console.error("reCAPTCHA verification failed with response:", error.response.data);
-    } else if (error.request) {
-      console.error("No response received from reCAPTCHA server:", error.request);
-    } else {
-      console.error("Error setting up reCAPTCHA request:", error.message);
-    }
-    return res.status(500).json({ message: "reCAPTCHA verification error" });
+    console.error("reCAPTCHA verification error:", error.message);
+    return res.status(500).json({ message: "reCAPTCHA verification error. Please try again later." });
   }
 };
 

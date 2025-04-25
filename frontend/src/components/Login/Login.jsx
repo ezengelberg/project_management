@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import collegeLogo from "../../assets/CollegeLogo.png";
 import projectManagementLogo from "../../assets/project-management-logo.png";
-import { Alert, Form, Input, Button, message, Checkbox, Result, InputNumber } from "antd";
+import { Alert, Form, Input, Button, message, Checkbox, Result } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -113,12 +113,16 @@ const Login = () => {
         } else {
           setErrorMessage(error.response.data.message || "שגיאה בהתחברות");
         }
+        recaptchaRef.current.reset();
       } else if (error.request) {
         setErrorMessage("לא ניתן להתחבר לשרת. אנא בדוק את החיבור לאינטרנט ונסה שוב");
+        recaptchaRef.current.reset();
       } else {
         setErrorMessage("שגיאה בהתחברות");
+        recaptchaRef.current.reset();
       }
       console.error("Error occurred:", error);
+      recaptchaRef.current.reset();
     } finally {
       setLoading(false);
     }
@@ -126,6 +130,11 @@ const Login = () => {
 
   const handleRecaptchaChange = (token) => {
     // Set the reCAPTCHA token when the user completes the challenge
+    if (!token) {
+      message.error("reCAPTCHA verification timed out. Please try again.");
+      setRecaptchaToken(null);
+      return;
+    }
     setRecaptchaToken(token);
   };
 
