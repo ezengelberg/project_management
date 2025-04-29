@@ -254,7 +254,6 @@ const Homepage = () => {
       isHebrewYear: false,
       noMinorFast: true,
       noSpecialShabbat: true,
-      noModern: true,
       noRoshChodesh: true,
       sedrot: false,
       omer: false,
