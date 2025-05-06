@@ -116,6 +116,7 @@ export const getSelfProjectsAsStudent = async (req, res) => {
 };
 
 export const createProject = async (req, res) => {
+  console.log("Creating project...", req.body);
   try {
     const { title, description, year, suitableFor, type, continues, advisors, students } = req.body;
 
