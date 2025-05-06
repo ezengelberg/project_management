@@ -3,6 +3,9 @@ import axios from "axios";
 const verifyRecaptcha = async (req, res, next) => {
   const recaptchaToken = req.body.recaptchaToken;
 
+  // For testing purposes, uncomment the line below to skip reCAPTCHA verification and comment out the rest of the code
+  // next();
+
   if (!recaptchaToken) {
     return res.status(400).json({ message: "reCAPTCHA token is missing" });
   }
