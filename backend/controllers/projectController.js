@@ -116,7 +116,6 @@ export const getSelfProjectsAsStudent = async (req, res) => {
 };
 
 export const createProject = async (req, res) => {
-  console.log("Creating project...", req.body);
   try {
     const { title, description, year, suitableFor, type, continues, advisors, students } = req.body;
 
@@ -830,9 +829,19 @@ export const startProjectsCoordinator = async (req, res) => {
   }
 };
 
-export const deleteAllProjects = async (req, res) => {
+export const deleteAllProjectsByYear = async (req, res) => {
   try {
-    const projects = await Project.find();
+    const { year } = req.body;
+
+    if (!year) {
+      return res.status(400).json({ message: "Year is required" });
+    }
+
+    const projects = await Project.find({ year });
+    if (projects.length === 0) {
+      return res.status(404).json({ message: `No projects found for the year ${year}` });
+    }
+
     for (const project of projects) {
       // Detach students and advisors
       project.students = [];
@@ -869,11 +878,12 @@ export const deleteAllProjects = async (req, res) => {
       // Delete associated missions
       await Mission.deleteMany({ _id: { $in: project.journal.missions } });
     }
-    await Project.deleteMany();
-    res.status(200).json({ message: "All projects deleted successfully" });
+
+    await Project.deleteMany({ year });
+    res.status(200).json({ message: `All projects for the year ${year} deleted successfully` });
   } catch (error) {
-    console.error("Error deleting projects:", error);
-    res.status(500).json({ message: "Failed to delete projects" });
+    console.error("Error deleting projects by year:", error);
+    res.status(500).json({ message: "Failed to delete projects by year" });
   }
 };
 

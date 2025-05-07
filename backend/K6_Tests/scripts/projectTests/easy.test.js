@@ -5,11 +5,9 @@
  * - Logs in to obtain an authentication token.
  * - Sends a POST request to the `/api/project/create-project` endpoint with valid project details.
  * - Validates the response to ensure the project is created successfully.
- * - Sends a DELETE request to remove the created project.
  *
  * Expectations:
  * - The server should return a status code of 201 for project creation.
- * - The server should return a status code of 200 for project deletion.
  */
 
 import http from "k6/http";
@@ -27,8 +25,8 @@ export default function () {
 
   // Step 1: Log in to get a token
   const loginPayload = JSON.stringify({
-    email: "adam@gmail.com", // Replace with valid credentials
-    password: "12345Aa!", // Replace with valid credentials
+    email: "adam@gmail.com",
+    password: "12345Aa!",
   });
 
   const loginParams = {
@@ -54,7 +52,7 @@ export default function () {
     suitableFor: "יחיד",
     type: "מחקרי",
     advisors: ["67d92862d95be53d76a16d0f"],
-    students: [], // Optional field
+    students: [],
   });
 
   const projectParams = {
@@ -78,21 +76,6 @@ export default function () {
     projectId = responseBody.project ? responseBody.project._id : null; // Extract the project ID
   } else {
     console.error("Non-JSON response received:", projectRes.body);
-  }
-
-  // Step 3: Delete the created project
-  if (projectId) {
-    const deleteRes = http.del(`${deleteProjectUrl}/${projectId}`, null, {
-      headers: {
-        Authorization: `Bearer ${token}`, // Use the token in the Authorization header
-      },
-    });
-
-    check(deleteRes, {
-      "is delete successful": (r) => r.status === 200, // Expect the response status to be 200
-    });
-  } else {
-    console.error("Project ID not found. Skipping cleanup.");
   }
 
   sleep(1); // Pause for 1 second between iterations

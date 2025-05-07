@@ -25,7 +25,7 @@ import {
   getActiveProjects,
   getProjectYears,
   startProjectsCoordinator,
-  deleteAllProjects,
+  deleteAllProjectsByYear,
   createExamTable,
   getExamTables,
   editExamTableClasses,
@@ -73,7 +73,7 @@ router.put("/restore-project/:id", ensureAuthenticated, isCoordinator, restorePr
 router.post("/assign-advisors-automatically", ensureAuthenticated, isCoordinator, assignAdvisorsAutomatically);
 router.put("/start-projects-coordinator", ensureAuthenticated, isCoordinator, startProjectsCoordinator);
 router.get("/years", ensureAuthenticated, getProjectYears);
-router.delete("/delete-all", ensureAuthenticated, isCoordinator, deleteAllProjects);
+router.delete("/delete-all", ensureAuthenticated, isCoordinator, deleteAllProjectsByYear);
 router.post("/create-exam-table", ensureAuthenticated, isCoordinator, createExamTable);
 router.get("/get-exam-tables", ensureAuthenticated, getExamTables);
 router.put("/edit-exam-table-classes/:id", ensureAuthenticated, isCoordinator, editExamTableClasses);

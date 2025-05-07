@@ -25,8 +25,8 @@ export default function () {
 
   // Step 1: Log in to get a token
   const loginPayload = JSON.stringify({
-    email: "adam@gmail.com", // Replace with valid credentials
-    password: "12345Aa!", // Replace with valid credentials
+    email: "adam@gmail.com",
+    password: "12345Aa!",
   });
 
   const loginParams = {

@@ -4,7 +4,6 @@
  * What the test does:
  * - Simulates multiple users creating projects concurrently.
  * - Validates the response to ensure the system remains stable under load.
- * - Deletes each project after it is created.
  *
  * Expectations:
  * - The server should handle the load without crashing or returning unexpected errors.
@@ -30,8 +29,8 @@ export default function () {
 
   // Step 1: Log in to get a token
   const loginPayload = JSON.stringify({
-    email: "adam@gmail.com", // Replace with valid credentials
-    password: "12345Aa!", // Replace with valid credentials
+    email: "adam@gmail.com",
+    password: "12345Aa!",
   });
 
   const loginParams = {
@@ -57,7 +56,7 @@ export default function () {
     suitableFor: "יחיד",
     type: "מחקרי",
     advisors: ["67d92862d95be53d76a16d0f"],
-    students: [], // Optional field
+    students: [],
   });
 
   const projectParams = {
@@ -81,20 +80,5 @@ export default function () {
     projectId = responseBody.project ? responseBody.project._id : null; // Extract the project ID
   } else {
     console.error("Non-JSON response received:", projectRes.body);
-  }
-
-  // Step 3: Delete the created project
-  if (projectId) {
-    const deleteRes = http.del(`${deleteProjectUrl}/${projectId}`, null, {
-      headers: {
-        Authorization: `Bearer ${token}`, // Use the token in the Authorization header
-      },
-    });
-
-    check(deleteRes, {
-      "is delete successful": (r) => r.status === 200, // Expect the response status to be 200
-    });
-  } else {
-    console.error("Project ID not found. Skipping cleanup.");
   }
 }
