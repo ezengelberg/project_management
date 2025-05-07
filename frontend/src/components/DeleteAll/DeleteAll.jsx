@@ -10,9 +10,11 @@ const DeleteAll = () => {
   const [confirmDeleteUsers, setConfirmDeleteUsers] = useState(false);
   const [yearFilter, setYearFilter] = useState(null);
   const [years, setYears] = useState([]);
+  const [files, setFiles] = useState([]);
 
   useEffect(() => {
     fetchYears();
+    fetchFiles();
   }, []);
 
   const fetchYears = async () => {
@@ -25,6 +27,21 @@ const DeleteAll = () => {
     } catch (error) {
       console.error("Error occurred:", error);
     }
+  };
+
+  const fetchFiles = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/test-results/list-results`, {
+        withCredentials: true,
+      });
+      setFiles(response.data);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+    }
+  };
+
+  const handleDownload = (filename) => {
+    window.open(`${process.env.REACT_APP_BACKEND_URL}/api/test-results/download/${filename}`, "_blank");
   };
 
   const handleDeleteSubmissions = async () => {
@@ -174,6 +191,23 @@ const DeleteAll = () => {
         cancelText="בטל">
         <p>האם אתה בטוח שברצונך למחוק את כל הידע במערכת?</p>
       </Modal>
+
+      <Divider />
+
+      <h2>תוצאות בדיקה</h2>
+      <div className="file-list">
+        {files.length > 0 ? (
+          files.map((file) => (
+            <div key={file} style={{ marginBottom: "10px" }}>
+              <Button type="link" onClick={() => handleDownload(file)}>
+                {file}
+              </Button>
+            </div>
+          ))
+        ) : (
+          <h3>אין קבצים זמינים</h3>
+        )}
+      </div>
     </div>
   );
 };

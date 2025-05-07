@@ -30,7 +30,7 @@ import announcementRoute from "./routes/announcementRoute.js";
 import chatRoute from "./routes/chatRoute.js";
 import emailRoute from "./routes/emailRoute.js";
 import gradeMeaningRoute from "./routes/gradeMeaningRoute.js";
-
+import testResultsRoute from "./routes/testResultsRoute.js";
 import Message from "./models/messages.js";
 
 import dotenv from "dotenv";
@@ -144,6 +144,7 @@ app.use("/api/announcement", announcementRoute);
 app.use("/api/chat", chatRoute);
 app.use("/api/email", emailRoute);
 app.use("/api/grade-meaning", gradeMeaningRoute);
+app.use("/api/test-results", testResultsRoute);
 
 app.get("/", (req, res) => {
   res.send(`Version DEV: 13`);
