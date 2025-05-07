@@ -74,7 +74,6 @@ export default function () {
       "is status 201": (r) => projectRes.status === 201, // Expect the response status to be 201
       "is creation successful": (r) => r.project && r.project.title === uniqueProjectName, // Validate project title
     });
-    projectId = responseBody.project ? responseBody.project._id : null; // Extract the project ID
   } else {
     console.error("Non-JSON response received:", projectRes.body);
   }
