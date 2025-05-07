@@ -44,6 +44,19 @@ const DeleteAll = () => {
     window.open(`${process.env.REACT_APP_BACKEND_URL}/api/test-results/download/${filename}`, "_blank");
   };
 
+  const handleDeleteFile = async (filename) => {
+    try {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/test-results/delete/${filename}`, {
+        withCredentials: true,
+      });
+      message.success(`הקובץ נמחק בהצלחה`);
+      fetchFiles();
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      message.error(`נכשל במחיקת הקובץ`);
+    }
+  };
+
   const handleDeleteSubmissions = async () => {
     try {
       await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/submission/delete-all`, {
@@ -198,9 +211,12 @@ const DeleteAll = () => {
       <div className="file-list">
         {files.length > 0 ? (
           files.map((file) => (
-            <div key={file} style={{ marginBottom: "10px" }}>
-              <Button type="link" onClick={() => handleDownload(file)}>
+            <div key={file} style={{ marginBottom: "10px", display: "flex", alignItems: "center" }}>
+              <Button type="link" onClick={() => handleDownload(file)} style={{ marginRight: "10px" }}>
                 {file}
+              </Button>
+              <Button type="primary" danger onClick={() => handleDeleteFile(file)}>
+                מחק
               </Button>
             </div>
           ))
