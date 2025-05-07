@@ -60,6 +60,19 @@ const DeleteAll = () => {
     setConfirmDelete({ visible: false, action: null });
   };
 
+  const handleDeleteTestUsers = async () => {
+    try {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/user/delete-test-users`, {
+        withCredentials: true,
+      });
+      message.success("כל משתמשי המבחן נמחקו בהצלחה");
+    } catch (error) {
+      console.error("Error deleting test users:", error);
+      message.error("נכשל במחיקת משתמשי המבחן");
+    }
+    setConfirmDelete({ visible: false, action: null });
+  };
+
   const handleDeleteFiles = async () => {
     try {
       await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/uploads/delete-all`, {
@@ -124,6 +137,9 @@ const DeleteAll = () => {
             מחיקת פרויקטים
           </Button>
         </div>
+        <Button type="primary" danger onClick={() => showConfirmModal(handleDeleteTestUsers)}>
+          מחיקת משתמשי מבחן
+        </Button>
         <Button type="primary" danger onClick={() => showConfirmModal(handleDeleteChats)}>
           מחיקת צ'אטים
         </Button>

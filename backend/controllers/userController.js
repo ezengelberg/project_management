@@ -34,7 +34,7 @@ export const registerUser = async (req, res) => {
     const newUser = new User({
       ...req.body,
       email: lowerCaseEmail,
-      firstLogin: true,
+      firstLogin: req.body.testUser ? false : true,
       password: hashedPassword,
       registerDate: new Date(),
       suspensionRecords: [],
@@ -42,6 +42,7 @@ export const registerUser = async (req, res) => {
       isAdvisor: isAdvisor || false,
       isJudge: isJudge || false,
       isCoordinator: isCoordinator || false,
+      testUser: req.body.testUser || false,
     });
     await newUser.save();
     res.status(201).send("User registered successfully");
@@ -819,6 +820,15 @@ export const resetPassword = async (req, res) => {
     user.resetPasswordExpires = null;
     await user.save();
     res.status(200).send("Password reset successfully");
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const deleteTestUsers = async (req, res) => {
+  try {
+    await User.deleteMany({ testUser: true });
+    res.status(200).send("Test users deleted successfully");
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

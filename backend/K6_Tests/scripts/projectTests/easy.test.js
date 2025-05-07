@@ -21,7 +21,6 @@ export const options = {
 export default function () {
   const loginUrl = "http://localhost:4000/api/user/login";
   const projectUrl = "http://localhost:4000/api/project/create-project";
-  const deleteProjectUrl = "http://localhost:4000/api/project/delete-project"; // Replace with the actual delete endpoint
 
   // Step 1: Log in to get a token
   const loginPayload = JSON.stringify({
@@ -48,7 +47,7 @@ export default function () {
   const projectPayload = JSON.stringify({
     title: uniqueProjectName,
     description: `<p>${uniqueProjectName}</p>`, // Description in HTML format
-    year: "תשפ״ה",
+    year: "תתת״ת",
     suitableFor: "יחיד",
     type: "מחקרי",
     advisors: ["67d92862d95be53d76a16d0f"],
@@ -63,8 +62,6 @@ export default function () {
   };
 
   const projectRes = http.post(projectUrl, projectPayload, projectParams);
-
-  let projectId = null;
 
   // Check if the response is JSON and extract the project ID
   if (projectRes.headers["Content-Type"] && projectRes.headers["Content-Type"].includes("application/json")) {

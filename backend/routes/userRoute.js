@@ -33,6 +33,7 @@ import {
   getResetPasswordUsers,
   approveResetPassword,
   rejectResetPassword,
+  deleteTestUsers,
 } from "../controllers/userController.js";
 import {
   getUnreadNotifications,
@@ -88,6 +89,7 @@ router.post("/forgot-password", forgotPassword);
 router.get("/reset-password-requests", ensureAuthenticated, isCoordinator, getResetPasswordUsers);
 router.post("/approve-reset-password/:id", ensureAuthenticated, isCoordinator, approveResetPassword);
 router.post("/reject-reset-password/:id", ensureAuthenticated, isCoordinator, rejectResetPassword);
+router.delete("/delete-test-users", ensureAuthenticated, isCoordinator, deleteTestUsers);
 
 // Notifications
 router.get("/notifications", ensureAuthenticated, getUnreadNotifications);

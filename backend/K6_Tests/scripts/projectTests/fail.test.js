@@ -47,7 +47,7 @@ export default function () {
   const invalidProjectPayload = JSON.stringify({
     // Missing required fields like `title` and `advisors`
     description: "This is an invalid project description.",
-    year: "תשפ״ה",
+    year: "תתת״ת",
     suitableFor: "יחיד",
     type: "מחקרי",
   });
