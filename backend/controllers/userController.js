@@ -45,7 +45,7 @@ export const registerUser = async (req, res) => {
       testUser: req.body.testUser || false,
     });
     await newUser.save();
-    res.status(201).send("User registered successfully");
+    res.status(201).json({ message: "User registered successfully", newUser });
   } catch (err) {
     res.status(500).send({ message: err.message });
   }

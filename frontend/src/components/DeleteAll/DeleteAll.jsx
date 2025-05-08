@@ -11,6 +11,7 @@ const DeleteAll = () => {
   const [yearFilter, setYearFilter] = useState(null);
   const [years, setYears] = useState([]);
   const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchYears();
@@ -71,8 +72,10 @@ const DeleteAll = () => {
   };
 
   const handleDeleteProjects = async () => {
+    setLoading(true);
     if (!yearFilter) {
       message.error("אנא בחר שנה למחיקה");
+      setLoading(false);
       return;
     }
     try {
@@ -88,9 +91,11 @@ const DeleteAll = () => {
       message.error("נכשל במחיקת פרויקטים");
     }
     setConfirmDelete({ visible: false, action: null });
+    setLoading(false);
   };
 
   const handleDeleteTestUsers = async () => {
+    setLoading(true);
     try {
       await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/user/delete-test-users`, {
         withCredentials: true,
@@ -101,6 +106,7 @@ const DeleteAll = () => {
       message.error("נכשל במחיקת משתמשי המבחן");
     }
     setConfirmDelete({ visible: false, action: null });
+    setLoading(false);
   };
 
   const handleDeleteFiles = async () => {
@@ -163,11 +169,11 @@ const DeleteAll = () => {
               </Select.Option>
             ))}
           </Select>
-          <Button type="primary" danger onClick={() => showConfirmModal(handleDeleteProjects)}>
+          <Button type="primary" danger onClick={() => showConfirmModal(handleDeleteProjects)} loading={loading}>
             מחיקת פרויקטים
           </Button>
         </div>
-        <Button type="primary" danger onClick={() => showConfirmModal(handleDeleteTestUsers)}>
+        <Button type="primary" danger onClick={() => showConfirmModal(handleDeleteTestUsers)} loading={loading}>
           מחיקת משתמשי מבחן
         </Button>
         <Button type="primary" danger onClick={() => showConfirmModal(handleDeleteChats)}>
@@ -190,7 +196,7 @@ const DeleteAll = () => {
         onOk={confirmDelete.action}
         onCancel={() => setConfirmDelete({ visible: false, action: null })}
         okText="מחק"
-        okButtonProps={{ danger: true }}
+        okButtonProps={{ danger: true, loading: loading }}
         cancelText="בטל">
         <p>האם אתה בטוח שברצונך למחוק את כל הפריטים?</p>
       </Modal>
