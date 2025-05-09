@@ -25,7 +25,7 @@ const ManageProjects = () => {
   const { Option } = Select;
   const { fetchNotifications } = useContext(NotificationsContext);
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editProjectData, setEditProjectData] = useState({});
