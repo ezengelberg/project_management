@@ -17,7 +17,7 @@ const SubmissionsStatus = () => {
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
-  const [yearFilter, setYearFilter] = useState("all");
+  const [yearFilter, setYearFilter] = useState(null);
   const [years, setYears] = useState([]);
   const [fileListModal, setFileListModal] = useState(false);
   const [submissionDetails, setSubmissionDetails] = useState({});
@@ -40,17 +40,38 @@ const SubmissionsStatus = () => {
   }, []);
 
   useEffect(() => {
+    const fetchYears = async () => {
+      try {
+        const yearsResponse = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
+          withCredentials: true,
+        });
+
+        const sortedYears = yearsResponse.data.sort((a, b) => b.localeCompare(a));
+        setYears(sortedYears);
+
+        const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
+        const currentHebrewYearIndex = sortedYears.indexOf(currentHebrewYear);
+        const initialYear = currentHebrewYearIndex !== -1 ? sortedYears[currentHebrewYearIndex] : sortedYears[0];
+        setYearFilter(initialYear);
+      } catch (error) {
+        console.error("Error fetching years:", error);
+      }
+    };
+
+    fetchYears();
+  }, []);
+
+  useEffect(() => {
+    if (yearFilter === null) return; // Skip fetching if null is selected
+
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [projectsResponse, yearsResponse] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects/`, {
-            withCredentials: true,
-          }),
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
-            withCredentials: true,
-          }),
-        ]);
+        const projectsResponse = await axios.post(
+          `${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects-by-year/`,
+          { year: yearFilter },
+          { withCredentials: true }
+        );
 
         const projects = projectsResponse.data.projects.filter((project) => project.students.length > 0);
 
@@ -63,22 +84,9 @@ const SubmissionsStatus = () => {
           )
         );
 
-        const studentPromises = projects.map((project) =>
-          Promise.all(
-            project.students.map((student) =>
-              axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${student.student}`, {
-                withCredentials: true,
-              })
-            )
-          )
-        );
+        const submissionsResponses = await Promise.all(submissionsPromises);
 
-        const [submissionsResponses, studentResponses] = await Promise.all([
-          Promise.all(submissionsPromises),
-          Promise.all(studentPromises),
-        ]);
-
-        const projectsWithSubmissionsAndStudents = projects.map((project, index) => ({
+        const projectsWithSubmissions = projects.map((project, index) => ({
           ...project,
           submissions: submissionsResponses[index].data
             .map((submission) => {
@@ -86,31 +94,18 @@ const SubmissionsStatus = () => {
               return { ...rest };
             })
             .sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)),
-          students: studentResponses[index].map((response) => response.data),
-          gotExtraUpload: submissionsResponses[index].data.some((submission) => submission.gotExtraUpload),
-          extraUploadFile: submissionsResponses[index].data.find((submission) => submission.gotExtraUpload)
-            ?.extraUploadFile,
         }));
 
-        setProjects(projectsWithSubmissionsAndStudents);
-        setYears(yearsResponse.data.sort((a, b) => b.localeCompare(a)));
-
-        const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
-        const currentHebrewYearIndex = yearsResponse.data.indexOf(currentHebrewYear);
-        setYearFilter(
-          currentHebrewYearIndex !== -1 ? yearsResponse.data[currentHebrewYearIndex] : yearsResponse.data[0]
-        );
-
-        setLoading(false);
+        setProjects(projectsWithSubmissions);
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching projects:", error);
+      } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-    fetchNotifications();
-  }, []);
+  }, [yearFilter, fetchNotifications]);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -312,9 +307,9 @@ const SubmissionsStatus = () => {
     return {
       key: project._id,
       projectName: project.title,
-      students: project.students,
+      students: project.students.map((s) => s.student),
       projectYear: project.year,
-      submissions: project.submissions,
+      submissions: project.submissions || [],
       gotExtraUpload: project.gotExtraUpload,
       extraUploadFile: project.extraUploadFile,
     };
@@ -323,7 +318,7 @@ const SubmissionsStatus = () => {
   return (
     <div className="submission-status-container">
       <div className="upper-table-options">
-        <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px" }}>
+        <Select value={yearFilter} placeholder="בחר שנה" onChange={setYearFilter} style={{ width: "200px" }}>
           <Select.Option value="all">כל השנים</Select.Option>
           {years.map((year) => (
             <Select.Option key={year} value={year}>

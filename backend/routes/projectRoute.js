@@ -11,9 +11,10 @@ import {
   updateProject,
   getAvailableProjects,
   getProject,
+  getProjectWithStudents,
   addCandidateToProject,
   removeCandidateFromProject,
-  getSelfProjects,
+  getSelfProjectsByYear,
   addAdvisorToProject,
   addStudentToProject,
   updateStudentsInProject,
@@ -55,9 +56,10 @@ router.get("/available-projects", ensureAuthenticated, getAvailableProjects);
 router.get("/get-active-projects", getActiveProjects);
 router.get("/no-student", getProjectsNoStudent);
 router.get("/get-project/:id", getProject);
+router.get("/get-project-with-students/:id", ensureAuthenticated, getProjectWithStudents);
 router.post("/add-candidate", ensureAuthenticated, addCandidateToProject);
 router.get("/check-if-candidate/:id", ensureAuthenticated, checkIfUserIsCandidate);
-router.get("/get-self-projects", ensureAuthenticated, isAdvisorOrCoordinator, getSelfProjects);
+router.post("/get-self-projects-by-year", ensureAuthenticated, isAdvisorOrCoordinator, getSelfProjectsByYear);
 router.post("/remove-candidate", ensureAuthenticated, removeCandidateFromProject);
 router.post("/approve-candidate", ensureAuthenticated, isAdvisorOrCoordinator, approveCandidate);
 router.post("/remove-student", ensureAuthenticated, isAdvisorOrCoordinator, removeStudentFromProject);

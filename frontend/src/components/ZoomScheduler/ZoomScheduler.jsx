@@ -77,33 +77,19 @@ const ZoomScheduler = () => {
     const fetchProjects = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects/`, {
-          withCredentials: true,
-        });
-        const projects = response.data.projects.filter((project) => project.students.length > 0);
-
-        const studentPromises = projects.map((project) =>
-          Promise.all(
-            project.students.map((student) =>
-              axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/get-user-info/${student.student}`, {
-                withCredentials: true,
-              })
-            )
-          )
+        const response = await axios.post(
+          `${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects-by-year`,
+          { year: yearFilter },
+          { withCredentials: true }
         );
 
-        const studentResponses = await Promise.all(studentPromises);
+        const projects = response.data.projects.filter((project) => project.students.length > 0);
 
-        const projectsWithStudents = projects.map((project, index) => ({
-          ...project,
-          students: studentResponses[index].map((response) => response.data),
-        }));
-
-        const filteredProjects = projectsWithStudents.filter((project) => project.year === yearFilter);
+        const filteredProjects = projects.filter((project) => project.year === yearFilter);
         setProjects(filteredProjects);
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching projects:", error);
+      } finally {
         setLoading(false);
       }
     };
@@ -115,9 +101,11 @@ const ZoomScheduler = () => {
 
   const handleProjectChange = (projectId) => {
     const project = projects.find((proj) => proj._id === projectId);
-    form.setFieldsValue({
-      students: project.students.map((student) => student.name).join(", "),
-    });
+    if (project) {
+      form.setFieldsValue({
+        students: project.students.map((s) => s.student.name).join(", "),
+      });
+    }
   };
 
   const handleYearChange = (year) => {

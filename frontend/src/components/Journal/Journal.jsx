@@ -83,17 +83,19 @@ const Journal = ({ readOnly }) => {
         let projectRes;
         let missionRes;
         if (readOnly) {
-          projectRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-self-projects`, {
-            withCredentials: true,
-          });
-          if (!projectRes.data.projects.length) {
+          projectRes = await axios.get(
+            `${process.env.REACT_APP_BACKEND_URL}/api/project/get-project-with-students/${projectId}`,
+            {
+              withCredentials: true,
+            }
+          );
+
+          if (!projectRes.data) {
             return;
           }
-          const project = projectRes.data.projects.find((project) => project._id === projectId);
-          if (!project) {
-            return;
-          }
-          setProjectDetails(project);
+
+          setProjectDetails(projectRes.data);
+
           missionRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/mission/project/${projectId}`, {
             withCredentials: true,
           });
@@ -112,14 +114,24 @@ const Journal = ({ readOnly }) => {
             }
           );
         }
+
         const sortedMissions = missionRes.data.missions.sort((a, b) => b.number - a.number);
         setMissions(sortedMissions || []);
-        setStudents(
-          projectRes.data.projects[0].students.map((student) => ({
-            label: student.student.name,
-            value: student.student._id,
-          }))
-        );
+        if (readOnly) {
+          setStudents(
+            projectRes.data.students.map((student) => ({
+              label: student.student.name,
+              value: student.student._id,
+            }))
+          );
+        } else {
+          setStudents(
+            projectRes.data.projects[0].students.map((student) => ({
+              label: student.student.name,
+              value: student.student._id,
+            }))
+          );
+        }
       } catch (error) {
         console.error(error);
       } finally {

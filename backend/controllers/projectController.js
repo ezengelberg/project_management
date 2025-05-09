@@ -83,14 +83,41 @@ export const getProject = async (req, res) => {
   }
 };
 
-export const getSelfProjects = async (req, res) => {
+export const getProjectWithStudents = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id).populate({
+      path: "students.student",
+      model: "User",
+      select: "-password",
+    });
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    res.status(200).send(project);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+export const getSelfProjectsByYear = async (req, res) => {
   try {
     const userid = req.user._id;
+    const year = req.body.year;
+    let projects = [];
     const user = await User.findById(userid);
     if (!user) {
       return res.status(200).send({ projects: [] });
     }
-    const projects = await Project.find({ advisors: { $in: [user] } });
+
+    const query = year === "all" ? { advisors: { $in: [user] } } : { advisors: { $in: [user] }, year: year };
+
+    // Fetch projects and populate the students field
+    projects = await Project.find(query).populate({
+      path: "students.student",
+      model: "User",
+      select: "-password", // Exclude sensitive fields like password
+    });
+
     res.status(200).send({ projects });
   } catch (err) {
     res.status(500).send({ message: err.message });
