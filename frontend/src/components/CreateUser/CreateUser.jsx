@@ -135,7 +135,6 @@ const CreateUser = () => {
       // Convert to JSON, treating CSV and XLSX the same way
       const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-      console.log(jsonData);
       processParsedData(jsonData);
     };
 
