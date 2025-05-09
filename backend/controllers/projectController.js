@@ -25,6 +25,21 @@ export const getProjects = async (req, res) => {
   }
 };
 
+export const getAllProjectsByYear = async (req, res) => {
+  try {
+    const year = req.params.year;
+    let projects = [];
+    if (year === "all") {
+      projects = await Project.find();
+    } else {
+      projects = await Project.find({ year: req.params.year });
+    }
+    res.status(200).send(projects);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 export const getActiveProjects = async (req, res) => {
   try {
     const projects = await Project.find({ isTerminated: false, isFinished: false, isTaken: true });

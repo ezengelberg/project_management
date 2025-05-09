@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getProjects,
+  getAllProjectsByYear,
   createProject,
   getProjectsByYear,
   getProjectsNoStudent,
@@ -50,6 +51,7 @@ import { ensureAuthenticated, isAdvisorOrCoordinator, isCoordinator } from "../m
 const router = express.Router();
 
 router.get("/", getProjects);
+router.get("/get-all-projects-by-year/:year", ensureAuthenticated, getAllProjectsByYear);
 router.get("/get-projects-by-year/:year", getProjectsByYear);
 router.post("/create-project", ensureAuthenticated, isAdvisorOrCoordinator, createProject);
 router.get("/available-projects", ensureAuthenticated, getAvailableProjects);

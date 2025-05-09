@@ -34,7 +34,7 @@ const OverviewProjects = () => {
   const searchInput = useRef(null);
   const [takenFilter, setTakenFilter] = useState("all");
   const [years, setYears] = useState([]);
-  const [yearFilter, setYearFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState(null);
   const [submissions, setSubmissions] = useState([]);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [selectedGradesToChange, setSelectedGradesToChange] = useState([]);
@@ -59,11 +59,36 @@ const OverviewProjects = () => {
   }, []);
 
   useEffect(() => {
+    const fetchYears = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
+          withCredentials: true,
+        });
+        const sortedYears = response.data.sort((a, b) => b.localeCompare(a));
+        setYears(sortedYears);
+
+        const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
+        const currentHebrewYearIndex = sortedYears.indexOf(currentHebrewYear);
+        setYearFilter(currentHebrewYearIndex !== -1 ? sortedYears[currentHebrewYearIndex] : sortedYears[0]);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error occurred:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchYears();
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         const [projectsRes, usersRes, submissionsRes] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project`, { withCredentials: true }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-all-projects-by-year/${yearFilter}`, {
+            withCredentials: true,
+          }),
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/all-users`, { withCredentials: true }),
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all`, { withCredentials: true }),
         ]);
@@ -100,14 +125,6 @@ const OverviewProjects = () => {
         setUsers(usersRes.data);
         setSubmissions(submissionsRes.data);
 
-        const years = Array.from(new Set(projectWithCandidates.map((project) => project.year))).sort((a, b) =>
-          b.localeCompare(a)
-        );
-        setYears(years);
-        const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
-        const currentHebrewYearIndex = years.indexOf(currentHebrewYear);
-        setYearFilter(currentHebrewYearIndex !== -1 ? years[currentHebrewYearIndex] : years[0]);
-
         // Filter users without projects
         const usersWithProject = new Set(
           projectWithCandidates.flatMap((project) => project.students.map((student) => student.student.toString()))
@@ -127,9 +144,10 @@ const OverviewProjects = () => {
       setLoading(false);
     };
 
+    if (yearFilter === null) return;
     fetchData();
     fetchNotifications();
-  }, []);
+  }, [yearFilter]);
 
   const handleAddStudents = async () => {
     try {
@@ -1569,7 +1587,7 @@ const OverviewProjects = () => {
       children: (
         <>
           <div className="upper-table-options">
-            <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px" }}>
+            <Select value={yearFilter} placeholder="בחר שנה" onChange={setYearFilter} style={{ width: "200px" }}>
               <Select.Option value="all">כל השנים</Select.Option>
               {years.map((year) => (
                 <Select.Option key={year} value={year}>
@@ -1634,7 +1652,7 @@ const OverviewProjects = () => {
       children: (
         <>
           <div className="upper-table-options">
-            <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px" }}>
+            <Select value={yearFilter} placeholder="בחר שנה" onChange={setYearFilter} style={{ width: "200px" }}>
               <Select.Option value="all">כל השנים</Select.Option>
               {years.map((year) => (
                 <Select.Option key={year} value={year}>
@@ -1686,7 +1704,11 @@ const OverviewProjects = () => {
       ),
       children: (
         <>
-          <Select value={yearFilter} onChange={setYearFilter} style={{ width: "200px", marginBottom: "10px" }}>
+          <Select
+            value={yearFilter}
+            placeholder="בחר שנה"
+            onChange={setYearFilter}
+            style={{ width: "200px", marginBottom: "10px" }}>
             <Select.Option value="all">כל השנים</Select.Option>
             {years.map((year) => (
               <Select.Option key={year} value={year}>

@@ -16,7 +16,7 @@ const Groups = () => {
   const [deleteGroupForm] = Form.useForm();
   const [projectsData, setProjectsData] = useState([]);
   const [years, setYears] = useState([]);
-  const [yearFilter, setYearFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState(null);
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [projectsWithNoGroup, setProjectsWithNoGroup] = useState([]);
@@ -42,22 +42,39 @@ const Groups = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    const fetchYears = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
+          withCredentials: true,
+        });
+        const sortedYears = response.data.sort((a, b) => b.localeCompare(a));
+        setYears(sortedYears);
+
+        const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
+        const currentHebrewYearIndex = sortedYears.indexOf(currentHebrewYear);
+        setYearFilter(currentHebrewYearIndex !== -1 ? sortedYears[currentHebrewYearIndex] : sortedYears[0]);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error occurred:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchYears();
+  }, []);
+
   const fetchData = async () => {
     setLoading(true);
     try {
       const [projectsRes, usersRes, groupRes] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project`, { withCredentials: true }),
+        axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-all-projects-by-year/${yearFilter}`, {
+          withCredentials: true,
+        }),
         axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/all-users`, { withCredentials: true }),
         axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get`, { withCredentials: true }),
       ]);
-
-      const years = Array.from(new Set(projectsRes.data.map((project) => project.year))).sort((a, b) =>
-        b.localeCompare(a)
-      );
-      setYears(years);
-      const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
-      const currentHebrewYearIndex = years.indexOf(currentHebrewYear);
-      setYearFilter(currentHebrewYearIndex !== -1 ? years[currentHebrewYearIndex] : years[0]);
 
       const activeUsers = usersRes.data.filter((user) => !user.suspended);
       const projectsWithDetails = projectsRes.data
@@ -88,9 +105,10 @@ const Groups = () => {
   };
 
   useEffect(() => {
+    if (yearFilter === null) return;
     fetchData();
     fetchNotifications();
-  }, []);
+  }, [yearFilter]);
 
   useEffect(() => {
     if (selectedGroup) {
