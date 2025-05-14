@@ -53,6 +53,50 @@ const Sidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
 
+  const isActive = (path) => {
+    if (typeof path === "string") {
+      return location.pathname === path;
+    }
+    return path.some((p) => location.pathname === p);
+  };
+
+  // Function to determine which submenu should be open based on the current URL
+  const updateOpenSubmenus = () => {
+    setOpenSubmenus((prev) => {
+      const newSubmenus = {
+        myProjects: isActive(["/create-project", "/list-projects", "/journal-status", "/submission-status"]),
+        manageProjects: isActive(["/overview-projects", "/groups", "/approve-projects"]),
+        manageSubmissions: isActive(["/submissions", "/grade-distribution", "/approve-extra-file"]),
+        manageUsers: isActive(["/create-user", "/display-users", "/create-users-file", "/approve-reset-password"]),
+        zoomMeetings: isActive(["/zoom-scheduler", "/list-zoom-meetings"]),
+      };
+
+      // If no submenu matches the current path, keep the previously open submenu
+      const isAnySubmenuActive = Object.values(newSubmenus).some((isActive) => isActive);
+      return isAnySubmenuActive ? newSubmenus : prev;
+    });
+  };
+
+  // Update open submenus when the location changes
+  useEffect(() => {
+    updateOpenSubmenus();
+  }, [location.pathname]);
+
+  const toggleSubmenu = (submenu) => {
+    setOpenSubmenus((prev) => {
+      const newSubmenus = Object.keys(prev).reduce((acc, key) => {
+        acc[key] = key === submenu ? !prev[key] : false;
+        return acc;
+      }, {});
+      return newSubmenus;
+    });
+  };
+
+  const handleNavigate = (path) => {
+    navigate(path);
+    setIsSidebarVisible(false);
+  };
+
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({
@@ -344,28 +388,6 @@ const Sidebar = () => {
     fetchChats();
     loadUser();
   }, []);
-
-  const toggleSubmenu = (submenu) => {
-    setOpenSubmenus((prev) => {
-      const newSubmenus = Object.keys(prev).reduce((acc, key) => {
-        acc[key] = key === submenu ? !prev[key] : false;
-        return acc;
-      }, {});
-      return newSubmenus;
-    });
-  };
-
-  const isActive = (path) => {
-    if (typeof path === "string") {
-      return location.pathname === path;
-    }
-    return path.some((p) => location.pathname === p);
-  };
-
-  const handleNavigate = (path) => {
-    navigate(path);
-    setIsSidebarVisible(false);
-  };
 
   const handleLogout = async () => {
     try {
