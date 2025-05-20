@@ -2,8 +2,10 @@ import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import "./Projects.scss";
 import ProjectBox from "./ProjectBox";
+import { Select } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { NotificationsContext } from "../../utils/NotificationsContext";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const Projects = () => {
   const { fetchNotifications } = useContext(NotificationsContext);
@@ -13,13 +15,41 @@ const Projects = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [projects, setProjects] = useState([]);
+  const [years, setYears] = useState([]);
+  const [yearFilter, setYearFilter] = useState(null);
+
+  useEffect(() => {
+    const fetchYears = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
+          withCredentials: true,
+        });
+        const sortedYears = response.data.sort((a, b) => b.localeCompare(a));
+        setYears(sortedYears);
+
+        const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
+        const currentHebrewYearIndex = sortedYears.indexOf(currentHebrewYear);
+        setYearFilter(currentHebrewYearIndex !== -1 ? sortedYears[currentHebrewYearIndex] : sortedYears[0]);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error occurred:", error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchYears();
+  }, []);
 
   useEffect(() => {
     const grabProjects = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/available-projects`, {
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/project/available-projects/${yearFilter}`,
+          {
+            withCredentials: true,
+          }
+        );
 
         const projectsWithFavorites = await Promise.all(
           response.data
@@ -46,9 +76,11 @@ const Projects = () => {
         console.error("Error occurred:", error);
       }
     };
+
+    if (yearFilter == null) return;
     grabProjects();
     fetchNotifications();
-  }, []);
+  }, [yearFilter]);
 
   useEffect(() => {
     projects.forEach((project) => {
@@ -125,6 +157,17 @@ const Projects = () => {
         </div>
       ) : (
         <div className="projects">
+          <div className="projects-header">
+            <p>פרויקטים עבור שנת הלימודים: </p>
+            <Select value={yearFilter} placeholder="בחר שנה" onChange={setYearFilter} style={{ width: "200px" }}>
+              <Select.Option value="all">כל השנים</Select.Option>
+              {years.map((year) => (
+                <Select.Option key={year} value={year}>
+                  {year}
+                </Select.Option>
+              ))}
+            </Select>
+          </div>
           <div className="list-projects">
             {projects.length > 0 ? (
               projects.map((project) => (

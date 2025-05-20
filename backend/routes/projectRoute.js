@@ -54,7 +54,7 @@ router.get("/", getProjects);
 router.get("/get-all-projects-by-year/:year", ensureAuthenticated, getAllProjectsByYear);
 router.get("/get-projects-by-year/:year", getProjectsByYear);
 router.post("/create-project", ensureAuthenticated, isAdvisorOrCoordinator, createProject);
-router.get("/available-projects", ensureAuthenticated, getAvailableProjects);
+router.get("/available-projects/:year", ensureAuthenticated, getAvailableProjects);
 router.get("/get-active-projects", getActiveProjects);
 router.get("/no-student", getProjectsNoStudent);
 router.get("/get-project/:id", getProject);

@@ -51,11 +51,17 @@ export const getActiveProjects = async (req, res) => {
 
 export const getAvailableProjects = async (req, res) => {
   try {
+    const year = req.params.year;
     const config = await Config.findOne();
+    let projects = [];
     if (!config) {
       return res.status(404).send({ message: "Config not found" });
     }
-    const projects = await Project.find({ isTerminated: false, isFinished: false, year: config.currentYear });
+    if (year === "all") {
+      projects = await Project.find({ isTerminated: false, isFinished: false });
+    } else {
+      projects = await Project.find({ isTerminated: false, isFinished: false, year: year });
+    }
     res.status(200).send(projects);
   } catch (err) {
     res.status(500).send({ message: err.message });

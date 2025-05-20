@@ -9,6 +9,7 @@ import DOMPurify from "dompurify";
 import { processContent } from "../../utils/htmlProcessor";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { NotificationsContext } from "../../utils/NotificationsContext";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const SuggestProject = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const SuggestProject = () => {
   const [isOtherType, setIsOtherType] = useState(false);
   const [myProject, setMyProject] = useState(null);
   const [userDontHaveProject, setUserDontHaveProject] = useState(false);
-  const [currentYear, setCurrentYear] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
   const [current, setCurrent] = useState(0);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -43,18 +44,25 @@ const SuggestProject = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const today = new Date();
+  const currentHebrewDate = toJewishDate(today);
+  const currentHebrewYear = formatJewishDateInHebrew(currentHebrewDate).split(" ").pop().replace(/^ה/, "");
+
+  const previousDate = new Date();
+  previousDate.setFullYear(today.getFullYear() - 1);
+  const previousHebrewYear = formatJewishDateInHebrew(toJewishDate(previousDate)).split(" ").pop().replace(/^ה/, "");
+
+  const nextDate = new Date();
+  nextDate.setFullYear(today.getFullYear() + 1);
+  const nextHebrewYear = formatJewishDateInHebrew(toJewishDate(nextDate)).split(" ").pop().replace(/^ה/, "");
+
   useEffect(() => {
     setLoading(true);
     const fetchData = async () => {
       try {
-        const [studentsRes, configYearRes] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects`, {
-            withCredentials: true,
-          }),
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config/get-config`, {
-            withCredentials: true,
-          }),
-        ]);
+        const studentsRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects`, {
+          withCredentials: true,
+        });
         const onlyStudents = studentsRes.data.usersNoProjects.filter(
           (user) =>
             user.isStudent === true &&
@@ -65,7 +73,6 @@ const SuggestProject = () => {
         const UserDontHaveProject = studentsRes.data.usersNoProjects.some((user) => user._id === currentUser._id);
         setUserDontHaveProject(UserDontHaveProject);
         setStudentsNoProject(onlyStudents);
-        setCurrentYear(configYearRes.data.currentYear);
       } catch (error) {
         console.error("Error occurred:", error.response?.data?.message);
         message.error("שגיאה בטעינת הטופס");
@@ -75,7 +82,6 @@ const SuggestProject = () => {
 
     fetchData();
     getSuggestedProject();
-    setInitialValues();
   }, [form]);
 
   const getSuggestedProject = async () => {
@@ -96,10 +102,8 @@ const SuggestProject = () => {
     }
   };
 
-  const setInitialValues = () => {
-    if (userDontHaveProject && current === 0) {
-      form.setFieldsValue({ year: currentYear });
-    }
+  const handleYearChange = (value) => {
+    setSelectedYear(value);
   };
 
   const handleTypeChange = (value) => {
@@ -139,13 +143,9 @@ const SuggestProject = () => {
     delete finalValues.customType;
 
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/project/suggest-project`,
-        finalValues,
-        {
-          withCredentials: true,
-        }
-      );
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/project/suggest-project`, finalValues, {
+        withCredentials: true,
+      });
       message.success("הטופס נשלח בהצלחה");
 
       setStudentsNoProject((prevStudents) =>
@@ -223,8 +223,8 @@ const SuggestProject = () => {
         <Form
           className="suggest-project-form"
           form={form}
+          initialValues={{ year: currentHebrewYear }}
           onFinish={onFinish}
-          initialValues={{ year: currentYear }}
           layout={windowSize.width > 1024 ? "horizontal" : "vertical"}>
           <Form.Item
             className="suggest-project-form-item"
@@ -254,8 +254,16 @@ const SuggestProject = () => {
             <Editor style={{ height: "320px" }} onTextChange={handleEditorChange} />
           </Form.Item>
 
-          <Form.Item className="suggest-project-form-item" label="שנת לימודים" name="year">
-            <Input disabled />
+          <Form.Item
+            className="suggest-project-form-item"
+            label="שנת לימודים"
+            name="year"
+            rules={[{ required: true, message: "חובה לבחור שנה" }]}>
+            <Select placeholder="בחר שנה" value={selectedYear} onChange={handleYearChange}>
+              <Option value={nextHebrewYear}>{nextHebrewYear}</Option>
+              <Option value={currentHebrewYear}>{currentHebrewYear}</Option>
+              <Option value={previousHebrewYear}>{previousHebrewYear}</Option>
+            </Select>
           </Form.Item>
 
           <Form.Item

@@ -13,9 +13,17 @@ import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 const CreateProject = () => {
   const { Option } = Select;
   const { fetchNotifications } = useContext(NotificationsContext);
-  const currentYear = new Date().getFullYear();
-  const previousYear = currentYear - 1;
-  const nextYear = currentYear + 1;
+  const [selectedYear, setSelectedYear] = useState("");
+  const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
+  const [advisorUsers, setAdvisorUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState({});
+  const [studentsNoProject, setStudentsNoProject] = useState([]);
+  const [isOtherType, setIsOtherType] = useState(false);
+  const [projectCreated, setProjectCreated] = useState(false);
+  const [projectCreatedId, setProjectCreatedId] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm();
+  const navigate = useNavigate();
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -33,32 +41,17 @@ const CreateProject = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date(currentYear, 10, 10)))
-    .split(" ")
-    .pop()
-    .replace(/^ה/, "");
+  const today = new Date();
+  const currentHebrewDate = toJewishDate(today);
+  const currentHebrewYear = formatJewishDateInHebrew(currentHebrewDate).split(" ").pop().replace(/^ה/, "");
 
-  const previousHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date(previousYear, 10, 10)))
-    .split(" ")
-    .pop()
-    .replace(/^ה/, "");
+  const previousDate = new Date();
+  previousDate.setFullYear(today.getFullYear() - 1);
+  const previousHebrewYear = formatJewishDateInHebrew(toJewishDate(previousDate)).split(" ").pop().replace(/^ה/, "");
 
-  const nextHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date(nextYear, 10, 10)))
-    .split(" ")
-    .pop()
-    .replace(/^ה/, "");
-
-  const [selectedYear, setSelectedYear] = useState("");
-  const [privileges, setPrivileges] = useState({ isStudent: false, isAdvisor: false, isCoordinator: false });
-  const [advisorUsers, setAdvisorUsers] = useState([]);
-  const [currentUser, setCurrentUser] = useState({});
-  const [studentsNoProject, setStudentsNoProject] = useState([]);
-  const [isOtherType, setIsOtherType] = useState(false);
-  const [projectCreated, setProjectCreated] = useState(false);
-  const [projectCreatedId, setProjectCreatedId] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
-  const navigate = useNavigate();
+  const nextDate = new Date();
+  nextDate.setFullYear(today.getFullYear() + 1);
+  const nextHebrewYear = formatJewishDateInHebrew(toJewishDate(nextDate)).split(" ").pop().replace(/^ה/, "");
 
   useEffect(() => {
     // Fetch data from the API
@@ -255,6 +248,7 @@ const CreateProject = () => {
       <Form
         className="create-project-form"
         form={form}
+        initialValues={{ year: currentHebrewYear }}
         name="createProject"
         onFinish={onFinish}
         layout={windowSize.width > 1024 ? "horizontal" : "vertical"}>
@@ -297,7 +291,7 @@ const CreateProject = () => {
               message: "חובה להזין שנה",
             },
           ]}>
-          <Select value={selectedYear} onChange={handleYearChange}>
+          <Select placeholder="בחר שנה" value={selectedYear} onChange={handleYearChange}>
             <Option value={nextHebrewYear}>{nextHebrewYear}</Option>
             <Option value={currentHebrewYear}>{currentHebrewYear}</Option>
             <Option value={previousHebrewYear}>{previousHebrewYear}</Option>
