@@ -26,6 +26,16 @@ services:
     volumes:
       - mongo_data:/data/db # Persist MongoDB data
 
+  ngnix:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro # Use custom Nginx configuration
+    depends_on:
+      - frontend
+      - backend
+
 volumes:
   mongo_data:
   uploads_data:
