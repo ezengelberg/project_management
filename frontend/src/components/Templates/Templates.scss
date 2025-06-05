@@ -8,6 +8,18 @@
 .upload-container {
   width: 50%;
   margin: 0 auto;
+
+  .templates-button-interaction {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 1rem;
+
+    p {
+      margin: 0;
+      font-size: 2rem;
+    }
+  }
 }
 
 .toolbar-wrapper {

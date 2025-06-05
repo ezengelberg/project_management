@@ -16,6 +16,18 @@
   .upload-container {
     width: 100%;
     margin: 0 auto;
+
+    .more-info-button-interaction {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      margin-top: 1rem;
+
+      p {
+        margin: 0;
+        font-size: 2rem;
+      }
+    }
   }
 
   .template-content {

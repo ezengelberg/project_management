@@ -3,7 +3,7 @@ import "./Templates.scss";
 import axios from "axios";
 import FileCard from "../FileCard/FileCard";
 import { InboxOutlined } from "@ant-design/icons";
-import { Button, message, Upload, Input, Modal, Spin } from "antd";
+import { Button, message, Upload, Input, Modal, Spin, Progress } from "antd";
 import { Editor } from "primereact/editor";
 import { NotificationsContext } from "../../utils/NotificationsContext";
 
@@ -20,6 +20,7 @@ const Templates = () => {
   const [editDescription, setEditDescription] = useState("");
   const [currentFile, setCurrentFile] = useState({});
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const { Dragger } = Upload;
 
   useEffect(() => {
@@ -61,6 +62,7 @@ const Templates = () => {
     formData.append("description", description);
     formData.append("destination", "templates"); // Set destination for dynamic pathing
     setUploading(true);
+    setUploadProgress(0);
 
     try {
       await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, formData, {
@@ -69,10 +71,17 @@ const Templates = () => {
           "X-Filename-Encoding": "url",
         },
         withCredentials: true,
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent);
+          }
+        },
       });
       message.success("הקובץ הועלה בהצלחה");
       setFileList([]);
       clearForm();
+      setUploadProgress(0);
 
       const updatedFiles = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=templates`, {
         withCredentials: true,
@@ -87,6 +96,7 @@ const Templates = () => {
       }
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -225,14 +235,15 @@ const Templates = () => {
                   style={{ height: "320px", wordBreak: "break-word" }}
                 />
               </div>
-              <Button
-                type="primary"
-                onClick={handleUpload}
-                disabled={fileList.length === 0}
-                loading={uploading}
-                style={{ marginTop: 16 }}>
-                {uploading ? "מעלה" : "התחל העלאה"}
-              </Button>
+              <div className="templates-button-interaction">
+                <Button type="primary" onClick={handleUpload} disabled={fileList.length === 0} loading={uploading}>
+                  {uploading ? "מעלה" : "התחל העלאה"}
+                </Button>
+                {uploading && <p>נא לא לצאת מהדף עד שההעלאה תושלם</p>}
+              </div>
+              {uploading && (
+                <Progress percent={uploadProgress} size="small" status={uploadProgress < 100 ? "active" : "success"} />
+              )}
             </div>
           )}
           <div className="template-content">

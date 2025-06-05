@@ -18,6 +18,7 @@ import {
   Modal,
   Divider,
   Pagination,
+  Progress,
 } from "antd";
 import locale from "antd/es/date-picker/locale/he_IL";
 import { EditOutlined, SaveOutlined, StopOutlined, DeleteOutlined, InboxOutlined } from "@ant-design/icons";
@@ -99,6 +100,7 @@ const MoreInformation = () => {
   const [selectedGroupProjects, setSelectedGroupProjects] = useState([]);
   const [examDates, setExamDates] = useState([]);
   const [editDatesModal, setEditDatesModal] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const { Dragger } = Upload;
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -712,8 +714,9 @@ const MoreInformation = () => {
     });
     formData.append("title", title);
     formData.append("description", description);
-    formData.append("destination", "moreInformation"); // Set destination for dynamic pathing
+    formData.append("destination", "moreInformation");
     setUploading(true);
+    setUploadProgress(0);
 
     try {
       await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=moreInformation`, formData, {
@@ -722,10 +725,16 @@ const MoreInformation = () => {
           "X-Filename-Encoding": "url",
         },
         withCredentials: true,
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent);
+          }
+        },
       });
       message.success("הקובץ הועלה בהצלחה");
       setFileList([]);
-      clearForm();
+      setUploadProgress(0);
 
       const updatedFiles = await axios.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/uploads?destination=moreInformation`,
@@ -743,6 +752,7 @@ const MoreInformation = () => {
       }
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -1748,14 +1758,15 @@ const MoreInformation = () => {
                   style={{ height: "320px", wordBreak: "break-word" }}
                 />
               </div>
-              <Button
-                type="primary"
-                onClick={handleUpload}
-                disabled={fileList.length === 0}
-                loading={uploading}
-                style={{ marginTop: 16 }}>
-                {uploading ? "מעלה" : "התחל העלאה"}
-              </Button>
+              <div className="more-info-button-interaction">
+                <Button type="primary" onClick={handleUpload} disabled={fileList.length === 0} loading={uploading}>
+                  {uploading ? "מעלה" : "התחל העלאה"}
+                </Button>
+                {uploading && <p>נא לא לצאת מהדף עד שההעלאה תושלם</p>}
+              </div>
+              {uploading && (
+                <Progress percent={uploadProgress} size="small" status={uploadProgress < 100 ? "active" : "success"} />
+              )}
             </div>
           )}
           <div className="template-content">

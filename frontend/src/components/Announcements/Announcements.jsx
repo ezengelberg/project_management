@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Announcements.scss";
 import { Editor } from "primereact/editor";
-import { Button, message, Checkbox, Input, Select, Upload, Form } from "antd";
+import { Button, message, Checkbox, Input, Select, Upload, Form, Progress } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import AnnouncementMessage from "./AnnouncementMessage";
 
@@ -18,10 +18,13 @@ const Announcements = () => {
   const [selectedRoles, setSelectedRoles] = useState([]);
   const [groups, setGroups] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const fetchPrivileges = async () => {
     try {
-      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, { withCredentials: true });
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/privileges`, {
+        withCredentials: true,
+      });
       setPrivileges(res.data);
     } catch (error) {
       console.error("Error occurred:", error);
@@ -30,7 +33,9 @@ const Announcements = () => {
 
   const fetchGroups = async () => {
     try {
-      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get-current-year`, { withCredentials: true });
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get-current-year`, {
+        withCredentials: true,
+      });
       setGroups(res.data);
     } catch (error) {
       console.error("Error fetching groups:", error);
@@ -39,7 +44,9 @@ const Announcements = () => {
 
   const fetchAnnouncements = async () => {
     try {
-      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/announcement/get-all`, { withCredentials: true });
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/announcement/get-all`, {
+        withCredentials: true,
+      });
       setAnnouncements(res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
     } catch (error) {
       console.error("Error occurred:", error);
@@ -76,6 +83,12 @@ const Announcements = () => {
             "Content-Type": "multipart/form-data",
             "X-Filename-Encoding": "url",
           },
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              setUploadProgress(percent);
+            }
+          },
         }
       );
     }
@@ -98,9 +111,11 @@ const Announcements = () => {
       form.resetFields();
       setFileList([]);
       setSelectedRoles([]);
+      setUploadProgress(0);
     } catch (error) {
       console.error("Error occurred:", error);
       message.error("יצירת ההודעה נכשלה");
+      setUploadProgress(0);
     }
   };
 
@@ -116,26 +131,13 @@ const Announcements = () => {
       {privileges.isCoordinator && (
         <div className="create-announcement">
           <h2>כתיבת הודעה חדשה</h2>
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={submitAnnouncement}
-            className="announcement-form"
-          >
-            <Form.Item
-              label="כותרת"
-              name="title"
-              rules={[{ required: true, message: "חובה להזין כותרת" }]}
-            >
+          <Form form={form} layout="vertical" onFinish={submitAnnouncement} className="announcement-form">
+            <Form.Item label="כותרת" name="title" rules={[{ required: true, message: "חובה להזין כותרת" }]}>
               <Input placeholder="כותרת" />
             </Form.Item>
 
             <Form.Item label="למי נשלחת ההודעה">
-              <Checkbox.Group
-                options={roleOptions}
-                value={selectedRoles}
-                onChange={setSelectedRoles}
-              />
+              <Checkbox.Group options={roleOptions} value={selectedRoles} onChange={setSelectedRoles} />
             </Form.Item>
 
             <Form.Item label="קבוצה" name="group">
@@ -149,15 +151,8 @@ const Announcements = () => {
               </Select>
             </Form.Item>
 
-            <Form.Item
-              label="תוכן ההודעה"
-              name="description"
-              rules={[{ required: true, message: "חובה להזין תוכן" }]}
-            >
-              <Editor
-                style={{ height: "320px" }}
-                onTextChange={handleEditorChange}
-              />
+            <Form.Item label="תוכן ההודעה" name="description" rules={[{ required: true, message: "חובה להזין תוכן" }]}>
+              <Editor style={{ height: "320px" }} onTextChange={handleEditorChange} />
             </Form.Item>
 
             <div className="submit-area">
@@ -165,15 +160,15 @@ const Announcements = () => {
                 fileList={fileList}
                 multiple
                 beforeUpload={() => false}
-                onChange={({ fileList }) => setFileList(fileList)}
-              >
+                onChange={({ fileList }) => setFileList(fileList)}>
                 <Button icon={<UploadOutlined />}>העלה קבצים</Button>
               </Upload>
 
-              <Button
-                type="primary"
-                htmlType="submit"
-              >
+              {uploadProgress > 0 && (
+                <Progress percent={uploadProgress} size="small" status={uploadProgress < 100 ? "active" : "success"} />
+              )}
+
+              <Button type="primary" htmlType="submit">
                 פרסם הודעה
               </Button>
             </div>
