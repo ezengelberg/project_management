@@ -159,7 +159,13 @@ const Announcements = () => {
               <Upload
                 fileList={fileList}
                 multiple
-                beforeUpload={() => false}
+                beforeUpload={(file) => {
+                  if (file.size > 104752742) {
+                    message.error("גודל קובץ מקסימלי הוא 99.9MB");
+                    return Upload.LIST_IGNORE;
+                  }
+                  return false;
+                }}
                 onChange={({ fileList }) => setFileList(fileList)}>
                 <Button icon={<UploadOutlined />}>העלה קבצים</Button>
               </Upload>

@@ -115,6 +115,11 @@ const Templates = () => {
         message.error(`שם קובץ יכול להכיל עד 50 תווים (רווח גם נחשב כתו)`);
         return Upload.LIST_IGNORE;
       }
+      // Check file size
+      if (file.size > 104752742) {
+        message.error("גודל קובץ מקסימלי הוא 99.9MB");
+        return Upload.LIST_IGNORE;
+      }
       // Check if file with same name already exists in the list of uploaded files
       const isDuplicate = fileList.some((existingFile) => existingFile.name === file.name);
       if (isDuplicate) {
@@ -213,6 +218,8 @@ const Templates = () => {
                 </p>
                 <p className="ant-upload-text">לחצו או גררו כדי להעלות קבצים</p>
                 <p className="ant-upload-hint">
+                  גודל קובץ מקסימלי הוא 99.9MB
+                  <br />
                   ניתן להעלות עד 10 קבצים בו זמנית (הזנת כותרת/תיאור ישוייכו לכל הקבצים אם הועלאו ביחד)
                 </p>
               </Dragger>

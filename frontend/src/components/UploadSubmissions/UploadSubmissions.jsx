@@ -108,16 +108,18 @@ const UploadSubmissions = () => {
     listType: "picture",
     fileList, // Bind the fileList state
     beforeUpload: (file) => {
+      if (file.size > 104752742) {
+        message.error("גודל קובץ מקסימלי הוא 99.9MB");
+        return Upload.LIST_IGNORE;
+      }
       if (!file.type.includes("pdf")) {
         message.error("יש להעלות קובץ מסוג PDF בלבד");
         return Upload.LIST_IGNORE;
       }
-
       if (file.name.length > 50) {
         message.error(`שם קובץ יכול להכיל עד 50 תווים (רווח גם נחשב כתו)`);
         return Upload.LIST_IGNORE;
       }
-
       setFile(file); // Store the file
       setFileList([file]); // Update the file list
       return false; // Prevent auto-upload
@@ -140,11 +142,14 @@ const UploadSubmissions = () => {
     listType: "picture",
     extraFileList,
     beforeUpload: (file) => {
+      if (file.size > 104752742) {
+        message.error("גודל קובץ מקסימלי הוא 99.9MB");
+        return Upload.LIST_IGNORE;
+      }
       if (file.name.length > 50) {
         message.error(`שם קובץ יכול להכיל עד 50 תווים (רווח גם נחשב כתו)`);
         return Upload.LIST_IGNORE;
       }
-
       setExtraFile(file);
       setExtraFileList([file]);
       return false; // Prevent auto-upload
@@ -767,7 +772,11 @@ const UploadSubmissions = () => {
                 <InboxOutlined />
               </p>
               <p className="ant-upload-text">לחצו או גררו כדי להעלות קובץ</p>
-              <p className="ant-upload-hint">קובץ PDF בלבד, רק אחד השותפים צריך להעלות קובץ </p>
+              <p className="ant-upload-hint">
+                גודל קובץ מקסימלי הוא 99.9MB
+                <br />
+                קובץ PDF בלבד, רק אחד השותפים צריך להעלות קובץ
+              </p>
             </Dragger>
           )}
           <Divider />
@@ -817,6 +826,7 @@ const UploadSubmissions = () => {
                   <InboxOutlined />
                 </p>
                 <p className="ant-upload-text">לחצו או גררו כדי להעלות קובץ</p>
+                <p className="ant-upload-hint">גודל קובץ מקסימלי הוא 99.9MB</p>
               </Dragger>
             ) : currentSubmission?.askForExtraUpload ? (
               <Alert message="בקשה להעלאה נוספת נשלחה, תתקבל התראה כשתהיה תשובה." type="info" showIcon />
