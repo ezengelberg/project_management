@@ -146,8 +146,8 @@ app.use("/api/email", emailRoute);
 app.use("/api/grade-meaning", gradeMeaningRoute);
 app.use("/api/test-results", testResultsRoute);
 
-app.get("/", (req, res) => {
-  res.send(`Version DEV: 13`);
+app.get("/healthcheck", (req, res) => {
+  res.status(200).send("OK");
 });
 
 async function initializeConfig() {

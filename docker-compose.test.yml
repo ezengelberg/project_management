@@ -5,12 +5,18 @@ services:
       dockerfile: Dockerfile
     ports:
       - "4000:4000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/healthcheck"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     volumes:
       - uploads_data:/app/uploads
     depends_on:
       - mongo
     env_file:
       - ./backend/.env
+
   mongo:
     image: mongo
     ports:
@@ -22,12 +28,19 @@ services:
     build:
       context: ./backend/K6_Tests
       dockerfile: Dockerfile
+    environment:
+      - K6_BASE_URL=http://backend:4000
+    env_file:
+      - ./backend/.env
     volumes:
       - ./backend/K6_Tests/entrypoint.sh:/app/entrypoint.sh
       - ./backend/K6_Tests/scripts:/app/scripts
     depends_on:
-      - backend
-    entrypoint: ["sh", "/app/entrypoint.sh"]
+      backend:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+    entrypoint: [ "sh", "/app/entrypoint.sh" ]
 
 volumes:
   mongo_data:
