@@ -24,7 +24,7 @@ export const options = {
 };
 
 export default function () {
-  const url = "http://localhost:4000/api/user/login";
+  const url = `${__ENV.K6_BASE_URL}/api/user/login`;
   const payload = JSON.stringify({
     email: "invalid@example.com",
     password: "wrongPassword",

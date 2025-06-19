@@ -9,8 +9,8 @@ services:
       - uploads_data:/app/uploads
     depends_on:
       - mongo
-    env_file: 
-      - ./backend/.env # Load environment variables from .env file
+    env_file:
+      - ./backend/.env
 
   frontend:
     build:
@@ -24,17 +24,32 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db # Persist MongoDB data
+      - mongo_data:/data/db
 
   ngnix:
     image: nginx:latest
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro # Use custom Nginx configuration
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - frontend
       - backend
+
+  test:
+    build:
+      context: ./k6
+      dockerfile: Dockerfile
+    volumes:
+      - .backend/K6_Tests/scripts/LoginTests:/app/LoginTests
+      - .backend/K6_Tests/scripts/userCreationTests:/app/userCreationTests
+      - .backend/K6_Tests/scripts/projectLifeTests:/app/projectLifeTests
+      - .backend/K6_Tests/scripts/entrypoint.sh:/app/entrypoint.sh
+    environment:
+      - K6_BASE_URL=http://backend:4000
+    depends_on:
+      - backend
+    entrypoint: ["bash", "/app/entrypoint.sh"]
 
 volumes:
   mongo_data:

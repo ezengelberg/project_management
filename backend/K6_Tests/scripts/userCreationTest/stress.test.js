@@ -23,8 +23,8 @@ export const options = {
 };
 
 export default function () {
-  const loginUrl = "http://localhost:4000/api/user/login";
-  const registerUrl = "http://localhost:4000/api/user/register";
+  const loginUrl = `${__ENV.K6_BASE_URL}/api/user/login`;
+  const registerUrl = `${__ENV.K6_BASE_URL}/api/user/register`;
 
   // Step 1: Log in to get a token
   const loginPayload = JSON.stringify({
