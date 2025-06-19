@@ -1,0 +1,34 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      - mongo
+    env_file:
+      - ./backend/.env
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  test:
+    build:
+      context: ./backend/K6_Tests
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/K6_Tests/entrypoint.sh:/app/entrypoint.sh
+      - ./backend/K6_Tests/scripts:/app/scripts
+    depends_on:
+      - backend
+    entrypoint: ["sh", "/app/entrypoint.sh"]
+
+volumes:
+  mongo_data:
+  uploads_data:
