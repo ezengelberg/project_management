@@ -6,9 +6,9 @@ WORKDIR /app
 
 # Copy your K6 test script into the container
 COPY entrypoint.sh .
-COPY /LoginTests .
-COPY /userCreationTests .
-COPY /projectLifeTests .
+COPY /scripts/LoginTests .
+COPY /scripts/userCreationTest .
+COPY /scripts/projectLifeTests .
 
 # Set the default command to run the K6 test
 CMD ["bash", "entrypoint.sh"]

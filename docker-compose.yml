@@ -38,18 +38,14 @@ services:
 
   test:
     build:
-      context: ./k6
+      context: ./backend/K6_Tests
       dockerfile: Dockerfile
     volumes:
-      - .backend/K6_Tests/scripts/LoginTests:/app/LoginTests
-      - .backend/K6_Tests/scripts/userCreationTests:/app/userCreationTests
-      - .backend/K6_Tests/scripts/projectLifeTests:/app/projectLifeTests
-      - .backend/K6_Tests/scripts/entrypoint.sh:/app/entrypoint.sh
-    environment:
-      - K6_BASE_URL=http://backend:4000
+      - ./backend/K6_Tests/entrypoint.sh:/app/entrypoint.sh
+      - ./backend/K6_Tests/scripts:/app/scripts
     depends_on:
       - backend
-    entrypoint: ["bash", "/app/entrypoint.sh"]
+    entrypoint: ["sh", "/app/entrypoint.sh"]
 
 volumes:
   mongo_data:

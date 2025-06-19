@@ -1,17 +1,14 @@
-#!/bin/bash
-
+#!/bin/sh
 echo "Starting K6 test execution..."
 
-# Fail the script on any error
 set -e
 
-# Function to run all test files in a given directory
 run_tests_in_dir() {
   DIR=$1
   echo "Running tests in $DIR"
 
   for file in "$DIR"/*.js; do
-    if [[ -f "$file" ]]; then
+    if [ -f "$file" ]; then
       echo "Running: $file"
       k6 run "$file"
     else
@@ -20,9 +17,9 @@ run_tests_in_dir() {
   done
 }
 
-# Run test files from each directory
-run_tests_in_dir "/app/LoginTests"
-run_tests_in_dir "/app/userCreationTests"
-run_tests_in_dir "/app/projectLifeTests"
+run_tests_in_dir "/app/scripts/LoginTests"
+run_tests_in_dir "/app/scripts/userCreationTest"
+run_tests_in_dir "/app/scripts/projectLifeTests"
+run_tests_in_dir "/app/scripts/projectTests"
 
 echo "All tests executed successfully."
