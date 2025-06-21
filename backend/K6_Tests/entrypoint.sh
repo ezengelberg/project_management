@@ -6,8 +6,6 @@ echo "Starting K6 test execution..."
 run_tests_in_dir() {
   DIR=$1
   echo "Running tests in $DIR"
-  # k6 run "$DIR"/easy.test.js
-  # k6 run "$DIR"/fail.test.js
   for file in "$DIR"/*.js; do
     if [ -f "$file" ]; then
       echo "Running: $file"
@@ -18,9 +16,9 @@ run_tests_in_dir() {
   done
 }
 
-# run_tests_in_dir "/app/scripts/LoginTests"
-# run_tests_in_dir "/app/scripts/projectLifeTests"
-# run_tests_in_dir "/app/scripts/projectTests"
+run_tests_in_dir "/app/scripts/LoginTests"
+run_tests_in_dir "/app/scripts/projectLifeTests"
+run_tests_in_dir "/app/scripts/projectTests"
 run_tests_in_dir "/app/scripts/userCreationTest"
 
 echo "All tests executed successfully."
