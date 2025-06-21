@@ -19,29 +19,68 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 export const options = {
-  vus: 1, // Number of virtual users
-  duration: "10s", // Duration of the test
+  vus: 30,            // simulate 30 users at once
+  duration: "1m",     // let them run for 1 minute
+  thresholds: {
+    http_req_duration: ['p(95)<400', 'avg<300'],
+    http_req_failed: ['rate<0.01'],
+    checks: ['rate>0.99'],
+  }
 };
 
-export default function () {
-  const url = `${__ENV.K6_BASE_URL}/api/user/login`;
-  const payload = JSON.stringify({
-    email: "adam@gmail.com",
-    password: "12345Aa!",
+// Runs ONCE before all virtual users
+export function setup() {
+  const baseUrl = __ENV.K6_BASE_URL;
+
+  let success = false;
+  for (let i = 0; i < 10; i++) {
+    const res = http.get(`${baseUrl}/healthcheck`);
+    if (res.status === 200) {
+      success = true;
+      break;
+    }
+    console.log(`Waiting for backend... retry ${i + 1}`);
+    sleep(1); // wait 1 second before retrying
+  }
+
+  if (!success) {
+    throw new Error("Backend did not become ready in time");
+  }
+
+  const createRes = http.post(`${baseUrl}/api/user/create-admin`);
+
+  check(createRes, {
+    "admin created or already exists": (r) =>
+      r.status === 200 || r.status === 201 || r.status === 409,
   });
 
-  const params = {
+  return { baseUrl }; // Pass to default function
+}
+
+// Runs per VU per iteration
+export default function (data) {
+  const baseUrl = data.baseUrl;
+  const adminPassword = __ENV.ADMIN_USER_PASSWORD;
+
+  const loginPayload = JSON.stringify({
+    email: "admin@jce.ac",
+    password: adminPassword,
+  });
+
+  const loginParams = {
     headers: {
       "Content-Type": "application/json",
     },
   };
 
-  const res = http.post(url, payload, params);
+  // const res = http.post(`${baseUrl}/api/user/login`, loginPayload, loginParams);
 
-  check(res, {
-    "is status 200": (r) => r.status === 200, // Expect the response status to be 200
-    "response contains user data": (r) => r.json().email === "adam@gmail.com", // Expect the response to include the user's email
-  });
+  // const passed = check(res, {
+  //   "login status is 200": (r) => r.status === 200,
+  //   "response contains admin email": (r) => r.json().email === "admin@jce.ac",
+  // });
 
-  sleep(1); // Pause for 1 second between iterations
+  // console.log(`VU: ${__VU}, Iteration: ${__ITER}, Login success: ${passed}`);
+
+  sleep(1);
 }

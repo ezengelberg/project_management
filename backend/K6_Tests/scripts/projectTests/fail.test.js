@@ -15,56 +15,108 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 export const options = {
-  vus: 1, // Number of virtual users
-  duration: "10s", // Duration of the test
+  vus: 1,
+  duration: "10s",
 };
 
-export default function () {
-  const loginUrl = `${__ENV.K6_BASE_URL}/api/user/login`;
-  const projectUrl = `${__ENV.K6_BASE_URL}/api/project/create-project`;
+export function setup() {
+  const baseUrl = __ENV.K6_BASE_URL;
 
-  // Step 1: Log in to get a token
-  const loginPayload = JSON.stringify({
-    email: "adam@gmail.com",
-    password: "12345Aa!",
+  // Wait for backend to be healthy
+  let success = false;
+  for (let i = 0; i < 10; i++) {
+    const res = http.get(`${baseUrl}/healthcheck`);
+    if (res.status === 200) {
+      success = true;
+      break;
+    }
+    console.log(`Waiting for backend... retry ${i + 1}`);
+    sleep(1);
+  }
+
+  if (!success) {
+    throw new Error("Backend did not become ready in time");
+  }
+
+  const createRes = http.post(`${baseUrl}/api/user/create-admin`);
+
+  check(createRes, {
+    "admin created or already exists": (r) =>
+      r.status === 200 || r.status === 201 || r.status === 409,
   });
 
-  const loginParams = {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
+  return { baseUrl };
+}
 
-  const loginRes = http.post(loginUrl, loginPayload, loginParams);
+export default function (data) {
+  const baseUrl = data.baseUrl;
+  const api = `${baseUrl}/api`;
+  const adminPassword = __ENV.ADMIN_USER_PASSWORD;
+
+
+  const jar = http.cookieJar();
+
+  // Step 1: Log in
+  const loginRes = http.post(`${api}/user/login`, JSON.stringify({
+    email: "admin@jce.ac",
+    password: adminPassword,
+  }), {
+    headers: { "Content-Type": "application/json" },
+    jar,
+  });
 
   check(loginRes, {
-    "is login successful": (r) => r.status === 200,
+    "login successful": (r) => r.status === 200,
   });
 
-  const token = loginRes.json().token; // Extract the token from the login response
+  // Extract session cookie manually (for headers fallback)
+  const setCookieHeader = loginRes.headers['Set-Cookie'];
 
-  // Step 2: Attempt to create a project with invalid data
+  if (!setCookieHeader) {
+    throw new Error("No Set-Cookie header received from backend.");
+  }
+
+  // Extract session cookie manually as backup
+  let sessionCookie = '';
+  if (Array.isArray(setCookieHeader)) {
+    for (let cookie of setCookieHeader) {
+      if (cookie.includes('connect.sid')) {
+        sessionCookie = cookie.split(';')[0];
+        break;
+      }
+    }
+  } else if (setCookieHeader.includes('connect.sid')) {
+    sessionCookie = setCookieHeader.split(';')[0];
+  }
+
+  if (!sessionCookie) {
+    throw new Error("Session cookie not found in Set-Cookie header.");
+  }
+
+  // Step 2: Send invalid project creation request
   const invalidProjectPayload = JSON.stringify({
     // Missing required fields like `title` and `advisors`
     description: "This is an invalid project description.",
-    year: "תתת״ת",
+    year: "תתת\"ת",
     suitableFor: "יחיד",
     type: "מחקרי",
   });
 
-  const projectParams = {
+  const projectRes = http.post(`${api}/project/create-project`, invalidProjectPayload, {
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // Use the token in the Authorization header
+      "Cookie": sessionCookie,
     },
-  };
-
-  const projectRes = http.post(projectUrl, invalidProjectPayload, projectParams);
-
-  check(projectRes, {
-    "is status 400": (r) => r.status === 400, // Expect the response status to be 400
-    "response contains error message": (r) => r.json().message.includes("Missing required fields"), // Validate error message
+    jar,
   });
 
-  sleep(1); // Pause for 1 second between iterations
+  check(projectRes, {
+    "is status 400": (r) => r.status === 400,
+    "contains error message": (r) =>
+      r.headers["Content-Type"]?.includes("application/json") &&
+      r.json().message?.toLowerCase().includes("missing"),
+  });
+
+  sleep(1);
 }
+

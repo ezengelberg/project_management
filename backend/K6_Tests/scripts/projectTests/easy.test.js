@@ -14,65 +14,123 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 export const options = {
-  vus: 1, // Number of virtual users
-  duration: "10s", // Duration of the test
+  vus: 1,
+  duration: "10s",
+  thresholds: {
+    http_req_failed: ['rate<0.01'],
+    checks: ['rate>0.99'],
+  },
 };
 
-export default function () {
-  const loginUrl = `${__ENV.K6_BASE_URL}/api/user/login`;
-  const projectUrl = `${__ENV.K6_BASE_URL}/api/project/create-project`;
+export function setup() {
+  const baseUrl = __ENV.K6_BASE_URL;
 
-  // Step 1: Log in to get a token
-  const loginPayload = JSON.stringify({
-    email: "adam@gmail.com",
-    password: "12345Aa!",
+  let success = false;
+  for (let i = 0; i < 10; i++) {
+    const res = http.get(`${baseUrl}/healthcheck`);
+    if (res.status === 200) {
+      success = true;
+      break;
+    }
+    console.log(`Waiting for backend... retry ${i + 1}`);
+    sleep(1);
+  }
+
+  if (!success) {
+    throw new Error("Backend did not become ready in time");
+  }
+
+  const createRes = http.post(`${baseUrl}/api/user/create-admin`);
+  
+    check(createRes, {
+      "admin created or already exists": (r) =>
+        r.status === 200 || r.status === 201 || r.status === 409,
+    });
+    return { baseUrl }; // Pass to default function
+}
+
+export default function (data) {
+  const baseUrl = data.baseUrl;
+  const api = `${baseUrl}/api`;
+  const adminPassword = __ENV.ADMIN_USER_PASSWORD;
+
+  // Cookie jar for session handling
+  const jar = http.cookieJar();
+
+  // Step 1: Login
+  const loginRes = http.post(`${api}/user/login`, JSON.stringify({
+    email: "admin@jce.ac",
+    password: adminPassword,
+  }), {
+    headers: { "Content-Type": "application/json" },
+    jar: jar,
   });
-
-  const loginParams = {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-
-  const loginRes = http.post(loginUrl, loginPayload, loginParams);
 
   check(loginRes, {
-    "is login successful": (r) => r.status === 200,
+    "login successful": (r) => r.status === 200,
   });
 
-  const token = loginRes.json().token; // Extract the token from the login response
+  // Extract session cookie
+  const setCookieHeader = loginRes.headers['Set-Cookie'];
 
-  // Step 2: Create a project using the token
-  const uniqueProjectName = `Project_${__VU}_${Date.now()}`; // Generate a unique project name
+  if (!setCookieHeader) {
+    throw new Error("No Set-Cookie header received from backend.");
+  }
+
+  // Extract session cookie manually as backup
+  let sessionCookie = '';
+  if (Array.isArray(setCookieHeader)) {
+    for (let cookie of setCookieHeader) {
+      if (cookie.includes('connect.sid')) {
+        sessionCookie = cookie.split(';')[0];
+        break;
+      }
+    }
+  } else if (setCookieHeader.includes('connect.sid')) {
+    sessionCookie = setCookieHeader.split(';')[0];
+  }
+
+  if (!sessionCookie) {
+    throw new Error("Session cookie not found in Set-Cookie header.");
+  }
+
+  const userId = loginRes.json()?._id;
+  if (!userId) {
+    throw new Error("User ID not found in login response.");
+  }
+
+  // Step 2: Create a project
+  const uniqueProjectName = `Project_${__VU}_${Date.now()}`;
+
   const projectPayload = JSON.stringify({
     title: uniqueProjectName,
-    description: `<p>${uniqueProjectName}</p>`, // Description in HTML format
-    year: "תתת״ת",
+    description: `<p>${uniqueProjectName}</p>`,
+    year: "תתת\"ת",
     suitableFor: "יחיד",
     type: "מחקרי",
-    advisors: ["67d92862d95be53d76a16d0f"],
+    advisors: [userId],
     students: [],
   });
 
-  const projectParams = {
+  const projectHeaders = {
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // Use the token in the Authorization header
+      "Cookie": sessionCookie,
     },
+    jar: jar,
   };
 
-  const projectRes = http.post(projectUrl, projectPayload, projectParams);
+  const projectRes = http.post(`${api}/project/create-project`, projectPayload, projectHeaders);
 
-  // Check if the response is JSON and extract the project ID
-  if (projectRes.headers["Content-Type"] && projectRes.headers["Content-Type"].includes("application/json")) {
+  if (projectRes.headers["Content-Type"]?.includes("application/json")) {
     const responseBody = projectRes.json();
     check(responseBody, {
-      "is status 201": (r) => projectRes.status === 201, // Expect the response status to be 201
-      "is creation successful": (r) => r.project && r.project.title === uniqueProjectName, // Validate project title
+      "is status 201": () => projectRes.status === 201,
+      "project title is correct": () => responseBody.project?.title === uniqueProjectName,
     });
   } else {
     console.error("Non-JSON response received:", projectRes.body);
   }
 
-  sleep(1); // Pause for 1 second between iterations
+  sleep(1);
 }

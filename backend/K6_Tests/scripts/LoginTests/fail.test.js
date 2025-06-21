@@ -21,10 +21,38 @@ import { check, sleep } from "k6";
 export const options = {
   vus: 1,
   duration: "10s",
+  thresholds: {
+    http_req_duration: ['p(95)<500'],
+    checks: ['rate>0.99'],
+  }
 };
 
-export default function () {
-  const url = `${__ENV.K6_BASE_URL}/api/user/login`;
+// Runs ONCE before all virtual users
+export function setup() {
+  const baseUrl = __ENV.K6_BASE_URL;
+
+  let success = false;
+  for (let i = 0; i < 10; i++) {
+    const res = http.get(`${baseUrl}/healthcheck`);
+    if (res.status === 200) {
+      success = true;
+      break;
+    }
+    console.log(`Waiting for backend... retry ${i + 1}`);
+    sleep(1);
+  }
+
+  if (!success) {
+    throw new Error("Backend did not become ready in time");
+  }
+
+  return { baseUrl };
+}
+
+// Runs per VU per iteration
+export default function (data) {
+  const baseUrl = data.baseUrl;
+
   const payload = JSON.stringify({
     email: "invalid@example.com",
     password: "wrongPassword",
@@ -36,21 +64,22 @@ export default function () {
     },
   };
 
-  const res = http.post(url, payload, params);
+  const res = http.post(`${baseUrl}/api/user/login`, payload, params);
 
-  // Check if the response is JSON
-  if (res.headers["Content-Type"] && res.headers["Content-Type"].includes("application/json")) {
+  if (res.headers["Content-Type"]?.includes("application/json")) {
     const jsonResponse = res.json();
+    check(res, {
+      "status is 401 (unauthorized)": () => res.status === 401,
+    });
     check(jsonResponse, {
-      "is status 401": (r) => res.status === 401,
-      "response contains error message": (r) => r.message === "Invalid credentials",
+      "error message is 'Invalid credentials'": (r) => r.message === "Invalid credentials",
     });
   } else {
-    // Handle non-JSON responses
     console.log("Non-JSON response received:", res.body);
     check(res, {
-      "is status 401": (r) => res.status === 401,
-      "response contains error message (non-JSON)": (r) => res.body.includes("אימייל או סיסמה לא נכונים"), // Check for the expected error message
+      "status is 401 (unauthorized)": () => res.status === 401,
+      "body contains Hebrew error message": () =>
+        res.body.includes("אימייל או סיסמה לא נכונים"),
     });
   }
 

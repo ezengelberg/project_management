@@ -3,7 +3,8 @@ import axios from "axios";
 const verifyRecaptcha = async (req, res, next) => {
     // Skip verification if stress testing is active
     if (process.env.STRESS_TEST_ACTIVE === "true") {
-        console.log("Skipping reCAPTCHA verification due to STRESS_TEST_ACTIVE");
+        // Log the bypass for stress testing 
+        // Skipping reCAPTCHA verification due to stress testing mode
         return next();
     }
 

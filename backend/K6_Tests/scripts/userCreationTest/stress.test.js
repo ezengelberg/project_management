@@ -16,38 +16,78 @@ import { check, sleep } from "k6";
 
 export const options = {
   stages: [
-    { duration: "1m", target: 10 }, // Ramp up to 10 users over 1 minute
-    { duration: "3m", target: 50 }, // Stay at 50 users for 3 minutes
-    { duration: "1m", target: 0 }, // Ramp down to 0 users
+    { duration: "1m", target: 10 },
+    { duration: "3m", target: 50 },
+    { duration: "1m", target: 0 },
   ],
 };
 
-export default function () {
-  const loginUrl = `${__ENV.K6_BASE_URL}/api/user/login`;
-  const registerUrl = `${__ENV.K6_BASE_URL}/api/user/register`;
+export function setup() {
+  const baseUrl = __ENV.K6_BASE_URL;
 
-  // Step 1: Log in to get a token
-  const loginPayload = JSON.stringify({
-    email: "adam@gmail.com",
-    password: "12345Aa!",
+  // Wait for backend readiness
+  let success = false;
+  for (let i = 0; i < 10; i++) {
+    const res = http.get(`${baseUrl}/healthcheck`);
+    if (res.status === 200) {
+      success = true;
+      break;
+    }
+    console.log(`Waiting for backend... retry ${i + 1}`);
+    sleep(1);
+  }
+
+  if (!success) throw new Error("Backend did not become ready in time");
+
+  // Ensure admin user exists
+  const createRes = http.post(`${baseUrl}/api/user/create-admin`);
+  check(createRes, {
+    "admin created or already exists": (r) =>
+      r.status === 200 || r.status === 201 || r.status === 409,
   });
 
-  const loginParams = {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
+  return { baseUrl };
+}
 
-  const loginRes = http.post(loginUrl, loginPayload, loginParams);
+
+export default function (data) {
+  const baseUrl = data.baseUrl;
+  const api = `${baseUrl}/api`;
+  const adminPassword = __ENV.ADMIN_USER_PASSWORD;
+
+  const jar = http.cookieJar();
+
+  // Login to get session cookie
+  const loginRes = http.post(`${api}/user/login`, JSON.stringify({
+    email: "admin@jce.ac",
+    password: adminPassword,
+  }), {
+    headers: { "Content-Type": "application/json" },
+    jar: jar,
+  });
 
   check(loginRes, {
-    "is login successful": (r) => r.status === 200,
+    "login successful": (r) => r.status === 200,
   });
 
-  const token = loginRes.json().token; // Extract the token from the login response
+  const setCookieHeader = loginRes.headers['Set-Cookie'];
+  if (!setCookieHeader) throw new Error("No Set-Cookie header received");
 
-  // Step 2: Register a user using the token
-  const uniqueUserId = `TestUser_${__VU}_${Date.now()}`; // Generate a unique user ID
+  let sessionCookie = '';
+  if (Array.isArray(setCookieHeader)) {
+    for (let cookie of setCookieHeader) {
+      if (cookie.includes('connect.sid')) {
+        sessionCookie = cookie.split(';')[0];
+        break;
+      }
+    }
+  } else if (setCookieHeader.includes('connect.sid')) {
+    sessionCookie = setCookieHeader.split(';')[0];
+  }
+
+  if (!sessionCookie) throw new Error("Session cookie not found");
+
+  const uniqueUserId = `TestUser_${__VU}_${Date.now()}`;
   const registerPayload = JSON.stringify({
     name: `Test User ${__VU}`,
     email: `${uniqueUserId}@example.com`,
@@ -57,31 +97,30 @@ export default function () {
     isAdvisor: false,
     isJudge: false,
     isCoordinator: false,
-    testUser: true, // Set the testUser field to true
+    testUser: true,
   });
 
-  const registerParams = {
+  const registerRes = http.post(`${api}/user/register`, registerPayload, {
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // Use the token in the Authorization header
+      "Cookie": sessionCookie,
     },
-  };
+    jar: jar,
+  });
 
-  const registerRes = http.post(registerUrl, registerPayload, registerParams);
-
-  // Check if the response is JSON and validate the user creation
-  if (registerRes.headers["Content-Type"] && registerRes.headers["Content-Type"].includes("application/json")) {
-    const responseBody = registerRes.json();
-    check(responseBody, {
-      "is status 201": (r) => registerRes.status === 201, // Expect the response status to be 201
-      "is user creation successful": (r) => r.message && r.message.includes("User registered successfully"), // Validate success message
+  if (registerRes.headers["Content-Type"]?.includes("application/json")) {
+    const body = registerRes.json();
+    check(body, {
+      "status 201": () => registerRes.status === 201,
+      "user registered": () => body.message?.includes("User registered successfully"),
     });
   } else {
     check(registerRes, {
-      "is status 201": (r) => registerRes.status === 201,
-      "is user creation successful": (r) => r.body.includes("User registered successfully"),
+      "status 201": (r) => r.status === 201,
+      "response contains success message": (r) =>
+        r.body.includes("User registered successfully"),
     });
   }
 
-  sleep(1); // Pause for 1 second between iterations
+  sleep(1);
 }

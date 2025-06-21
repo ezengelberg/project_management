@@ -12,229 +12,197 @@ import { check, sleep } from "k6";
 import { randomString } from "https://jslib.k6.io/k6-utils/1.4.0/index.js";
 
 export const options = {
-  vus: 1, // Number of virtual users
-  duration: "10s", // Duration of the test
+  vus: 1,
+  duration: "10s",
+  thresholds: {
+    http_req_failed: ['rate<0.01'],
+    checks: ['rate>0.99'],
+  },
 };
 
 function generateValidId() {
-  return Math.floor(100000000 + Math.random() * 900000000).toString(); // Generate a 9-digit string
+  return Math.floor(100000000 + Math.random() * 900000000).toString();
 }
 
-export default function () {
-  const baseUrl = "http://localhost:4000/api";
-  const loginUrl = `${baseUrl}/user/login`;
-  const registerUrl = `${baseUrl}/user/register`;
-  const projectUrl = `${baseUrl}/project/create-project`;
-  const submissionUrl = `${baseUrl}/submission/create`;
+export function setup() {
+  const baseUrl = __ENV.K6_BASE_URL;
 
-  // Step 1: Log in to get a token
-  const loginPayload = JSON.stringify({
-    email: "adam@gmail.com",
-    password: "12345Aa!",
+  let success = false;
+  for (let i = 0; i < 10; i++) {
+    const res = http.get(`${baseUrl}/healthcheck`);
+    if (res.status === 200) {
+      success = true;
+      break;
+    }
+    console.log(`Waiting for backend... retry ${i + 1}`);
+    sleep(1); // wait 1 second before retrying
+  }
+
+  if (!success) {
+    throw new Error("Backend did not become ready in time");
+  }
+
+  const createRes = http.post(`${baseUrl}/api/user/create-admin`);
+
+  check(createRes, {
+    "admin created or already exists": (r) =>
+      r.status === 200 || r.status === 201 || r.status === 409,
+  });
+  return { baseUrl }; // Pass to default function
+}
+
+export default function (data) {
+  const baseUrl = data.baseUrl;
+  const api = `${baseUrl}/api`;
+  const adminPassword = __ENV.ADMIN_USER_PASSWORD;
+
+  // Create a cookie jar to automatically handle cookies
+  const jar = http.cookieJar();
+
+  const loginRes = http.post(`${api}/user/login`, JSON.stringify({
+    email: "admin@jce.ac",
+    password: adminPassword,
+  }), {
+    headers: { "Content-Type": "application/json" },
+    jar: jar,
   });
 
-  const loginParams = {
+  check(loginRes, { "login successful": (r) => r.status === 200 });
+
+  // Debug cookie information
+  const setCookieHeader = loginRes.headers['Set-Cookie'];
+
+  if (!setCookieHeader) {
+    throw new Error("No Set-Cookie header received from backend.");
+  }
+
+  // Extract session cookie manually as backup
+  let sessionCookie = '';
+  if (Array.isArray(setCookieHeader)) {
+    for (let cookie of setCookieHeader) {
+      if (cookie.includes('connect.sid')) {
+        sessionCookie = cookie.split(';')[0];
+        break;
+      }
+    }
+  } else if (setCookieHeader.includes('connect.sid')) {
+    sessionCookie = setCookieHeader.split(';')[0];
+  }
+
+  if (!sessionCookie) {
+    throw new Error("Session cookie not found in Set-Cookie header.");
+  }
+
+  // Headers for authenticated requests
+  const authHeaders = {
     headers: {
       "Content-Type": "application/json",
+      "Cookie": sessionCookie,
     },
+    jar: jar, // Continue using cookie jar
   };
 
-  const loginRes = http.post(loginUrl, loginPayload, loginParams);
-
-  check(loginRes, {
-    "is login successful": (r) => r.status === 200,
-  });
-
-  const token = loginRes.json().token; // Extract the token from the login response
-
-  // Step 2: Create 2 users with unique email addresses
+  // Register 2 test users
   const users = [];
   for (let i = 0; i < 2; i++) {
-    const uniqueUserId = generateValidId(); // Generate a valid 9-digit ID
-    const uniqueEmail = `testuser${i + 1}_${randomString(5)}@example.com`; // Generate a unique email address
-    const registerPayload = JSON.stringify({
-      name: `Test User ${i + 1}`,
-      email: uniqueEmail,
-      id: uniqueUserId,
+    const userId = generateValidId();
+    const email = `testuser${i}_${randomString(5)}@example.com`;
+
+    const payload = JSON.stringify({
+      name: `User ${i + 1}`,
+      email,
+      id: userId,
       password: "Password123!",
       isStudent: true,
       testUser: true,
     });
 
-    const registerParams = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    };
+    const userRes = http.post(`${api}/user/register`, payload, authHeaders);
+    check(userRes, { "user created": (r) => r.status === 201 });
 
-    const registerRes = http.post(registerUrl, registerPayload, registerParams);
-
-    // Check if the response is plain text or JSON
-    if (registerRes.headers["Content-Type"] && registerRes.headers["Content-Type"].includes("application/json")) {
-      const responseBody = registerRes.json();
-      check(responseBody, {
-        "is user creation successful": (r) => registerRes.status === 201,
-      });
-      if (responseBody.newUser) {
-        users.push(responseBody.newUser);
+    if (userRes.status === 201 && userRes.headers["Content-Type"]?.includes("application/json")) {
+      const body = userRes.json();
+      if (body.newUser) {
+        users.push(body.newUser);
       } else {
-        console.error("User creation failed");
+        console.error("Missing newUser in response body");
       }
     } else {
-      // Handle plain text response
-      check(registerRes, {
-        "is user creation successful": (r) => registerRes.status === 201,
-      });
-      console.error("User creation failed: Expected JSON response with id");
+      console.error(`Registration failed (${userRes.status}): ${userRes.body}`);
     }
   }
 
-  // Step 3: Create a project and add the two users as students
-  const uniqueProjectName = `Project_${randomString(5)}`;
-  const projectPayload = JSON.stringify({
-    title: uniqueProjectName,
-    description: `<p>${uniqueProjectName}</p>`,
-    year: 'תתת"ת', // Updated project year
-    suitableFor: "זוג", // Updated suitableFor
+  const advisorID = loginRes.json()._id; // Use the admin ID as an advisor
+  // Create project
+  const projectTitle = `Project_${randomString(5)}`;
+  const projectRes = http.post(`${api}/project/create-project`, JSON.stringify({
+    title: projectTitle,
+    description: `<p>${projectTitle}</p>`,
+    year: 'תתת"ת',
+    suitableFor: "זוג",
     type: "מחקרי",
-    advisors: ["67d92862d95be53d76a16d0f"], // Replace with a valid advisor ID
-    students: users, // Add the two users as students
+    advisors: [advisorID.toString()],
+    students: users,
+  }), authHeaders);
+
+  check(projectRes, { "project created": (r) => r.status === 201 });
+  const projectId = projectRes.json().project?._id;
+  if (!projectId) return;
+
+  // // Create submission
+  const submissionRes = http.post(`${api}/submission/create`, JSON.stringify({
+    name: "test submission",
+    submissionDate: new Date().toISOString(),
+    submissionYear: 'תתת"ת',
+    isGraded: true,
+    isReviewed: true,
+    fileNeeded: true,
+  }), authHeaders);
+
+  check(submissionRes, { "submission created": (r) => r.status === 201 });
+
+  // Get submission details - FIXED: Use cookie instead of Bearer token
+  const submissionDetails = http.get(`${api}/submission/get-specific-project-submissions/${projectId}`, authHeaders);
+  check(submissionDetails, { "got submission details": (r) => r.status === 200 });
+
+  const submissionId = submissionDetails.json()[0]?.key;
+  if (!submissionId) return;
+
+  // Upload file
+  const boundary = "----WebKitFormBoundary" + randomString(16);
+  const fileBody = [
+    `--${boundary}`,
+    `Content-Disposition: form-data; name="files"; filename="test-file.pdf"`,
+    `Content-Type: application/pdf`,
+    ``,
+    `This is a test PDF file.`,
+    `--${boundary}`,
+    `Content-Disposition: form-data; name="destination"`,
+    ``,
+    `submissions`,
+    `--${boundary}--`,
+    ``,
+  ].join("\r\n");
+
+  const uploadRes = http.post(`${api}/uploads?destination=submissions`, fileBody, {
+    headers: {
+      "Content-Type": `multipart/form-data; boundary=${boundary}`,
+      "Cookie": sessionCookie,
+    },
+    jar: jar,
   });
 
-  const projectParams = {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  };
+  check(uploadRes, { "file uploaded": (r) => r.status === 201 });
 
-  const projectRes = http.post(projectUrl, projectPayload, projectParams);
+  const fileId = uploadRes.json().files[0]?._id;
+  if (!fileId) return;
 
-  let projectId;
-  // Check if the response is JSON and validate the project creation
-  if (projectRes.headers["Content-Type"] && projectRes.headers["Content-Type"].includes("application/json")) {
-    const responseBody = projectRes.json();
-    check(responseBody, {
-      "is project creation successful": (r) => projectRes.status === 201,
-    });
+  // Link file to submission
+  const updateRes = http.post(`${api}/submission/update-submission-file/${submissionId}`, JSON.stringify({
+    file: fileId,
+  }), authHeaders);
 
-    if (responseBody.project && responseBody.project._id) {
-      projectId = responseBody.project._id; // Extract the project ID for later use
-    } else {
-      console.error("Project creation failed: Missing project ID");
-    }
-  } else {
-    console.error("Non-JSON response received:", projectRes.body);
-    check(projectRes, {
-      "is project creation successful": (r) => projectRes.status === 201,
-    });
-  }
+  check(updateRes, { "submission updated": (r) => r.status === 200 });
 
-  // Step 4: Create a submission for the project
-  if (projectId) {
-    const submissionPayload = JSON.stringify({
-      name: "test submission",
-      submissionDate: new Date().toISOString(),
-      submissionYear: 'תתת"ת', // Year of the project
-      isGraded: true,
-      isReviewed: true,
-      fileNeeded: true,
-    });
-
-    const submissionParams = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    };
-
-    const submissionRes = http.post(submissionUrl, submissionPayload, submissionParams);
-
-    check(submissionRes, {
-      "is submission creation successful": (r) => submissionRes.status === 201,
-    });
-  }
-
-  // Step 5: Upload a file for the submission
-  if (projectId) {
-    // Step 5.1: Retrieve the submission details
-    const submissionDetailsRes = http.get(`${baseUrl}/submission/get-specific-project-submissions/${projectId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    check(submissionDetailsRes, {
-      "is submission details retrieval successful": (r) => r.status === 200,
-    });
-
-    const submissionDetails = submissionDetailsRes.json();
-    const submissionId = submissionDetails[0]?.key; // Assuming the first submission is the one we need
-
-    if (!submissionId) {
-      console.error("No submission found for the project");
-      return;
-    }
-
-    // Step 5.2: Upload the file
-    const boundary = "----WebKitFormBoundary" + randomString(16); // Generate a boundary string
-    const body = [
-      `--${boundary}`,
-      `Content-Disposition: form-data; name="files"; filename="test-file.pdf"`,
-      `Content-Type: application/pdf`,
-      ``,
-      `This is a test PDF file`, // File content
-      `--${boundary}`,
-      `Content-Disposition: form-data; name="destination"`,
-      ``,
-      `submissions`, // Destination field
-      `--${boundary}--`, // Final boundary
-      ``,
-    ].join("\r\n"); // Join all parts with CRLF
-
-    const fileParams = {
-      headers: {
-        "Content-Type": `multipart/form-data; boundary=${boundary}`,
-        Authorization: `Bearer ${token}`,
-      },
-    };
-
-    const uploadRes = http.post(`${baseUrl}/uploads`, body, fileParams);
-
-    check(uploadRes, {
-      "is file upload successful": (r) => uploadRes.status === 201,
-    });
-
-    const uploadedFile = uploadRes.json().files[0]; // Assuming the first file is the one we uploaded
-
-    if (!uploadedFile || !uploadedFile._id) {
-      console.error("File upload failed or file ID is missing");
-      return;
-    }
-
-    // Step 5.3: Associate the file with the submission
-    const updateSubmissionPayload = JSON.stringify({
-      file: uploadedFile._id,
-    });
-
-    const updateSubmissionParams = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    };
-
-    const updateSubmissionRes = http.post(
-      `${baseUrl}/submission/update-submission-file/${submissionId}`,
-      updateSubmissionPayload,
-      updateSubmissionParams
-    );
-
-    check(updateSubmissionRes, {
-      "is submission update successful": (r) => r.status === 200,
-    });
-  }
-
-  sleep(1); // Pause for 1 second between iterations
+  sleep(1);
 }

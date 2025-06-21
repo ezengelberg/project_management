@@ -95,7 +95,11 @@ app.use(
     cookie: {
       maxAge: 24 * 60 * 60 * 1000 * 365, // Cookie will expire after 1 year
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Set to true if using HTTPS
+      secure: 'auto', // detects automatically if the connection is secure
+      
+      // if issues arrise in normal backend replace line with:
+      // secure: process.env.NODE_ENV === "production",
+
       sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax", // Use Lax for local development
     },
   })
