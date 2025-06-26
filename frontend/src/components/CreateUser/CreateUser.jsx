@@ -99,29 +99,6 @@ const CreateUser = () => {
     }
   };
 
-  // const handleUploadFile = async (file) => {
-  //   Papa.parse(file, {
-  //     header: true,
-  //     complete: async (result) => {
-  //       console.log(result);
-  //       const parsedData = result.data
-  //         .map((row, index) => ({
-  //           key: index,
-  //           email: row['דוא"ל'],
-  //           firstName: row["שם פרטי"],
-  //           lastName: row["שם משפחה"],
-  //           name: `${row["שם פרטי"]} ${row["שם משפחה"]}`,
-  //           id: row["ת.ז."],
-  //           role: ["isStudent"],
-  //         }))
-  //         .filter((row) => row.email && row.firstName && row.lastName); // Filter out rows with undefined or empty values
-
-  //       setUsers(parsedData);
-  //     },
-  //   });
-  //   return false;
-  // };
-
   const handleUploadFile = async (file) => {
     const reader = new FileReader();
 
@@ -144,21 +121,33 @@ const CreateUser = () => {
   };
 
   const processParsedData = (data) => {
-    const parsedData = data
-      .map((row, index) => ({
-        key: index,
-        email: row['דוא"ל'] || row["דואר אלקטרוני"] || row["אימייל"] || row["email"],
-        firstName: row["שם פרטי"] || row["first_name"],
-        lastName: row["שם משפחה"] || row["last_name"],
-        name:
-          row["שם פרטי"] && row["שם משפחה"]
-            ? `${row["שם פרטי"]} ${row["שם משפחה"]}`
-            : `${row["first_name"]} ${row["last_name"]}`,
-        id: row["ת.ז."] || row["תעודת זהות"] || row['ת"ז'] || row["id"],
-        role: ["isStudent"],
-      }))
-      .filter((row) => row.email && row.firstName && row.lastName);
-    setUsers(parsedData);
+    try {
+      const parsedData = data
+        .map((row, index) => ({
+          key: index,
+          email: row['דוא"ל'] || row["דואר אלקטרוני"] || row["אימייל"] || row["email"],
+          firstName: row["שם פרטי"] || row["first_name"],
+          lastName: row["שם משפחה"] || row["last_name"],
+          name:
+            row["שם פרטי"] && row["שם משפחה"]
+              ? `${row["שם פרטי"]} ${row["שם משפחה"]}`
+              : `${row["first_name"]} ${row["last_name"]}`,
+          id: row["ת.ז."] || row["תעודת זהות"] || row['ת"ז'] || row["id"],
+          role: ["isStudent"],
+        }))
+        .filter((row) => row.email && row.firstName && row.lastName);
+
+      if (parsedData.length === 0) {
+        message.error(`העלאה נכשלה: הקובץ צריך להכיל עמודות - דוא"ל, שם פרטי, שם משפחה ותעודת זהות`);
+        return;
+      } else {
+        setUsers(parsedData);
+        message.success("הקובץ הועלה בהצלחה");
+      }
+    } catch (error) {
+      console.error("Error processing parsed data:", error);
+      message.error("שגיאה בעיבוד נתוני הקובץ");
+    }
   };
 
   const handleRemoveUser = (record) => {
