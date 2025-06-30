@@ -795,7 +795,7 @@ const Sidebar = () => {
                 </div>
               </li>
             )}
-            {user.isCoordinator && (
+            {/* {user.isCoordinator && (
               <li>
                 <div
                   className={`sidebar-option ${isActive("/delete-all") ? "active" : ""}`}
@@ -805,7 +805,7 @@ const Sidebar = () => {
                   <span>מחיקת מערכת</span>
                 </div>
               </li>
-            )}
+            )} */}
           </ul>
         </div>
       </div>
