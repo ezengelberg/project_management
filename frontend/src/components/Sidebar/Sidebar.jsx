@@ -524,15 +524,6 @@ const Sidebar = () => {
                 </div>
               </li>
             )}
-            <li>
-              {/* TODO: REMOVE LATER */}
-              <a href="https://forms.gle/gUA2LfGPYLb7tYoz5" className="feedback-link" target="_blank">
-                <div className={`sidebar-option option-feedback`}>
-                  <FormOutlined />
-                  <span>טופס פידבק מערכת</span>
-                </div>
-              </a>
-            </li>
             {user.isAdvisor && (
               <li className={`${openSubmenus.myProjects ? "open" : "closed"}`}>
                 <div
