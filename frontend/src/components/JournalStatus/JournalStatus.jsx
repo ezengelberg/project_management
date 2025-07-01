@@ -226,7 +226,17 @@ const JournalStatus = () => {
           ))}
         </Select>
       </div>
-      <Table columns={columns} dataSource={dataSource} loading={loading} scroll={{ x: "max-content" }} />
+      <Table
+        columns={columns}
+        dataSource={dataSource}
+        loading={loading}
+        scroll={{ x: "max-content" }}
+        sticky={{
+          offsetHeader: -27,
+          offsetScroll: -27,
+          getContainer: () => window,
+        }}
+      />
     </div>
   );
 };

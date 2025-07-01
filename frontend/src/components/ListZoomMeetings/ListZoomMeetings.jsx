@@ -274,6 +274,11 @@ const ListZoomMeetings = () => {
         scroll={{
           x: "max-content",
         }}
+        sticky={{
+          offsetHeader: -27,
+          offsetScroll: -27,
+          getContainer: () => window,
+        }}
       />
     </div>
   );

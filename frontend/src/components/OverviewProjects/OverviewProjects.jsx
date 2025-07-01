@@ -750,6 +750,11 @@ const OverviewProjects = () => {
         pagination={false}
         bordered={true}
         scroll={{ x: "max-content" }}
+        sticky={{
+          offsetHeader: -27,
+          offsetScroll: -27,
+          getContainer: () => window,
+        }}
       />
     );
   };
@@ -816,6 +821,11 @@ const OverviewProjects = () => {
         pagination={false}
         bordered={true}
         scroll={{ x: "max-content" }}
+        sticky={{
+          offsetHeader: -27,
+          offsetScroll: -27,
+          getContainer: () => window,
+        }}
       />
     );
   };
@@ -1613,6 +1623,11 @@ const OverviewProjects = () => {
               defaultExpandedRowKeys: [],
             }}
             scroll={{ x: "max-content" }}
+            sticky={{
+              offsetHeader: -27,
+              offsetScroll: -27,
+              getContainer: () => window,
+            }}
           />
         </>
       ),
@@ -1677,6 +1692,11 @@ const OverviewProjects = () => {
             scroll={{
               x: "max-content",
             }}
+            sticky={{
+              offsetHeader: -27,
+              offsetScroll: -27,
+              getContainer: () => window,
+            }}
           />
         </>
       ),
@@ -1722,6 +1742,11 @@ const OverviewProjects = () => {
             loading={loading}
             rowKey="_id"
             scroll={{ x: "max-content" }}
+            sticky={{
+              offsetHeader: -27,
+              offsetScroll: -27,
+              getContainer: () => window,
+            }}
           />
         </>
       ),

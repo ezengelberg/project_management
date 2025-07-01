@@ -283,6 +283,11 @@ const ApproveExtraFile = () => {
             showSizeChanger: false,
           }}
           scroll={{ x: "max-content" }}
+          sticky={{
+            offsetHeader: -27,
+            offsetScroll: -27,
+            getContainer: () => window,
+          }}
         />
       ),
     },
@@ -299,6 +304,11 @@ const ApproveExtraFile = () => {
             showSizeChanger: false,
           }}
           scroll={{ x: "max-content" }}
+          sticky={{
+            offsetHeader: -27,
+            offsetScroll: -27,
+            getContainer: () => window,
+          }}
         />
       ),
     },

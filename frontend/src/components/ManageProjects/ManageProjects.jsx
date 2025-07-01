@@ -728,6 +728,11 @@ const ManageProjects = () => {
         scroll={{
           x: "max-content",
         }}
+        sticky={{
+          offsetHeader: -27,
+          offsetScroll: -27,
+          getContainer: () => window,
+        }}
       />
     );
   };
@@ -809,6 +814,11 @@ const ManageProjects = () => {
           scroll={{
             x: "max-content",
           }}
+          sticky={{
+            offsetHeader: -27,
+            offsetScroll: -27,
+            getContainer: () => window,
+          }}
         />
       ),
     },
@@ -822,6 +832,11 @@ const ManageProjects = () => {
           loading={loading}
           scroll={{
             x: "max-content",
+          }}
+          sticky={{
+            offsetHeader: -27,
+            offsetScroll: -27,
+            getContainer: () => window,
           }}
         />
       ),

@@ -1087,7 +1087,17 @@ const Submissions = () => {
           </Button>
         </div>
       </div>
-      <Table columns={columns} dataSource={filteredSubmissionData} loading={loading} scroll={{ x: "max-content" }} />
+      <Table
+        columns={columns}
+        dataSource={filteredSubmissionData}
+        loading={loading}
+        scroll={{ x: "max-content" }}
+        sticky={{
+          offsetHeader: -30,
+          offsetScroll: -27,
+          getContainer: () => window,
+        }}
+      />
       <Modal
         open={updateJudgesModal}
         onOk={handleUpdateJudge}
@@ -1601,35 +1611,37 @@ const Submissions = () => {
                   <div className="detail-item-content">{submissionInfo.submission.info}</div>
                 </div>
               )}
-              {submissionInfo.submission.fileNeeded && <div className="detail-item">
-                <div className="detail-item-header">סטטוס ההגשה:</div>
-                <div className="detail-item-content">
-                  <Badge
-                    color={
-                      submissionInfo.submission.submitted || !submissionInfo.submission.fileNeeded
-                        ? submissionInfo.submission.isLate
-                          ? "darkgreen"
-                          : "green"
-                        : "orange"
-                    }
-                    text={
-                      !submissionInfo.submission.fileNeeded
-                        ? "לא נדרש קובץ"
-                        : submissionInfo.submission.submitted
-                        ? `הוגש${
-                            submissionInfo.submission.isLate
-                              ? ` באיחור - ${Math.ceil(
-                                  (new Date(submissionInfo.submission.uploadDate) -
-                                    new Date(submissionInfo.submission.submissionDate)) /
-                                    (1000 * 60 * 60 * 24)
-                                )} ימים`
-                              : ""
-                          }`
-                        : "ממתין להגשה"
-                    }
-                  />
+              {submissionInfo.submission.fileNeeded && (
+                <div className="detail-item">
+                  <div className="detail-item-header">סטטוס ההגשה:</div>
+                  <div className="detail-item-content">
+                    <Badge
+                      color={
+                        submissionInfo.submission.submitted || !submissionInfo.submission.fileNeeded
+                          ? submissionInfo.submission.isLate
+                            ? "darkgreen"
+                            : "green"
+                          : "orange"
+                      }
+                      text={
+                        !submissionInfo.submission.fileNeeded
+                          ? "לא נדרש קובץ"
+                          : submissionInfo.submission.submitted
+                          ? `הוגש${
+                              submissionInfo.submission.isLate
+                                ? ` באיחור - ${Math.ceil(
+                                    (new Date(submissionInfo.submission.uploadDate) -
+                                      new Date(submissionInfo.submission.submissionDate)) /
+                                      (1000 * 60 * 60 * 24)
+                                  )} ימים`
+                                : ""
+                            }`
+                          : "ממתין להגשה"
+                      }
+                    />
+                  </div>
                 </div>
-              </div>}
+              )}
               <div className="detail-item">
                 <div className="detail-item-header">סטטוס בדיקה:</div>
                 <div className="detail-item-content">
@@ -1653,20 +1665,22 @@ const Submissions = () => {
                   })}
                 </div>
               </div>
-              {submissionInfo.submission.fileNeeded && <div className="detail-item">
-                <div className="detail-item-header">הוגש ב:</div>
-                <div className="detail-item-content">
-                  {submissionInfo.submission.uploadDate
-                    ? new Date(submissionInfo.submission?.uploadDate).toLocaleString("he-IL", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })
-                    : "ממתין להגשה"}
+              {submissionInfo.submission.fileNeeded && (
+                <div className="detail-item">
+                  <div className="detail-item-header">הוגש ב:</div>
+                  <div className="detail-item-content">
+                    {submissionInfo.submission.uploadDate
+                      ? new Date(submissionInfo.submission?.uploadDate).toLocaleString("he-IL", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })
+                      : "ממתין להגשה"}
+                  </div>
                 </div>
-              </div>}
+              )}
               {submissionInfo.submission.finalGrade != null && (
                 <div className="detail-item">
                   <div className="detail-item-header">ציון סופי</div>

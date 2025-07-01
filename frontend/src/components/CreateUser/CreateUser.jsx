@@ -321,6 +321,11 @@ const CreateUser = () => {
               scroll={{
                 x: "max-content",
               }}
+              sticky={{
+                offsetHeader: -27,
+                offsetScroll: -27,
+                getContainer: () => window,
+              }}
             />
             <Button type="primary" className="submit-csv" onClick={() => handleSubmitCSV(users)}>
               צור משתמשים

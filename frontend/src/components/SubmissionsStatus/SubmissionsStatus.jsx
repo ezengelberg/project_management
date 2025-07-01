@@ -327,7 +327,17 @@ const SubmissionsStatus = () => {
           ))}
         </Select>
       </div>
-      <Table columns={columns} dataSource={dataSource} loading={loading} scroll={{ x: "max-content" }} />
+      <Table
+        columns={columns}
+        dataSource={dataSource}
+        loading={loading}
+        scroll={{ x: "max-content" }}
+        sticky={{
+          offsetHeader: -30,
+          offsetScroll: -27,
+          getContainer: () => window,
+        }}
+      />
       <Modal
         title="רשימת קבצים"
         open={fileListModal}

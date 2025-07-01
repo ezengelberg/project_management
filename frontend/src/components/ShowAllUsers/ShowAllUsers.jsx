@@ -766,6 +766,11 @@ const ShowAllUsers = () => {
           scroll={{
             x: "max-content",
           }}
+          sticky={{
+            offsetHeader: -27,
+            offsetScroll: -27,
+            getContainer: () => window,
+          }}
         />
       ),
     },
@@ -779,6 +784,11 @@ const ShowAllUsers = () => {
           loading={loading}
           scroll={{
             x: "max-content",
+          }}
+          sticky={{
+            offsetHeader: -27,
+            offsetScroll: -27,
+            getContainer: () => window,
           }}
         />
       ),
