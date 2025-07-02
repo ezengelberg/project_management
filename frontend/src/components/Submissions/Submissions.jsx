@@ -691,9 +691,13 @@ const Submissions = () => {
         // Ensure text exists before rendering Highlighter
         const title = record.title || "";
         const displayText =
-          windowSize.width > 1200
+          windowSize.width > 1920
             ? title.length > 65
               ? `${title.substring(0, 65)}...`
+              : title
+            : windowSize.width > 1200
+            ? title.length > 80
+              ? `${title.substring(0, 80)}...`
               : title
             : windowSize.width > 1024
             ? title.length > 45
@@ -715,7 +719,7 @@ const Submissions = () => {
           </a>
         );
       },
-      width: (windowSize.width - 220) / 3,
+      width: windowSize.width > 1920 ? "31%" : windowSize.width > 1200 ? "35%" : windowSize.width > 1024 ? "30%" : 200,
     },
     {
       title: "הגשות",

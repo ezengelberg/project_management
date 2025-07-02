@@ -719,9 +719,7 @@ const SystemControl = () => {
             columns={mergedColumns}
             rowClassName="editable-row"
             pagination={false}
-            scroll={{
-              x: "max-content",
-            }}
+            scroll={{ x: "max-content" }}
             sticky={{
               offsetHeader: -27,
               offsetScroll: -27,

@@ -725,9 +725,7 @@ const ManageProjects = () => {
         dataSource={record.candidatesData}
         pagination={false}
         loading={loading}
-        scroll={{
-          x: "max-content",
-        }}
+        scroll={{ x: "max-content" }}
         sticky={{
           offsetHeader: -27,
           offsetScroll: -27,
@@ -811,9 +809,7 @@ const ManageProjects = () => {
           dataSource={filteredProjects}
           loading={loading}
           expandable={{ expandedRowRender: expandedRender }}
-          scroll={{
-            x: "max-content",
-          }}
+          scroll={{ x: "max-content" }}
           sticky={{
             offsetHeader: -27,
             offsetScroll: -27,
@@ -830,9 +826,7 @@ const ManageProjects = () => {
           columns={terminatedProjectsColumns}
           dataSource={terminatedProjects}
           loading={loading}
-          scroll={{
-            x: "max-content",
-          }}
+          scroll={{ x: 700 }}
           sticky={{
             offsetHeader: -27,
             offsetScroll: -27,

@@ -331,7 +331,7 @@ const SubmissionsStatus = () => {
         columns={columns}
         dataSource={dataSource}
         loading={loading}
-        scroll={{ x: "max-content" }}
+        scroll={{ x: 980 }}
         sticky={{
           offsetHeader: -30,
           offsetScroll: -27,

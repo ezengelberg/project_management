@@ -763,9 +763,7 @@ const ShowAllUsers = () => {
           columns={columns}
           dataSource={dataSource}
           loading={loading}
-          scroll={{
-            x: "max-content",
-          }}
+          scroll={{ x: "max-content" }}
           sticky={{
             offsetHeader: -27,
             offsetScroll: -27,
@@ -782,9 +780,7 @@ const ShowAllUsers = () => {
           columns={suspendedColumns}
           dataSource={suspendedDataSource}
           loading={loading}
-          scroll={{
-            x: "max-content",
-          }}
+          scroll={{ x: "max-content" }}
           sticky={{
             offsetHeader: -27,
             offsetScroll: -27,

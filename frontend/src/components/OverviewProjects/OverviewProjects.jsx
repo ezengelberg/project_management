@@ -1622,7 +1622,7 @@ const OverviewProjects = () => {
               expandedRowRender: candidatesExpandedRowRender,
               defaultExpandedRowKeys: [],
             }}
-            scroll={{ x: "max-content" }}
+            scroll={{ x: 1400 }}
             sticky={{
               offsetHeader: -27,
               offsetScroll: -27,
@@ -1689,9 +1689,7 @@ const OverviewProjects = () => {
               expandedRowRender,
               defaultExpandedRowKeys: [],
             }}
-            scroll={{
-              x: "max-content",
-            }}
+            scroll={{ x: 1600 }}
             sticky={{
               offsetHeader: -27,
               offsetScroll: -27,
@@ -1741,7 +1739,7 @@ const OverviewProjects = () => {
             dataSource={filteredTerminatedProjects}
             loading={loading}
             rowKey="_id"
-            scroll={{ x: "max-content" }}
+            scroll={{ x: 1200 }}
             sticky={{
               offsetHeader: -27,
               offsetScroll: -27,

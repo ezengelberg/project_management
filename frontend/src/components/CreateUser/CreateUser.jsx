@@ -318,9 +318,7 @@ const CreateUser = () => {
             <Table
               columns={columns}
               dataSource={users}
-              scroll={{
-                x: "max-content",
-              }}
+              scroll={{ x: "max-content" }}
               sticky={{
                 offsetHeader: -27,
                 offsetScroll: -27,

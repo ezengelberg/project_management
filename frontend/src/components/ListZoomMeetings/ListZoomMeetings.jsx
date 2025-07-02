@@ -271,9 +271,7 @@ const ListZoomMeetings = () => {
         loading={loading}
         rowKey="_id"
         pagination={{ pageSize: 10 }}
-        scroll={{
-          x: "max-content",
-        }}
+        scroll={{ x: "max-content" }}
         sticky={{
           offsetHeader: -27,
           offsetScroll: -27,
