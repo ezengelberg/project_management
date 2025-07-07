@@ -1763,6 +1763,15 @@ const Submissions = () => {
             הגשה - {submissionInfo?.submission?.name}
             <br />
             נבדק ע"י: {showReview?.judgeName}
+            <br />
+            תאריך בדיקה:{" "}
+            {new Date(showReview?.updatedAt).toLocaleString("he-IL", {
+              hour: "2-digit",
+              minute: "2-digit",
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
           </p>
         </div>
         <div className="details-grade">

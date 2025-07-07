@@ -236,6 +236,7 @@ export const getAllProjectSubmissions = async (req, res) => {
                   writingQuality: grade.writingQuality,
                   journalActive: grade.journalActive,
                   commits: grade.commits,
+                  updatedAt: grade.updatedAt,
                 };
               })
             );
@@ -246,11 +247,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               submissionDate: submission.submissionDate,
               uploadDate: submission.uploadDate,
               grades: grades,
-              submitted: submission.file
-                ? true
-                : submission.fileNeeded
-                ? false
-                : true,
+              submitted: submission.file ? true : submission.fileNeeded ? false : true,
               isGraded: submission.isGraded,
               isReviewed: submission.isReviewed,
               noJudges: submission.noJudges,
@@ -276,17 +273,11 @@ export const getAllProjectSubmissions = async (req, res) => {
 
     let resolvedProjectsList = await Promise.all(projectsList);
     resolvedProjectsList = resolvedProjectsList.map((project) => {
-      project.submissions = project.submissions.sort(
-        (a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)
-      );
+      project.submissions = project.submissions.sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate));
       return project;
     });
 
-    res
-      .status(200)
-      .json(
-        resolvedProjectsList.filter((project) => project.submissions.length > 0)
-      );
+    res.status(200).json(resolvedProjectsList.filter((project) => project.submissions.length > 0));
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -374,11 +365,7 @@ export const getStudentSubmissions = async (req, res) => {
           })
         ),
       }))
-    ).then((result) =>
-      result.sort(
-        (a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)
-      )
-    );
+    ).then((result) => result.sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate)));
 
     res.status(200).json(submissionsWithDetails);
   } catch (err) {
@@ -402,9 +389,7 @@ export const getJudgeSubmissionNames = async (req, res) => {
     const filteredSubmissions = submissions.filter((submission) =>
       submission.grades.some((grade) => grade.judge.toString() === judge)
     );
-    const submissionNames = [
-      ...new Set(filteredSubmissions.map((submission) => submission.name)),
-    ];
+    const submissionNames = [...new Set(filteredSubmissions.map((submission) => submission.name))];
     res.status(200).json(submissionNames);
   } catch (error) {
     console.log(error);
@@ -430,9 +415,7 @@ export const getJudgeSubmissions = async (req, res) => {
       .exec();
 
     // Filter submissions to only include ones where the user has grades
-    const filteredSubmissions = submissions.filter(
-      (submission) => submission.grades && submission.grades.length > 0
-    );
+    const filteredSubmissions = submissions.filter((submission) => submission.grades && submission.grades.length > 0);
 
     // Map to the required format
     const submissionsWithDetails = filteredSubmissions.map((submission) => ({
@@ -487,9 +470,7 @@ export const getSubmission = async (req, res) => {
 
     const grade = submission.grades[0];
     if (grade && !grade.editable) {
-      return res
-        .status(403)
-        .json({ message: "You are not allowed to edit this grade" });
+      return res.status(403).json({ message: "You are not allowed to edit this grade" });
     }
 
     const submissionData = {
@@ -561,18 +542,12 @@ export const resetJudges = async (req, res) => {
     name: submissionName,
   });
   for (const submission of submissions) {
-    const submissionProject = activeProjects.find((project) =>
-      project._id.equals(submission.project)
-    );
+    const submissionProject = activeProjects.find((project) => project._id.equals(submission.project));
     const currentSubmission = await Submission.findById(submission._id);
     if (submissionProject) {
       for (const grade of submission.grades) {
         const gradeResult = await Grade.findById(grade);
-        if (
-          gradeResult &&
-          gradeResult.judge.toString() !==
-            submissionProject.advisors[0].toString()
-        ) {
+        if (gradeResult && gradeResult.judge.toString() !== submissionProject.advisors[0].toString()) {
           await Grade.findByIdAndDelete(grade);
           await currentSubmission.updateOne({ $pull: { grades: grade } });
         }
@@ -622,25 +597,19 @@ export const assignJudgesAI = async (req, res) => {
   const embeddings = await getEmbedding(projectTexts);
 
   // Create a mapping between original project IDs and their embedding indices
-  const projectEmbeddingMap = Object.keys(projectDetails).reduce(
-    (acc, id, index) => {
-      acc[id] = embeddings[index];
-      return acc;
-    },
-    {}
-  );
+  const projectEmbeddingMap = Object.keys(projectDetails).reduce((acc, id, index) => {
+    acc[id] = embeddings[index];
+    return acc;
+  }, {});
 
   const interestsText = Object.entries(workload).map(([, advisor]) =>
     advisor.interests.trim() !== "" ? advisor.interests : "None"
   );
   const interestsEmbeddings = await getEmbedding(interestsText);
-  const interestsEmbeddingMap = Object.keys(workload).reduce(
-    (acc, id, index) => {
-      acc[id] = interestsEmbeddings[index];
-      return acc;
-    },
-    {}
-  );
+  const interestsEmbeddingMap = Object.keys(workload).reduce((acc, id, index) => {
+    acc[id] = interestsEmbeddings[index];
+    return acc;
+  }, {});
 
   // adding embedding into projectDetails and workload objects
   for (const [key, value] of Object.entries(projectEmbeddingMap)) {
@@ -667,9 +636,7 @@ export const assignJudgesAI = async (req, res) => {
     }
 
     // Sort judges by highest similarity score
-    judgeProjectSimilarities[projectId].sort(
-      (a, b) => b.similarity - a.similarity
-    );
+    judgeProjectSimilarities[projectId].sort((a, b) => b.similarity - a.similarity);
   }
 
   const submissions = await Submission.find({
@@ -695,16 +662,10 @@ export const assignJudgesAI = async (req, res) => {
     const sortedJudges = judgeProjectSimilarities[projectId]
       .map(({ judgeId, similarity }) => ({ judgeId, similarity }))
       .filter(
-        ({ judgeId }) =>
-          !currentJudges.includes(judgeId) &&
-          workload[judgeId]?.assigned < workload[judgeId]?.quota
+        ({ judgeId }) => !currentJudges.includes(judgeId) && workload[judgeId]?.assigned < workload[judgeId]?.quota
       );
 
-    if (
-      advisorId &&
-      !currentJudges.includes(advisorId) &&
-      workload[advisorId]?.assigned < workload[advisorId]?.quota
-    ) {
+    if (advisorId && !currentJudges.includes(advisorId) && workload[advisorId]?.assigned < workload[advisorId]?.quota) {
       const newGrade = new Grade({ judge: advisorId });
       await newGrade.save();
       submission.grades.push(newGrade._id);
@@ -774,10 +735,7 @@ export const assignJudgesAutomatically = async (req, res) => {
     project: { $in: activeProjectIds },
     name: req.body.submissionName,
   });
-  const totalGrades = submissions.reduce(
-    (acc, submission) => acc + submission.grades.length,
-    0
-  );
+  const totalGrades = submissions.reduce((acc, submission) => acc + submission.grades.length, 0);
 
   // Convert workload object to an array of values
   const workloadArray = Object.values(workload);
@@ -787,9 +745,7 @@ export const assignJudgesAutomatically = async (req, res) => {
     submissions.length * 3 - totalGrades >
     workloadArray.reduce((acc, judge) => acc + judge.quota - judge.assigned, 0)
   )
-    return res
-      .status(500)
-      .json({ message: "Not enough judges for the assignment" });
+    return res.status(500).json({ message: "Not enough judges for the assignment" });
 
   for (const submission of submissions) {
     // Use Promise.all to handle all grades for the submission in parallel
@@ -809,10 +765,7 @@ export const assignJudgesAutomatically = async (req, res) => {
           !currentJudges.includes(judge) // Check judge isn't already assigned
         );
       });
-      if (
-        potentialJudges.length === 0 ||
-        potentialJudges.length < remainingSlots
-      ) {
+      if (potentialJudges.length === 0 || potentialJudges.length < remainingSlots) {
         res.status(500).json({ message: "No enough potential judges found" });
         return;
       }
@@ -854,9 +807,7 @@ export const assignJudgesAutomatically = async (req, res) => {
 export const updateJudgesInSubmission = async (req, res) => {
   try {
     const { submissionID, judges } = req.body;
-    const submission = await Submission.findById(submissionID)
-      .populate("project")
-      .populate("grades");
+    const submission = await Submission.findById(submissionID).populate("project").populate("grades");
     if (!submission) {
       return res.status(404).send({ message: "Submission not found" });
     }
@@ -877,9 +828,7 @@ export const updateJudgesInSubmission = async (req, res) => {
     const validJudges = await validateJudges(judges);
 
     // Find judges to remove
-    const judgesToRemove = submission.grades.filter(
-      (grade) => !validJudges.includes(grade.judge.toString())
-    );
+    const judgesToRemove = submission.grades.filter((grade) => !validJudges.includes(grade.judge.toString()));
 
     // Remove grades associated with judges to remove
     if (judgesToRemove.length !== 0) {
@@ -896,16 +845,11 @@ export const updateJudgesInSubmission = async (req, res) => {
     }
 
     // Filter out removed grades from submission
-    submission.grades = submission.grades.filter(
-      (grade) => !judgesToRemove.includes(grade)
-    );
+    submission.grades = submission.grades.filter((grade) => !judgesToRemove.includes(grade));
 
     // Find new judges to add
     const newJudges = validJudges.filter(
-      (judgeID) =>
-        !submission.grades.some(
-          (grade) => grade.judge && grade.judge.toString() === judgeID
-        )
+      (judgeID) => !submission.grades.some((grade) => grade.judge && grade.judge.toString() === judgeID)
     );
 
     if (newJudges.length !== 0) {
@@ -926,9 +870,7 @@ export const updateJudgesInSubmission = async (req, res) => {
     }
 
     await submission.save();
-    res
-      .status(200)
-      .send({ message: "Judges updated successfully", submission });
+    res.status(200).send({ message: "Judges updated successfully", submission });
   } catch (err) {
     res.status(500).send({ message: err.message });
   }
@@ -936,9 +878,7 @@ export const updateJudgesInSubmission = async (req, res) => {
 
 export const updateSubmissionFile = async (req, res) => {
   try {
-    const submission = await Submission.findById(req.params.id).populate(
-      "project"
-    );
+    const submission = await Submission.findById(req.params.id).populate("project");
     if (!submission) {
       return res.status(404).json({ message: "Submission not found" });
     }
@@ -972,9 +912,7 @@ export const updateSubmissionFile = async (req, res) => {
       })
     );
 
-    res
-      .status(200)
-      .json({ message: "Submission updated successfully", submission });
+    res.status(200).json({ message: "Submission updated successfully", submission });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -983,20 +921,14 @@ export const updateSubmissionFile = async (req, res) => {
 
 export const deleteSubmission = async (req, res) => {
   try {
-    const submission = await Submission.findById(req.params.id).populate(
-      "project"
-    );
+    const submission = await Submission.findById(req.params.id).populate("project");
     if (!submission) {
       return res.status(404).json({ message: "Submission not found" });
     }
     if (submission.file) {
       const file = await Upload.findById(submission.file);
       if (file) {
-        const filePath = path.join(
-          process.cwd(),
-          `uploads/${file.destination}`,
-          file.filename
-        );
+        const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
         await Upload.deleteOne({ _id: submission.file });
       }
@@ -1005,11 +937,7 @@ export const deleteSubmission = async (req, res) => {
     if (submission.extraUploadFile) {
       const extraFile = await Upload.findById(submission.extraUploadFile);
       if (extraFile) {
-        const filePath = path.join(
-          process.cwd(),
-          `uploads/${extraFile.destination}`,
-          extraFile.filename
-        );
+        const filePath = path.join(process.cwd(), `uploads/${extraFile.destination}`, extraFile.filename);
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
         await Upload.deleteOne({ _id: submission.extraUploadFile });
       }
@@ -1059,11 +987,7 @@ export const deleteActiveSubmissions = async (req, res) => {
         if (submission.file) {
           const file = await Upload.findById(submission.file);
           if (file) {
-            const filePath = path.join(
-              process.cwd(),
-              `uploads/${file.destination}`,
-              file.filename
-            );
+            const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
             if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
             await Upload.deleteOne({ _id: submission.file });
           }
@@ -1072,11 +996,7 @@ export const deleteActiveSubmissions = async (req, res) => {
         if (submission.extraUploadFile) {
           const extraFile = await Upload.findById(submission.extraUploadFile);
           if (extraFile) {
-            const filePath = path.join(
-              process.cwd(),
-              `uploads/${extraFile.destination}`,
-              extraFile.filename
-            );
+            const filePath = path.join(process.cwd(), `uploads/${extraFile.destination}`, extraFile.filename);
             if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
             await Upload.deleteOne({ _id: submission.extraUploadFile });
           }
@@ -1092,9 +1012,7 @@ export const deleteActiveSubmissions = async (req, res) => {
       })
     );
 
-    res
-      .status(200)
-      .json({ message: "Active submissions deleted successfully" });
+    res.status(200).json({ message: "Active submissions deleted successfully" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -1124,9 +1042,7 @@ export const updateSubmissionInformation = async (req, res) => {
         year: req.body.submissionYear,
       });
     }
-    const activeProjectIds = activeProjects.map((project) =>
-      project._id.toString()
-    ); // Convert ObjectIds to strings
+    const activeProjectIds = activeProjects.map((project) => project._id.toString()); // Convert ObjectIds to strings
 
     if (submissions[0].isGraded) {
       gradingTable = await GradingTable.findOne({
@@ -1167,9 +1083,7 @@ export const updateSubmissionInformation = async (req, res) => {
 export const updateSpecificSubmission = async (req, res) => {
   try {
     let gradingTable;
-    const submission = await Submission.findById(req.params.id).populate(
-      "project"
-    );
+    const submission = await Submission.findById(req.params.id).populate("project");
     if (!submission) {
       return res.status(404).json({ message: "הגשה לא נמצאה" });
     } else {
@@ -1198,9 +1112,7 @@ export const updateSpecificSubmission = async (req, res) => {
       submission.submissionDate = submissionDate;
       submission.gradingTable = gradingTable?._id;
       await submission.save();
-      res
-        .status(200)
-        .json({ message: "Submission updated successfully", submission });
+      res.status(200).json({ message: "Submission updated successfully", submission });
     }
   } catch (error) {
     console.log(error);
@@ -1283,11 +1195,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
           submissionDate: submission.submissionDate,
           uploadDate: submission.uploadDate,
           grades: grades,
-          submitted: submission.file
-            ? true
-            : submission.fileNeeded
-            ? false
-            : true,
+          submitted: submission.file ? true : submission.fileNeeded ? false : true,
           isGraded: submission.isGraded,
           isReviewed: submission.isReviewed,
           overridden: submission.overridden,
@@ -1312,9 +1220,7 @@ export const getSpecificProjectSubmissions = async (req, res) => {
 export const getGradeDistribution = async (req, res) => {
   try {
     const submissionId = req.params.id;
-    const submission = await Submission.findById(submissionId).populate(
-      "project"
-    );
+    const submission = await Submission.findById(submissionId).populate("project");
 
     if (!submission) {
       return res.status(404).json({ message: "Submission not found" });
@@ -1343,24 +1249,18 @@ export const getGradeDistribution = async (req, res) => {
       { range: "95-100", min: 95, max: 100 },
     ];
 
-    const allGrades = submissions
-      .map((submission) => submission.finalGrade)
-      .filter((grade) => grade !== null);
+    const allGrades = submissions.map((submission) => submission.finalGrade).filter((grade) => grade !== null);
     const totalGrades = allGrades.length;
 
-    const average =
-      allGrades.reduce((sum, grade) => sum + grade, 0) / totalGrades;
+    const average = allGrades.reduce((sum, grade) => sum + grade, 0) / totalGrades;
     const sortedGrades = [...allGrades].sort((a, b) => a - b);
     const median = sortedGrades[Math.floor(totalGrades / 2)];
     const lowest = sortedGrades[0];
     const highest = sortedGrades[sortedGrades.length - 1];
-    const failPercentage =
-      (allGrades.filter((grade) => grade <= 54).length / totalGrades) * 100;
+    const failPercentage = (allGrades.filter((grade) => grade <= 54).length / totalGrades) * 100;
 
     const distribution = gradeRanges.map((range) => {
-      const count = allGrades.filter(
-        (grade) => grade >= range.min && grade <= range.max
-      ).length;
+      const count = allGrades.filter((grade) => grade >= range.min && grade <= range.max).length;
       return {
         range: range.range,
         percentage: Math.round((count / totalGrades) * 100),
@@ -1370,9 +1270,7 @@ export const getGradeDistribution = async (req, res) => {
 
     const descendingGrades = [...sortedGrades].reverse();
     const numberOfGrades = allGrades.length;
-    const currentSubmissionGradeIndex = descendingGrades.indexOf(
-      currentSubmissionFinalGrade
-    );
+    const currentSubmissionGradeIndex = descendingGrades.indexOf(currentSubmissionFinalGrade);
 
     res.status(200).json({
       distribution,
@@ -1404,11 +1302,7 @@ export const deleteAllSubmissions = async (req, res) => {
       if (submission.file) {
         const file = await Upload.findById(submission.file);
         if (file) {
-          const filePath = path.join(
-            process.cwd(),
-            `uploads/${file.destination}`,
-            file.filename
-          );
+          const filePath = path.join(process.cwd(), `uploads/${file.destination}`, file.filename);
           if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
           await Upload.deleteOne({ _id: submission.file });
         }
@@ -1417,11 +1311,7 @@ export const deleteAllSubmissions = async (req, res) => {
       if (submission.extraUploadFile) {
         const extraFile = await Upload.findById(submission.extraUploadFile);
         if (extraFile) {
-          const filePath = path.join(
-            process.cwd(),
-            `uploads/${extraFile.destination}`,
-            extraFile.filename
-          );
+          const filePath = path.join(process.cwd(), `uploads/${extraFile.destination}`, extraFile.filename);
           if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
           await Upload.deleteOne({ _id: submission.extraUploadFile });
         }
@@ -1464,12 +1354,10 @@ export const askForExtraUpload = async (req, res) => {
       })
     );
 
-    res
-      .status(200)
-      .json({
-        message: "Extra upload status updated successfully",
-        submission,
-      });
+    res.status(200).json({
+      message: "Extra upload status updated successfully",
+      submission,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -1484,9 +1372,7 @@ export const getExtraUploadSubmissions = async (req, res) => {
     }).populate("project");
     const submissionsWithDetails = await Promise.all(
       submissions.map(async (submission) => {
-        const project = await Project.findById(submission.project._id).populate(
-          "students.student advisors"
-        );
+        const project = await Project.findById(submission.project._id).populate("students.student advisors");
         return {
           key: submission._id,
           submissionName: submission.name,
@@ -1517,9 +1403,7 @@ export const getExtraUploadSubmissions = async (req, res) => {
 
 export const acceptExtraUpload = async (req, res) => {
   try {
-    const submission = await Submission.findById(req.params.id).populate(
-      "project"
-    );
+    const submission = await Submission.findById(req.params.id).populate("project");
     if (!submission) {
       return res.status(404).json({ message: "Submission not found" });
     }
@@ -1581,9 +1465,7 @@ export const acceptExtraUpload = async (req, res) => {
       })
     );
 
-    res
-      .status(200)
-      .json({ message: "Extra upload accepted successfully", submission });
+    res.status(200).json({ message: "Extra upload accepted successfully", submission });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -1592,9 +1474,7 @@ export const acceptExtraUpload = async (req, res) => {
 
 export const denyExtraUpload = async (req, res) => {
   try {
-    const submission = await Submission.findById(req.params.id).populate(
-      "project"
-    );
+    const submission = await Submission.findById(req.params.id).populate("project");
     if (!submission) {
       return res.status(404).json({ message: "Submission not found" });
     }
@@ -1656,9 +1536,7 @@ export const denyExtraUpload = async (req, res) => {
       })
     );
 
-    res
-      .status(200)
-      .json({ message: "Extra upload rejected successfully", submission });
+    res.status(200).json({ message: "Extra upload rejected successfully", submission });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -1689,11 +1567,7 @@ export const getYearlySubmissions = async (req, res) => {
   }
 };
 
-export const sendSubmissionEmail = async (
-  submissionName,
-  submissionDate,
-  students
-) => {
+export const sendSubmissionEmail = async (submissionName, submissionDate, students) => {
   if (!Array.isArray(students)) {
     console.error("students is not an array");
     return;
@@ -1735,12 +1609,9 @@ export const sendSubmissionEmail = async (
                 <h2 style="color: #333; text-align: center">הגשה חדשה</h2>
                 <p>שלום ${user.name},</p>
                 <p>נוצרה הגשה חדשה: ${submissionName}.</p>
-                <p>ניתן להגיש עד לתאריך: ${submissionDate.toLocaleString(
-                  "he-IL",
-                  {
-                    timeZone: "Asia/Jerusalem",
-                  }
-                )}</p>
+                <p>ניתן להגיש עד לתאריך: ${submissionDate.toLocaleString("he-IL", {
+                  timeZone: "Asia/Jerusalem",
+                })}</p>
               </div>
             </body>
             </html>
@@ -1785,12 +1656,8 @@ export const getJudgeSubmissionDistribution = async (req, res) => {
 
     const gradesMap = {};
     filteredActiveSubmissions.forEach((submission) => {
-      const grade = submission.grades.find(
-        (grade) => grade.judge.toString() === judge && grade.grade !== null
-      );
-      const isOwnProject = submission.project.advisors.some(
-        (advisor) => advisor.toString() === judge
-      );
+      const grade = submission.grades.find((grade) => grade.judge.toString() === judge && grade.grade !== null);
+      const isOwnProject = submission.project.advisors.some((advisor) => advisor.toString() === judge);
       gradesMap[submission.project._id] = {
         id: submission.project._id,
         title: submission.project.title,
@@ -1840,8 +1707,7 @@ export const getSubmissionDistribution = async (req, res) => {
 
   const filteredProjectMap = Object.values(projectMap).filter(
     (project) =>
-      project.grades.length === 3 &&
-      project.grades.every((grade) => grade.grade !== null && grade.grade != "")
+      project.grades.length === 3 && project.grades.every((grade) => grade.grade !== null && grade.grade != "")
   );
   res.status(200).json(filteredProjectMap);
 };
