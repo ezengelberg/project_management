@@ -856,7 +856,7 @@ const Submissions = () => {
       title: "שופט",
       dataIndex: "judgeName",
       key: "judgeName",
-      width: 300,
+      width: "40%",
     },
     {
       title: "ציון",
@@ -867,7 +867,7 @@ const Submissions = () => {
           {record.isGraded ? (record.grade !== null ? record.grade : "טרם נבדק") : "לא נדרש ציון"}
         </Space>
       ),
-      width: 100,
+      width: "10%",
     },
     {
       title: "משוב",
