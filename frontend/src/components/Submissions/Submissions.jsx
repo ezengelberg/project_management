@@ -856,6 +856,7 @@ const Submissions = () => {
       title: "שופט",
       dataIndex: "judgeName",
       key: "judgeName",
+      width: 300,
     },
     {
       title: "ציון",
@@ -866,6 +867,7 @@ const Submissions = () => {
           {record.isGraded ? (record.grade !== null ? record.grade : "טרם נבדק") : "לא נדרש ציון"}
         </Space>
       ),
+      width: 100,
     },
     {
       title: "משוב",
@@ -886,7 +888,18 @@ const Submissions = () => {
               "ממתין למשוב"
             )
           ) : (
-            <span>הגשה ללא משוב</span>
+            <span>
+              הגשה ללא משוב
+              <br />
+              {record.grade !== null &&
+                `תאריך בדיקה: ${new Date(record.updatedAt).toLocaleDateString("he-IL", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })}`}
+            </span>
           )}
         </Space>
       ),
