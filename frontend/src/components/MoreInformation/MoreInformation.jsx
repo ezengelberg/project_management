@@ -526,6 +526,9 @@ const MoreInformation = () => {
           textToHighlight={text}
         />
       ),
+      sorter: (a, b) => a.name.localeCompare(b.name),
+      sortDirections: ["ascend", "descend"],
+      defaultSortOrder: "ascend",
     },
     {
       title: "מייל",
@@ -922,12 +925,6 @@ const MoreInformation = () => {
     } finally {
       setMoreInformationFiles((prevFiles) => prevFiles.filter((file) => file._id !== fileId));
     }
-  };
-
-  const clearForm = () => {
-    setFileList([]);
-    setTitle("");
-    setDescription("");
   };
 
   const handleFileEditorChange = (e) => {
