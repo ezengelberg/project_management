@@ -452,6 +452,7 @@ const Submissions = () => {
           name: values.submissionName,
           submissionDate: submissionDate,
           submissionTime: values.submissionTime ? values.submissionTime.format("HH:mm") : null,
+          submissionInfo: values.submissionInfo,
           isGraded: Array.isArray(values.submissionChecklist) ? values.submissionChecklist.includes("isGraded") : false,
           isReviewed: Array.isArray(values.submissionChecklist)
             ? values.submissionChecklist.includes("isReviewed")
@@ -1468,6 +1469,7 @@ const Submissions = () => {
                       ...prevInfo.submission,
                       name: values.submissionName,
                       submissionDate: values.submissionDate,
+                      submissionInfo: values.submissionInfo,
                       isGraded: values.submissionChecklist.includes("isGraded"),
                       isReviewed: values.submissionChecklist.includes("isReviewed"),
                       fileNeeded: values.submissionChecklist.includes("fileNeeded"),
@@ -1558,6 +1560,9 @@ const Submissions = () => {
               />
             </Form.Item>
           )}
+          <Form.Item label="הנחיות הגשה" name="submissionInfo">
+            <Input.TextArea rows={4} />
+          </Form.Item>
           <Form.Item name="submissionChecklist">
             <Checkbox.Group>
               <Checkbox value="isGraded">מתן ציון</Checkbox>
@@ -1582,6 +1587,7 @@ const Submissions = () => {
                         projectName: submissionInfo?.project.title,
                         submissionName: submissionInfo?.submission.name,
                         submissionDate: dayjs(submissionInfo?.submission.submissionDate),
+                        submissionInfo: submissionInfo?.submission.submissionInfo,
                         submissionChecklist: [
                           submissionInfo?.submission.isGraded ? "isGraded" : null,
                           submissionInfo?.submission.isReviewed ? "isReviewed" : null,
