@@ -113,6 +113,10 @@
   }
 }
 
+.submission-info-text {
+  word-break: break-word;
+}
+
 @media screen and (max-width: 626px) {
   .grade-info {
     .reviews {

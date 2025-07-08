@@ -521,7 +521,7 @@ const UploadSubmissions = () => {
       dataIndex: "submissionInfo",
       key: "info",
       render: (text) => {
-        return <Tooltip title={text}>{text.length > 45 ? `${text.slice(0, 45)}...` : text}</Tooltip>;
+        return <div className="submission-info-text">{text ? renderTextWithNewlines(text) : "אין הנחיות מיוחדות"}</div>;
       },
       filters: [
         {
@@ -539,8 +539,7 @@ const UploadSubmissions = () => {
         }
         return !record.submissionInfo;
       },
-
-      width: "25%",
+      width: 400,
     },
     {
       title: "פעולות",
