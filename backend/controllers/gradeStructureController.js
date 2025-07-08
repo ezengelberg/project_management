@@ -10,8 +10,28 @@ export const fetchGradeStructures = async (req, res) => {
   }
 };
 
+export const getGradeStructureYears = async (req, res) => {
+  try {
+    const gradeStructures = await GradeStructure.find();
+    const years = [...new Set(gradeStructures.map((gs) => gs.year))].sort((a, b) => b - a);
+    res.status(200).json(years);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getYearGroupStructures = async (req, res) => {
+  const { year } = req.params;
+  try {
+    const gradeStructures = await GradeStructure.find({ year });
+    res.status(200).json(gradeStructures);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const createGradeStructure = async (req, res) => {
-  const { name, weight, description, date, group } = req.body;
+  const { name, weight, description, date, group, year } = req.body;
 
   try {
     let gradeStructure;
@@ -22,9 +42,9 @@ export const createGradeStructure = async (req, res) => {
     }
 
     if (group === "all") {
-      gradeStructure = await GradeStructure.findOne({ group: null });
+      gradeStructure = await GradeStructure.findOne({ group: null, year: year });
     } else {
-      gradeStructure = await GradeStructure.findOne({ group });
+      gradeStructure = await GradeStructure.findOne({ group: group, year: year });
     }
 
     if (gradeStructure) {
@@ -34,6 +54,7 @@ export const createGradeStructure = async (req, res) => {
         group: group === "all" ? null : group,
         groupName: group === "all" ? "כולם" : groupDetails.name,
         items: [{ name, weight, description, date }],
+        year: year,
       });
     }
 

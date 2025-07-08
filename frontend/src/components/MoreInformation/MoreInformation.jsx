@@ -31,6 +31,7 @@ import { processContent } from "../../utils/htmlProcessor";
 import FileCard from "../FileCard/FileCard";
 import * as XLSX from "xlsx";
 import { NotificationsContext } from "../../utils/NotificationsContext";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const MoreInformation = () => {
   const { fetchNotifications } = useContext(NotificationsContext);
@@ -68,7 +69,7 @@ const MoreInformation = () => {
   const [currentFile, setCurrentFile] = useState({});
   const [groups, setGroups] = useState([]);
   const [thisYearGroups, setThisYearGroups] = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState("all");
+  const [selectedGroup, setSelectedGroup] = useState(null);
   const [allGradeStructures, setAllGradeStructures] = useState([]);
   const [deleteGradeStructureModal, setDeleteGradeStructureModal] = useState(false);
   const [selectedGradeStructure, setSelectedGradeStructure] = useState("");
@@ -78,6 +79,10 @@ const MoreInformation = () => {
   const [years, setYears] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
   const [selectedYear, setSelectedYear] = useState("");
+  const [selectedGradeStructureYearCreation, setSelectedGradeStructureYearCreation] = useState("");
+  const [gradeStructureYears, setGradeStructureYears] = useState([]);
+  const [filteredGroupsData, setFilteredGroupsData] = useState([]);
+  const [selectedGradeStructureYearFilter, setSelectedGradeStructureYearFilter] = useState("");
   const [classNames, setClassNames] = useState({
     class1: "כיתה 1",
     class2: "כיתה 2",
@@ -118,6 +123,18 @@ const MoreInformation = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const today = new Date();
+  const currentHebrewDate = toJewishDate(today);
+  const currentHebrewYear = formatJewishDateInHebrew(currentHebrewDate).split(" ").pop().replace(/^ה/, "");
+
+  const previousDate = new Date();
+  previousDate.setFullYear(today.getFullYear() - 1);
+  const previousHebrewYear = formatJewishDateInHebrew(toJewishDate(previousDate)).split(" ").pop().replace(/^ה/, "");
+
+  const nextDate = new Date();
+  nextDate.setFullYear(today.getFullYear() + 1);
+  const nextHebrewYear = formatJewishDateInHebrew(toJewishDate(nextDate)).split(" ").pop().replace(/^ה/, "");
 
   const FileExcelOutlinedIcon = () => (
     <svg className="excel-icon" viewBox="0 0 32 32" fill="#000000" onClick={exportToExcel}>
@@ -222,7 +239,7 @@ const MoreInformation = () => {
     const fetchGroupsAndExamTable = async () => {
       try {
         setLoading(true);
-        const [groupRes, configRes, examTableRes, yearsRes, projectsRes, currentYearGroupsRes] = await Promise.all([
+        const [groupRes, configRes, examTableRes, yearsRes, projectsRes] = await Promise.all([
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get`, {
             withCredentials: true,
           }),
@@ -238,7 +255,6 @@ const MoreInformation = () => {
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-projects-for-exam-table`, {
             withCredentials: true,
           }),
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get-current-year`, { withCredentials: true }),
         ]);
         setGroups(groupRes.data);
         setConfigYear(configRes.data.currentYear);
@@ -247,7 +263,6 @@ const MoreInformation = () => {
         const sortedYears = yearsRes.data.sort((a, b) => b.localeCompare(a));
         setYears(sortedYears);
         setProjects(projectsRes.data);
-        setThisYearGroups(currentYearGroupsRes.data);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching groups and exam table:", error);
@@ -262,7 +277,18 @@ const MoreInformation = () => {
       const allGradeStructuresRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/grade-structure/`, {
         withCredentials: true,
       });
+      const yearsRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/grade-structure/years`, {
+        withCredentials: true,
+      });
       setAllGradeStructures(allGradeStructuresRes.data);
+      const sortedYears = yearsRes.data.sort((a, b) => b.localeCompare(a));
+      if (sortedYears.length > 0) {
+        setSelectedGradeStructureYearFilter(sortedYears[0]);
+        fetchFilteredGroupDataForYear(sortedYears[0]);
+      } else {
+        setSelectedGradeStructureYearFilter(null);
+      }
+      setGradeStructureYears(sortedYears);
     } catch (error) {
       console.error("Error fetching groups:", error);
     }
@@ -278,6 +304,47 @@ const MoreInformation = () => {
       setAllTablesUpdated(false);
     }
   }, [allTablesUpdated]);
+
+  const fetchGroupDataForYear = async (year) => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get-by-year/${year}`, {
+        withCredentials: true,
+      });
+      setThisYearGroups(res.data);
+    } catch (error) {
+      console.error("Error fetching group data for year:", error);
+    }
+  };
+
+  const fetchFilteredGroupDataForYear = async (year) => {
+    try {
+      // First get all grade structures for the year
+      const gradeStructuresRes = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/grade-structure/year/${year}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      // Extract unique group IDs from grade structures (excluding null for "all")
+      const groupIds = [...new Set(gradeStructuresRes.data.map((gs) => gs.group).filter((group) => group !== null))];
+
+      // Fetch group details for these IDs
+      if (groupIds.length > 0) {
+        const groupsRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/group/get`, {
+          withCredentials: true,
+        });
+        // Filter groups to only include those that have grade structures
+        const filteredGroups = groupsRes.data.filter((group) => groupIds.includes(group._id));
+        setFilteredGroupsData(filteredGroups);
+      } else {
+        setFilteredGroupsData([]);
+      }
+    } catch (error) {
+      console.error("Error fetching group data for year:", error);
+      setFilteredGroupsData([]);
+    }
+  };
 
   const handleEditorChange = (e) => {
     setGradeWeightDescription(e.htmlValue || "");
@@ -342,6 +409,8 @@ const MoreInformation = () => {
         <DatePicker locale={locale} />
       ) : dataIndex === "weight" ? (
         <InputNumber min={0} max={100} />
+      ) : dataIndex === "description" ? (
+        <Input.TextArea rows={4} />
       ) : (
         <Input />
       );
@@ -589,7 +658,7 @@ const MoreInformation = () => {
       message.success("מבנה הציונים נמחק בהצלחה");
       setDeleteGradeStructureModal(false);
       setSelectedGradeStructure("");
-      setSelectedGroup("");
+      setSelectedGroup(null);
     } catch (error) {
       console.error("Error occurred:", error);
       message.error("מחיקת מבנה הציונים נכשלה");
@@ -599,17 +668,20 @@ const MoreInformation = () => {
   const handleFilterChange = (value) => {
     setSelectedGroup(value);
     const selectedGrade = allGradeStructures.find(
-      (grade) => grade.group === value || (value === "all" && grade.group === null)
+      (grade) =>
+        (grade.group === value && grade.year === selectedGradeStructureYearFilter) ||
+        (value === "all" && grade.group === null && grade.year === selectedGradeStructureYearFilter)
     );
     setSelectedGradeStructure(selectedGrade ? selectedGrade._id : "");
   };
 
   const filteredGradesData = allGradeStructures
     .filter((grade) => {
-      if (selectedGroup === "all") {
-        return grade.group === null;
+      if (!selectedGroup) return false;
+      else if (selectedGroup === "all") {
+        return grade.group === null && grade.year === selectedGradeStructureYearFilter;
       }
-      return grade.group === selectedGroup;
+      return grade.group === selectedGroup && grade.year === selectedGradeStructureYearFilter;
     })
     .flatMap((grade) =>
       grade.items.map((item) => ({ ...item, key: item._id, structId: grade._id, group: grade.groupName }))
@@ -633,14 +705,15 @@ const MoreInformation = () => {
       title: "תיאור",
       dataIndex: "description",
       editable: true,
-      width: windowSize.width > 768 ? "47%" : 300,
+      render: (text) => <span className="grades-column-description">{renderTextWithNewlines(text)}</span>,
+      width: windowSize.width > 768 ? "44%" : 300,
     },
     {
       title: "תאריך הגשה",
       dataIndex: "date",
       editable: true,
       render: (text) => <span>{dayjs(text).format("DD/MM/YYYY")}</span>,
-      width: windowSize.width > 768 ? "10%" : 150,
+      width: windowSize.width > 768 ? "13%" : 150,
     },
     currentUser.isCoordinator && {
       title: "פעולות",
@@ -1231,6 +1304,27 @@ const MoreInformation = () => {
     XLSX.writeFile(workbook, "exam-table.xlsx");
   };
 
+  const handleYearChange = (value) => {
+    setSelectedGradeStructureYearCreation(value);
+    fetchGroupDataForYear(value);
+  };
+
+  const handleYearFilterChange = (value) => {
+    setSelectedGradeStructureYearFilter(value);
+    fetchFilteredGroupDataForYear(value);
+    setSelectedGroup(null);
+    setSelectedGradeStructure("");
+  };
+
+  const renderTextWithNewlines = (text) => {
+    return text?.split("\n").map((line, index) => (
+      <React.Fragment key={index}>
+        {line}
+        <br />
+      </React.Fragment>
+    ));
+  };
+
   const examTableColumns = [
     {
       title: "שעה",
@@ -1451,61 +1545,73 @@ const MoreInformation = () => {
       children: (
         <div>
           {currentUser.isCoordinator && (
-            <Form
-              form={formGrades}
-              onFinish={handleGradesAdd}
-              layout="inline"
-              style={{
-                marginBottom: 16,
-              }}>
-              <Form.Item name="name" rules={[{ required: true, message: "הכנס שם" }]}>
-                <Input placeholder="שם" style={{ width: 200, marginBottom: "10px" }} />
-              </Form.Item>
-              <Form.Item name="weight" rules={[{ required: true, message: "הכנס משקל" }]}>
-                <InputNumber placeholder="משקל" style={{ width: 200, marginBottom: "10px" }} min={0} max={100} />
-              </Form.Item>
-              <Form.Item
-                name="description"
-                rules={[{ required: true, message: "הכנס תיאור" }]}
-                style={{
-                  width: windowSize.width > 768 ? 400 : windowSize.width > 626 ? 350 : 200,
-                  marginBottom: "10px",
-                }}>
-                <Input placeholder="תיאור" />
-              </Form.Item>
-              <Form.Item name="date" rules={[{ required: true, message: "הכנס תאריך" }]}>
-                <DatePicker placeholder="תאריך" locale={locale} style={{ width: 200, marginBottom: "10px" }} />
-              </Form.Item>
-              <Form.Item name="group" label={`לשנת ${configYear}`} rules={[{ required: true, message: "בחר קבוצה" }]}>
-                <Select placeholder="בחר קבוצה" style={{ width: 200, marginBottom: "10px" }}>
-                  <Select.Option value="all">כולם</Select.Option>
-                  {thisYearGroups.map((group) => (
-                    <Select.Option key={group._id} value={group._id}>
-                      {group.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-              <Form.Item>
-                <Button type="primary" htmlType="submit">
-                  שורה חדשה
-                </Button>
-              </Form.Item>
-            </Form>
+            <div className="grade-weight-container">
+              <h3>הוספת מרכיב ציון</h3>
+              <Form form={formGrades} onFinish={handleGradesAdd} layout="horizontal" initialValues={{ group: "all" }}>
+                <Form.Item name="year" label="לשנת הלימודים" rules={[{ required: true, message: "בחר שנה" }]}>
+                  <Select placeholder="בחר שנה" value={selectedGradeStructureYearFilter} onChange={handleYearChange}>
+                    <Select.Option value={nextHebrewYear}>{nextHebrewYear}</Select.Option>
+                    <Select.Option value={currentHebrewYear}>{currentHebrewYear}</Select.Option>
+                    <Select.Option value={previousHebrewYear}>{previousHebrewYear}</Select.Option>
+                  </Select>
+                </Form.Item>
+                <Form.Item name="group" label="בחירת קבוצה" rules={[{ required: true, message: "בחר קבוצה" }]}>
+                  <Select placeholder="בחר קבוצה">
+                    <Select.Option value="all">כולם</Select.Option>
+                    {thisYearGroups.map((group) => (
+                      <Select.Option key={group._id} value={group._id}>
+                        {group.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+                <Form.Item name="name" label="שם ההגשה" rules={[{ required: true, message: "הכנס שם" }]}>
+                  <Input placeholder="שם" />
+                </Form.Item>
+                <Form.Item name="weight" label="משקל ההגשה (%)" rules={[{ required: true, message: "הכנס משקל" }]}>
+                  <InputNumber placeholder="משקל" min={0} max={100} />
+                </Form.Item>
+                <Form.Item name="description" label="תיאור ההגשה" rules={[{ required: true, message: "הכנס תיאור" }]}>
+                  <Input.TextArea placeholder="תיאור" rows={4} />
+                </Form.Item>
+                <Form.Item name="date" label="תאריך ההגשה" rules={[{ required: true, message: "הכנס תאריך" }]}>
+                  <DatePicker placeholder="תאריך" locale={locale} />
+                </Form.Item>
+                <Form.Item>
+                  <Button type="primary" htmlType="submit">
+                    הוספת מרכיב ציון
+                  </Button>
+                </Form.Item>
+              </Form>
+              <Divider />
+            </div>
           )}
           <div className="grades-filter">
             <Select
-              placeholder="סנן לפי קבוצה"
-              value={selectedGroup}
-              onChange={handleFilterChange}
+              placeholder="בחר שנה"
+              value={selectedGradeStructureYearFilter}
+              onChange={handleYearFilterChange}
               style={{ marginBottom: 16, width: 200 }}>
-              <Select.Option value="all">כולם</Select.Option>
-              {thisYearGroups.map((group) => (
-                <Select.Option key={group._id} value={group._id}>
-                  {group.name}
+              {gradeStructureYears.map((year) => (
+                <Select.Option key={year} value={year}>
+                  {year}
                 </Select.Option>
               ))}
             </Select>
+            {selectedGradeStructureYearFilter && (
+              <Select
+                placeholder="סנן לפי קבוצה"
+                value={selectedGroup}
+                onChange={handleFilterChange}
+                style={{ marginBottom: 16, width: 200 }}>
+                <Select.Option value="all">כולם</Select.Option>
+                {filteredGroupsData.map((group) => (
+                  <Select.Option key={group._id} value={group._id}>
+                    {group.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            )}
             {currentUser.isCoordinator && selectedGradeStructure && (
               <Button
                 color="danger"

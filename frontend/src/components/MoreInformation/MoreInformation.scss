@@ -35,6 +35,42 @@
   }
 }
 
+.grade-weight-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  h3 {
+    width: 70%;
+    margin: 0 auto 2rem auto;
+  }
+
+  .ant-divider {
+    margin-top: 0;
+  }
+
+  .ant-form {
+    display: flex;
+    flex-direction: column;
+    width: 70%;
+    margin: 0 auto;
+
+    .ant-form-item {
+      .ant-row {
+        .ant-col {
+          label {
+            min-width: 14rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+.grades-column-description {
+  word-break: break-word;
+}
+
 .grade-weight-icon-container {
   display: flex;
   gap: 1rem;
@@ -146,11 +182,28 @@
   .info-container {
     width: 85%;
   }
+  .grade-weight-container {
+    h3 {
+      width: 85%;
+    }
+    .ant-form {
+      width: 85%;
+    }
+  }
 }
 
 @media screen and (max-width: 1200px) {
   .info-container {
     width: 95%;
+  }
+  .grade-weight-container {
+    h3 {
+      width: 90%;
+      font-size: 2rem;
+    }
+    .ant-form {
+      width: 90%;
+    }
   }
 }
 
@@ -158,11 +211,28 @@
   .info-container {
     width: 95%;
   }
+  .grade-weight-container {
+    h3 {
+      width: 95%;
+    }
+    .ant-form {
+      width: 95%;
+    }
+  }
 }
 
 @media screen and (max-width: 768px) {
   .info-container {
     width: 100%;
+  }
+  .grade-weight-container {
+    h3 {
+      width: 100%;
+      font-size: 2.2rem;
+    }
+    .ant-form {
+      width: 100%;
+    }
   }
 }
 

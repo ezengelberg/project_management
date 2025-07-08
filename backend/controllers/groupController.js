@@ -35,6 +35,16 @@ export const getYearGroups = async (req, res) => {
   }
 };
 
+export const getGroupByYear = async (req, res) => {
+  try {
+    const { year } = req.params;
+    const groups = await Group.find({ year });
+    res.status(200).json(groups);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const renameGroup = async (req, res) => {
   try {
     const { groupId, newName } = req.body;
