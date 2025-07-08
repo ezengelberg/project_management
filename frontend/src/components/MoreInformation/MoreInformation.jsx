@@ -1238,7 +1238,7 @@ const MoreInformation = () => {
       key: "time",
       fixed: "left",
       render: (text) => <strong>{text}</strong>,
-      width: 50,
+      width: 60,
     },
     {
       title: classNames.class1,
@@ -1588,7 +1588,7 @@ const MoreInformation = () => {
                   className="exam-table-form"
                   layout="inline"
                   onFinish={handleExamTableSubmit}
-                  initialValues={{ group: "all" }}>
+                  initialValues={{ group: "all", creationMethod: "manual" }}>
                   <div className="exam-table-form-required">
                     <Form.Item
                       className="exam-table-form-item"

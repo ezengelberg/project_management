@@ -518,7 +518,7 @@ export const getAdvisorsForUsersInfo = async (req, res) => {
 
     const advisorsWithProjectsInfo = advisors.map((advisor) => {
       const advisorProjects = projects.filter((project) => project.advisors.includes(advisor._id));
-      const projectsAvailable = advisorProjects.some((project) => !project.isTaken);
+      const projectsAvailable = advisorProjects.some((project) => !project.isTaken && !project.isTerminated);
       return {
         ...advisor.toObject(),
         projectsAvailable,
