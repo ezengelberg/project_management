@@ -258,6 +258,7 @@ export const getAllProjectSubmissions = async (req, res) => {
               editable: submission.editable,
               gotExtraUpload: submission.gotExtraUpload,
               extraUploadFile: submission.extraUploadFile,
+              submissionInfo: submission.submissionInfo,
             };
           })
         );

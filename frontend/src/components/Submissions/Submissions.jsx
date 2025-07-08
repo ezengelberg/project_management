@@ -1622,10 +1622,12 @@ const Submissions = () => {
                 <div className="detail-item-header">שם ההגשה:</div>
                 <div className="detail-item-content">{submissionInfo.submission.name}</div>
               </div>
-              {submissionInfo.submission.info && (
+              {submissionInfo.submission.submissionInfo && (
                 <div className="detail-item">
                   <div className="detail-item-header">הנחיות הגשה:</div>
-                  <div className="detail-item-content">{submissionInfo.submission.info}</div>
+                  <div className="detail-item-content detail-item-content-submission-info">
+                    {renderTextWithNewlines(submissionInfo.submission.submissionInfo)}
+                  </div>
                 </div>
               )}
               {submissionInfo.submission.fileNeeded && (
