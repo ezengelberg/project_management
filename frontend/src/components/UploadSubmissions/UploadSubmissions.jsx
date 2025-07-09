@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, forwardRef, useContext } from "react";
 import "./UploadSubmissions.scss";
-import { Badge, Table, Tooltip, Modal, Upload, message, Divider, Button, Alert } from "antd";
+import { Badge, Table, Tooltip, Modal, Upload, message, Divider, Button, Alert, Progress } from "antd";
 import { InboxOutlined, EyeOutlined, BarChartOutlined, FilePdfOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import axios from "axios";
@@ -36,6 +36,8 @@ const UploadSubmissions = () => {
   const [isGradeDistributionModalVisible, setIsGradeDistributionModalVisible] = useState(false);
   const [gradeDistributionData, setGradeDistributionData] = useState([]);
   const [additionalData, setAdditionalData] = useState({});
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     const handleResize = () => {
@@ -58,6 +60,8 @@ const UploadSubmissions = () => {
     setIsModalVisible(false);
     setFile(null); // Clear the file state when closing the modal
     setFileList([]); // Clear the file list
+    setUploadProgress(0); // Reset upload progress
+    setUploading(false); // Reset uploading state
   };
 
   const showGradeDistributionModal = async (submissionId) => {
@@ -304,6 +308,9 @@ const UploadSubmissions = () => {
     formData.append("description", "");
     formData.append("destination", "submissions");
 
+    setUploading(true);
+    setUploadProgress(0);
+
     try {
       // Send POST request to upload the file
       const response = await axios.post(
@@ -315,6 +322,12 @@ const UploadSubmissions = () => {
             "X-Filename-Encoding": "url",
           },
           withCredentials: true,
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              setUploadProgress(percent);
+            }
+          },
         }
       );
 
@@ -364,6 +377,9 @@ const UploadSubmissions = () => {
       } else {
         message.error("העלאת הקובץ נכשלה");
       }
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -711,9 +727,9 @@ const UploadSubmissions = () => {
         open={isModalVisible}
         onCancel={closeModal}
         onOk={handleUpload}
-        okText="העלה הגשה"
+        okText={uploading ? "מעלה" : "העלה הגשה"}
         cancelText="ביטול"
-        okButtonProps={{ disabled: !file && !extraFile }}
+        okButtonProps={{ disabled: !file && !extraFile, loading: uploading }}
         width={
           windowSize.width > 1600
             ? "30%"
@@ -728,7 +744,7 @@ const UploadSubmissions = () => {
         <div className="submission-modal">
           {currentSubmission?.submissionInfo && (
             <div className="submission-info">
-              <b>הנחיות</b>: {currentSubmission.submissionInfo}
+              <b>הנחיות</b>: {renderTextWithNewlines(currentSubmission.submissionInfo)}
             </div>
           )}
           {new Date(currentSubmission?.submissionDate) < new Date() && (
@@ -835,6 +851,10 @@ const UploadSubmissions = () => {
               </Button>
             )}
           </div>
+          {uploading && <p>נא לא לצאת מהדף עד שההעלאה תושלם</p>}
+          {uploading && (
+            <Progress percent={uploadProgress} size="small" status={uploadProgress < 100 ? "active" : "success"} />
+          )}
         </div>
       </Modal>
       <Modal
