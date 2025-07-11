@@ -77,8 +77,9 @@ const MoreInformation = () => {
   const [tableData, setTableData] = useState([]);
   const [allTables, setAllTables] = useState([]);
   const [years, setYears] = useState([]);
+  const [examTablesYears, setExamTablesYears] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
-  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedYear, setSelectedYear] = useState(null);
   const [selectedGradeStructureYearCreation, setSelectedGradeStructureYearCreation] = useState("");
   const [gradeStructureYears, setGradeStructureYears] = useState([]);
   const [filteredGroupsData, setFilteredGroupsData] = useState([]);
@@ -229,6 +230,19 @@ const MoreInformation = () => {
         withCredentials: true,
       });
       setAllTables(res.data);
+      const examTablesYears = Array.from(new Set(res.data.map((table) => table.year))).sort((a, b) =>
+        b.localeCompare(a)
+      );
+      setExamTablesYears(examTablesYears);
+      if (examTablesYears.length > 0) {
+        if (examTablesYears.includes(configYear)) {
+          setSelectedYear(configYear);
+        } else {
+          setSelectedYear(examTablesYears[0]);
+        }
+      } else {
+        setSelectedYear(null);
+      }
       if (callback) callback();
     } catch (error) {
       console.error("Error fetching exam tables:", error);
@@ -259,7 +273,17 @@ const MoreInformation = () => {
         setGroups(groupRes.data);
         setConfigYear(configRes.data.currentYear);
         setAllTables(examTableRes.data);
-        setSelectedYear(configRes.data.currentYear);
+        const examTablesYears = Array.from(new Set(examTableRes.data.map((table) => table.year))).sort((a, b) =>
+          b.localeCompare(a)
+        );
+        setExamTablesYears(examTablesYears);
+        if (examTablesYears.length > 0) {
+          if (examTablesYears.includes(configRes.data.currentYear)) {
+            setSelectedYear(configRes.data.currentYear);
+          } else {
+            setSelectedYear(examTablesYears[0]);
+          }
+        }
         const sortedYears = yearsRes.data.sort((a, b) => b.localeCompare(a));
         setYears(sortedYears);
         setProjects(projectsRes.data);
@@ -1020,6 +1044,7 @@ const MoreInformation = () => {
       setSelectedTable(res.data._id);
       await getExamTables(() => setAllTablesUpdated(true));
       setEditExamTableClicked(false);
+      setSelectedYear(configYear);
       message.success("טבלת מבחנים נוצרה בהצלחה");
       setLoading(false);
       examTableForm.resetFields();
@@ -1758,29 +1783,44 @@ const MoreInformation = () => {
                 value={selectedYear}
                 style={{ width: 200 }}
                 placeholder="בחר שנה להצגה"
-                onChange={(value) => setSelectedYear(value)}>
-                {years.map((year) => (
+                onChange={(value) => {
+                  setSelectedYear(value);
+                  setSelectedTable(null);
+                  setEditExamTableClicked(false);
+                  setExamDates([]);
+                  setCurrentPage(1);
+                  setTotalPages(1);
+                  setSelectedTableProjects([]);
+                  setSelectedGroup("all");
+                  setSelectedGroupToAddProject("");
+                  setSelectedGroupProjects([]);
+                  setTableData([]);
+                  setSelectedCell(null);
+                }}>
+                {examTablesYears.map((year) => (
                   <Select.Option key={year} value={year}>
                     {year}
                   </Select.Option>
                 ))}
               </Select>
-              <Select
-                value={selectedTable}
-                style={{ width: 200 }}
-                placeholder="בחר טבלה להצגה"
-                onChange={(value) => {
-                  handleShowTableData(value);
-                  setEditExamTableClicked(false);
-                }}>
-                {allTables
-                  .filter((table) => table.year === selectedYear)
-                  .map((table) => (
-                    <Select.Option key={table._id} value={table._id}>
-                      {table.name}
-                    </Select.Option>
-                  ))}
-              </Select>
+              {selectedYear && (
+                <Select
+                  value={selectedTable}
+                  style={{ width: 200 }}
+                  placeholder="בחר טבלה להצגה"
+                  onChange={(value) => {
+                    handleShowTableData(value);
+                    setEditExamTableClicked(false);
+                  }}>
+                  {allTables
+                    .filter((table) => table.year === selectedYear)
+                    .map((table) => (
+                      <Select.Option key={table._id} value={table._id}>
+                        {table.name}
+                      </Select.Option>
+                    ))}
+                </Select>
+              )}
               {currentUser.isCoordinator && selectedTable && (
                 <div className="exam-table-buttons">
                   <Button type="primary" onClick={handleEditDatesButtonClick}>
