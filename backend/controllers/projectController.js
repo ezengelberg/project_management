@@ -937,11 +937,11 @@ export const deleteAllProjectsByYear = async (req, res) => {
 
 export const createExamTableManuel = async (req, res) => {
   try {
+    console.log("Creating exam table manually with body:", req.body);
     let groups = [];
     let projects = [];
-    const config = await Config.findOne();
     if (req.body.groupId === "all") {
-      projects = await Project.find({ year: config.currentYear, isTaken: true, isTerminated: false });
+      projects = await Project.find({ year: req.body.year, isTaken: true, isTerminated: false });
     } else {
       groups = await Group.find({ _id: { $in: req.body.groupId } });
       const projectIds = groups[0].projects.map((project) => project._id);
@@ -1083,7 +1083,7 @@ export const createExamTableManuel = async (req, res) => {
     const newExamTable = new ExamTable({
       groupId: req.body.groupId === "all" ? undefined : req.body.groupId,
       name: groups.length > 0 ? groups[0].name : "כללי",
-      year: config.currentYear,
+      year: req.body.year,
       classes: {
         class1: req.body.class1 !== "" ? req.body.class1 : "כיתה 1",
         class2: req.body.class2 !== "" ? req.body.class2 : "כיתה 2",
@@ -1151,9 +1151,8 @@ export const createExamTable = async (req, res) => {
   try {
     let groups = [];
     let projects = [];
-    const config = await Config.findOne();
     if (req.body.groupId === "all") {
-      projects = await Project.find({ year: config.currentYear, isTaken: true, isTerminated: false });
+      projects = await Project.find({ year: req.body.year, isTaken: true, isTerminated: false });
     } else {
       groups = await Group.find({ _id: { $in: req.body.groupId } });
       const projectIds = groups[0].projects.map((project) => project._id);
@@ -1334,7 +1333,7 @@ export const createExamTable = async (req, res) => {
     const newExamTable = new ExamTable({
       groupId: req.body.groupId === "all" ? undefined : req.body.groupId,
       name: groups.length > 0 ? groups[0].name : "כללי",
-      year: config.currentYear,
+      year: req.body.year,
       classes: {
         class1: req.body.class1 !== "" ? req.body.class1 : "כיתה 1",
         class2: req.body.class2 !== "" ? req.body.class2 : "כיתה 2",

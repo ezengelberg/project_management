@@ -105,6 +105,7 @@ const MoreInformation = () => {
   const [selectedGroupToAddProject, setSelectedGroupToAddProject] = useState("");
   const [selectedGroupProjects, setSelectedGroupProjects] = useState([]);
   const [examDates, setExamDates] = useState([]);
+  const [examTableFormSelectedYear, setExamTableFormSelectedYear] = useState(null);
   const [editDatesModal, setEditDatesModal] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { Dragger } = Upload;
@@ -286,6 +287,13 @@ const MoreInformation = () => {
         }
         const sortedYears = yearsRes.data.sort((a, b) => b.localeCompare(a));
         setYears(sortedYears);
+        if (sortedYears.length > 0) {
+          if (sortedYears.includes(configRes.data.currentYear)) {
+            setExamTableFormSelectedYear(configRes.data.currentYear);
+          } else {
+            setExamTableFormSelectedYear(sortedYears[0]);
+          }
+        }
         setProjects(projectsRes.data);
         setLoading(false);
       } catch (error) {
@@ -1015,12 +1023,12 @@ const MoreInformation = () => {
   const handleExamTableSubmit = async (values) => {
     const groupId = values.group === "all" ? "all" : values.group;
     const endpoint = values.creationMethod === "ai" ? "create-exam-table" : "create-exam-table-manuel";
-    if (allTables.some((table) => table.groupId === groupId && table.year === configYear)) {
+    if (allTables.some((table) => table.groupId === groupId && table.year === examTableFormSelectedYear)) {
       message.error("כבר קיימת טבלת מבחנים עבור קבוצה זו");
       return;
     }
     if (groupId === "all") {
-      if (allTables.some((table) => table.groupId === undefined && table.year === configYear)) {
+      if (allTables.some((table) => table.groupId === undefined && table.year === examTableFormSelectedYear)) {
         message.error("כבר קיימת טבלת מבחנים עבור כל הקבוצות");
         return;
       }
@@ -1036,6 +1044,7 @@ const MoreInformation = () => {
           class3: values.class3 ? values.class3 : "",
           class4: values.class4 ? values.class4 : "",
           date: values.date,
+          year: examTableFormSelectedYear,
         },
         {
           withCredentials: true,
@@ -1044,7 +1053,7 @@ const MoreInformation = () => {
       setSelectedTable(res.data._id);
       await getExamTables(() => setAllTablesUpdated(true));
       setEditExamTableClicked(false);
-      setSelectedYear(configYear);
+      setSelectedYear(examTableFormSelectedYear);
       message.success("טבלת מבחנים נוצרה בהצלחה");
       setLoading(false);
       examTableForm.resetFields();
@@ -1716,11 +1725,30 @@ const MoreInformation = () => {
                   className="exam-table-form"
                   layout="inline"
                   onFinish={handleExamTableSubmit}
-                  initialValues={{ group: "all", creationMethod: "manual" }}>
+                  initialValues={{ group: "all", creationMethod: "manual", year: examTableFormSelectedYear }}>
                   <div className="exam-table-form-required">
                     <Form.Item
                       className="exam-table-form-item"
-                      label={`בחר קבוצה ליצירת טבלה (לשנת ${configYear})`}
+                      label="בחר שנה ליצירת טבלה"
+                      name="year"
+                      rules={[{ required: true, message: "בחר שנה" }]}>
+                      <Select
+                        value={examTableFormSelectedYear}
+                        placeholder="בחר שנה"
+                        style={{ width: 200 }}
+                        onChange={(value) => {
+                          setExamTableFormSelectedYear(value);
+                        }}>
+                        {years.map((year) => (
+                          <Select.Option key={year} value={year}>
+                            {year}
+                          </Select.Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                    <Form.Item
+                      className="exam-table-form-item"
+                      label="בחר קבוצה ליצירת טבלה"
                       name="group"
                       rules={[{ required: true, message: "בחר קבוצה" }]}>
                       <Select
@@ -1730,7 +1758,7 @@ const MoreInformation = () => {
                         onChange={(value) => setSelectedGroup(value)}>
                         <Select.Option value="all">לכולם</Select.Option>
                         {groups
-                          .filter((group) => group.year === configYear)
+                          .filter((group) => group.year === examTableFormSelectedYear)
                           .map((group) => (
                             <Select.Option key={group._id} value={group._id}>
                               {group.name}
