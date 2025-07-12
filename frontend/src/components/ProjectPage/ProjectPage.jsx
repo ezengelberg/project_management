@@ -222,6 +222,11 @@ const ProjectPage = () => {
           <Tooltip title="סוג פרויקט">
             <div className="project-badge project-type">{projectData.type}</div>
           </Tooltip>
+          {projectData.continues && (
+            <Tooltip title=" פרויקט ממשיך">
+              <div className="project-badge project-continues">פרויקט ממשיך</div>
+            </Tooltip>
+          )}
         </div>
         <div className="project-profile-info-item project-profile-info-emails">
           <div className="project-profile-info-title" style={{ fontWeight: "600" }}>

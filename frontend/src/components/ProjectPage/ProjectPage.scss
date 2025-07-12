@@ -224,6 +224,11 @@
         background-color: rgba(224, 122, 255, 0.8);
         box-shadow: 0 4px 6px rgba(198, 100, 218, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1); /* Added softer shadows for a lifted badge effect */
       }
+
+      .project-continues {
+        background-color: #2ba55acc;
+        box-shadow: 0 4px 6px rgba(74, 180, 122, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1); /* Added softer shadows for a lifted badge effect */
+      }
     }
   }
 }
