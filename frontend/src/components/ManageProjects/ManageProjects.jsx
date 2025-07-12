@@ -76,15 +76,24 @@ const ManageProjects = () => {
     const fetchYears = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
-          withCredentials: true,
-        });
-        const sortedYears = response.data.sort((a, b) => b.localeCompare(a));
+        const [projectsResponse, configResponse] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
+            withCredentials: true,
+          }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config/get-config`, {
+            withCredentials: true,
+          }),
+        ]);
+        const sortedYears = projectsResponse.data.sort((a, b) => b.localeCompare(a));
         setYears(sortedYears);
 
         const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
         const currentHebrewYearIndex = sortedYears.indexOf(currentHebrewYear);
-        setYearFilter(currentHebrewYearIndex !== -1 ? sortedYears[currentHebrewYearIndex] : sortedYears[0]);
+        if (sortedYears.includes(configResponse.data.currentYear)) {
+          setYearFilter(configResponse.data.currentYear);
+        } else {
+          setYearFilter(currentHebrewYearIndex !== -1 ? sortedYears[currentHebrewYearIndex] : sortedYears[0]);
+        }
         setLoading(false);
       } catch (error) {
         console.error("Error occurred:", error);

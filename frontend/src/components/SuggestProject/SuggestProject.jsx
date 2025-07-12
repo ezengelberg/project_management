@@ -26,6 +26,7 @@ const SuggestProject = () => {
   const [myProject, setMyProject] = useState(null);
   const [userDontHaveProject, setUserDontHaveProject] = useState(false);
   const [selectedYear, setSelectedYear] = useState("");
+  const [configYear, setConfigYear] = useState(null);
   const [current, setCurrent] = useState(0);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -82,7 +83,20 @@ const SuggestProject = () => {
 
     fetchData();
     getSuggestedProject();
+    getConfigYear();
   }, [form]);
+
+  const getConfigYear = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config/get-config`, {
+        withCredentials: true,
+      });
+      setConfigYear(response.data.currentYear);
+    } catch (error) {
+      console.error("Error occurred:", error.response?.data?.message);
+      message.error("שגיאה בטעינת הטופס");
+    }
+  };
 
   const getSuggestedProject = async () => {
     setLoading(true);
@@ -223,7 +237,12 @@ const SuggestProject = () => {
         <Form
           className="suggest-project-form"
           form={form}
-          initialValues={{ year: currentHebrewYear }}
+          initialValues={{
+            year:
+              configYear === previousHebrewYear || configYear === currentHebrewYear || configYear === nextHebrewYear
+                ? configYear
+                : currentHebrewYear,
+          }}
           onFinish={onFinish}
           layout={windowSize.width > 1024 ? "horizontal" : "vertical"}>
           <Form.Item

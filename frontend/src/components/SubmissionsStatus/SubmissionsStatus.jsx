@@ -42,17 +42,25 @@ const SubmissionsStatus = () => {
   useEffect(() => {
     const fetchYears = async () => {
       try {
-        const yearsResponse = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
-          withCredentials: true,
-        });
+        const [projectsResponse, configResponse] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/years`, {
+            withCredentials: true,
+          }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config/get-config`, {
+            withCredentials: true,
+          }),
+        ]);
 
-        const sortedYears = yearsResponse.data.sort((a, b) => b.localeCompare(a));
+        const sortedYears = projectsResponse.data.sort((a, b) => b.localeCompare(a));
         setYears(sortedYears);
 
         const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
         const currentHebrewYearIndex = sortedYears.indexOf(currentHebrewYear);
-        const initialYear = currentHebrewYearIndex !== -1 ? sortedYears[currentHebrewYearIndex] : sortedYears[0];
-        setYearFilter(initialYear);
+        if (sortedYears.includes(configResponse.data.currentYear)) {
+          setYearFilter(configResponse.data.currentYear);
+        } else {
+          setYearFilter(currentHebrewYearIndex !== -1 ? sortedYears[currentHebrewYearIndex] : sortedYears[0]);
+        }
       } catch (error) {
         console.error("Error fetching years:", error);
       }

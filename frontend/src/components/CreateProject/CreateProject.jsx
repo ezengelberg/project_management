@@ -21,6 +21,7 @@ const CreateProject = () => {
   const [isOtherType, setIsOtherType] = useState(false);
   const [projectCreated, setProjectCreated] = useState(false);
   const [projectCreatedId, setProjectCreatedId] = useState("");
+  const [configYear, setConfigYear] = useState(null);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
@@ -106,10 +107,34 @@ const CreateProject = () => {
       }
     };
 
+    const getConfigYear = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config/get-config`, {
+          withCredentials: true,
+        });
+        setConfigYear(response.data.currentYear);
+        if (
+          response.data.currentYear === previousHebrewYear ||
+          response.data.currentYear === currentHebrewYear ||
+          response.data.currentYear === nextHebrewYear
+        ) {
+          setSelectedYear(response.data.currentYear);
+          form.setFieldValue("year", response.data.currentYear);
+        } else {
+          setSelectedYear(currentHebrewYear);
+          form.setFieldValue("year", currentHebrewYear);
+        }
+      } catch (error) {
+        console.error("Error occurred:", error.response?.data?.message);
+        message.error("שגיאה בטעינת הטופס");
+      }
+    };
+
     fetchPrivileges();
     getAdvisorUsers();
     getCurrentUser();
     getUsersNoProjects();
+    getConfigYear();
   }, []);
 
   const handleTypeChange = (value) => {
@@ -248,7 +273,6 @@ const CreateProject = () => {
       <Form
         className="create-project-form"
         form={form}
-        initialValues={{ year: currentHebrewYear }}
         name="createProject"
         onFinish={onFinish}
         layout={windowSize.width > 1024 ? "horizontal" : "vertical"}>

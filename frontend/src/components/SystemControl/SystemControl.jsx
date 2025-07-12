@@ -590,6 +590,8 @@ const SystemControl = () => {
               value={currentYear}
               onChange={(value) => {
                 setCurrentYear(value);
+                setOutputYear(value);
+                setGradingTableYear(value);
                 try {
                   axios.post(
                     `${process.env.REACT_APP_BACKEND_URL}/api/config/update-config`,
@@ -719,7 +721,7 @@ const SystemControl = () => {
             columns={mergedColumns}
             rowClassName="editable-row"
             pagination={false}
-            scroll={{ x: "max-content" }}
+            scroll={{ x: 2200 }}
             sticky={{
               offsetHeader: -27,
               offsetScroll: -27,
