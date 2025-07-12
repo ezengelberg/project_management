@@ -94,12 +94,13 @@ const OverviewProjects = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [projectsRes, usersRes, submissionsRes] = await Promise.all([
+        const [projectsRes, usersRes, submissionsRes, usersNoProjectsRes] = await Promise.all([
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/project/get-all-projects-by-year/${yearFilter}`, {
             withCredentials: true,
           }),
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/all-users`, { withCredentials: true }),
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all`, { withCredentials: true }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects`, { withCredentials: true }),
         ]);
 
         const activeUsers = usersRes.data.filter((user) => !user.suspended);
@@ -134,17 +135,20 @@ const OverviewProjects = () => {
         setUsers(usersRes.data);
         setSubmissions(submissionsRes.data);
 
+        const onlyStudents = usersNoProjectsRes.data.usersNoProjects.filter(
+          (user) =>
+            user.isStudent === true &&
+            user.isAdvisor === false &&
+            user.isCoordinator === false &&
+            user.suspended === false
+        );
+
         // Filter users without projects
         const usersWithProject = new Set(
           projectWithCandidates.flatMap((project) => project.students.map((student) => student.student.toString()))
         );
 
-        setUsersWithoutProjects(
-          activeUsers.filter(
-            (user) =>
-              !usersWithProject.has(user._id.toString()) && user.isStudent && !user.isAdvisor && !user.isCoordinator
-          )
-        );
+        setUsersWithoutProjects(onlyStudents.filter((user) => !usersWithProject.has(user._id.toString())));
         setAdvisors(activeUsers.filter((user) => user.isAdvisor));
         setJudges(activeUsers.filter((user) => user.isJudge));
       } catch (error) {
@@ -1791,6 +1795,7 @@ const OverviewProjects = () => {
               value: user._id,
             }))}
             filterOption={filterOption}
+            placeholder="בחר סטודנטים"
           />
         </div>
       </Modal>
@@ -1819,6 +1824,7 @@ const OverviewProjects = () => {
               value: user._id,
             }))}
             filterOption={filterOption}
+            placeholder="בחר סטודנטים"
           />
         </div>
       </Modal>
@@ -1846,6 +1852,7 @@ const OverviewProjects = () => {
               value: user._id,
             }))}
             filterOption={filterOption}
+            placeholder="בחר מנחה"
           />
         </div>
       </Modal>
@@ -1872,6 +1879,7 @@ const OverviewProjects = () => {
               value: user._id,
             }))}
             filterOption={filterOption}
+            placeholder="בחר מנחה"
           />
         </div>
       </Modal>
@@ -1894,6 +1902,7 @@ const OverviewProjects = () => {
             <Select
               mode="multiple"
               value={submission.judges}
+              placeholder="בחר שופטים"
               onChange={(value) => {
                 const updatedJudges = selectedSubmission.judges.map((s) =>
                   s._id === submission._id ? { ...s, judges: value } : s
