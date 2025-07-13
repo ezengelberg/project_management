@@ -100,7 +100,9 @@ const OverviewProjects = () => {
           }),
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/all-users`, { withCredentials: true }),
           axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/submission/get-all`, { withCredentials: true }),
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects`, { withCredentials: true }),
+          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects-by-year/${yearFilter}`, {
+            withCredentials: true,
+          }),
         ]);
 
         const activeUsers = usersRes.data.filter((user) => !user.suspended);

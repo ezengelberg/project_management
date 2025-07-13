@@ -10,6 +10,7 @@ import {
   ensureFavoriteProject,
   getAdvisorUsers,
   getUsersNoProjects,
+  getUsersNoProjectsByYear,
   getUserProfile,
   getAllUsers,
   editUserCoordinator,
@@ -72,6 +73,7 @@ router.get("/privileges", ensureAuthenticated, getPrivileges);
 router.get("/get-user-name/:id", ensureAuthenticated, getUserName);
 router.get("/get-user", ensureAuthenticated, getUser);
 router.get("/users-no-projects", ensureAuthenticated, getUsersNoProjects);
+router.get("/users-no-projects-by-year/:year", ensureAuthenticated, getUsersNoProjectsByYear);
 router.get("/all-users", ensureAuthenticated, isCoordinator, getAllUsers);
 router.put("/edit-user-coordinator/:userId", ensureAuthenticated, isCoordinator, editUserCoordinator);
 router.put("/suspend-user/:userId", ensureAuthenticated, isCoordinator, suspendUser);

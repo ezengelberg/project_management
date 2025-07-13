@@ -247,6 +247,26 @@ export const getUsersNoProjects = async (req, res) => {
   }
 };
 
+export const getUsersNoProjectsByYear = async (req, res) => {
+  const year = req.params.year;
+  try {
+    const users = await User.find({ participationYear: year });
+    const usersNoProjects = [];
+    for (const user of users) {
+      const projects = await Project.find({ "students.student": user._id });
+      if (projects.length === 0) {
+        const userObj = user.toObject();
+        delete userObj.password;
+        usersNoProjects.push(userObj);
+      }
+    }
+    res.status(200).send({ usersNoProjects });
+  } catch (error) {
+    console.error("Error occurred:", error.response.data.message);
+    message.error("שגיאה בטעינת הסטודנטים ללא פרויקטים");
+  }
+};
+
 export const getPrivileges = async (req, res) => {
   const user = req.user;
   res.status(200).json({ isStudent: user.isStudent, isAdvisor: user.isAdvisor, isCoordinator: user.isCoordinator });

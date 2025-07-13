@@ -89,24 +89,6 @@ const CreateProject = () => {
       }
     };
 
-    const getUsersNoProjects = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects`, {
-          withCredentials: true,
-        });
-        const onlyStudents = response.data.usersNoProjects.filter(
-          (user) =>
-            user.isStudent === true &&
-            user.isAdvisor === false &&
-            user.isCoordinator === false &&
-            user.suspended === false
-        );
-        setStudentsNoProject(onlyStudents);
-      } catch (error) {
-        console.error("Error occurred:", error.response.data.message);
-      }
-    };
-
     const getConfigYear = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config/get-config`, {
@@ -133,9 +115,35 @@ const CreateProject = () => {
     fetchPrivileges();
     getAdvisorUsers();
     getCurrentUser();
-    getUsersNoProjects();
     getConfigYear();
   }, []);
+
+  useEffect(() => {
+    if (selectedYear) {
+      getUsersNoProjectsByYear(selectedYear);
+    }
+  }, [selectedYear]);
+
+  const getUsersNoProjectsByYear = async (year) => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects-by-year/${year}`, {
+        withCredentials: true,
+      });
+
+      const onlyStudents = res.data.usersNoProjects.filter(
+        (user) =>
+          user.isStudent === true &&
+          user.isAdvisor === false &&
+          user.isCoordinator === false &&
+          user.suspended === false
+      );
+
+      setStudentsNoProject(onlyStudents);
+    } catch (error) {
+      console.error("Error occurred:", error.response.data.message);
+      message.error("שגיאה בטעינת הסטודנטים ללא פרויקטים");
+    }
+  };
 
   const handleTypeChange = (value) => {
     setIsOtherType(value === "אחר");

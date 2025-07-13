@@ -58,44 +58,61 @@ const SuggestProject = () => {
   const nextHebrewYear = formatJewishDateInHebrew(toJewishDate(nextDate)).split(" ").pop().replace(/^ה/, "");
 
   useEffect(() => {
-    setLoading(true);
-    const fetchData = async () => {
-      try {
-        const studentsRes = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects`, {
-          withCredentials: true,
-        });
-        const onlyStudents = studentsRes.data.usersNoProjects.filter(
-          (user) =>
-            user.isStudent === true &&
-            user.isAdvisor === false &&
-            user.isCoordinator === false &&
-            user.suspended === false
-        );
-        const UserDontHaveProject = studentsRes.data.usersNoProjects.some((user) => user._id === currentUser._id);
-        setUserDontHaveProject(UserDontHaveProject);
-        setStudentsNoProject(onlyStudents);
-      } catch (error) {
-        console.error("Error occurred:", error.response?.data?.message);
-        message.error("שגיאה בטעינת הטופס");
-      }
-      setLoading(false);
-    };
-
-    fetchData();
     getSuggestedProject();
     getConfigYear();
   }, [form]);
 
   const getConfigYear = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config/get-config`, {
         withCredentials: true,
       });
       setConfigYear(response.data.currentYear);
+      if (
+        response.data.currentYear === previousHebrewYear ||
+        response.data.currentYear === currentHebrewYear ||
+        response.data.currentYear === nextHebrewYear
+      ) {
+        setSelectedYear(response.data.currentYear);
+      } else {
+        setSelectedYear(currentHebrewYear);
+      }
     } catch (error) {
       console.error("Error occurred:", error.response?.data?.message);
       message.error("שגיאה בטעינת הטופס");
     }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (selectedYear) {
+      fetchUsersNoProjectsByYear(selectedYear);
+    }
+    getSuggestedProject();
+  }, [selectedYear]);
+
+  const fetchUsersNoProjectsByYear = async (year) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/user/users-no-projects-by-year/${year}`,
+        {
+          withCredentials: true,
+        }
+      );
+      const onlyStudents = response.data.usersNoProjects.filter(
+        (user) =>
+          user.isStudent === true &&
+          user.isAdvisor === false &&
+          user.isCoordinator === false &&
+          user.suspended === false
+      );
+      setStudentsNoProject(onlyStudents);
+    } catch (error) {
+      console.error("Error occurred:", error.response.data.message);
+    }
+    setLoading(false);
   };
 
   const getSuggestedProject = async () => {
@@ -105,6 +122,11 @@ const SuggestProject = () => {
         withCredentials: true,
       });
       const myProject = response.data.find((project) => project.studentSuggestions.suggestedBy._id === currentUser._id);
+      if (!myProject) {
+        setUserDontHaveProject(true);
+      } else {
+        setUserDontHaveProject(false);
+      }
       const stage = myProject ? myProject.studentSuggestions.stage : 0;
       setMyProject(myProject);
       setCurrent(stage);
@@ -202,6 +224,7 @@ const SuggestProject = () => {
         message.success("הצעת הפרויקט נמחקה בהצלחה");
       }
       setMyProject(null);
+      setUserDontHaveProject(true);
       setCurrent(0);
     } catch (error) {
       console.error("Error occurred:", error.response?.data?.message);
@@ -237,12 +260,7 @@ const SuggestProject = () => {
         <Form
           className="suggest-project-form"
           form={form}
-          initialValues={{
-            year:
-              configYear === previousHebrewYear || configYear === currentHebrewYear || configYear === nextHebrewYear
-                ? configYear
-                : currentHebrewYear,
-          }}
+          initialValues={{ year: selectedYear }}
           onFinish={onFinish}
           layout={windowSize.width > 1024 ? "horizontal" : "vertical"}>
           <Form.Item
@@ -388,7 +406,11 @@ const SuggestProject = () => {
         </Form>
       )}
       {current === 0 && !userDontHaveProject && (
-        <Result status="warning" title="קיים פרויקט פעיל במערכת שמשויך אליך, לא ניתן להציע פרויקט חדש." />
+        <Result
+          status="warning"
+          title="קיים פרויקט פעיל במערכת שמשויך אליך או שאינך משוייך לשנה זאת."
+          subTitle="לא ניתן להציע פרויקט חדש, ניתן לפנות לרכז הפרויקטים לשאלות."
+        />
       )}
       {current === 1 && myProject && (
         <div className="suggested-project">
