@@ -856,3 +856,40 @@ export const deleteTestUsers = async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 };
+
+export const assignStudentsYear = async (req, res) => {
+  try {
+    const users = await User.find({
+      isStudent: true,
+      isAdvisor: false,
+      isJudge: false,
+      isCoordinator: false,
+      participationYear: null,
+    });
+
+    if (users.length === 0) {
+      return res.status(200).send("No students found without a year assigned");
+    }
+
+    // 26.6.2025 in ISO format is 2025-06-26
+    const cutoffDate = new Date("2025-06-26T00:00:00.000Z");
+
+    let countTashpe = 0;
+    let countTashpu = 0;
+
+    for (const user of users) {
+      if (user.registerDate < cutoffDate) {
+        user.participationYear = 'תשפ"ה';
+        countTashpe++;
+      } else {
+        user.participationYear = 'תשפ"ו';
+        countTashpu++;
+      }
+      await user.save();
+    }
+
+    res.status(200).send(`Assigned תשפ"ה to ${countTashpe} students, תשפ"ו to ${countTashpu} students`);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
