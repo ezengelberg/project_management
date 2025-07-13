@@ -6,17 +6,31 @@ import * as XLSX from "xlsx";
 import { Popconfirm } from "antd";
 import { Button, Form, Input, Select, message, Upload, Table, Checkbox, Tooltip, Divider } from "antd";
 import { NotificationsContext } from "../../utils/NotificationsContext";
-const { Dragger } = Upload;
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const CreateUser = () => {
+  const { Dragger } = Upload;
   const { fetchNotifications } = useContext(NotificationsContext);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
+  const [configYear, setConfigYear] = useState(null);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
   });
+
+  const today = new Date();
+  const currentHebrewDate = toJewishDate(today);
+  const currentHebrewYear = formatJewishDateInHebrew(currentHebrewDate).split(" ").pop().replace(/^ה/, "");
+
+  const previousDate = new Date();
+  previousDate.setFullYear(today.getFullYear() - 1);
+  const previousHebrewYear = formatJewishDateInHebrew(toJewishDate(previousDate)).split(" ").pop().replace(/^ה/, "");
+
+  const nextDate = new Date();
+  nextDate.setFullYear(today.getFullYear() + 1);
+  const nextHebrewYear = formatJewishDateInHebrew(toJewishDate(nextDate)).split(" ").pop().replace(/^ה/, "");
 
   useEffect(() => {
     const handleResize = () => {
@@ -31,6 +45,18 @@ const CreateUser = () => {
   }, []);
 
   useEffect(() => {
+    const fetchConfigYear = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/config/get-config`, {
+          withCredentials: true,
+        });
+        setConfigYear(response.data.currentYear);
+      } catch (error) {
+        console.error("Error fetching config year:", error);
+      }
+    };
+
+    fetchConfigYear();
     fetchNotifications();
   }, []);
 
@@ -46,6 +72,7 @@ const CreateUser = () => {
         isAdvisor: values.role.includes("advisor"),
         isJudge: values.role.includes("judge"),
         isCoordinator: values.role.includes("coordinator"),
+        participationYear: values.participationYear ? values.participationYear : null,
       };
 
       await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/register`, registerValues, {
@@ -122,6 +149,7 @@ const CreateUser = () => {
 
   const processParsedData = (data) => {
     try {
+      const defaultParticipationYear = configYear || currentHebrewYear;
       const parsedData = data
         .map((row, index) => ({
           key: index,
@@ -134,6 +162,7 @@ const CreateUser = () => {
               : `${row["first_name"]} ${row["last_name"]}`,
           id: row["ת.ז."] || row["תעודת זהות"] || row['ת"ז'] || row["id"],
           role: ["isStudent"],
+          participationYear: defaultParticipationYear,
         }))
         .filter((row) => row.email && row.firstName && row.lastName);
 
@@ -171,6 +200,13 @@ const CreateUser = () => {
     { label: "מנחה", value: "isAdvisor" },
     { label: "שופט", value: "isJudge" },
     { label: "מנהל", value: "isCoordinator" },
+  ];
+
+  const participationYearOptions = [
+    { label: previousHebrewYear, value: previousHebrewYear },
+    { label: currentHebrewYear, value: currentHebrewYear },
+    { label: nextHebrewYear, value: nextHebrewYear },
+    { label: "ללא", value: "" },
   ];
 
   const columns = [
@@ -214,6 +250,33 @@ const CreateUser = () => {
       ),
     },
     {
+      title: "שנת השתתפות",
+      dataIndex: "participationYear",
+      key: "participationYear",
+      render: (text, record) => (
+        <Select
+          style={{ width: 100 }}
+          value={
+            record.participationYear !== undefined
+              ? record.participationYear
+              : participationYearOptions.find((option) => option.value === configYear)
+              ? configYear
+              : currentHebrewYear
+          }
+          options={participationYearOptions}
+          onChange={(value) => {
+            const updatedUsers = users.map((user) => {
+              if (user.email === record.email && user.id === record.id) {
+                return { ...user, participationYear: value };
+              }
+              return user;
+            });
+            setUsers(updatedUsers);
+          }}
+        />
+      ),
+    },
+    {
       title: "פעולות",
       key: "action",
       render: (record) => (
@@ -230,6 +293,7 @@ const CreateUser = () => {
           </Tooltip>
         </span>
       ),
+      width: 100,
     },
   ];
   return (
@@ -291,6 +355,13 @@ const CreateUser = () => {
             <Select.Option value="advisor">מנחה</Select.Option>
             <Select.Option value="judge">שופט</Select.Option>
             <Select.Option value="coordinator">מנהל</Select.Option>
+          </Select>
+        </Form.Item>
+        <Form.Item label="שנת השתתפות" name="participationYear">
+          <Select>
+            <Select.Option value={nextHebrewYear}>{nextHebrewYear}</Select.Option>
+            <Select.Option value={currentHebrewYear}>{currentHebrewYear}</Select.Option>
+            <Select.Option value={previousHebrewYear}>{previousHebrewYear}</Select.Option>
           </Select>
         </Form.Item>
         <Form.Item className="create-user-buttons">

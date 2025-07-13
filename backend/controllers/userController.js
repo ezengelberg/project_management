@@ -18,7 +18,7 @@ dotenv.config();
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, id, password, isStudent, isAdvisor, isJudge, isCoordinator } = req.body;
+    const { name, email, id, password, isStudent, isAdvisor, isJudge, isCoordinator, participationYear } = req.body;
     const lowerCaseEmail = email.toLowerCase();
     const userByEmail = await User.findOne({ email: lowerCaseEmail });
     if (userByEmail) {
@@ -43,6 +43,7 @@ export const registerUser = async (req, res) => {
       isJudge: isJudge || false,
       isCoordinator: isCoordinator || false,
       testUser: req.body.testUser || false,
+      participationYear: participationYear ? participationYear : null,
     });
     await newUser.save();
     res.status(201).json({ message: "User registered successfully", newUser });
@@ -84,6 +85,7 @@ export const registerMultiple = async (req, res) => {
         isAdvisor: role.includes("isAdvisor"),
         isJudge: role.includes("isJudge"),
         isCoordinator: role.includes("isCoordinator"),
+        participationYear: user.participationYear ? user.participationYear : null,
       });
       newUsers.push(newUser);
       await newUser.save();
@@ -381,7 +383,7 @@ export const userEditProfile = async (req, res) => {
 
 export const editUserCoordinator = async (req, res) => {
   const { userId } = req.params;
-  const { name, email, id, isStudent, isAdvisor, isJudge, isCoordinator, interests } = req.body;
+  const { name, email, id, participationYear, isStudent, isAdvisor, isJudge, isCoordinator, interests } = req.body;
 
   try {
     const user = await User.findById(userId);
@@ -392,6 +394,7 @@ export const editUserCoordinator = async (req, res) => {
     if (name !== undefined) user.name = name;
     if (email !== undefined) user.email = email;
     if (id !== undefined) user.id = id;
+    if (participationYear !== undefined) user.participationYear = participationYear;
     if (isStudent !== undefined) user.isStudent = isStudent;
     if (isAdvisor !== undefined && isAdvisor !== user.isAdvisor) {
       const advisorProjects = await Project.find({ advisors: userId });

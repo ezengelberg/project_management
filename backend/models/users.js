@@ -28,6 +28,7 @@ const userSchema = new mongoose.Schema({
   resetPasswordRequestApprovedDate: { type: Date },
   resetPasswordRequestRejectionDate: { type: Date },
   testUser: { type: Boolean, default: false },
+  participationYear: { type: String, default: null },
 });
 
 const userModel = mongoose.model("User", userSchema);

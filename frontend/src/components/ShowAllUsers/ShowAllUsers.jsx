@@ -22,6 +22,7 @@ import Highlighter from "react-highlight-words";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { NotificationsContext } from "../../utils/NotificationsContext";
+import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
 
 const ShowAllUsers = () => {
   const { fetchNotifications } = useContext(NotificationsContext);
@@ -68,6 +69,18 @@ const ShowAllUsers = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const today = new Date();
+  const currentHebrewDate = toJewishDate(today);
+  const currentHebrewYear = formatJewishDateInHebrew(currentHebrewDate).split(" ").pop().replace(/^ה/, "");
+
+  const previousDate = new Date();
+  previousDate.setFullYear(today.getFullYear() - 1);
+  const previousHebrewYear = formatJewishDateInHebrew(toJewishDate(previousDate)).split(" ").pop().replace(/^ה/, "");
+
+  const nextDate = new Date();
+  nextDate.setFullYear(today.getFullYear() + 1);
+  const nextHebrewYear = formatJewishDateInHebrew(toJewishDate(nextDate)).split(" ").pop().replace(/^ה/, "");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -153,7 +166,13 @@ const ShowAllUsers = () => {
     isAdvisor: user.isAdvisor,
     isJudge: user.isJudge,
     isCoordinator: user.isCoordinator,
+    participationYear: user.participationYear,
   }));
+
+  // Get unique participation years for filter options
+  const participationYears = Array.from(new Set(users.map((user) => user.participationYear).filter(Boolean))).sort(
+    (a, b) => b - a
+  );
 
   const columns = [
     {
@@ -195,7 +214,7 @@ const ShowAllUsers = () => {
       sorter: (a, b) => a.name.localeCompare(b.name),
       defaultSortOrder: "ascend",
       sortDirections: ["descend", "ascend"],
-      width: windowSize.width > 1920 ? "20%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 300,
+      width: windowSize.width > 1920 ? "19%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 300 : 300,
     },
     {
       title: "ת.ז.",
@@ -207,7 +226,30 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.userId - b.userId,
       sortDirections: ["descend", "ascend"],
-      width: windowSize.width > 1920 ? "10%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 120 : 120,
+      width: windowSize.width > 1920 ? "9%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 120 : 120,
+    },
+    {
+      title: "שנת לימוד",
+      dataIndex: "participationYear",
+      key: "participationYear",
+      showSorterTooltip: {
+        target: "full-header",
+      },
+      render: (year) => (year == null ? "ללא" : year),
+      sorter: (a, b) => {
+        if (a.participationYear === null && b.participationYear !== null) return 1;
+        if (a.participationYear !== null && b.participationYear === null) return -1;
+        return (a.participationYear || 0) - (b.participationYear || 0);
+      },
+      sortDirections: ["descend", "ascend"],
+      filters: [...participationYears.map((year) => ({ text: year, value: year })), { text: "ללא", value: "ללא" }],
+      onFilter: (value, record) => {
+        if (value === "ללא") {
+          return record.participationYear === null || record.participationYear === undefined;
+        }
+        return record.participationYear === value;
+      },
+      width: windowSize.width > 1920 ? "10%" : 130,
     },
     {
       title: "תאריך הרשמה",
@@ -256,7 +298,7 @@ const ShowAllUsers = () => {
         }
         return record.projectId === null;
       },
-      width: windowSize.width > 1920 ? "20%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 250 : 250,
+      width: windowSize.width > 1920 ? "18%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 250 : 250,
     },
     {
       title: "תפקיד",
@@ -299,7 +341,7 @@ const ShowAllUsers = () => {
       },
       sorter: (a, b) => a.email.localeCompare(b.email),
       sortDirections: ["descend", "ascend"],
-      width: windowSize.width > 1920 ? "15%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 200,
+      width: windowSize.width > 1920 ? "14%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 200 : 200,
     },
     {
       title: "פעולות",
@@ -318,6 +360,7 @@ const ShowAllUsers = () => {
                 isAdvisor: record.isAdvisor,
                 isJudge: record.isJudge,
                 isCoordinator: record.isCoordinator,
+                participationYear: record.participationYear,
               });
             }}>
             <Tooltip title="עריכה">
@@ -359,6 +402,7 @@ const ShowAllUsers = () => {
         isAdvisor: values.isAdvisor,
         isJudge: values.isJudge,
         isCoordinator: values.isCoordinator,
+        participationYear: values.participationYear ? values.participationYear : null,
       };
 
       try {
@@ -524,6 +568,29 @@ const ShowAllUsers = () => {
       sorter: (a, b) => a.userId - b.userId,
       sortDirections: ["descend", "ascend"],
       width: windowSize.width > 1920 ? "6%" : windowSize.width <= 1920 && windowSize.width > 1024 ? 120 : 120,
+    },
+    {
+      title: "שנת לימוד",
+      dataIndex: "participationYear",
+      key: "participationYear",
+      showSorterTooltip: {
+        target: "full-header",
+      },
+      render: (year) => (year == null ? "ללא" : year),
+      sorter: (a, b) => {
+        if (a.participationYear === null && b.participationYear !== null) return 1;
+        if (a.participationYear !== null && b.participationYear === null) return -1;
+        return (a.participationYear || 0) - (b.participationYear || 0);
+      },
+      sortDirections: ["descend", "ascend"],
+      filters: [...participationYears.map((year) => ({ text: year, value: year })), { text: "ללא", value: "ללא" }],
+      onFilter: (value, record) => {
+        if (value === "ללא") {
+          return record.participationYear === null || record.participationYear === undefined;
+        }
+        return record.participationYear === value;
+      },
+      width: windowSize.width > 1920 ? "10%" : 130,
     },
     {
       title: "תאריך הרשמה",
@@ -695,6 +762,7 @@ const ShowAllUsers = () => {
     suspensionReason: user.suspendedReason,
     suspensionDate: new Date(user.suspendedAt).toLocaleDateString("he-IL"),
     suspensionRecords: user.suspensionRecords,
+    participationYear: user.participationYear,
   }));
 
   const handleUnsuspend = async (userId) => {
@@ -836,6 +904,14 @@ const ShowAllUsers = () => {
               { pattern: /^\d{9}$/, message: "תעודת זהות חייבת להכיל 9 ספרות" },
             ]}>
             <Input disabled={componentDisabled} />
+          </Form.Item>
+          <Form.Item label="שנת לימוד" name="participationYear" hasFeedback={true}>
+            <Select disabled={componentDisabled}>
+              <Option value={nextHebrewYear}>{nextHebrewYear}</Option>
+              <Option value={currentHebrewYear}>{currentHebrewYear}</Option>
+              <Option value={previousHebrewYear}>{previousHebrewYear}</Option>
+              <Option value={null}>ללא</Option>
+            </Select>
           </Form.Item>
           <Form.Item label="סטודנט" name="isStudent" hasFeedback={true}>
             <Select>
