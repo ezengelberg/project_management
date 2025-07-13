@@ -35,7 +35,6 @@ import {
   approveResetPassword,
   rejectResetPassword,
   deleteTestUsers,
-  assignStudentsYear,
 } from "../controllers/userController.js";
 import {
   getUnreadNotifications,
@@ -106,5 +105,4 @@ router.put("/notifications/clear", ensureAuthenticated, clearAllNotifications);
 router.get("/check-reset-password-token/:token", checkResetPasswordToken);
 router.post("/reset-password", resetPassword);
 
-router.post("/assign-students-year", ensureAuthenticated, isCoordinator, assignStudentsYear);
 export default router;

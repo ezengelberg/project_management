@@ -59,24 +59,6 @@ const ShowAllUsers = () => {
   });
 
   useEffect(() => {
-    const beforeLoad = async () => {
-      try {
-        await axios.post(
-          `${process.env.REACT_APP_BACKEND_URL}/api/user/assign-students-year`,
-          {},
-          {
-            withCredentials: true,
-          }
-        );
-      } catch (error) {
-        console.error("Error keeping user session alive:", error);
-      }
-    };
-
-    beforeLoad();
-  }, []);
-
-  useEffect(() => {
     const handleResize = () => {
       setWindowSize({
         width: window.innerWidth,
