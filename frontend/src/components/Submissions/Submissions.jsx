@@ -1497,9 +1497,6 @@ const Submissions = () => {
             });
         }}>
         <Form layout="vertical" form={editSpecificSubmission}>
-          <Form.Item label="שם הפרויקט" name="projectName">
-            <Input disabled />
-          </Form.Item>
           <Form.Item
             label="שם ההגשה"
             name="submissionName"
@@ -1571,6 +1568,9 @@ const Submissions = () => {
               />
             </Form.Item>
           )}
+          <Form.Item label="שם הפרויקט" name="projectName">
+            <Input disabled />
+          </Form.Item>
           <Form.Item label="הנחיות הגשה" name="submissionInfo">
             <Input.TextArea rows={4} />
           </Form.Item>
