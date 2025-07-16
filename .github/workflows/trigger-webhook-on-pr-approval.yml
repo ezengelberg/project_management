@@ -4,10 +4,11 @@ on:
   pull_request:
     types:
       - closed
+  workflow_dispatch:
 
 jobs:
   trigger_webhook:
-    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'production'
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'production' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 10
     runs-on: ubuntu-latest
 
