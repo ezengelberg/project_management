@@ -525,7 +525,6 @@ const Submissions = () => {
       let isReviewed = false;
       let fileNeeded = false;
       let noJudges = false;
-      console.log(values.submissionType);
       switch (values.submissionType) {
         case "proposalReport":
           name = "דוח הצעה";
