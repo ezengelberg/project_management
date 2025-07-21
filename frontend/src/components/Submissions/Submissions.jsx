@@ -525,6 +525,7 @@ const Submissions = () => {
       let isReviewed = false;
       let fileNeeded = false;
       let noJudges = false;
+      console.log(values.submissionType);
       switch (values.submissionType) {
         case "proposalReport":
           name = "דוח הצעה";
@@ -536,19 +537,19 @@ const Submissions = () => {
           name = "דוח אלפה";
           isGraded = submissionOptions.find((option) => option.value === "alphaReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "alphaReport").isReviewed;
-          fileNeeded = submissionOptions.find((option) => option.value === "proposalReport").fileNeeded;
+          fileNeeded = submissionOptions.find((option) => option.value === "alphaReport").fileNeeded;
           break;
         case "finalReport":
           name = "דוח סופי";
           isGraded = submissionOptions.find((option) => option.value === "finalReport").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "finalReport").isReviewed;
-          fileNeeded = submissionOptions.find((option) => option.value === "proposalReport").fileNeeded;
+          fileNeeded = submissionOptions.find((option) => option.value === "finalReport").fileNeeded;
           break;
         case "finalExam":
           name = "מבחן סוף";
           isGraded = submissionOptions.find((option) => option.value === "finalExam").isGraded;
           isReviewed = submissionOptions.find((option) => option.value === "finalExam").isReviewed;
-          fileNeeded = submissionOptions.find((option) => option.value === "proposalReport").fileNeeded;
+          fileNeeded = submissionOptions.find((option) => option.value === "finalExam").fileNeeded;
           break;
         default: // other...
           name = values.submissionName || "ללא שם";
