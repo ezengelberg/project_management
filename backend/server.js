@@ -174,7 +174,29 @@ server.listen(server_port, () => {
     initializeConfig();
   });
   console.log(`Server is running at port: ${server_port}`);
+  fixUsers();
 });
+
+async function fixUsers() {
+  // temp year fix for users in תשפ״ו and תשפ״ה
+  // const users = await User.find({ participationYear: "תשפ״ו" });
+  const users = await User.find({ participationYear: "תשפ\"ו" });
+  console.log("Users in תשפ״ו:", users.length);
+  // You can also log the user details if needed
+  users.forEach(user => {
+    console.log(`User ID: ${user._id}, Name: ${user.name}`);
+    user.participationYear = "תשפ״ו"; // Update the participation year
+    user.save(); 
+  });
+
+  const users2 = await User.find({ participationYear: "תשפ\"ה" });
+  console.log("Users in תשפ״ה:", users2.length);
+  users2.forEach(user => {
+    console.log(`User ID: ${user._id}, Name: ${user.name}`);
+    user.participationYear = "תשפ״ה"; // Update the participation year
+    user.save();
+  });
+}
 
 // ----------------- Scheduler -----------------
 
