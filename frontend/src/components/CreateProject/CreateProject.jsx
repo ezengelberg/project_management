@@ -365,6 +365,7 @@ const CreateProject = () => {
             <Option value="תעשייתי לא הייטק">תעשייתי לא הייטק</Option>
             <Option value="יוזמת מנחה">יוזמת מנחה</Option>
             <Option value="יוזמת סטודנט">יוזמת סטודנט</Option>
+            <Option value="סטאז'">סטאז'</Option>
             <Option value="אחר">אחר</Option>
           </Select>
         </Form.Item>
