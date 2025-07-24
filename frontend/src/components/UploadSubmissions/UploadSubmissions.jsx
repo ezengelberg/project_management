@@ -576,12 +576,16 @@ const UploadSubmissions = () => {
                   />
                 </Tooltip>
               </a>
-              <Divider type="vertical" style={{ height: "1.9em" }} />
-              <a>
-                <Tooltip className="edit-icon" title="כל הציונים">
-                  <BarChartOutlined onClick={() => showGradeDistributionModal(record._id)} />
-                </Tooltip>
-              </a>
+              {record.isGraded && (
+                <>
+                  <Divider type="vertical" style={{ height: "1.9em" }} />
+                  <a>
+                    <Tooltip className="edit-icon" title="כל הציונים">
+                      <BarChartOutlined onClick={() => showGradeDistributionModal(record._id)} />
+                    </Tooltip>
+                  </a>
+                </>
+              )}
             </div>
           ) : (
             new Date(record.submissionDate) < new Date() &&
