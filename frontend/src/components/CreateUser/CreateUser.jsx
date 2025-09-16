@@ -8,42 +8,6 @@ import { Button, Form, Input, Select, message, Upload, Table, Checkbox, Tooltip,
 import { NotificationsContext } from "../../utils/NotificationsContext";
 import { getHebrewYearBundle } from "../../utils/dates/hebrewYears";
 
-// Helper function to get Hebrew years correctly
-function getHebrewYearBundle(date = new Date()) {
-  const { year: currentYear } = toJewishDate(date);
-
-  // Remove leading ה/ה׳ and keep Hebrew letters & punctuation like ׳/״
-  const cleanHebrewYearToken = (token) =>
-    token
-      .replace(/^ה[׳']?/, '')          // strip ה or ה׳
-      .replace(/[^\u05D0-\u05EA"׳״']/g, '') // keep Hebrew letters + common geresh/gershayim
-      .trim();
-
-  // Format a Hebrew year label by formatting 1 Tishrei of that year and taking the last token.
-  const formatYearHeb = (y) => {
-    // NOTE: Many libs use Tishrei=7 (Nisan=1). If your lib uses Tishrei=1, change month: 7 -> 1.
-    const tishrei = { day: 1, month: 7, year: y };
-    const full = formatJewishDateInHebrew(tishrei);
-    const yearToken = full.trim().split(/\s+/).pop();
-    return cleanHebrewYearToken(yearToken);
-  };
-
-  const previousYear = currentYear - 1;
-  const nextYear = currentYear + 1;
-
-  return {
-    // numeric years
-    current: currentYear,
-    previous: previousYear,
-    next: nextYear,
-
-    // Hebrew labels like "תשפ״ח"
-    currentLabel: formatYearHeb(currentYear),
-    previousLabel: formatYearHeb(previousYear),
-    nextLabel: formatYearHeb(nextYear),
-  };
-}
-
 const CreateUser = () => {
   const { Dragger } = Upload;
   const { fetchNotifications } = useContext(NotificationsContext);
