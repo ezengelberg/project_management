@@ -9,7 +9,7 @@ import DOMPurify from "dompurify";
 import { processContent } from "../../utils/htmlProcessor";
 import { handleMouseDown } from "../../utils/mouseDown";
 import { NotificationsContext } from "../../utils/NotificationsContext";
-import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
+import { getHebrewYearBundle } from "../../utils/dates/hebrewYears";
 
 const SuggestProject = () => {
   const navigate = useNavigate();
@@ -46,16 +46,7 @@ const SuggestProject = () => {
   }, []);
 
   const today = new Date();
-  const currentHebrewDate = toJewishDate(today);
-  const currentHebrewYear = formatJewishDateInHebrew(currentHebrewDate).split(" ").pop().replace(/^ה/, "");
-
-  const previousDate = new Date();
-  previousDate.setFullYear(today.getFullYear() - 1);
-  const previousHebrewYear = formatJewishDateInHebrew(toJewishDate(previousDate)).split(" ").pop().replace(/^ה/, "");
-
-  const nextDate = new Date();
-  nextDate.setFullYear(today.getFullYear() + 1);
-  const nextHebrewYear = formatJewishDateInHebrew(toJewishDate(nextDate)).split(" ").pop().replace(/^ה/, "");
+  const { currentLabel: currentHebrewYear, previousLabel: previousHebrewYear, nextLabel: nextHebrewYear } = getHebrewYearBundle(today);
 
   useEffect(() => {
     getSuggestedProject();

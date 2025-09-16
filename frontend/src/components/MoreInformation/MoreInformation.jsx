@@ -31,7 +31,7 @@ import { processContent } from "../../utils/htmlProcessor";
 import FileCard from "../FileCard/FileCard";
 import * as XLSX from "xlsx";
 import { NotificationsContext } from "../../utils/NotificationsContext";
-import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
+import { getHebrewYearBundle } from "../../utils/dates/hebrewYears";
 
 const MoreInformation = () => {
   const { fetchNotifications } = useContext(NotificationsContext);
@@ -127,16 +127,7 @@ const MoreInformation = () => {
   }, []);
 
   const today = new Date();
-  const currentHebrewDate = toJewishDate(today);
-  const currentHebrewYear = formatJewishDateInHebrew(currentHebrewDate).split(" ").pop().replace(/^ה/, "");
-
-  const previousDate = new Date();
-  previousDate.setFullYear(today.getFullYear() - 1);
-  const previousHebrewYear = formatJewishDateInHebrew(toJewishDate(previousDate)).split(" ").pop().replace(/^ה/, "");
-
-  const nextDate = new Date();
-  nextDate.setFullYear(today.getFullYear() + 1);
-  const nextHebrewYear = formatJewishDateInHebrew(toJewishDate(nextDate)).split(" ").pop().replace(/^ה/, "");
+  const { currentLabel: currentHebrewYear, previousLabel: previousHebrewYear, nextLabel: nextHebrewYear } = getHebrewYearBundle(today);
 
   const FileExcelOutlinedIcon = () => (
     <svg className="excel-icon" viewBox="0 0 32 32" fill="#000000" onClick={exportToExcel}>

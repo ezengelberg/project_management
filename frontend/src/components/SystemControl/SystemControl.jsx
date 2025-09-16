@@ -16,7 +16,7 @@ import {
   Radio,
 } from "antd";
 import { EditOutlined, SaveOutlined, StopOutlined, DeleteOutlined } from "@ant-design/icons";
-import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
+import { getHebrewYearBundle } from "../../utils/dates/hebrewYears";
 import { NotificationsContext } from "../../utils/NotificationsContext";
 import { downloadProjectExcel, downloadGradesExcel } from "../../utils/ProjectTableExcel";
 import { Editor } from "primereact/editor";
@@ -104,22 +104,7 @@ const SystemControl = () => {
       setGradingTableYear(currentYear);
 
       const today = new Date();
-      const currentHebrewDate = toJewishDate(today);
-
-      // Format years into Hebrew letters
-      const formattedCurrentYear = formatJewishDateInHebrew(currentHebrewDate).split(" ").pop().replace(/^ה/, ""); // Remove "ה" prefix if needed
-
-      // Create new Date objects for previous and next years to avoid mutating 'today'
-      const previousDate = new Date(today);
-      previousDate.setFullYear(today.getFullYear() - 1);
-      const formattedPreviousYear = formatJewishDateInHebrew(toJewishDate(previousDate))
-        .split(" ")
-        .pop()
-        .replace(/^ה/, "");
-
-      const nextDate = new Date(today);
-      nextDate.setFullYear(today.getFullYear() + 1);
-      const formattedNextYear = formatJewishDateInHebrew(toJewishDate(nextDate)).split(" ").pop().replace(/^ה/, "");
+      const { currentLabel: formattedCurrentYear, previousLabel: formattedPreviousYear, nextLabel: formattedNextYear } = getHebrewYearBundle(today);
 
       // Set the years array
       const yearsArray = [formattedNextYear, formattedCurrentYear, formattedPreviousYear];

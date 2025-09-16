@@ -4,7 +4,7 @@ import axios from "axios";
 import { Table, message, Button, Tabs, Select, Modal, Input, Tooltip, Tag } from "antd";
 import { getColumnSearchProps as getColumnSearchPropsUtil } from "../../utils/tableUtils";
 import { NotificationsContext } from "../../utils/NotificationsContext";
-import { toJewishDate, formatJewishDateInHebrew } from "jewish-date";
+import { getHebrewYearBundle } from "../../utils/dates/hebrewYears";
 import { processContent } from "../../utils/htmlProcessor";
 
 const ApproveProjects = () => {
@@ -73,7 +73,7 @@ const ApproveProjects = () => {
       const sortedYears = projectsResponse.data.sort((a, b) => b.localeCompare(a));
       setYears(sortedYears);
 
-      const currentHebrewYear = formatJewishDateInHebrew(toJewishDate(new Date())).split(" ").pop().replace(/^ה/, "");
+      const { currentLabel: currentHebrewYear } = getHebrewYearBundle(new Date());
       const currentHebrewYearIndex = sortedYears.indexOf(currentHebrewYear);
       if (sortedYears.includes(configResponse.data.currentYear)) {
         setYearFilter(configResponse.data.currentYear);
